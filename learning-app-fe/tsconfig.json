@@ -18,8 +18,9 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".", // 🔹 Thêm dòng này
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["src/*"] // 🔹 Sửa từ ./* → src/*
     }
   },
   "include": [
