@@ -1,19 +1,29 @@
+// src/lib/axios-client.ts
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: "http://localhost:8080/api/v1",
+// ✅ Axios cho request public (không gắn Authorization)
+export const axiosPublic = axios.create({
+  baseURL:
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1",
+  timeout: 10000,
   headers: {
-    "Content-Type": "application/json",
+    // Explicit không gửi Authorization
+    Authorization: undefined,
   },
 });
 
-// Request: gắn accessToken
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+// ✅ Axios cho request cần auth
+export const axiosClient = axios.create({
+  baseURL:
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1",
+  timeout: 10000,
+  // Nếu bạn có JWT, sẽ attach token ở đây
+  // headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
 });
 
-export default api;
+export class HttpClientError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "HttpClientError";
+  }
+}
