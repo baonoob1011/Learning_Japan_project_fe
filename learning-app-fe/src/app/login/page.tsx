@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import { login } from "@/services/auth";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -11,23 +12,32 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
+  const handleLogin = async () => {
+    if (!username || !password) {
+      setError("Vui lòng nhập đầy đủ tài khoản và mật khẩu");
+      return;
+    }
 
-  const handleLogin = () => {
     setIsLoading(true);
     setError("");
 
-    // Simulate login
-    setTimeout(() => {
-      if (username && password) {
-        alert("Đăng nhập thành công! (Demo mode)");
-      } else {
-        setError("Vui lòng nhập đầy đủ tài khoản và mật khẩu");
-      }
+    try {
+      await login({
+        email: username,
+        password,
+      });
+
+      // ✅ login OK → redirect
+      router.push("/video");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Đăng nhập thất bại");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
-  const handleKeyPress = (e) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleLogin();
     }
@@ -124,7 +134,10 @@ export default function LoginPage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl
+              text-gray-900 placeholder-gray-400
+              focus:outline-none focus:ring-2 focus:ring-teal-400
+              focus:border-transparent transition"
             />
           </div>
 
@@ -139,7 +152,10 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition pr-12"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl
+                text-gray-900 placeholder-gray-400
+                focus:outline-none focus:ring-2 focus:ring-teal-400
+                focus:border-transparent transition pr-12"
               />
               <button
                 type="button"

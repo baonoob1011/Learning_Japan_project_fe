@@ -8,6 +8,7 @@ export const API_CONFIG = {
 // API Endpoints (flat)
 export const API_ENDPOINTS = {
   REGISTER: "/users/register",
+  LOGIN: "/auth/login",
 } as const;
 
 // Helper function để lấy full endpoint URL
