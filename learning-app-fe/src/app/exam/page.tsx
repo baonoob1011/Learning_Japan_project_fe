@@ -5,6 +5,9 @@ import { ChevronLeft } from "lucide-react";
 import { typeInstructionStyles } from "@/config/questionTypeMap";
 import { questionService, QuestionApiResponse } from "@/services/question";
 import { AssessmentType } from "@/enums/assessmentType";
+import { useRouter, useSearchParams } from "next/navigation";
+import { examService } from "@/services/exam";
+import BackButton from "@/components/backButton";
 
 const stringToAssessmentType: Record<string, AssessmentType> = {
   KANJI_READING: AssessmentType.KANJI_READING,
@@ -32,21 +35,52 @@ export default function ExamPage() {
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
   const [timeLeft, setTimeLeft] = useState(170 * 60);
   const [mounted, setMounted] = useState(false);
-  const questionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [unansweredCount, setUnansweredCount] = useState(0);
 
-  // Handle client-side mounting and load saved time in one go
+  const [examResult, setExamResult] = useState<{
+    score: number;
+    answeredCount: number;
+    totalQuestions: number;
+    finishedAt: string;
+  } | null>(null);
+  const questionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const participantId = searchParams.get("participantId");
+
   useEffect(() => {
     const savedTime = localStorage.getItem("examTimeLeft");
-    const initialTime = savedTime ? Number(savedTime) : 170 * 60;
+    const savedParticipantId = localStorage.getItem("examParticipantId");
+    const durationParam = searchParams.get("duration");
+    const durationInSec = durationParam ? Number(durationParam) : 170 * 60;
 
-    // Use a microtask to avoid cascading renders
+    // Nếu participantId thay đổi (đề mới) hoặc chưa có savedParticipantId, reset time
+    const isNewExam =
+      !savedParticipantId ||
+      (participantId && savedParticipantId !== participantId);
+
+    const initialTime =
+      savedTime && !isNewExam ? Number(savedTime) : durationInSec;
+
+    // Lưu participantId hiện tại
+    if (participantId) {
+      localStorage.setItem("examParticipantId", participantId);
+    }
+
+    // Reset time về giá trị mới nếu là đề mới
+    if (isNewExam) {
+      localStorage.setItem("examTimeLeft", initialTime.toString());
+    }
+
     Promise.resolve().then(() => {
       setTimeLeft(initialTime);
       setMounted(true);
     });
-  }, []);
+  }, [searchParams, participantId]);
 
-  // Timer countdown and save to localStorage
   useEffect(() => {
     if (!mounted) return;
 
@@ -97,8 +131,73 @@ export default function ExamPage() {
     fetchQuestions();
   }, []);
 
-  const handleAnswerChange = (questionId: string, answer: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: answer }));
+  const handleAnswerChange = (questionId: string, answerText: string) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: answerText }));
+  };
+
+  const handleSubmitClick = () => {
+    if (!participantId) {
+      alert("Không tìm thấy participantId!");
+      return;
+    }
+
+    const unanswered = questions.length - Object.keys(answers).length;
+    setUnansweredCount(unanswered);
+    setShowConfirmModal(true);
+  };
+
+  const handleSubmit = async () => {
+    setShowConfirmModal(false);
+    setIsSubmitting(true);
+
+    if (!participantId) {
+      alert("Không tìm thấy participantId!");
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const answersArray = Object.entries(answers).map(
+        ([questionId, answer]) => ({
+          questionId,
+          answer,
+        })
+      );
+
+      console.log("Payload gửi đi:", {
+        participantId,
+        answers: answersArray,
+      });
+
+      const payload = {
+        participantId,
+        answers: answersArray,
+      };
+
+      const result = await examService.submitExam(payload);
+      console.log("Submit result:", result);
+
+      localStorage.removeItem("examTimeLeft");
+      localStorage.removeItem("examParticipantId");
+
+      setExamResult({
+        score: result.score,
+        answeredCount: answersArray.length,
+        totalQuestions: questions.length,
+        finishedAt: result.finishedAt,
+      });
+      setShowResultModal(true);
+    } catch (err) {
+      console.error("Submit thất bại:", err);
+
+      if (err instanceof Error) {
+        alert(`Gửi bài thất bại: ${err.message}`);
+      } else {
+        alert("Gửi bài thất bại, vui lòng thử lại.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const scrollToQuestion = (questionId: string) => {
@@ -175,11 +274,101 @@ export default function ExamPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Confirm Submit Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center">
+            <div className="mb-6">
+              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-4xl">📝</span>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">Nộp bài</h2>
+              <p className="text-gray-600 text-base">
+                Bạn có chắc chắn muốn nộp bài không?
+              </p>
+              {unansweredCount > 0 && (
+                <p className="text-gray-500 text-sm mt-2">
+                  Bạn còn{" "}
+                  <span className="font-bold text-amber-600">
+                    {unansweredCount} câu
+                  </span>{" "}
+                  chưa trả lời
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-full font-medium hover:bg-gray-200 transition"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleSubmit}
+                className="flex-1 bg-emerald-500 text-white py-3 rounded-full font-medium hover:bg-emerald-600 transition shadow-lg"
+              >
+                Nộp bài
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Result Modal */}
+      {showResultModal && examResult && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center transform transition-all">
+            <div className="mb-6">
+              <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-5xl">🎉</span>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Nộp bài thành công!
+              </h2>
+              <p className="text-gray-600">
+                Chúc mừng bạn đã hoàn thành bài thi
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-6 mb-6">
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-1">Điểm số của bạn</p>
+                <p className="text-5xl font-bold text-emerald-600">
+                  {examResult.score}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="bg-white bg-opacity-50 rounded-lg p-3">
+                  <p className="text-gray-600 mb-1">Số câu đã làm</p>
+                  <p className="text-xl font-bold text-gray-900">
+                    {examResult.answeredCount}/{examResult.totalQuestions}
+                  </p>
+                </div>
+                <div className="bg-white bg-opacity-50 rounded-lg p-3">
+                  <p className="text-gray-600 mb-1">Hoàn thành lúc</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {new Date(examResult.finishedAt).toLocaleTimeString(
+                      "vi-VN",
+                      { hour: "2-digit", minute: "2-digit" }
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => router.push("/practice")}
+              className="w-full bg-emerald-500 text-white py-3 rounded-full font-medium hover:bg-emerald-600 transition shadow-lg"
+            >
+              Về trang luyện tập
+            </button>
+          </div>
+        </div>
+      )}
+
       <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
-        <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition">
-          <ChevronLeft className="w-5 h-5" />
-          <span className="font-medium">Trở về</span>
-        </button>
+        <BackButton to="/practice" />
         <div className="text-2xl">🐸</div>
         <div className="flex items-center gap-4">
           <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
@@ -259,7 +448,7 @@ export default function ExamPage() {
                         <label
                           key={option.label}
                           className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition ${
-                            answers[question.id] === option.label
+                            answers[question.id] === option.text
                               ? "border-emerald-500 bg-emerald-50"
                               : "border-gray-300 hover:bg-gray-50"
                           }`}
@@ -267,10 +456,10 @@ export default function ExamPage() {
                           <input
                             type="radio"
                             name={`question-${question.id}`}
-                            value={option.label}
-                            checked={answers[question.id] === option.label}
+                            value={option.text}
+                            checked={answers[question.id] === option.text}
                             onChange={() =>
-                              handleAnswerChange(question.id, option.label)
+                              handleAnswerChange(question.id, option.text)
                             }
                             className="w-5 h-5 text-emerald-500 focus:ring-emerald-500"
                           />
@@ -294,6 +483,17 @@ export default function ExamPage() {
                 {mounted ? formatTime(timeLeft) : "02:50:00"}
               </span>
             </div>
+
+            <div className="mb-4 text-center">
+              <p className="text-sm text-gray-600">
+                Đã làm:{" "}
+                <span className="font-bold text-emerald-600">
+                  {Object.keys(answers).length}
+                </span>{" "}
+                / {questions.length}
+              </p>
+            </div>
+
             {questionGroups.map((group, idx) => (
               <div key={idx} className="mb-4">
                 <h3 className="text-sm font-semibold text-gray-800 mb-2">
@@ -319,8 +519,16 @@ export default function ExamPage() {
           </div>
 
           <div className="sticky bottom-0 bg-white p-4 border-t border-gray-200 flex justify-center">
-            <button className="px-10 py-2.5 bg-emerald-500 text-white rounded-full font-medium hover:bg-emerald-600 transition text-sm shadow-lg">
-              Nộp bài
+            <button
+              className={`px-10 py-2.5 rounded-full font-medium text-sm shadow-lg transition ${
+                isSubmitting
+                  ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                  : "bg-emerald-500 text-white hover:bg-emerald-600"
+              }`}
+              disabled={isSubmitting}
+              onClick={handleSubmitClick}
+            >
+              {isSubmitting ? "Đang nộp bài..." : "Nộp bài"}
             </button>
           </div>
         </div>
