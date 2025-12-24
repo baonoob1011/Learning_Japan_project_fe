@@ -9,6 +9,10 @@ export const API_CONFIG = {
 export const API_ENDPOINTS = {
   REGISTER: "/users/register",
   LOGIN: "/auth/login",
+  EXAM: {
+    EXAM_VIEW_ALL: "/exams",
+    QUESTION_VIEW_ALL: "/questions",
+  },
 } as const;
 
 // Helper function để lấy full endpoint URL
