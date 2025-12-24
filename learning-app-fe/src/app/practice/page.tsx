@@ -3,9 +3,10 @@ import { useRouter } from "next/navigation";
 
 import React, { useEffect, useState } from "react";
 import { Search, Clock, Users, ChevronDown } from "lucide-react";
-import { examService, ExamResponse } from "@/services/exam";
+import { examService, ExamResponse, StartExamResponse } from "@/services/exam";
 
 interface ExamCardProps {
+  id: string; // ID của exam
   title: string;
   duration: number;
   participants: number;
@@ -15,6 +16,7 @@ interface ExamCardProps {
 }
 
 const ExamCard: React.FC<ExamCardProps> = ({
+  id,
   title,
   duration,
   participants,
@@ -23,6 +25,28 @@ const ExamCard: React.FC<ExamCardProps> = ({
   isDark,
 }) => {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const handleStartExam = async () => {
+    setLoading(true);
+    try {
+      // Gọi API start exam
+      const res: StartExamResponse = await examService.startExam({
+        examId: id,
+      });
+
+      // Điều hướng sang trang làm bài, truyền participantId và duration
+      router.push(
+        `/exam?examId=${res.examId}&participantId=${res.participantId}&duration=${res.duration}`
+      );
+    } catch (err) {
+      console.error("Lỗi khi bắt đầu bài thi:", err);
+      alert("Không thể bắt đầu bài thi. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div
       className={`${
@@ -62,15 +86,15 @@ const ExamCard: React.FC<ExamCardProps> = ({
       </div>
 
       <button
-        onClick={() => router.push(`/exam?duration=${duration}`)}
-        className="w-full py-3 border-2 border-emerald-500 text-emerald-500 rounded-xl font-semibold"
+        onClick={handleStartExam}
+        disabled={loading}
+        className="w-full py-3 border-2 border-emerald-500 text-emerald-500 rounded-xl font-semibold disabled:opacity-50"
       >
-        Bắt đầu thi
+        {loading ? "Đang bắt đầu..." : "Bắt đầu thi"}
       </button>
     </div>
   );
 };
-
 export default function PracticePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeLevel, setActiveLevel] = useState("N1");
@@ -147,7 +171,8 @@ export default function PracticePage() {
           {filteredExams.map((exam) => (
             <ExamCard
               key={exam.id}
-              title={`${exam.code}`}
+              id={exam.id} // thêm prop id
+              title={exam.code}
               duration={exam.duration}
               participants={0}
               sections={exam.numSections}

@@ -5,7 +5,6 @@ import { ChevronLeft } from "lucide-react";
 import { typeInstructionStyles } from "@/config/questionTypeMap";
 import { questionService, QuestionApiResponse } from "@/services/question";
 import { AssessmentType } from "@/enums/assessmentType";
-import { useSearchParams } from "next/navigation";
 
 const stringToAssessmentType: Record<string, AssessmentType> = {
   KANJI_READING: AssessmentType.KANJI_READING,
@@ -29,48 +28,54 @@ interface Question {
 }
 
 export default function ExamPage() {
-  const searchParams = useSearchParams();
-  const durationParam = searchParams.get("duration");
-  const duration = durationParam ? Number(durationParam) : 170; // phút
-
-  const [timeLeft, setTimeLeft] = useState(duration * 60); // giây
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
+  const [timeLeft, setTimeLeft] = useState(170 * 60);
+  const [mounted, setMounted] = useState(false);
   const questionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  // Reset timer nếu duration thay đổi
+  // Handle client-side mounting and load saved time in one go
   useEffect(() => {
-    setTimeLeft(duration * 60);
-  }, [duration]);
+    const savedTime = localStorage.getItem("examTimeLeft");
+    const initialTime = savedTime ? Number(savedTime) : 170 * 60;
 
-  // Countdown timer
+    // Use a microtask to avoid cascading renders
+    Promise.resolve().then(() => {
+      setTimeLeft(initialTime);
+      setMounted(true);
+    });
+  }, []);
+
+  // Timer countdown and save to localStorage
   useEffect(() => {
+    if (!mounted) return;
+
     const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev <= 0 ? 0 : prev - 1));
+      setTimeLeft((prev) => {
+        const newTime = prev <= 0 ? 0 : prev - 1;
+        localStorage.setItem("examTimeLeft", newTime.toString());
+        return newTime;
+      });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [mounted]);
 
-  // Format time
   const formatTime = (seconds: number) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    if (h > 0) {
-      return `${h.toString().padStart(2, "0")}:${m
-        .toString()
-        .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-    }
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Fetch questions
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
         const apiResult: QuestionApiResponse[] = await questionService.getAll();
         apiResult.sort((a, b) => a.orderNum - b.orderNum);
+
         const mappedQuestions: Question[] = apiResult.map((q) => ({
           id: q.id,
           questionType: q.questionType,
@@ -82,11 +87,13 @@ export default function ExamPage() {
           answer: q.answer,
           orderNum: q.orderNum,
         }));
+
         setQuestions(mappedQuestions);
       } catch (err) {
         console.error("Lỗi khi lấy câu hỏi:", err);
       }
     };
+
     fetchQuestions();
   }, []);
 
@@ -208,6 +215,7 @@ export default function ExamPage() {
               const showTypeChange =
                 idx === 0 ||
                 questions[idx - 1].questionType !== question.questionType;
+
               const currentGroup = questionGroups.find(
                 (g) => g.key === question.questionType
               );
@@ -216,7 +224,7 @@ export default function ExamPage() {
                 <div
                   key={question.id}
                   ref={(el) => {
-                    questionRefs.current[question.id] = el;
+                    questionRefs.current[question.id] = el ?? null;
                   }}
                   className="mb-8"
                 >
@@ -279,15 +287,13 @@ export default function ExamPage() {
           </div>
         </div>
 
-        {/* Sidebar */}
         <div className="w-80 bg-white border-l border-gray-200 flex flex-col h-screen">
           <div className="flex-1 overflow-y-auto px-6 py-4">
             <div className="text-center mb-4">
               <span className="font-mono text-3xl font-bold text-emerald-500">
-                {formatTime(timeLeft)}
+                {mounted ? formatTime(timeLeft) : "02:50:00"}
               </span>
             </div>
-
             {questionGroups.map((group, idx) => (
               <div key={idx} className="mb-4">
                 <h3 className="text-sm font-semibold text-gray-800 mb-2">

@@ -11,6 +11,7 @@ export const API_ENDPOINTS = {
   LOGIN: "/auth/login",
   EXAM: {
     EXAM_VIEW_ALL: "/exams",
+    EXAM_START: "/exams/start",
     QUESTION_VIEW_ALL: "/questions",
   },
 } as const;
