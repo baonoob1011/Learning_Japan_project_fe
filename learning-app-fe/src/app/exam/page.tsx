@@ -177,16 +177,20 @@ export default function ExamPage() {
       const result = await examService.submitExam(payload);
       console.log("Submit result:", result);
 
+      // Xóa dữ liệu localStorage
       localStorage.removeItem("examTimeLeft");
       localStorage.removeItem("examParticipantId");
 
+      // Cập nhật trạng thái result
       setExamResult({
         score: result.score,
         answeredCount: answersArray.length,
         totalQuestions: questions.length,
         finishedAt: result.finishedAt,
       });
-      setShowResultModal(true);
+
+      // --- Redirect sang /breakTime ---
+      router.push("/breakPage");
     } catch (err) {
       console.error("Submit thất bại:", err);
 

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { Search, Clock, Users, ChevronDown } from "lucide-react";
 import { examService, ExamResponse, StartExamResponse } from "@/services/exam";
+import BackButton from "@/components/backButton";
 
 interface ExamCardProps {
   id: string; // ID của exam
@@ -95,6 +96,7 @@ const ExamCard: React.FC<ExamCardProps> = ({
     </div>
   );
 };
+
 export default function PracticePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeLevel, setActiveLevel] = useState("N1");
@@ -132,8 +134,26 @@ export default function PracticePage() {
     <div
       className={`min-h-screen ${isDarkMode ? "bg-gray-900" : "bg-gray-50"}`}
     >
-      {/* CONTENT */}
+      {/* HEADER */}
+      <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+        <BackButton to="/video" />
+        <div className="text-2xl">🐸</div>
+        <div className="flex items-center gap-4">
+          <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
+            🛍️ Sản phẩm
+          </button>
+          <button className="text-xl">🍜</button>
+          <button className="text-xl">🎮</button>
+          <button className="flex items-center gap-1 text-gray-600">
+            🇻🇳 VN
+          </button>
+          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
+            B
+          </div>
+        </div>
+      </header>
 
+      {/* CONTENT */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Level Tabs */}
         <div className="flex gap-3 mb-6">
@@ -171,7 +191,7 @@ export default function PracticePage() {
           {filteredExams.map((exam) => (
             <ExamCard
               key={exam.id}
-              id={exam.id} // thêm prop id
+              id={exam.id}
               title={exam.code}
               duration={exam.duration}
               participants={0}
