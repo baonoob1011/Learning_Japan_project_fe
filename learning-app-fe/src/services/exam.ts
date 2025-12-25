@@ -5,6 +5,25 @@ import { API_ENDPOINTS } from "@/config/api";
 import { useAuthStore } from "@/stores/authStore";
 import type { AxiosError } from "axios";
 
+export interface SectionWithQuestionsResponse {
+  id: string;
+  examId: string;
+  title: string;
+  sectionDuration: number; // thêm field này
+  sectionOrder: number;
+  questions: {
+    id: string;
+    sectionOrder: number;
+    questionType: string;
+    questionText: string;
+    options: string;
+    answer: string;
+    imageUrl: string;
+    audioUrl: string;
+    questionOrder: number;
+  }[];
+}
+
 export interface ExamResponse {
   id: string;
   code: string;
@@ -69,6 +88,40 @@ export interface SubmitExamResponse {
 }
 
 export const examService = {
+  async getSections(examId: string): Promise<SectionWithQuestionsResponse[]> {
+    try {
+      const { accessToken } = useAuthStore.getState();
+
+      const res = await axiosClient.get<
+        ApiResponse<SectionWithQuestionsResponse[]>
+      >(`/exams/sections/${examId}`, {
+        headers: {
+          Authorization: accessToken ? `Bearer ${accessToken}` : undefined,
+        },
+      });
+
+      if (!res.data.success) {
+        throw new Error(
+          res.data.message || "Không lấy được sections của đề thi"
+        );
+      }
+
+      return res.data.result;
+    } catch (error: unknown) {
+      const axiosErr = error as AxiosError<ApiResponse<unknown>>;
+      if (axiosErr.response) {
+        throw new Error(
+          axiosErr.response.data?.message ||
+            `Lỗi khi fetch sections, status ${axiosErr.response.status}`
+        );
+      } else if (axiosErr.request) {
+        throw new Error("Không nhận được phản hồi từ server");
+      } else if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Lỗi không xác định khi fetch sections");
+    }
+  },
   async getAll(): Promise<ExamResponse[]> {
     try {
       const { accessToken } = useAuthStore.getState();

@@ -1,32 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { typeInstructionStyles } from "@/config/questionTypeMap";
-import { questionService, QuestionApiResponse } from "@/services/question";
-import { AssessmentType } from "@/enums/assessmentType";
 import { useRouter, useSearchParams } from "next/navigation";
-import { examService } from "@/services/exam";
+import { examService, SectionWithQuestionsResponse } from "@/services/exam";
 import BackButton from "@/components/backButton";
 import { QUESTION_TYPE_ORDER } from "@/components/questionTypeOrder";
 import { LISTENING_TYPE_ORDER } from "@/components/listeningTypeOrder";
 import { useExamResultStore } from "@/stores/examResultStore";
-
-const stringToAssessmentType: Record<string, AssessmentType> = {
-  KANJI_READING: AssessmentType.KANJI_READING,
-  KANJI_MEMORY: AssessmentType.KANJI_MEMORY,
-  VOCAB_CONTEXT: AssessmentType.VOCAB_CONTEXT,
-  GRAMMAR_SELECT: AssessmentType.FILL_BLANK,
-  SENTENCE_ORDER: AssessmentType.SENTENCE_ORDER,
-  PARAPHRASE: AssessmentType.FILL_BLANK,
-  TEXT_COMPLETION: AssessmentType.FILL_BLANK,
-  READING_SHORT: AssessmentType.READING_SHORT,
-  READING_MEDIUM: AssessmentType.READING_SHORT,
-  LISTENING_1: AssessmentType.LISTENING_TASK,
-  LISTENING_2: AssessmentType.LISTENING_CHOICE_PREVIEW,
-  LISTENING_3: AssessmentType.LISTENING_MAIN_IDEA,
-  LISTENING_4: AssessmentType.LISTENING_RESPONSE,
-  LISTENING_5: AssessmentType.LISTENING_LONG,
-};
 
 interface Question {
   id: string;
@@ -36,6 +16,16 @@ interface Question {
   text: string;
   options: { label: string; text: string }[];
   answer: string;
+  imageUrl?: string;
+  audioUrl?: string;
+}
+
+interface Section {
+  id: string;
+  examId: string;
+  title: string;
+  sectionDuration: number;
+  sectionOrder: number;
 }
 
 export default function ExamPage() {
@@ -45,9 +35,9 @@ export default function ExamPage() {
   const participantId = searchParams.get("participantId");
   const sectionParam = searchParams.get("section");
   const sectionFromUrl = sectionParam ? Number(sectionParam) : 1;
+  const examId = searchParams.get("examId");
 
-  const TOTAL_SECTIONS = 2;
-
+  const [sections, setSections] = useState<Section[]>([]);
   const [currentSectionOrder, setCurrentSectionOrder] =
     useState(sectionFromUrl);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -55,13 +45,11 @@ export default function ExamPage() {
   const [allAnswers, setAllAnswers] = useState<Record<string, string>>({});
   const mergedAnswers = { ...allAnswers, ...answers };
   const setResult = useExamResultStore((state) => state.setResult);
-  const [timeLeft, setTimeLeft] = useState(170 * 60);
+  const [timeLeft, setTimeLeft] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showResultModal, setShowResultModal] = useState(false);
   const [unansweredCount, setUnansweredCount] = useState(0);
-
   const questionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   /* ------------------ SYNC SECTION ------------------ */
@@ -77,16 +65,92 @@ export default function ExamPage() {
     }
   }, []);
 
-  /* ------------------ TIMER ------------------ */
+  /* ------------------ FETCH QUESTIONS & SECTIONS ------------------ */
   useEffect(() => {
-    const savedTime = localStorage.getItem("examTimeLeft");
+    if (!examId) return;
+
+    const fetchQuestions = async () => {
+      try {
+        const sectionsData: SectionWithQuestionsResponse[] =
+          await examService.getSections(examId);
+
+        console.log("📦 Sections data from API:", sectionsData);
+
+        // Lưu thông tin sections
+        const sectionsInfo: Section[] = sectionsData.map((s) => ({
+          id: s.id,
+          examId: s.examId,
+          title: s.title,
+          sectionDuration: s.sectionDuration,
+          sectionOrder: s.sectionOrder,
+        }));
+        setSections(sectionsInfo);
+        console.log("✅ Sections info:", sectionsInfo);
+
+        // Map tất cả questions
+        const mapped = sectionsData.flatMap((section) =>
+          section.questions.map((q) => {
+            let parsedOptions: { label: string; text: string }[] = [];
+            try {
+              const optionsArray: string[] = JSON.parse(q.options);
+              parsedOptions = optionsArray.map((text, index) => ({
+                label: String(index + 1),
+                text: text,
+              }));
+            } catch (err) {
+              console.error("Error parsing options for question:", q.id, err);
+              parsedOptions = [];
+            }
+
+            return {
+              id: q.id,
+              sectionOrder: section.sectionOrder,
+              questionOrder: q.questionOrder,
+              questionType: q.questionType,
+              text: q.questionText,
+              options: parsedOptions,
+              answer: q.answer,
+              imageUrl: q.imageUrl,
+              audioUrl: q.audioUrl,
+            };
+          })
+        );
+
+        console.log("📝 All mapped questions:", mapped);
+        console.log("📊 Questions by section:", {
+          section1: mapped.filter((q) => q.sectionOrder === 1).length,
+          section2: mapped.filter((q) => q.sectionOrder === 2).length,
+        });
+
+        setQuestions(mapped);
+      } catch (err) {
+        console.error("Lỗi fetch questions:", err);
+      }
+    };
+
+    fetchQuestions();
+  }, [examId]);
+
+  /* ------------------ TIMER - Reset khi đổi section ------------------ */
+  useEffect(() => {
+    if (sections.length === 0) return;
+
+    const currentSection = sections.find(
+      (s) => s.sectionOrder === currentSectionOrder
+    );
+    if (!currentSection) return;
+
+    const savedTime = localStorage.getItem(
+      `examTimeLeft_section_${currentSectionOrder}`
+    );
     const savedParticipantId = localStorage.getItem("examParticipantId");
-    const durationParam = searchParams.get("duration");
-    const durationInSec = durationParam ? Number(durationParam) : 170 * 60;
 
     const isNewExam =
       !savedParticipantId ||
       (participantId && savedParticipantId !== participantId);
+
+    // Duration tính bằng giây
+    const durationInSec = currentSection.sectionDuration * 60;
 
     const initialTime =
       savedTime && !isNewExam ? Number(savedTime) : durationInSec;
@@ -95,60 +159,51 @@ export default function ExamPage() {
       localStorage.setItem("examParticipantId", participantId);
     }
 
-    if (isNewExam) {
-      localStorage.setItem("examTimeLeft", initialTime.toString());
+    if (isNewExam || !savedTime) {
+      localStorage.setItem(
+        `examTimeLeft_section_${currentSectionOrder}`,
+        initialTime.toString()
+      );
     }
 
     setTimeLeft(initialTime);
     setMounted(true);
-  }, [participantId, searchParams]);
+  }, [sections, currentSectionOrder, participantId]);
 
+  /* ------------------ COUNTDOWN TIMER ------------------ */
   useEffect(() => {
     if (!mounted || isSubmitting) return;
+
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         const t = prev > 0 ? prev - 1 : 0;
-        localStorage.setItem("examTimeLeft", t.toString());
+        localStorage.setItem(
+          `examTimeLeft_section_${currentSectionOrder}`,
+          t.toString()
+        );
         return t;
       });
     }, 1000);
+
     return () => clearInterval(timer);
-  }, [mounted, isSubmitting]);
+  }, [mounted, isSubmitting, currentSectionOrder]);
 
   const formatTime = (s: number) =>
     `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(
       Math.floor((s % 3600) / 60)
     ).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
-  /* ------------------ FETCH QUESTIONS ------------------ */
-
-  useEffect(() => {
-    const fetchQuestions = async () => {
-      const api: QuestionApiResponse[] = await questionService.getAll();
-      const mapped: Question[] = api.map((q) => ({
-        id: q.id,
-        questionType: q.questionType,
-        text: q.questionText,
-        options: JSON.parse(q.options).map((text: string, i: number) => ({
-          label: String(i + 1),
-          text,
-        })),
-        answer: q.answer,
-        questionOrder: q.questionOrder,
-        sectionOrder: q.sectionOrder,
-      }));
-      setQuestions(mapped);
-    };
-    fetchQuestions();
-  }, []);
-
-  const currentQuestions = useMemo(
-    () =>
-      questions
-        .filter((q) => q.sectionOrder === currentSectionOrder)
-        .sort((a, b) => a.questionOrder - b.questionOrder),
-    [questions, currentSectionOrder]
-  );
+  /* ------------------ CURRENT QUESTIONS ------------------ */
+  const currentQuestions = useMemo(() => {
+    const filtered = questions.filter(
+      (q) => q.sectionOrder === currentSectionOrder
+    );
+    console.log(
+      `🔍 Filtering questions for section ${currentSectionOrder}:`,
+      filtered.length
+    );
+    return filtered.sort((a, b) => a.questionOrder - b.questionOrder);
+  }, [questions, currentSectionOrder]);
 
   const answeredCount = currentQuestions.filter(
     (q) => mergedAnswers[q.id] !== undefined
@@ -158,25 +213,7 @@ export default function ExamPage() {
     return currentQuestions.sort((a, b) => a.questionOrder - b.questionOrder);
   }, [currentQuestions]);
 
-  /* ------------------ GROUP QUESTIONS ------------------ */
-  const questionGroups = useMemo(() => {
-    const map: Record<string, Question[]> = {};
-    currentQuestions.forEach((q) => {
-      map[q.questionType] = map[q.questionType] || [];
-      map[q.questionType].push(q);
-    });
-
-    const order =
-      currentSectionOrder === 1 ? QUESTION_TYPE_ORDER : LISTENING_TYPE_ORDER;
-
-    return order
-      .filter((o) => map[o.key])
-      .map((o) => ({
-        key: o.key,
-        label: o.label,
-        questions: map[o.key].sort((a, b) => a.questionOrder - b.questionOrder),
-      }));
-  }, [currentQuestions, currentSectionOrder]);
+  const TOTAL_SECTIONS = sections.length;
 
   /* ------------------ SUBMIT ------------------ */
   const handleSubmitClick = () => {
@@ -191,24 +228,30 @@ export default function ExamPage() {
 
   const handleSubmit = async () => {
     setShowConfirmModal(false);
-    if (!participantId) return;
+    if (!participantId || !examId) {
+      alert("Thiếu thông tin participantId hoặc examId!");
+      return;
+    }
 
     const merged = { ...allAnswers, ...answers };
     localStorage.setItem("examAllAnswers", JSON.stringify(merged));
     setAllAnswers(merged);
 
     if (currentSectionOrder < TOTAL_SECTIONS) {
+      // Lưu section đã hoàn thành
       localStorage.setItem(
         "examCompletedSection",
         currentSectionOrder.toString()
       );
 
+      // Chuyển sang break page
       router.push(
-        `/breakPage?participantId=${participantId}&nextSection=${
+        `/breakPage?participantId=${participantId}&examId=${examId}&nextSection=${
           currentSectionOrder + 1
         }`
       );
     } else {
+      // Submit toàn bộ bài thi
       setIsSubmitting(true);
       try {
         const response = await examService.submitExam({
@@ -223,8 +266,11 @@ export default function ExamPage() {
           setResult(response);
         }
 
+        // Clear all localStorage
         localStorage.removeItem("examAllAnswers");
-        localStorage.removeItem("examTimeLeft");
+        sections.forEach((s) => {
+          localStorage.removeItem(`examTimeLeft_section_${s.sectionOrder}`);
+        });
         localStorage.removeItem("examParticipantId");
         localStorage.removeItem("examCompletedSection");
 
@@ -246,6 +292,10 @@ export default function ExamPage() {
     });
   };
 
+  const currentSection = sections.find(
+    (s) => s.sectionOrder === currentSectionOrder
+  );
+
   /* ------------------ UI ------------------ */
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -255,8 +305,7 @@ export default function ExamPage() {
           <div className="flex items-center gap-4">
             <BackButton />
             <h1 className="text-xl font-semibold text-gray-800">
-              Phần {currentSectionOrder}:{" "}
-              {currentSectionOrder === 1 ? "Kiến thức ngôn ngữ" : "Nghe hiểu"}
+              Phần {currentSectionOrder}: {currentSection?.title || ""}
             </h1>
           </div>
           <div className="flex items-center gap-6">
@@ -300,6 +349,27 @@ export default function ExamPage() {
                     </h3>
                   </div>
 
+                  {/* Audio nếu có */}
+                  {q.audioUrl && (
+                    <div className="mb-4">
+                      <audio controls className="w-full">
+                        <source src={q.audioUrl} type="audio/mpeg" />
+                        Trình duyệt không hỗ trợ audio.
+                      </audio>
+                    </div>
+                  )}
+
+                  {/* Image nếu có */}
+                  {q.imageUrl && (
+                    <div className="mb-4">
+                      <img
+                        src={q.imageUrl}
+                        alt="Question image"
+                        className="max-w-full h-auto rounded-lg"
+                      />
+                    </div>
+                  )}
+
                   {/* Options */}
                   <div className="space-y-3">
                     {q.options.map((o) => (
@@ -337,7 +407,7 @@ export default function ExamPage() {
           <div className="flex-1 overflow-y-auto px-6 py-4">
             <div className="text-center mb-4">
               <span className="font-mono text-3xl font-bold text-emerald-500">
-                {mounted ? formatTime(timeLeft) : "02:50:00"}
+                {mounted ? formatTime(timeLeft) : "00:00:00"}
               </span>
             </div>
 
@@ -428,29 +498,6 @@ export default function ExamPage() {
                 Xác nhận
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Result Modal */}
-      {showResultModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center">
-            <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-5xl">🎉</span>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">
-              Nộp bài thành công!
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Bài thi của bạn đã được nộp. Kết quả sẽ được thông báo sau.
-            </p>
-            <button
-              onClick={() => router.push("/")}
-              className="w-full px-5 py-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 font-medium transition-colors shadow-lg"
-            >
-              Về trang chủ
-            </button>
           </div>
         </div>
       )}

@@ -11,6 +11,7 @@ export default function BreakPage() {
 
   const participantId = searchParams.get("participantId");
   const nextSection = Number(searchParams.get("nextSection") ?? 2);
+  const examId = searchParams.get("examId");
 
   // Countdown timer → hết giờ tự chuyển section
   useEffect(() => {
@@ -36,7 +37,7 @@ export default function BreakPage() {
           clearInterval(timer);
           localStorage.removeItem("breakStartTime");
           router.push(
-            `/exam?participantId=${participantId}&section=${nextSection}`
+            `/exam?participantId=${participantId}&section=${nextSection}&examId=${examId}`
           );
           return 0;
         }
@@ -45,7 +46,7 @@ export default function BreakPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [router, nextSection, participantId]);
+  }, [router, nextSection, participantId, examId]);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -58,7 +59,9 @@ export default function BreakPage() {
   const handleStartTest = () => {
     // Xóa breakStartTime khi user click bắt đầu sớm
     localStorage.removeItem("breakStartTime");
-    router.push(`/exam?participantId=${participantId}&section=${nextSection}`);
+    router.push(
+      `/exam?participantId=${participantId}&section=${nextSection}&examId=${examId}`
+    );
   };
 
   return (
