@@ -8,7 +8,6 @@ import { QUESTION_TYPE_ORDER } from "@/config/questionTypeOrder";
 import { LISTENING_TYPE_ORDER } from "@/config/listeningTypeOrder";
 import { useExamResultStore } from "@/stores/examResultStore";
 import { AssessmentType } from "@/enums/assessmentType";
-// import từ file mới
 import { instructionMap } from "@/config/instructionMap";
 
 interface Question {
@@ -61,6 +60,36 @@ export default function ExamPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [unansweredCount, setUnansweredCount] = useState(0);
   const questionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  /* ------------------ PREVENT BACK NAVIGATION ------------------ */
+  useEffect(() => {
+    const completedSectionStr = localStorage.getItem("examCompletedSection");
+    const completedSection = completedSectionStr
+      ? Number(completedSectionStr)
+      : 0;
+
+    // If user tries to access a section they've already completed, redirect forward
+    if (currentSectionOrder <= completedSection) {
+      const nextSection = completedSection + 1;
+      router.replace(
+        `/breakPage?participantId=${participantId}&examId=${examId}&nextSection=${nextSection}`
+      );
+      return;
+    }
+
+    // Prevent browser back button
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [currentSectionOrder, participantId, examId, router]);
 
   /* ------------------ SYNC SECTION ------------------ */
   useEffect(() => {
@@ -205,7 +234,6 @@ export default function ExamPage() {
     const filtered = questions.filter(
       (q) => q.sectionOrder === currentSectionOrder
     );
-    // Sort by questionOrder first (this is the actual order questions should appear)
     const sorted = filtered.sort((a, b) => a.questionOrder - b.questionOrder);
     console.log(
       `🔍 Questions for section ${currentSectionOrder} sorted by questionOrder:`,
@@ -220,12 +248,10 @@ export default function ExamPage() {
       (s) => s.sectionOrder === currentSectionOrder
     );
 
-    // Get the appropriate order list for instruction mapping
     const orderList = currentSection?.title.toLowerCase().includes("listening")
       ? LISTENING_TYPE_ORDER
       : QUESTION_TYPE_ORDER;
 
-    // Create a map for assessmentType lookup
     const typeToAssessmentMap = new Map(
       orderList.map((item) => [item.key, item.assessmentType])
     );
@@ -234,7 +260,6 @@ export default function ExamPage() {
     let currentGroup: QuestionGroup | null = null;
     let mondaiIndex = 1;
 
-    // Iterate through questions in their questionOrder
     currentQuestions.forEach((question) => {
       const assessmentType = typeToAssessmentMap.get(question.questionType);
 
@@ -243,7 +268,6 @@ export default function ExamPage() {
         return;
       }
 
-      // Start a new group if questionType changes or this is the first question
       if (
         !currentGroup ||
         currentGroup.questionType !== question.questionType
@@ -260,12 +284,10 @@ export default function ExamPage() {
           questions: [question],
         };
       } else {
-        // Add to current group
         currentGroup.questions.push(question);
       }
     });
 
-    // Push the last group
     if (currentGroup) {
       groups.push(currentGroup);
     }
@@ -373,7 +395,7 @@ export default function ExamPage() {
       <div className="bg-white border-b shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <BackButton />
+            {currentSectionOrder === 1 && <BackButton />}
             <h1 className="text-xl font-semibold text-gray-800">
               Phần {currentSectionOrder}: {currentSection?.title || ""}
             </h1>

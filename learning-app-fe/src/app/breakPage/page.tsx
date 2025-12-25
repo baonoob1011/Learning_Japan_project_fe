@@ -13,6 +13,22 @@ export default function BreakPage() {
   const nextSection = Number(searchParams.get("nextSection") ?? 2);
   const examId = searchParams.get("examId");
 
+  /* ------------------ PREVENT BACK NAVIGATION ------------------ */
+  useEffect(() => {
+    // Prevent browser back button
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
   // Countdown timer → hết giờ tự chuyển section
   useEffect(() => {
     const breakStartTimeRaw = localStorage.getItem("breakStartTime");
@@ -66,9 +82,9 @@ export default function BreakPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
-      {/* Header */}
+      {/* Header - BackButton removed since we don't allow going back */}
       <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-        <BackButton to="/practice" />
+        <div className="w-24"></div> {/* Spacer for layout balance */}
         <div className="text-2xl">🐸</div>
         <div className="flex items-center gap-4">
           <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
@@ -133,8 +149,9 @@ export default function BreakPage() {
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Lưu ý:</h3>
                 <p className="text-sm text-gray-600">
-                  Câu trả lời của Phần 1 đã được lưu tự động. Bạn sẽ không thể
-                  quay lại chỉnh sửa sau khi bắt đầu Phần {nextSection}.
+                  Câu trả lời của Phần {nextSection - 1} đã được lưu tự động.
+                  Bạn sẽ không thể quay lại chỉnh sửa sau khi bắt đầu Phần{" "}
+                  {nextSection}.
                 </p>
               </div>
             </div>
