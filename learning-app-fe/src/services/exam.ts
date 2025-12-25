@@ -63,27 +63,33 @@ export interface SubmitExamResponse {
   examId: string;
   examCode: string;
   aiReview?: string | null;
+
   totalScore: number; // điểm thi thực tế
   completed: boolean;
   answeredCount: number;
   totalQuestions: number;
   correctCount: number; // số câu đúng
   skippedCount: number; // số câu bỏ qua
+
   startedAt: string; // ISO string
   finishedAt: string; // ISO string
+
   answers: {
     questionId: string;
     questionText: string;
     questionType: string;
     optionsJson: string; // JSON string của các option
     correctAnswer: string;
+    sectionOrder?: number; // order của section
+    sectionTitle?: string; // title của section
+    sectionDuration?: number; // thời gian section
     answer: string | null;
     isCorrect: boolean;
     score: number;
     questionOrder: number;
     explanation: string;
-    imageUrl: string;
-    audioUrl: string;
+    imageUrl?: string;
+    audioUrl?: string;
   }[];
 }
 
