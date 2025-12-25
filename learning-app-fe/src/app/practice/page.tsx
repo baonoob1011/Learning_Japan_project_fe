@@ -13,6 +13,7 @@ interface ExamCardProps {
   participants: number;
   sections: number;
   questions: number;
+
   isDark: boolean;
 }
 
@@ -22,6 +23,7 @@ const ExamCard: React.FC<ExamCardProps> = ({
   duration,
   participants,
   sections,
+
   questions,
   isDark,
 }) => {
@@ -77,11 +79,15 @@ const ExamCard: React.FC<ExamCardProps> = ({
 
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5 text-gray-600" />
-          <span
-            className={`text-sm ${isDark ? "text-gray-300" : "text-gray-700"}`}
-          >
-            {participants} người đã thi
-          </span>
+          {participants > 0 && (
+            <span
+              className={`text-sm ${
+                isDark ? "text-gray-300" : "text-gray-700"
+              }`}
+            >
+              {participants} người đã thi
+            </span>
+          )}
         </div>
 
         <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
@@ -197,7 +203,7 @@ export default function PracticePage() {
               id={exam.id}
               title={exam.code}
               duration={exam.duration}
-              participants={0}
+              participants={exam.participant ?? 0} // lấy từ response
               sections={exam.numSections}
               questions={exam.numQuestions}
               isDark={isDarkMode}

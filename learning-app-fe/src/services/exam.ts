@@ -9,11 +9,13 @@ export interface ExamResponse {
   id: string;
   code: string;
   level: string;
+  participant: number;
   duration: number;
   numSections: number;
   numQuestions: number;
   createdAt: string;
   updatedAt: string;
+
 }
 
 export interface StartExamRequest {
