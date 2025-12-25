@@ -15,7 +15,6 @@ export interface ExamResponse {
   numQuestions: number;
   createdAt: string;
   updatedAt: string;
-
 }
 
 export interface StartExamRequest {
@@ -44,13 +43,29 @@ export interface SubmitExamResponse {
   participantId: string;
   examId: string;
   examCode: string;
-  aiReview?: string;
-  score: number;
+  aiReview?: string | null;
+  totalScore: number; // điểm thi thực tế
+  completed: boolean;
   answeredCount: number;
   totalQuestions: number;
-  completed: boolean;
-  startedAt: string;
-  finishedAt: string;
+  correctCount: number; // số câu đúng
+  skippedCount: number; // số câu bỏ qua
+  startedAt: string; // ISO string
+  finishedAt: string; // ISO string
+  answers: {
+    questionId: string;
+    questionText: string;
+    questionType: string;
+    optionsJson: string; // JSON string của các option
+    correctAnswer: string;
+    answer: string | null;
+    isCorrect: boolean;
+    score: number;
+    questionOrder: number;
+    explanation: string;
+    imageUrl: string;
+    audioUrl: string;
+  }[];
 }
 
 export const examService = {

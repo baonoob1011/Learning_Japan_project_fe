@@ -9,6 +9,7 @@ import { examService } from "@/services/exam";
 import BackButton from "@/components/backButton";
 import { QUESTION_TYPE_ORDER } from "@/components/questionTypeOrder";
 import { LISTENING_TYPE_ORDER } from "@/components/listeningTypeOrder";
+import { useExamResultStore } from "@/stores/examResultStore";
 
 const stringToAssessmentType: Record<string, AssessmentType> = {
   KANJI_READING: AssessmentType.KANJI_READING,
@@ -53,7 +54,7 @@ export default function ExamPage() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [allAnswers, setAllAnswers] = useState<Record<string, string>>({});
   const mergedAnswers = { ...allAnswers, ...answers };
-
+  const setResult = useExamResultStore((state) => state.setResult);
   const [timeLeft, setTimeLeft] = useState(170 * 60);
   const [mounted, setMounted] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -120,6 +121,7 @@ export default function ExamPage() {
     ).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   /* ------------------ FETCH QUESTIONS ------------------ */
+
   useEffect(() => {
     const fetchQuestions = async () => {
       const api: QuestionApiResponse[] = await questionService.getAll();
@@ -152,6 +154,10 @@ export default function ExamPage() {
     (q) => mergedAnswers[q.id] !== undefined
   ).length;
 
+  const sortedQuestions = useMemo(() => {
+    return currentQuestions.sort((a, b) => a.questionOrder - b.questionOrder);
+  }, [currentQuestions]);
+
   /* ------------------ GROUP QUESTIONS ------------------ */
   const questionGroups = useMemo(() => {
     const map: Record<string, Question[]> = {};
@@ -168,7 +174,7 @@ export default function ExamPage() {
       .map((o) => ({
         key: o.key,
         label: o.label,
-        questions: map[o.key],
+        questions: map[o.key].sort((a, b) => a.questionOrder - b.questionOrder),
       }));
   }, [currentQuestions, currentSectionOrder]);
 
@@ -187,30 +193,25 @@ export default function ExamPage() {
     setShowConfirmModal(false);
     if (!participantId) return;
 
-    // Merge answers hiện tại với answers đã lưu
     const merged = { ...allAnswers, ...answers };
     localStorage.setItem("examAllAnswers", JSON.stringify(merged));
     setAllAnswers(merged);
-    setAnswers({});
 
     if (currentSectionOrder < TOTAL_SECTIONS) {
-      // Lưu section đã hoàn thành
       localStorage.setItem(
         "examCompletedSection",
         currentSectionOrder.toString()
       );
 
-      // Chuyển sang trang break time với nextSection
       router.push(
         `/breakPage?participantId=${participantId}&nextSection=${
           currentSectionOrder + 1
         }`
       );
     } else {
-      // Đây là section cuối → submit API
       setIsSubmitting(true);
       try {
-        await examService.submitExam({
+        const response = await examService.submitExam({
           participantId,
           answers: Object.entries(merged).map(([questionId, answer]) => ({
             questionId,
@@ -218,19 +219,22 @@ export default function ExamPage() {
           })),
         });
 
-        // Clear tất cả localStorage sau khi submit thành công
+        if (response) {
+          setResult(response);
+        }
+
         localStorage.removeItem("examAllAnswers");
         localStorage.removeItem("examTimeLeft");
         localStorage.removeItem("examParticipantId");
         localStorage.removeItem("examCompletedSection");
 
-        // Chuyển về trang chủ hoặc trang kết quả
-        router.push("/");
+        router.push(`/result?participantId=${participantId}`);
       } catch (err) {
         console.error("Submit thất bại:", err);
         alert("Gửi bài thất bại, vui lòng thử lại.");
       } finally {
         setIsSubmitting(false);
+        setAnswers({});
       }
     }
   };
@@ -274,76 +278,54 @@ export default function ExamPage() {
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto px-12 py-8">
           <div className="max-w-4xl mx-auto">
-            {questionGroups.map((group, groupIndex) => {
-              const typeKey =
-                stringToAssessmentType[group.key] ?? AssessmentType.FILL_BLANK;
-
+            {sortedQuestions.map((q, index) => {
+              const displayOrder = index + 1;
               return (
-                <div key={group.key} className={groupIndex > 0 ? "mt-12" : ""}>
-                  {/* Question Type Header */}
-                  <div className="mb-6 pb-3 border-b-2 border-gray-200">
-                    <h2 className="text-lg font-semibold text-gray-800">
-                      {group.label}
-                    </h2>
-                  </div>
-
-                  {/* Instruction Box */}
-                  <div className="bg-gray-900 text-white rounded-lg p-4 mb-6">
-                    <p className="text-base">
-                      {typeInstructionStyles[typeKey]?.instruction ??
-                        "Chọn đáp án đúng."}
-                    </p>
-                  </div>
-
-                  {/* Questions in this group */}
-                  {group.questions.map((q, qIndex) => (
-                    <div
-                      key={q.id}
-                      ref={(el) => {
-                        questionRefs.current[q.id] = el;
-                      }}
-                      className={`bg-white rounded-lg border border-gray-200 p-6 shadow-sm ${
-                        qIndex > 0 ? "mt-6" : ""
-                      }`}
-                    >
-                      {/* Question Text */}
-                      <div className="mb-5">
-                        <div className="inline-flex items-center justify-center w-10 h-10 bg-emerald-500 text-white rounded-full text-base font-bold mb-3">
-                          {q.questionOrder}
-                        </div>
-                        <h3 className="text-lg font-normal text-gray-900 leading-relaxed">
-                          {q.questionOrder}. {q.text}
-                        </h3>
-                      </div>
-
-                      {/* Options */}
-                      <div className="space-y-3">
-                        {q.options.map((o) => (
-                          <label
-                            key={o.label}
-                            className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition ${
-                              mergedAnswers[q.id] === o.text
-                                ? "border-emerald-500 bg-emerald-50"
-                                : "border-gray-300 hover:bg-gray-50"
-                            }`}
-                          >
-                            <input
-                              type="radio"
-                              name={`question-${q.id}`}
-                              checked={mergedAnswers[q.id] === o.text}
-                              onChange={() =>
-                                setAnswers((p) => ({ ...p, [q.id]: o.text }))
-                              }
-                              className="w-5 h-5 text-emerald-500 focus:ring-emerald-500"
-                            />
-                            <span className="text-base text-gray-900">
-                              {o.label}. {o.text}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
+                <div
+                  key={q.id}
+                  ref={(el) => {
+                    questionRefs.current[q.id] = el;
+                  }}
+                  className={`bg-white rounded-lg border border-gray-200 p-6 shadow-sm ${
+                    index > 0 ? "mt-6" : ""
+                  }`}
+                >
+                  {/* Question Text */}
+                  <div className="mb-5">
+                    <div className="inline-flex items-center justify-center w-10 h-10 bg-emerald-500 text-white rounded-full text-base font-bold mb-3">
+                      {displayOrder}
                     </div>
-                  ))}
+                    <h3 className="text-lg font-normal text-gray-900 leading-relaxed">
+                      {displayOrder}. {q.text}
+                    </h3>
+                  </div>
+
+                  {/* Options */}
+                  <div className="space-y-3">
+                    {q.options.map((o) => (
+                      <label
+                        key={o.label}
+                        className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition ${
+                          mergedAnswers[q.id] === o.text
+                            ? "border-emerald-500 bg-emerald-50"
+                            : "border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name={`question-${q.id}`}
+                          checked={mergedAnswers[q.id] === o.text}
+                          onChange={() =>
+                            setAnswers((p) => ({ ...p, [q.id]: o.text }))
+                          }
+                          className="w-5 h-5 text-emerald-500 focus:ring-emerald-500"
+                        />
+                        <span className="text-base text-gray-900">
+                          {o.label}. {o.text}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               );
             })}
@@ -369,13 +351,11 @@ export default function ExamPage() {
               </p>
             </div>
 
-            {questionGroups.map((group, idx) => (
-              <div key={idx} className="mb-4">
-                <h3 className="text-sm font-semibold text-gray-800 mb-2">
-                  {group.label}:
-                </h3>
-                <div className="grid grid-cols-6 gap-1.5">
-                  {group.questions.map((q) => (
+            <div className="mb-4">
+              <div className="grid grid-cols-6 gap-1.5">
+                {sortedQuestions.map((q, index) => {
+                  const displayOrder = index + 1;
+                  return (
                     <button
                       key={q.id}
                       onClick={() => scrollToQuestion(q.id)}
@@ -385,12 +365,12 @@ export default function ExamPage() {
                           : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
                       }`}
                     >
-                      {q.questionOrder}
+                      {displayOrder}
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            ))}
+            </div>
           </div>
 
           <div className="sticky bottom-0 bg-white p-4 border-t border-gray-200 flex justify-center">
