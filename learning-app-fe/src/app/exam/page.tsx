@@ -4,9 +4,12 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { examService, SectionWithQuestionsResponse } from "@/services/exam";
 import BackButton from "@/components/backButton";
-import { QUESTION_TYPE_ORDER } from "@/components/questionTypeOrder";
-import { LISTENING_TYPE_ORDER } from "@/components/listeningTypeOrder";
+import { QUESTION_TYPE_ORDER } from "@/config/questionTypeOrder";
+import { LISTENING_TYPE_ORDER } from "@/config/listeningTypeOrder";
 import { useExamResultStore } from "@/stores/examResultStore";
+import { AssessmentType } from "@/enums/assessmentType";
+// import từ file mới
+import { instructionMap } from "@/config/instructionMap";
 
 interface Question {
   id: string;
@@ -26,6 +29,13 @@ interface Section {
   title: string;
   sectionDuration: number;
   sectionOrder: number;
+}
+
+interface QuestionGroup {
+  mondaiLabel: string;
+  questionType: string;
+  assessmentType: AssessmentType;
+  questions: Question[];
 }
 
 export default function ExamPage() {
@@ -76,7 +86,6 @@ export default function ExamPage() {
 
         console.log("📦 Sections data from API:", sectionsData);
 
-        // Lưu thông tin sections
         const sectionsInfo: Section[] = sectionsData.map((s) => ({
           id: s.id,
           examId: s.examId,
@@ -87,7 +96,6 @@ export default function ExamPage() {
         setSections(sectionsInfo);
         console.log("✅ Sections info:", sectionsInfo);
 
-        // Map tất cả questions
         const mapped = sectionsData.flatMap((section) =>
           section.questions.map((q) => {
             let parsedOptions: { label: string; text: string }[] = [];
@@ -149,7 +157,6 @@ export default function ExamPage() {
       !savedParticipantId ||
       (participantId && savedParticipantId !== participantId);
 
-    // Duration tính bằng giây
     const durationInSec = currentSection.sectionDuration * 60;
 
     const initialTime =
@@ -193,25 +200,92 @@ export default function ExamPage() {
       Math.floor((s % 3600) / 60)
     ).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
-  /* ------------------ CURRENT QUESTIONS ------------------ */
+  /* ------------------ CURRENT QUESTIONS - SORTED BY questionOrder ------------------ */
   const currentQuestions = useMemo(() => {
     const filtered = questions.filter(
       (q) => q.sectionOrder === currentSectionOrder
     );
+    // Sort by questionOrder first (this is the actual order questions should appear)
+    const sorted = filtered.sort((a, b) => a.questionOrder - b.questionOrder);
     console.log(
-      `🔍 Filtering questions for section ${currentSectionOrder}:`,
-      filtered.length
+      `🔍 Questions for section ${currentSectionOrder} sorted by questionOrder:`,
+      sorted.map((q) => ({ order: q.questionOrder, type: q.questionType }))
     );
-    return filtered.sort((a, b) => a.questionOrder - b.questionOrder);
+    return sorted;
   }, [questions, currentSectionOrder]);
+
+  /* ------------------ GROUP QUESTIONS - Maintain questionOrder ------------------ */
+  const groupedQuestions = useMemo((): QuestionGroup[] => {
+    const currentSection = sections.find(
+      (s) => s.sectionOrder === currentSectionOrder
+    );
+
+    // Get the appropriate order list for instruction mapping
+    const orderList = currentSection?.title.toLowerCase().includes("listening")
+      ? LISTENING_TYPE_ORDER
+      : QUESTION_TYPE_ORDER;
+
+    // Create a map for assessmentType lookup
+    const typeToAssessmentMap = new Map(
+      orderList.map((item) => [item.key, item.assessmentType])
+    );
+
+    const groups: QuestionGroup[] = [];
+    let currentGroup: QuestionGroup | null = null;
+    let mondaiIndex = 1;
+
+    // Iterate through questions in their questionOrder
+    currentQuestions.forEach((question) => {
+      const assessmentType = typeToAssessmentMap.get(question.questionType);
+
+      if (!assessmentType) {
+        console.warn(`Unknown question type: ${question.questionType}`);
+        return;
+      }
+
+      // Start a new group if questionType changes or this is the first question
+      if (
+        !currentGroup ||
+        currentGroup.questionType !== question.questionType
+      ) {
+        if (currentGroup) {
+          groups.push(currentGroup);
+          mondaiIndex++;
+        }
+
+        currentGroup = {
+          mondaiLabel: `問題${mondaiIndex}`,
+          questionType: question.questionType,
+          assessmentType: assessmentType,
+          questions: [question],
+        };
+      } else {
+        // Add to current group
+        currentGroup.questions.push(question);
+      }
+    });
+
+    // Push the last group
+    if (currentGroup) {
+      groups.push(currentGroup);
+    }
+
+    console.log(
+      "📋 Final grouped questions:",
+      groups.map((g) => ({
+        label: g.mondaiLabel,
+        type: g.questionType,
+        count: g.questions.length,
+        orders: g.questions.map((q) => q.questionOrder),
+      }))
+    );
+
+    return groups;
+  }, [currentQuestions, currentSectionOrder, sections]);
 
   const answeredCount = currentQuestions.filter(
     (q) => mergedAnswers[q.id] !== undefined
   ).length;
-
-  const sortedQuestions = useMemo(() => {
-    return currentQuestions.sort((a, b) => a.questionOrder - b.questionOrder);
-  }, [currentQuestions]);
 
   const TOTAL_SECTIONS = sections.length;
 
@@ -238,20 +312,17 @@ export default function ExamPage() {
     setAllAnswers(merged);
 
     if (currentSectionOrder < TOTAL_SECTIONS) {
-      // Lưu section đã hoàn thành
       localStorage.setItem(
         "examCompletedSection",
         currentSectionOrder.toString()
       );
 
-      // Chuyển sang break page
       router.push(
         `/breakPage?participantId=${participantId}&examId=${examId}&nextSection=${
           currentSectionOrder + 1
         }`
       );
     } else {
-      // Submit toàn bộ bài thi
       setIsSubmitting(true);
       try {
         const response = await examService.submitExam({
@@ -266,7 +337,6 @@ export default function ExamPage() {
           setResult(response);
         }
 
-        // Clear all localStorage
         localStorage.removeItem("examAllAnswers");
         sections.forEach((s) => {
           localStorage.removeItem(`examTimeLeft_section_${s.sectionOrder}`);
@@ -327,78 +397,97 @@ export default function ExamPage() {
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto px-12 py-8">
           <div className="max-w-4xl mx-auto">
-            {sortedQuestions.map((q, index) => {
-              const displayOrder = index + 1;
-              return (
-                <div
-                  key={q.id}
-                  ref={(el) => {
-                    questionRefs.current[q.id] = el;
-                  }}
-                  className={`bg-white rounded-lg border border-gray-200 p-6 shadow-sm ${
-                    index > 0 ? "mt-6" : ""
-                  }`}
-                >
-                  {/* Question Text */}
-                  <div className="mb-5">
-                    <div className="inline-flex items-center justify-center w-10 h-10 bg-emerald-500 text-white rounded-full text-base font-bold mb-3">
-                      {displayOrder}
-                    </div>
-                    <h3 className="text-lg font-normal text-gray-900 leading-relaxed">
-                      {displayOrder}. {q.text}
-                    </h3>
-                  </div>
-
-                  {/* Audio nếu có */}
-                  {q.audioUrl && (
-                    <div className="mb-4">
-                      <audio controls className="w-full">
-                        <source src={q.audioUrl} type="audio/mpeg" />
-                        Trình duyệt không hỗ trợ audio.
-                      </audio>
-                    </div>
-                  )}
-
-                  {/* Image nếu có */}
-                  {q.imageUrl && (
-                    <div className="mb-4">
-                      <img
-                        src={q.imageUrl}
-                        alt="Question image"
-                        className="max-w-full h-auto rounded-lg"
-                      />
-                    </div>
-                  )}
-
-                  {/* Options */}
-                  <div className="space-y-3">
-                    {q.options.map((o) => (
-                      <label
-                        key={o.label}
-                        className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition ${
-                          mergedAnswers[q.id] === o.text
-                            ? "border-emerald-500 bg-emerald-50"
-                            : "border-gray-300 hover:bg-gray-50"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name={`question-${q.id}`}
-                          checked={mergedAnswers[q.id] === o.text}
-                          onChange={() =>
-                            setAnswers((p) => ({ ...p, [q.id]: o.text }))
-                          }
-                          className="w-5 h-5 text-emerald-500 focus:ring-emerald-500"
-                        />
-                        <span className="text-base text-gray-900">
-                          {o.label}. {o.text}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
+            {groupedQuestions.map((group) => (
+              <div
+                key={`${group.questionType}-${group.mondaiLabel}`}
+                className="mb-8"
+              >
+                {/* Instruction Banner */}
+                <div className="bg-gradient-to-r from-gray-700 to-gray-600 text-white px-6 py-4 rounded-t-lg mb-0">
+                  <p className="text-base font-medium">
+                    {group.mondaiLabel}
+                    {instructionMap[group.assessmentType]?.replace(
+                      "問題",
+                      ""
+                    ) || ""}
+                  </p>
                 </div>
-              );
-            })}
+
+                {/* Questions in this group */}
+                {group.questions.map((q, index) => {
+                  const isLastInGroup = index === group.questions.length - 1;
+                  return (
+                    <div
+                      key={q.id}
+                      ref={(el) => {
+                        questionRefs.current[q.id] = el;
+                      }}
+                      className={`bg-white border-x border-b border-gray-200 p-6 shadow-sm ${
+                        isLastInGroup ? "rounded-b-lg mb-8" : ""
+                      }`}
+                    >
+                      {/* Question Text */}
+                      <div className="mb-5">
+                        <div className="inline-flex items-center justify-center w-10 h-10 bg-emerald-500 text-white rounded-full text-base font-bold mb-3">
+                          {q.questionOrder}
+                        </div>
+                        <h3 className="text-lg font-normal text-gray-900 leading-relaxed">
+                          {q.text}
+                        </h3>
+                      </div>
+
+                      {/* Audio nếu có */}
+                      {q.audioUrl && (
+                        <div className="mb-4">
+                          <audio controls className="w-full">
+                            <source src={q.audioUrl} type="audio/mpeg" />
+                            Trình duyệt không hỗ trợ audio.
+                          </audio>
+                        </div>
+                      )}
+
+                      {/* Image nếu có */}
+                      {q.imageUrl && (
+                        <div className="mb-4">
+                          <img
+                            src={q.imageUrl}
+                            alt="Question image"
+                            className="max-w-full h-auto rounded-lg"
+                          />
+                        </div>
+                      )}
+
+                      {/* Options */}
+                      <div className="space-y-3">
+                        {q.options.map((o) => (
+                          <label
+                            key={o.label}
+                            className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition ${
+                              mergedAnswers[q.id] === o.text
+                                ? "border-emerald-500 bg-emerald-50"
+                                : "border-gray-300 hover:bg-gray-50"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name={`question-${q.id}`}
+                              checked={mergedAnswers[q.id] === o.text}
+                              onChange={() =>
+                                setAnswers((p) => ({ ...p, [q.id]: o.text }))
+                              }
+                              className="w-5 h-5 text-emerald-500 focus:ring-emerald-500"
+                            />
+                            <span className="text-base text-gray-900">
+                              {o.label}. {o.text}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -421,25 +510,32 @@ export default function ExamPage() {
               </p>
             </div>
 
-            <div className="mb-4">
-              <div className="grid grid-cols-6 gap-1.5">
-                {sortedQuestions.map((q, index) => {
-                  const displayOrder = index + 1;
-                  return (
-                    <button
-                      key={q.id}
-                      onClick={() => scrollToQuestion(q.id)}
-                      className={`w-10 h-10 rounded-full text-sm font-medium transition ${
-                        mergedAnswers[q.id]
-                          ? "bg-emerald-500 text-white"
-                          : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-                      }`}
-                    >
-                      {displayOrder}
-                    </button>
-                  );
-                })}
-              </div>
+            {/* Grouped Question Navigation */}
+            <div className="space-y-6">
+              {groupedQuestions.map((group) => (
+                <div key={`${group.questionType}-${group.mondaiLabel}`}>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                    {group.mondaiLabel}:
+                  </h3>
+                  <div className="grid grid-cols-6 gap-1.5">
+                    {group.questions.map((q) => {
+                      return (
+                        <button
+                          key={q.id}
+                          onClick={() => scrollToQuestion(q.id)}
+                          className={`w-10 h-10 rounded-full text-sm font-medium transition ${
+                            mergedAnswers[q.id]
+                              ? "bg-emerald-500 text-white"
+                              : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                          }`}
+                        >
+                          {q.questionOrder}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
