@@ -9,6 +9,9 @@ export const API_CONFIG = {
 export const API_ENDPOINTS = {
   REGISTER: "/users/register",
   LOGIN: "/auth/login",
+  REFRESH_TOKEN: "/auth/refresh-token",
+  LOG_OUT: "/auth/logout",
+
   EXAM: {
     EXAM_VIEW_ALL: "/exams",
     QUESTION_LISTEN: "/questions/listen",

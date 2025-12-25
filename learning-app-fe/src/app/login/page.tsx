@@ -5,6 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { login } from "@/services/auth";
 import { useRouter } from "next/navigation";
+import { getRolesFromToken } from "@/utils/jwt"; // helper decode JWT
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -23,14 +24,21 @@ export default function LoginPage() {
     setError("");
 
     try {
-      await login({
-        email: username,
-        password,
-      });
+      const result = await login({ email: username, password });
+      console.log("Login result:", result);
 
-      // ✅ login OK → redirect
-      router.push("/video");
+      const roles = getRolesFromToken(result.accessToken);
+      console.log("Decoded roles:", roles);
+
+      if (roles.includes("ADMIN")) {
+        console.log("Redirecting to /dashboard");
+        router.push("/dashboard");
+      } else {
+        console.log("Redirecting to /video");
+        router.push("/video");
+      }
     } catch (err) {
+      console.error(err);
       setError(err instanceof Error ? err.message : "Đăng nhập thất bại");
     } finally {
       setIsLoading(false);
