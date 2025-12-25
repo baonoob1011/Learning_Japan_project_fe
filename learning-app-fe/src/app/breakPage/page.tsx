@@ -1,19 +1,43 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import BackButton from "@/components/backButton"; // đường dẫn tùy dự án
+import { useRouter, useSearchParams } from "next/navigation";
+import BackButton from "@/components/backButton";
 
 export default function BreakPage() {
   const [timeLeft, setTimeLeft] = useState(5 * 60); // 5 phút nghỉ
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Countdown timer
+  const participantId = searchParams.get("participantId");
+  const nextSection = Number(searchParams.get("nextSection") ?? 2);
+
+  // Countdown timer → hết giờ tự chuyển section
   useEffect(() => {
+    const breakStartTimeRaw = localStorage.getItem("breakStartTime");
+    const breakStartTime = breakStartTimeRaw
+      ? Number(breakStartTimeRaw)
+      : Date.now();
+
+    if (!breakStartTimeRaw) {
+      localStorage.setItem("breakStartTime", breakStartTime.toString());
+    }
+
+    setTimeout(() => {
+      const now = Date.now();
+      const elapsed = Math.floor((now - breakStartTime) / 1000);
+      const remaining = 5 * 60 - elapsed;
+      setTimeLeft(remaining > 0 ? remaining : 0);
+    }, 0);
+
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
+          localStorage.removeItem("breakStartTime");
+          router.push(
+            `/exam?participantId=${participantId}&section=${nextSection}`
+          );
           return 0;
         }
         return prev - 1;
@@ -21,7 +45,7 @@ export default function BreakPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [router, nextSection, participantId]);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -32,7 +56,9 @@ export default function BreakPage() {
   };
 
   const handleStartTest = () => {
-    router.push("/practice");
+    // Xóa breakStartTime khi user click bắt đầu sớm
+    localStorage.removeItem("breakStartTime");
+    router.push(`/exam?participantId=${participantId}&section=${nextSection}`);
   };
 
   return (
@@ -59,17 +85,20 @@ export default function BreakPage() {
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="max-w-2xl w-full text-center">
-          {/* Rest Icon */}
+          {/* Icon */}
           <div className="mb-8">
             <div className="w-32 h-32 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
               <span className="text-7xl">☕</span>
             </div>
             <h1 className="text-4xl font-bold text-gray-900 mb-3">
-              Nghỉ 5 phút trước khi làm phần thi Nghe
+              Nghỉ giải lao
             </h1>
+            <p className="text-lg text-gray-600">
+              Chuẩn bị cho phần thi tiếp theo (Phần {nextSection})
+            </p>
           </div>
 
-          {/* Countdown Timer */}
+          {/* Timer */}
           <div className="mb-12">
             <div className="inline-flex items-center justify-center bg-white rounded-3xl shadow-2xl px-12 py-8 mb-6">
               <span className="font-mono text-8xl font-bold text-emerald-500">
@@ -77,28 +106,8 @@ export default function BreakPage() {
               </span>
             </div>
             <p className="text-xl text-gray-700">
-              Bạn cần mở loa hoặc đeo tai nghe để có thể hoàn thành phần thi.
+              Bạn có thể bắt đầu ngay hoặc đợi hết thời gian nghỉ
             </p>
-          </div>
-
-          {/* Instructions */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Hướng dẫn</h2>
-            <div className="space-y-4 text-left">
-              {[
-                "Chuẩn bị loa hoặc tai nghe để nghe được âm thanh rõ ràng",
-                "Tìm một không gian yên tĩnh để tập trung làm bài",
-                "Mỗi đoạn nghe sẽ được phát 2 lần, hãy chú ý lắng nghe",
-                "Bạn có thể bắt đầu ngay hoặc đợi hết thời gian nghỉ",
-              ].map((text, index) => (
-                <div className="flex items-start gap-4" key={index}>
-                  <div className="w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold">
-                    {index + 1}
-                  </div>
-                  <p className="text-gray-700 pt-1">{text}</p>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* Start Button */}
@@ -106,25 +115,26 @@ export default function BreakPage() {
             onClick={handleStartTest}
             className="px-16 py-5 bg-emerald-500 text-white text-xl font-bold rounded-full hover:bg-emerald-600 transition shadow-2xl transform hover:scale-105"
           >
-            Bắt đầu
+            Bắt đầu phần tiếp theo
           </button>
 
-          {/* Bottom Illustration */}
+          {/* Decorative Icons */}
           <div className="mt-12 opacity-50">
-            <div className="text-6xl">🎧 🎵 📻</div>
+            <div className="text-6xl">🎧 📘 ✏️</div>
           </div>
-        </div>
-      </div>
 
-      {/* Footer with progress indicator */}
-      <div className="bg-white border-t border-gray-200 py-4 px-6">
-        <div className="max-w-2xl mx-auto">
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-            <span>Phần 1: Hoàn thành ✓</span>
-            <span>Phần 2: Nghe (Sắp bắt đầu)</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-emerald-500 h-2 rounded-full w-1/2"></div>
+          {/* Info Box */}
+          <div className="mt-8 bg-white rounded-xl p-6 shadow-md max-w-md mx-auto">
+            <div className="flex items-start gap-3 text-left">
+              <span className="text-2xl">💡</span>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Lưu ý:</h3>
+                <p className="text-sm text-gray-600">
+                  Câu trả lời của Phần 1 đã được lưu tự động. Bạn sẽ không thể
+                  quay lại chỉnh sửa sau khi bắt đầu Phần {nextSection}.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

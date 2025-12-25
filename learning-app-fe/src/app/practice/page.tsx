@@ -38,7 +38,10 @@ const ExamCard: React.FC<ExamCardProps> = ({
 
       // Điều hướng sang trang làm bài, truyền participantId và duration
       router.push(
-        `/exam?examId=${res.examId}&participantId=${res.participantId}&duration=${res.duration}`
+        `/exam?examId=${res.examId}` +
+          `&participantId=${res.participantId}` +
+          `&duration=${res.duration}` +
+          `&section=1`
       );
     } catch (err) {
       console.error("Lỗi khi bắt đầu bài thi:", err);

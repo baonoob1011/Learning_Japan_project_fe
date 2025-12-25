@@ -69,4 +69,44 @@ export const typeInstructionStyles: Record<
     text: "text-black",
     instruction: "漢字の形や意味を思い出して答えてください。",
   },
+  [AssessmentType.LISTENING_TASK]: {
+    bg: "bg-blue-900",
+    text: "text-white",
+    instruction:
+      "問題1では、まず質問を聞いてください。それから話を聞いて、問題用紙の1から4の中から、最もよいものを一つ選んでください。",
+  },
+
+  [AssessmentType.LISTENING_CHOICE_PREVIEW]: {
+    bg: "bg-blue-800",
+    text: "text-white",
+    instruction:
+      "問題2では、まず質問を聞いてください。そのあと、問題用紙のせんたくしを読んでください。読む時間があります。それから話を聞いて、問題用紙の1から4の中から、最もよいものを一つ選んでください。",
+  },
+
+  [AssessmentType.LISTENING_MAIN_IDEA]: {
+    bg: "bg-blue-700",
+    text: "text-white",
+    instruction:
+      "問題3では、問題用紙に何も印刷されていません。この問題は、全体としてどんな内容かを聞く問題です。話の前に質問はありません。まず話を聞いてください。それから、質問とせんたくしを聞いて、1から4の中から、最もよいものを一つ選んでください。",
+  },
+
+  [AssessmentType.LISTENING_RESPONSE]: {
+    bg: "bg-blue-600",
+    text: "text-white",
+    instruction:
+      "問題4では、問題用紙に何もいんさつされていません。まず文を聞いてください。それから、それに対する返事を聞いて、1から3の中から、最もよいものを一つ選んでください。",
+  },
+
+  [AssessmentType.LISTENING_LONG]: {
+    bg: "bg-blue-500",
+    text: "text-white",
+    instruction:
+      "問題5では、長めの話を聞きます。この問題には練習はありません。メモをとってもかまいません。まず話を聞いてください。それから、質問とせんたくしを聞いて、1から4の中から、最もよいものを一つ選んでください。",
+  },
+  [AssessmentType.LISTENING_INSTANT]: {
+    bg: "bg-blue-900",
+    text: "text-white",
+    instruction:
+      "問題0では、すぐに質問を聞いて答えてください。話を聞いたら、問題用紙の1から4の中から最もよいものを一つ選んでください。",
+  },
 };

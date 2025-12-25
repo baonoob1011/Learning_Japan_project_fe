@@ -11,14 +11,14 @@ export interface ApiOption {
 
 export interface QuestionApiResponse {
   id: string;
-  sectionId: string;
+  sectionOrder: number;
   questionType: string;
   questionText: string;
   options: string; // JSON string
   answer: string;
   imageUrl?: string;
   audioUrl?: string;
-  orderNum: number;
+  questionOrder: number;
 }
 
 export const questionService = {

@@ -1,7 +1,10 @@
+// src/services/exam.ts
 import { axiosClient } from "@/lib/axios";
 import { ApiResponse } from "@/services/api-types";
 import { API_ENDPOINTS } from "@/config/api";
 import { useAuthStore } from "@/stores/authStore";
+import type { AxiosError } from "axios";
+
 export interface ExamResponse {
   id: string;
   code: string;
@@ -12,9 +15,11 @@ export interface ExamResponse {
   createdAt: string;
   updatedAt: string;
 }
+
 export interface StartExamRequest {
   examId: string;
 }
+
 export interface StartExamResponse {
   participantId: string;
   examId: string;
@@ -22,7 +27,7 @@ export interface StartExamResponse {
   duration: number;
   userId: string;
   completed: boolean;
-  startedAt: string; // chuyển LocalDateTime thành string
+  startedAt: string; // ISO string
 }
 
 export interface SubmitExamRequest {
@@ -37,10 +42,12 @@ export interface SubmitExamResponse {
   participantId: string;
   examId: string;
   examCode: string;
-  aiReview?: string; // nếu backend trả về
+  aiReview?: string;
   score: number;
+  answeredCount: number;
+  totalQuestions: number;
   completed: boolean;
-  startedAt: string; // LocalDateTime chuyển sang ISO string
+  startedAt: string;
   finishedAt: string;
 }
 
@@ -53,7 +60,7 @@ export const examService = {
         API_ENDPOINTS.EXAM.EXAM_VIEW_ALL,
         {
           headers: {
-            Authorization: accessToken ? `Bearer ${accessToken}` : "",
+            Authorization: accessToken ? `Bearer ${accessToken}` : undefined,
           },
         }
       );
@@ -63,11 +70,11 @@ export const examService = {
       }
 
       return res.data.result;
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(error.message);
-      }
-      throw new Error("Lỗi không xác định khi lấy danh sách đề thi");
+    } catch (error: unknown) {
+      if (error instanceof Error) return Promise.reject(error);
+      return Promise.reject(
+        new Error("Lỗi không xác định khi lấy danh sách đề thi")
+      );
     }
   },
 
@@ -75,28 +82,42 @@ export const examService = {
     try {
       const { accessToken } = useAuthStore.getState();
 
+      console.log("[StartExam] Request:", request);
+
       const res = await axiosClient.post<ApiResponse<StartExamResponse>>(
         API_ENDPOINTS.EXAM.EXAM_START,
         request,
         {
           headers: {
-            Authorization: accessToken ? `Bearer ${accessToken}` : "",
+            Authorization: accessToken ? `Bearer ${accessToken}` : undefined,
           },
         }
       );
+
+      console.log("[StartExam] Response:", res.data);
 
       if (!res.data.success) {
         throw new Error(res.data.message || "Không thể bắt đầu bài thi");
       }
 
       return res.data.result;
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(error.message);
+    } catch (error: unknown) {
+      const axiosErr = error as AxiosError<ApiResponse<unknown>>;
+      if (axiosErr.response) {
+        console.error("[StartExam] Server error:", axiosErr.response.data);
+        throw new Error(
+          axiosErr.response.data?.message || "Lỗi server khi bắt đầu bài thi"
+        );
+      } else if (axiosErr.request) {
+        console.error("[StartExam] No response:", axiosErr.request);
+        throw new Error("Không nhận được phản hồi từ server");
+      } else if (error instanceof Error) {
+        throw error;
       }
       throw new Error("Lỗi không xác định khi bắt đầu bài thi");
     }
   },
+
   async submitExam(request: SubmitExamRequest): Promise<SubmitExamResponse> {
     try {
       const { accessToken } = useAuthStore.getState();
@@ -106,7 +127,7 @@ export const examService = {
         request,
         {
           headers: {
-            Authorization: accessToken ? `Bearer ${accessToken}` : "",
+            Authorization: accessToken ? `Bearer ${accessToken}` : undefined,
           },
         }
       );
@@ -116,9 +137,18 @@ export const examService = {
       }
 
       return res.data.result;
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(error.message);
+    } catch (error: unknown) {
+      const axiosErr = error as AxiosError<ApiResponse<unknown>>;
+
+      if (axiosErr.response) {
+        throw new Error(
+          axiosErr.response.data?.message ||
+            `Lỗi submit bài thi, status ${axiosErr.response.status}`
+        );
+      } else if (axiosErr.request) {
+        throw new Error("Không nhận được phản hồi từ server");
+      } else if (error instanceof Error) {
+        throw error;
       }
       throw new Error("Lỗi không xác định khi submit bài thi");
     }
