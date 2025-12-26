@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Target,
   BookOpen,
@@ -33,6 +33,150 @@ import {
   DailyProgressDto,
 } from "@/services/learning-progress";
 
+// ✅ Type definitions
+interface StatType {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string | number;
+  color: string;
+  bgLight: string;
+  textColor: string;
+  rawAccuracy?: number;
+}
+
+interface LevelData {
+  level: string;
+  totalExamsTaken: number;
+  totalQuestionsDone: number;
+  correctQuestions: number;
+  accuracy: number;
+  averageScore?: number;
+  lastExamAt?: string;
+}
+
+// ✅ OPTIMIZED: Memoized StatCard component
+const StatCard = React.memo(({ stat }: { stat: StatType }) => (
+  <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-6">
+    <div className="flex items-center justify-between mb-4">
+      <div className={`${stat.color} p-3 rounded-lg`}>
+        <stat.icon className="w-6 h-6 text-white" />
+      </div>
+      <div className={`${stat.bgLight} px-3 py-1 rounded-full`}>
+        <span className={`text-xs font-semibold ${stat.textColor}`}>
+          {stat.label === "Độ chính xác" &&
+          stat.rawAccuracy !== undefined &&
+          stat.rawAccuracy < 50
+            ? "Cần cải thiện"
+            : "Tốt"}
+        </span>
+      </div>
+    </div>
+    <p className="text-gray-600 text-sm mb-1">{stat.label}</p>
+    <p className="text-3xl font-bold text-gray-800">{stat.value}</p>
+  </div>
+));
+StatCard.displayName = "StatCard";
+
+// ✅ OPTIMIZED: Memoized LevelDetail component
+const LevelDetail = React.memo(
+  ({
+    level,
+    formatDate,
+  }: {
+    level: LevelData;
+    formatDate: (date?: string) => string;
+  }) => (
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+          <Award className="w-6 h-6 text-indigo-500" />
+          Chi tiết cấp độ {level.level}
+        </h2>
+        <span className="text-sm text-gray-500">
+          Lần thi cuối: {formatDate(level.lastExamAt)}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center">
+          <p className="text-sm text-blue-600 mb-1">Số bài thi</p>
+          <p className="text-2xl font-bold text-blue-700">
+            {level.totalExamsTaken}
+          </p>
+        </div>
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 text-center">
+          <p className="text-sm text-purple-600 mb-1">Câu hỏi</p>
+          <p className="text-2xl font-bold text-purple-700">
+            {level.totalQuestionsDone}
+          </p>
+        </div>
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 text-center">
+          <p className="text-sm text-green-600 mb-1">Đúng</p>
+          <p className="text-2xl font-bold text-green-700">
+            {level.correctQuestions}
+          </p>
+        </div>
+        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 text-center">
+          <p className="text-sm text-orange-600 mb-1">Điểm TB</p>
+          <p className="text-2xl font-bold text-orange-700">
+            {level.averageScore
+              ? level.averageScore.toFixed(1)
+              : level.accuracy.toFixed(1)}
+            %
+          </p>
+        </div>
+      </div>
+
+      <div className="bg-gray-100 rounded-lg p-4">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm font-medium text-gray-700">
+            Độ chính xác
+          </span>
+          <span className="text-sm font-bold text-indigo-600">
+            {level.accuracy.toFixed(1)}%
+          </span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-3">
+          <div
+            className="bg-gradient-to-r from-indigo-500 to-purple-600 h-3 rounded-full transition-all duration-500"
+            style={{ width: `${Math.min(level.accuracy, 100)}%` }}
+          />
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          {level.accuracy < 50
+            ? "💪 Tiếp tục luyện tập để cải thiện kết quả!"
+            : level.accuracy < 80
+            ? "👍 Bạn đang làm tốt lắm!"
+            : "🎉 Xuất sắc! Hãy thử cấp độ cao hơn!"}
+        </p>
+      </div>
+    </div>
+  )
+);
+LevelDetail.displayName = "LevelDetail";
+
+// ✅ OPTIMIZED: Memoized AdviceCard component
+const AdviceCard = React.memo(
+  ({
+    emoji,
+    title,
+    description,
+  }: {
+    emoji: string;
+    title: string;
+    description: string;
+  }) => (
+    <div className="flex gap-3 p-3 bg-blue-50 rounded-lg">
+      <span className="text-2xl">{emoji}</span>
+      <div>
+        <p className="font-medium text-gray-800 text-sm">{title}</p>
+        <p className="text-xs text-gray-600 mt-1">{description}</p>
+      </div>
+    </div>
+  )
+);
+AdviceCard.displayName = "AdviceCard";
+
 export default function UserLearningDashboard() {
   const [dashboardData, setDashboardData] =
     useState<UserLearningDashboardResponse | null>(null);
@@ -64,8 +208,8 @@ export default function UserLearningDashboard() {
     }
   };
 
-  // Format ngày
-  const formatDate = (dateString?: string) => {
+  // ✅ OPTIMIZED: useCallback cho formatDate
+  const formatDate = useCallback((dateString?: string) => {
     if (!dateString) return "Chưa có dữ liệu";
     const date = new Date(dateString);
     return date.toLocaleDateString("vi-VN", {
@@ -75,23 +219,50 @@ export default function UserLearningDashboard() {
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
+  }, []);
 
-  // Format dữ liệu cho biểu đồ 7 ngày
-  const formatProgressData = () => {
+  // ✅ OPTIMIZED: useCallback cho tooltip formatters
+  const lineTooltipFormatter = useCallback(
+    (value: number | string | undefined, name?: string) => {
+      if (!value) return ["", ""];
+      if (name === "score")
+        return [`${Number(value).toFixed(1)}%`, "Độ chính xác"];
+      return [value, name || ""];
+    },
+    []
+  );
+
+  const pieTooltipFormatter = useCallback(
+    (value: number | string | undefined, name?: string) => {
+      if (value === undefined) return ["", ""];
+      return [`${value} câu`, name || ""];
+    },
+    []
+  );
+
+  const barTooltipContentStyle = useMemo(
+    () => ({
+      backgroundColor: "#fff",
+      border: "1px solid #e5e7eb",
+      borderRadius: "8px",
+    }),
+    []
+  );
+
+  // ✅ OPTIMIZED: useMemo cho dữ liệu
+  const progressData = useMemo(() => {
     const today = new Date();
     const last7Days = [];
 
     for (let i = 6; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split("T")[0]; // "2025-12-26"
+      const dateStr = date.toISOString().split("T")[0];
       const displayDate = date.toLocaleDateString("vi-VN", {
         day: "2-digit",
         month: "2-digit",
       });
 
-      // Tìm dữ liệu tương ứng từ API
       const dayData = dailyProgress.find((d) => d.date === dateStr);
 
       last7Days.push({
@@ -102,7 +273,102 @@ export default function UserLearningDashboard() {
     }
 
     return last7Days;
-  };
+  }, [dailyProgress]);
+
+  const pieData = useMemo(() => {
+    if (!dashboardData) return [];
+
+    return [
+      { name: "Đúng", value: dashboardData.correctQuestions, color: "#10B981" },
+      {
+        name: "Sai",
+        value:
+          dashboardData.totalQuestionsDone - dashboardData.correctQuestions,
+        color: "#EF4444",
+      },
+    ];
+  }, [dashboardData]);
+
+  const levelComparison = useMemo(() => {
+    if (!dashboardData) return [];
+
+    const allLevels = ["N5", "N4", "N3", "N2", "N1"];
+    return allLevels.map((level) => {
+      const levelData = dashboardData.levels.find((l) => l.level === level);
+      return {
+        level,
+        exams: levelData?.totalExamsTaken || 0,
+        accuracy: levelData?.accuracy || 0,
+      };
+    });
+  }, [dashboardData]);
+
+  const stats = useMemo(() => {
+    if (!dashboardData) return [];
+
+    return [
+      {
+        icon: BookOpen,
+        label: "Tổng số bài thi",
+        value: dashboardData.totalExamsTaken,
+        color: "bg-blue-500",
+        bgLight: "bg-blue-50",
+        textColor: "text-blue-600",
+      },
+      {
+        icon: Target,
+        label: "Câu hỏi đã làm",
+        value: dashboardData.totalQuestionsDone,
+        color: "bg-purple-500",
+        bgLight: "bg-purple-50",
+        textColor: "text-purple-600",
+      },
+      {
+        icon: CheckCircle2,
+        label: "Câu trả lời đúng",
+        value: dashboardData.correctQuestions,
+        color: "bg-green-500",
+        bgLight: "bg-green-50",
+        textColor: "text-green-600",
+      },
+      {
+        icon: TrendingUp,
+        label: "Độ chính xác",
+        value: `${dashboardData.accuracy.toFixed(1)}%`,
+        color: "bg-orange-500",
+        bgLight: "bg-orange-50",
+        textColor: "text-orange-600",
+        rawAccuracy: dashboardData.accuracy,
+      },
+    ];
+  }, [dashboardData]);
+
+  const hasProgressData = useMemo(
+    () => progressData.some((d) => d.score > 0),
+    [progressData]
+  );
+
+  // ✅ OPTIMIZED: Memoize advice cards data
+  const adviceCards = useMemo(
+    () => [
+      {
+        emoji: "📚",
+        title: "Luyện tập đều đặn",
+        description: "Hãy làm ít nhất 1 bài thi mỗi ngày",
+      },
+      {
+        emoji: "✍️",
+        title: "Ôn tập từ vựng",
+        description: "Xem lại các câu đã sai để cải thiện",
+      },
+      {
+        emoji: "🎯",
+        title: "Đặt mục tiêu rõ ràng",
+        description: "Tập trung vào một cấp độ tại một thời điểm",
+      },
+    ],
+    []
+  );
 
   if (loading) {
     return (
@@ -143,65 +409,6 @@ export default function UserLearningDashboard() {
     return null;
   }
 
-  // Dữ liệu cho pie chart
-  const pieData = [
-    { name: "Đúng", value: dashboardData.correctQuestions, color: "#10B981" },
-    {
-      name: "Sai",
-      value: dashboardData.totalQuestionsDone - dashboardData.correctQuestions,
-      color: "#EF4444",
-    },
-  ];
-
-  // Dữ liệu thật cho biểu đồ tiến độ 7 ngày
-  const progressData = formatProgressData();
-
-  // Dữ liệu so sánh các cấp độ từ API
-  const allLevels = ["N5", "N4", "N3", "N2", "N1"];
-  const levelComparison = allLevels.map((level) => {
-    const levelData = dashboardData.levels.find((l) => l.level === level);
-    return {
-      level,
-      exams: levelData?.totalExamsTaken || 0,
-      accuracy: levelData?.accuracy || 0,
-    };
-  });
-
-  const stats = [
-    {
-      icon: BookOpen,
-      label: "Tổng số bài thi",
-      value: dashboardData.totalExamsTaken,
-      color: "bg-blue-500",
-      bgLight: "bg-blue-50",
-      textColor: "text-blue-600",
-    },
-    {
-      icon: Target,
-      label: "Câu hỏi đã làm",
-      value: dashboardData.totalQuestionsDone,
-      color: "bg-purple-500",
-      bgLight: "bg-purple-50",
-      textColor: "text-purple-600",
-    },
-    {
-      icon: CheckCircle2,
-      label: "Câu trả lời đúng",
-      value: dashboardData.correctQuestions,
-      color: "bg-green-500",
-      bgLight: "bg-green-50",
-      textColor: "text-green-600",
-    },
-    {
-      icon: TrendingUp,
-      label: "Độ chính xác",
-      value: `${dashboardData.accuracy.toFixed(1)}%`,
-      color: "bg-orange-500",
-      bgLight: "bg-orange-50",
-      textColor: "text-orange-600",
-    },
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header */}
@@ -236,26 +443,7 @@ export default function UserLearningDashboard() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {stats.map((stat, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-6"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className={`${stat.color} p-3 rounded-lg`}>
-                  <stat.icon className="w-6 h-6 text-white" />
-                </div>
-                <div className={`${stat.bgLight} px-3 py-1 rounded-full`}>
-                  <span className={`text-xs font-semibold ${stat.textColor}`}>
-                    {stat.label === "Độ chính xác" &&
-                    dashboardData.accuracy < 50
-                      ? "Cần cải thiện"
-                      : "Tốt"}
-                  </span>
-                </div>
-              </div>
-              <p className="text-gray-600 text-sm mb-1">{stat.label}</p>
-              <p className="text-3xl font-bold text-gray-800">{stat.value}</p>
-            </div>
+            <StatCard key={index} stat={stat} />
           ))}
         </div>
 
@@ -265,75 +453,11 @@ export default function UserLearningDashboard() {
             {/* Chi tiết các cấp độ */}
             {dashboardData.levels.length > 0 ? (
               dashboardData.levels.map((level) => (
-                <div
+                <LevelDetail
                   key={level.level}
-                  className="bg-white rounded-xl shadow-sm p-6"
-                >
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                      <Award className="w-6 h-6 text-indigo-500" />
-                      Chi tiết cấp độ {level.level}
-                    </h2>
-                    <span className="text-sm text-gray-500">
-                      Lần thi cuối: {formatDate(level.lastExamAt)}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center">
-                      <p className="text-sm text-blue-600 mb-1">Số bài thi</p>
-                      <p className="text-2xl font-bold text-blue-700">
-                        {level.totalExamsTaken}
-                      </p>
-                    </div>
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 text-center">
-                      <p className="text-sm text-purple-600 mb-1">Câu hỏi</p>
-                      <p className="text-2xl font-bold text-purple-700">
-                        {level.totalQuestionsDone}
-                      </p>
-                    </div>
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 text-center">
-                      <p className="text-sm text-green-600 mb-1">Đúng</p>
-                      <p className="text-2xl font-bold text-green-700">
-                        {level.correctQuestions}
-                      </p>
-                    </div>
-                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 text-center">
-                      <p className="text-sm text-orange-600 mb-1">Điểm TB</p>
-                      <p className="text-2xl font-bold text-orange-700">
-                        {level.averageScore
-                          ? level.averageScore.toFixed(1)
-                          : level.accuracy.toFixed(1)}
-                        %
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Progress bar */}
-                  <div className="bg-gray-100 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium text-gray-700">
-                        Độ chính xác
-                      </span>
-                      <span className="text-sm font-bold text-indigo-600">
-                        {level.accuracy.toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
-                      <div
-                        className="bg-gradient-to-r from-indigo-500 to-purple-600 h-3 rounded-full transition-all duration-500"
-                        style={{ width: `${Math.min(level.accuracy, 100)}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      {level.accuracy < 50
-                        ? "💪 Tiếp tục luyện tập để cải thiện kết quả!"
-                        : level.accuracy < 80
-                        ? "👍 Bạn đang làm tốt lắm!"
-                        : "🎉 Xuất sắc! Hãy thử cấp độ cao hơn!"}
-                    </p>
-                  </div>
-                </div>
+                  level={level}
+                  formatDate={formatDate}
+                />
               ))
             ) : (
               <div className="bg-white rounded-xl shadow-sm p-8 text-center">
@@ -353,7 +477,7 @@ export default function UserLearningDashboard() {
                 <TrendingUp className="w-6 h-6 text-indigo-500" />
                 Tiến độ 7 ngày qua
               </h2>
-              {progressData.some((d) => d.score > 0) ? (
+              {hasProgressData ? (
                 <ResponsiveContainer width="100%" height={250}>
                   <LineChart data={progressData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -366,23 +490,8 @@ export default function UserLearningDashboard() {
                       domain={[0, 100]}
                     />
                     <Tooltip
-                      formatter={(
-                        value: number | string | undefined,
-                        name?: string
-                      ) => {
-                        if (!value) return ["", ""];
-                        if (name === "score")
-                          return [
-                            `${Number(value).toFixed(1)}%`,
-                            "Độ chính xác",
-                          ];
-                        return [value, name || ""];
-                      }}
-                      contentStyle={{
-                        backgroundColor: "#fff",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: "8px",
-                      }}
+                      formatter={lineTooltipFormatter}
+                      contentStyle={barTooltipContentStyle}
                     />
                     <Line
                       type="monotone"
@@ -421,13 +530,7 @@ export default function UserLearningDashboard() {
                     tick={{ fill: "#6b7280", fontSize: 12 }}
                   />
                   <YAxis tick={{ fill: "#6b7280", fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#fff",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: "8px",
-                    }}
-                  />
+                  <Tooltip contentStyle={barTooltipContentStyle} />
                   <Bar dataKey="exams" fill="#6366f1" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -459,12 +562,8 @@ export default function UserLearningDashboard() {
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(value, name) => [`${value} câu`, name]}
-                      contentStyle={{
-                        backgroundColor: "#fff",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: "8px",
-                      }}
+                      formatter={pieTooltipFormatter}
+                      contentStyle={barTooltipContentStyle}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -547,39 +646,14 @@ export default function UserLearningDashboard() {
                 Lời khuyên
               </h2>
               <div className="space-y-3">
-                <div className="flex gap-3 p-3 bg-blue-50 rounded-lg">
-                  <span className="text-2xl">📚</span>
-                  <div>
-                    <p className="font-medium text-gray-800 text-sm">
-                      Luyện tập đều đặn
-                    </p>
-                    <p className="text-xs text-gray-600 mt-1">
-                      Hãy làm ít nhất 1 bài thi mỗi ngày
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3 p-3 bg-green-50 rounded-lg">
-                  <span className="text-2xl">✍️</span>
-                  <div>
-                    <p className="font-medium text-gray-800 text-sm">
-                      Ôn tập từ vựng
-                    </p>
-                    <p className="text-xs text-gray-600 mt-1">
-                      Xem lại các câu đã sai để cải thiện
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3 p-3 bg-purple-50 rounded-lg">
-                  <span className="text-2xl">🎯</span>
-                  <div>
-                    <p className="font-medium text-gray-800 text-sm">
-                      Đặt mục tiêu rõ ràng
-                    </p>
-                    <p className="text-xs text-gray-600 mt-1">
-                      Tập trung vào một cấp độ tại một thời điểm
-                    </p>
-                  </div>
-                </div>
+                {adviceCards.map((card, index) => (
+                  <AdviceCard
+                    key={index}
+                    emoji={card.emoji}
+                    title={card.title}
+                    description={card.description}
+                  />
+                ))}
               </div>
             </div>
           </div>
