@@ -11,7 +11,10 @@ export const API_ENDPOINTS = {
   LOGIN: "/auth/login",
   REFRESH_TOKEN: "/auth/refresh-token",
   LOG_OUT: "/auth/logout",
-
+  LEARNING_PROGRESS: {
+    PROGRESS_VIEW: "/learning-progress",
+    PROGRESS_RESULT_DAILY: "/learning-progress",
+  },
   EXAM: {
     EXAM_VIEW_ALL: "/exams",
     QUESTION_LISTEN: "/questions/listen",

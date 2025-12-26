@@ -31,8 +31,8 @@ export default function LoginPage() {
       console.log("Decoded roles:", roles);
 
       if (roles.includes("ADMIN")) {
-        console.log("Redirecting to /dashboard");
-        router.push("/dashboard");
+        console.log("Redirecting to /adminDashboard");
+        router.push("/adminDashboard");
       } else {
         console.log("Redirecting to /video");
         router.push("/video");
