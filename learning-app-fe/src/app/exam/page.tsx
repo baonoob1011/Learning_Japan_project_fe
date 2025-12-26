@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { examService, SectionWithQuestionsResponse } from "@/services/exam";
-import BackButton from "@/components/backButton";
 import { QUESTION_TYPE_ORDER } from "@/config/questionTypeOrder";
 import { LISTENING_TYPE_ORDER } from "@/config/listeningTypeOrder";
 import { useExamResultStore } from "@/stores/examResultStore";
@@ -90,6 +89,22 @@ export default function ExamPage() {
       window.removeEventListener("popstate", handlePopState);
     };
   }, [currentSectionOrder, participantId, examId, router]);
+
+  /* ------------------ PREVENT PAGE REFRESH ------------------ */
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue =
+        "Bạn có chắc muốn rời khỏi trang? Tiến trình làm bài có thể bị mất.";
+      return e.returnValue;
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
 
   /* ------------------ SYNC SECTION ------------------ */
   useEffect(() => {
@@ -395,7 +410,6 @@ export default function ExamPage() {
       <div className="bg-white border-b shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {currentSectionOrder === 1 && <BackButton />}
             <h1 className="text-xl font-semibold text-gray-800">
               Phần {currentSectionOrder}: {currentSection?.title || ""}
             </h1>

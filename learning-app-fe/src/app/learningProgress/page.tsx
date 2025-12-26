@@ -366,7 +366,11 @@ export default function UserLearningDashboard() {
                       domain={[0, 100]}
                     />
                     <Tooltip
-                      formatter={(value: number | string, name?: string) => {
+                      formatter={(
+                        value: number | string | undefined,
+                        name?: string
+                      ) => {
+                        if (!value) return ["", ""];
                         if (name === "score")
                           return [
                             `${Number(value).toFixed(1)}%`,
