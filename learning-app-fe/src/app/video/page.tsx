@@ -1,13 +1,12 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { youtubeService } from "@/services/video";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   Video,
   Play,
   Clock,
-  Users,
   Star,
   ChevronLeft,
   Menu,
@@ -19,82 +18,272 @@ import {
   BookOpen,
   Sun,
   Moon,
+  AlertCircle,
+  X,
 } from "lucide-react";
 
-interface VideoCardProps {
+// Types matching backend response
+interface YoutubeVideoSummary {
+  id: string;
   title: string;
-  thumbnail: string;
-  views: number | string;
+  s3Url: string;
   duration: string;
-  tag: string;
-  uploadTime: string;
-  isDark: boolean; // ✅ THÊM
+  createdAt: string;
 }
-const VideoCard: React.FC<VideoCardProps> = ({
-  title,
-  thumbnail,
-  views,
-  duration,
-  tag,
-  uploadTime,
-  isDark, // ✅ THÊM
-}) => (
-  <div
-    className={`${
-      isDark ? "bg-gray-800" : "bg-white"
-    } rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group`}
-  >
-    <div className="relative">
-      <img src={thumbnail} alt={title} className="w-full h-40 object-cover" />
-      <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-        <Clock className="w-3 h-3" />
-        {duration}
-      </div>
-      <div className="absolute top-2 left-2">
-        <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-          {tag}
-        </span>
-      </div>
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all flex items-center justify-center">
-        <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform scale-75 group-hover:scale-100">
-          <Play className="w-6 h-6 text-teal-500 ml-1" />
-        </div>
-      </div>
-    </div>
-    <div className="p-4">
-      <h3
-        className={`font-semibold ${
-          isDark ? "text-gray-100" : "text-gray-800"
-        } text-sm line-clamp-2 mb-2`}
-      >
-        {title}
-      </h3>
-      <div
-        className={`flex items-center gap-3 text-xs ${
-          isDark ? "text-gray-400" : "text-gray-500"
-        }`}
-      >
-        <div className="flex items-center gap-1">
-          <Users className="w-3 h-3" />
-          {views}
-        </div>
-        <div className="flex items-center gap-1">
-          <Clock className="w-3 h-3" />
-          {uploadTime}
-        </div>
-      </div>
-    </div>
-  </div>
-);
 
-export default function VideoPage() {
+interface VideoCardProps {
+  video: YoutubeVideoSummary;
+  isDark: boolean;
+  onClick: () => void;
+}
+
+// Video Modal Component
+interface VideoModalProps {
+  video: YoutubeVideoSummary;
+  isDark: boolean;
+  onClose: () => void;
+}
+
+const VideoModal: React.FC<VideoModalProps> = ({ video, isDark, onClose }) => {
+  const getYouTubeEmbedUrl = (url: string) => {
+    // Extract video ID from various YouTube URL formats
+    const videoIdMatch = url.match(
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\?\/]+)/
+    );
+    if (videoIdMatch && videoIdMatch[1]) {
+      return `https://www.youtube.com/embed/${videoIdMatch[1]}`;
+    }
+    return url;
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className={`${
+          isDark ? "bg-gray-800" : "bg-white"
+        } rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div
+          className={`flex items-center justify-between p-4 border-b ${
+            isDark ? "border-gray-700" : "border-gray-200"
+          }`}
+        >
+          <h2
+            className={`text-xl font-semibold ${
+              isDark ? "text-gray-100" : "text-gray-800"
+            } line-clamp-1`}
+          >
+            {video.title}
+          </h2>
+          <button
+            onClick={onClose}
+            className={`p-2 rounded-lg transition ${
+              isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"
+            }`}
+          >
+            <X
+              className={`w-5 h-5 ${
+                isDark ? "text-gray-300" : "text-gray-600"
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Video Player */}
+        <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
+          <iframe
+            src={getYouTubeEmbedUrl(video.s3Url)}
+            className="absolute inset-0 w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+
+        {/* Video Info */}
+        <div className="p-4">
+          <div
+            className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}
+          >
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                {formatDuration(video.duration)}
+              </span>
+              <span>{formatDate(video.createdAt)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Video Card Component
+const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
+  const getYouTubeThumbnail = (url: string) => {
+    // Extract video ID and return thumbnail
+    const videoIdMatch = url.match(
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\?\/]+)/
+    );
+    if (videoIdMatch && videoIdMatch[1]) {
+      return `https://img.youtube.com/vi/${videoIdMatch[1]}/maxresdefault.jpg`;
+    }
+    // Fallback gradient
+    return null;
+  };
+
+  const thumbnailUrl = getYouTubeThumbnail(video.s3Url);
+
+  const getThumbnailGradient = (videoId: string) => {
+    const colors = [
+      "from-blue-400 to-purple-500",
+      "from-green-400 to-teal-500",
+      "from-orange-400 to-red-500",
+      "from-pink-400 to-rose-500",
+      "from-indigo-400 to-blue-500",
+      "from-yellow-400 to-orange-500",
+    ];
+    let hash = 0;
+    for (let i = 0; i < videoId.length; i++) {
+      hash = videoId.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % colors.length;
+    return colors[index];
+  };
+
+  return (
+    <div
+      onClick={onClick}
+      className={`${
+        isDark ? "bg-gray-800" : "bg-white"
+      } rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group`}
+    >
+      <div className="relative">
+        {/* Thumbnail */}
+        {thumbnailUrl ? (
+          <div className="w-full h-40 relative bg-gray-200">
+            <img
+              src={thumbnailUrl}
+              alt={video.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback to gradient if image fails to load
+                e.currentTarget.style.display = "none";
+                e.currentTarget.parentElement?.classList.add(
+                  "bg-gradient-to-br",
+                  getThumbnailGradient(video.id)
+                );
+              }}
+            />
+          </div>
+        ) : (
+          <div
+            className={`w-full h-40 bg-gradient-to-br ${getThumbnailGradient(
+              video.id
+            )} flex items-center justify-center`}
+          >
+            <Play className="w-16 h-16 text-white/80" />
+          </div>
+        )}
+
+        {/* Duration */}
+        {video.duration && (
+          <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            {formatDuration(video.duration)}
+          </div>
+        )}
+
+        {/* Hover overlay */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
+          <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform scale-75 group-hover:scale-100">
+            <Play className="w-7 h-7 text-teal-500 ml-1" />
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4">
+        <h3
+          className={`font-semibold ${
+            isDark ? "text-gray-100" : "text-gray-800"
+          } text-sm line-clamp-2 mb-2 min-h-[40px]`}
+        >
+          {video.title}
+        </h3>
+        <div
+          className={`flex items-center gap-3 text-xs ${
+            isDark ? "text-gray-400" : "text-gray-500"
+          }`}
+        >
+          <div className="flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            {formatDate(video.createdAt)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Utility functions
+const formatDuration = (duration?: string): string => {
+  if (!duration) return "00:00";
+  if (duration.includes(":")) return duration;
+
+  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!match) return "00:00";
+
+  const hours = parseInt(match[1] || "0");
+  const minutes = parseInt(match[2] || "0");
+  const seconds = parseInt(match[3] || "0");
+
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  }
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+};
+
+const formatDate = (dateString?: string): string => {
+  if (!dateString) return "Gần đây";
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - date.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return "Hôm nay";
+  if (diffDays === 1) return "Hôm qua";
+  if (diffDays < 7) return `${diffDays} ngày trước`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} tuần trước`;
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)} tháng trước`;
+  return `${Math.floor(diffDays / 365)} năm trước`;
+};
+
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  result: T;
+}
+
+// Main Component
+export default function VideoListPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("JA");
   const [activeTab, setActiveTab] = useState("Toàn bộ");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentStreak, setCurrentStreak] = useState(4);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const router = useRouter();
+  const [videos, setVideos] = useState<YoutubeVideoSummary[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedVideo, setSelectedVideo] =
+    useState<YoutubeVideoSummary | null>(null);
 
   const languages = [
     { code: "JA", label: "🇯🇵 Tiếng Nhật", flag: "🇯🇵" },
@@ -121,66 +310,50 @@ export default function VideoPage() {
     { icon: "😊", label: "Kids" },
   ];
 
-  const videos = [
-    {
-      title:
-        "Real Japanese for Restaurants (Part 2) | Japanese Listening Practice",
-      thumbnail: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-      views: "4",
-      duration: "16:32",
-      tag: "Mới bắt đầu",
-      uploadTime: "an hour ago",
-    },
-    {
-      title:
-        "Real Japanese for Restaurants (Part1) | Japanese Listening Practice",
-      thumbnail: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-      views: "20",
-      duration: "14:15",
-      tag: "Mới bắt đầu",
-      uploadTime: "an hour ago",
-    },
-    {
-      title:
-        "[20-min] Listen to Transportation🚃 Phrases in Japanese - Learn 70+ Japanese Phrases",
-      thumbnail: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-      views: "4",
-      duration: "21:13",
-      tag: "Mới bắt đầu",
-      uploadTime: "an hour ago",
-    },
-    {
-      title:
-        "Real Japanese for Convenience Store🏪 | Japanese Listening Practice",
-      thumbnail: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-      views: "1",
-      duration: "18:04",
-      tag: "Mới bắt đầu",
-      uploadTime: "an hour ago",
-    },
-    {
-      title:
-        "Japanese Podcast | What do Japanese People REALLY Think of Japan?",
-      thumbnail: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-      views: "4.1K",
-      duration: "10:23",
-      tag: "Podcast",
-      uploadTime: "23 days ago",
-    },
-    {
-      title: "Japanese Podcast | What is IKIGAI? | Japanese Culture Explained",
-      thumbnail: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-      views: "4.4K",
-      duration: "09:42",
-      tag: "Podcast",
-      uploadTime: "a month ago",
-    },
-  ];
+  const fetchVideos = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const videosData = await youtubeService.getAll();
+      setVideos(videosData);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Không thể tải video. Vui lòng thử lại."
+      );
+      console.error("Error fetching videos:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVideos();
+  }, []);
+
+  const handleVideoClick = (video: YoutubeVideoSummary) => {
+    setSelectedVideo(video);
+  };
+
+  const filteredVideos = videos.filter((video) =>
+    video.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div
       className={`flex h-screen ${isDarkMode ? "bg-gray-900" : "bg-gray-50"}`}
     >
+      {/* Video Modal */}
+      {selectedVideo && (
+        <VideoModal
+          video={selectedVideo}
+          isDark={isDarkMode}
+          onClose={() => setSelectedVideo(null)}
+        />
+      )}
+
       {/* Sidebar */}
       <div
         className={`${sidebarOpen ? "w-72" : "w-20"} ${
@@ -189,7 +362,6 @@ export default function VideoPage() {
             : "bg-white border-gray-200"
         } border-r transition-all duration-300 flex flex-col`}
       >
-        {/* Logo */}
         <div
           className={`p-4 ${
             isDarkMode ? "border-gray-700" : "border-gray-200"
@@ -230,7 +402,6 @@ export default function VideoPage() {
           </button>
         </div>
 
-        {/* Streak */}
         {sidebarOpen && (
           <div
             className={`p-4 ${
@@ -296,7 +467,6 @@ export default function VideoPage() {
           </div>
         )}
 
-        {/* Menu */}
         <div className="flex-1 overflow-y-auto p-4">
           <div className="space-y-2">
             <button className="w-full flex items-center gap-3 px-4 py-3 bg-emerald-50 text-emerald-600 rounded-xl font-medium hover:bg-emerald-100 transition">
@@ -314,7 +484,6 @@ export default function VideoPage() {
               {sidebarOpen && <span>Video của tôi</span>}
             </button>
             <button
-              onClick={() => router.push("/learningProgress")}
               className={`w-full flex items-center gap-3 px-4 py-3 ${
                 isDarkMode
                   ? "text-gray-300 hover:bg-gray-700"
@@ -324,19 +493,13 @@ export default function VideoPage() {
               <Clock className="w-5 h-5" />
               {sidebarOpen && <span>Xem gần đây</span>}
             </button>
-
-            {/* ✅ Luyện đề – Y CHANG Danh sách video */}
-            <button
-              className="w-full flex items-center gap-3 px-4 py-3 bg-emerald-50 text-emerald-600 rounded-xl font-medium hover:bg-emerald-100 transition"
-              onClick={() => router.push("/practice")}
-            >
+            <button className="w-full flex items-center gap-3 px-4 py-3 bg-emerald-50 text-emerald-600 rounded-xl font-medium hover:bg-emerald-100 transition">
               <BookOpen className="w-5 h-5" />
               {sidebarOpen && <span>Luyện đề</span>}
             </button>
           </div>
         </div>
 
-        {/* Language Selector */}
         {sidebarOpen && (
           <div
             className={`p-4 ${
@@ -370,7 +533,6 @@ export default function VideoPage() {
           </div>
         )}
 
-        {/* Upgrade Button */}
         {sidebarOpen && (
           <div className="p-4">
             <button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition flex items-center justify-center gap-2">
@@ -383,7 +545,6 @@ export default function VideoPage() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
         <div
           className={`${
             isDarkMode
@@ -445,7 +606,6 @@ export default function VideoPage() {
             </div>
           </div>
 
-          {/* Search and Filters */}
           <div className="flex gap-4">
             <div className="flex gap-3 bg-teal-500 text-white px-4 py-3 rounded-xl">
               <button className="flex items-center gap-2 px-4 py-2 bg-white text-teal-500 rounded-lg font-medium">
@@ -462,7 +622,7 @@ export default function VideoPage() {
               <div className="flex-1 relative">
                 <input
                   type="text"
-                  placeholder="Dán link Youtube để bắt đầu"
+                  placeholder="Tìm kiếm video..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className={`w-full px-4 py-3 ${
@@ -478,39 +638,17 @@ export default function VideoPage() {
                 />
               </div>
 
-              <select
-                className={`px-4 py-3 ${
-                  isDarkMode
-                    ? "bg-gray-700 border-gray-600 text-gray-100"
-                    : "bg-white border-gray-300 text-gray-700"
-                } border rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400`}
+              <button
+                onClick={fetchVideos}
+                className="px-6 py-3 bg-gradient-to-r from-teal-400 to-emerald-500 text-white rounded-xl font-medium hover:shadow-lg transition flex items-center gap-2"
               >
-                <option>Chọn ngôn ngữ</option>
-                <option>Tiếng Nhật</option>
-                <option>Tiếng Anh</option>
-              </select>
-
-              <select
-                className={`px-4 py-3 ${
-                  isDarkMode
-                    ? "bg-gray-700 border-gray-600 text-gray-100"
-                    : "bg-white border-gray-300 text-gray-700"
-                } border rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400`}
-              >
-                <option>Chọn phụ đề</option>
-                <option>Có phụ đề</option>
-                <option>Không phụ đề</option>
-              </select>
-
-              <button className="px-6 py-3 bg-gradient-to-r from-teal-400 to-emerald-500 text-white rounded-xl font-medium hover:shadow-lg transition flex items-center gap-2">
                 <Video className="w-4 h-4" />
-                Tạo video
+                Tải lại
               </button>
             </div>
           </div>
         </div>
 
-        {/* Tabs */}
         <div
           className={`${
             isDarkMode
@@ -538,7 +676,6 @@ export default function VideoPage() {
           </div>
         </div>
 
-        {/* Video Grid */}
         <div className="flex-1 overflow-y-auto p-6">
           <div className="mb-4">
             <h2
@@ -549,11 +686,81 @@ export default function VideoPage() {
               N5 - N4
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {videos.map((video, index) => (
-              <VideoCard key={index} {...video} isDark={isDarkMode} />
-            ))}
-          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto"></div>
+                <p
+                  className={`mt-4 ${
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  Đang tải video...
+                </p>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <AlertCircle
+                  className={`w-12 h-12 mx-auto mb-4 ${
+                    isDarkMode ? "text-red-400" : "text-red-500"
+                  }`}
+                />
+                <p
+                  className={`text-lg font-medium mb-2 ${
+                    isDarkMode ? "text-gray-200" : "text-gray-800"
+                  }`}
+                >
+                  Không thể tải video
+                </p>
+                <p
+                  className={`mb-4 ${
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  {error}
+                </p>
+                <button
+                  onClick={fetchVideos}
+                  className="px-6 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition"
+                >
+                  Thử lại
+                </button>
+              </div>
+            </div>
+          ) : filteredVideos.length === 0 ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <Video
+                  className={`w-12 h-12 mx-auto mb-4 ${
+                    isDarkMode ? "text-gray-600" : "text-gray-400"
+                  }`}
+                />
+                <p
+                  className={`text-lg ${
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  {searchQuery
+                    ? "Không tìm thấy video nào"
+                    : "Chưa có video nào"}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredVideos.map((video) => (
+                <VideoCard
+                  key={video.id}
+                  video={video}
+                  isDark={isDarkMode}
+                  onClick={() => handleVideoClick(video)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

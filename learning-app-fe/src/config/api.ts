@@ -11,6 +11,9 @@ export const API_ENDPOINTS = {
   LOGIN: "/auth/login",
   REFRESH_TOKEN: "/auth/refresh-token",
   LOG_OUT: "/auth/logout",
+  VIDEO: {
+    VIEW: "/youtube",
+  },
   LEARNING_PROGRESS: {
     PROGRESS_VIEW: "/learning-progress",
     PROGRESS_RESULT_DAILY: "/learning-progress",
