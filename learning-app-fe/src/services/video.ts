@@ -6,7 +6,7 @@ import { useAuthStore } from "@/stores/authStore";
 export interface YoutubeVideoSummary {
   id: string;
   title: string;
-  s3Url: string;
+  urlVideo: string;
   duration: string;
   createdAt: string;
 }

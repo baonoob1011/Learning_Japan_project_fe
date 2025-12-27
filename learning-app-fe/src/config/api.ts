@@ -13,6 +13,7 @@ export const API_ENDPOINTS = {
   LOG_OUT: "/auth/logout",
   VIDEO: {
     VIEW: "/youtube",
+    VIEW_BY_ID: "/transcripts",
   },
   LEARNING_PROGRESS: {
     PROGRESS_VIEW: "/learning-progress",

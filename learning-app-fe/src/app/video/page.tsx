@@ -1,5 +1,6 @@
 "use client";
 import { youtubeService } from "@/services/video";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -26,7 +27,7 @@ import {
 interface YoutubeVideoSummary {
   id: string;
   title: string;
-  s3Url: string;
+  urlVideo: string;
   duration: string;
   createdAt: string;
 }
@@ -97,7 +98,7 @@ const VideoModal: React.FC<VideoModalProps> = ({ video, isDark, onClose }) => {
         {/* Video Player */}
         <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
           <iframe
-            src={getYouTubeEmbedUrl(video.s3Url)}
+            src={getYouTubeEmbedUrl(video.urlVideo)}
             className="absolute inset-0 w-full h-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
@@ -137,7 +138,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
     return null;
   };
 
-  const thumbnailUrl = getYouTubeThumbnail(video.s3Url);
+  const thumbnailUrl = getYouTubeThumbnail(video.urlVideo);
 
   const getThumbnailGradient = (videoId: string) => {
     const colors = [
@@ -265,14 +266,9 @@ const formatDate = (dateString?: string): string => {
   return `${Math.floor(diffDays / 365)} năm trước`;
 };
 
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  result: T;
-}
-
 // Main Component
 export default function VideoListPage() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("JA");
   const [activeTab, setActiveTab] = useState("Toàn bộ");
@@ -334,7 +330,7 @@ export default function VideoListPage() {
   }, []);
 
   const handleVideoClick = (video: YoutubeVideoSummary) => {
-    setSelectedVideo(video);
+    router.push(`/video/${video.id}`);
   };
 
   const filteredVideos = videos.filter((video) =>
@@ -484,6 +480,7 @@ export default function VideoListPage() {
               {sidebarOpen && <span>Video của tôi</span>}
             </button>
             <button
+              onClick={() => router.push("/learningProgress")}
               className={`w-full flex items-center gap-3 px-4 py-3 ${
                 isDarkMode
                   ? "text-gray-300 hover:bg-gray-700"
@@ -493,7 +490,10 @@ export default function VideoListPage() {
               <Clock className="w-5 h-5" />
               {sidebarOpen && <span>Xem gần đây</span>}
             </button>
-            <button className="w-full flex items-center gap-3 px-4 py-3 bg-emerald-50 text-emerald-600 rounded-xl font-medium hover:bg-emerald-100 transition">
+            <button
+              onClick={() => router.push("/practice")}
+              className="w-full flex items-center gap-3 px-4 py-3 bg-emerald-50 text-emerald-600 rounded-xl font-medium hover:bg-emerald-100 transition"
+            >
               <BookOpen className="w-5 h-5" />
               {sidebarOpen && <span>Luyện đề</span>}
             </button>
