@@ -1,7 +1,9 @@
 "use client";
 import { translateService } from "@/services/translateService";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import YoutubePlayerWithTranscript from "@/components/YoutubePlayerWithTranscript";
+
 import {
   ChevronLeft,
   Video,
@@ -26,6 +28,8 @@ export default function VideoLearningPage() {
   const router = useRouter();
   const pathname = usePathname();
   const videoId = pathname.split("/").pop() || "";
+  const [seekTimeMs, setSeekTimeMs] = useState<number | null>(null);
+  const [currentTimeMs, setCurrentTimeMs] = useState<number>(0);
 
   const [showSidebar, setShowSidebar] = useState(true);
   const [showSubtitles, setShowSubtitles] = useState(true);
@@ -38,12 +42,19 @@ export default function VideoLearningPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [transcripts, setTranscripts] = useState<TranscriptDTO[]>([]);
   const [videoTitle, setVideoTitle] = useState<string>("");
-  const [iframeRef, setIframeRef] = useState<HTMLIFrameElement | null>(null);
+
+  // Refs for auto-scroll
+  const transcriptRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const video = {
     id: videoId,
     title: videoTitle || "Đang tải...",
     url: `https://www.youtube.com/embed/${videoId}?enablejsapi=1`,
+  };
+
+  const handleSeekToTime = (timeMs: number) => {
+    setSeekTimeMs(timeMs);
   };
 
   const formatTime = (ms: number) => {
@@ -55,6 +66,31 @@ export default function VideoLearningPage() {
     return `${minutes}:${seconds}`;
   };
 
+  // Find active transcript
+  const activeTranscript = transcripts.find(
+    (t) => currentTimeMs >= t.startOffset && currentTimeMs < t.endOffset
+  );
+
+  // Auto-scroll to active transcript
+  useEffect(() => {
+    if (activeTranscript && transcriptRefs.current[activeTranscript.id]) {
+      const element = transcriptRefs.current[activeTranscript.id];
+      const container = scrollContainerRef.current;
+
+      if (element && container) {
+        const elementTop = element.offsetTop;
+        const elementHeight = element.offsetHeight;
+        const containerHeight = container.clientHeight;
+        const scrollTop = elementTop - containerHeight / 2 + elementHeight / 2;
+
+        container.scrollTo({
+          top: scrollTop,
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [activeTranscript]);
+
   useEffect(() => {
     if (!videoId) return;
 
@@ -63,7 +99,7 @@ export default function VideoLearningPage() {
         const data: YoutubeTranscriptResponse =
           await youtubeService.getTranscripts(videoId);
         setTranscripts(data.transcriptsDTOS);
-        setVideoTitle(data.title); // Lấy title từ API
+        setVideoTitle(data.title);
       } catch (err) {
         console.error("Failed to fetch transcripts", err);
         setTranscripts([]);
@@ -77,32 +113,6 @@ export default function VideoLearningPage() {
   const handleBack = () => {
     alert("Quay lại danh sách video");
     router.push("/videos");
-  };
-
-  const handleSeekToTime = (startOffsetMs: number) => {
-    if (!iframeRef) return;
-
-    const seconds = Math.floor(startOffsetMs / 1000);
-
-    // Sử dụng postMessage để điều khiển YouTube iframe
-    iframeRef.contentWindow?.postMessage(
-      JSON.stringify({
-        event: "command",
-        func: "seekTo",
-        args: [seconds, true],
-      }),
-      "*"
-    );
-
-    // Tự động play video
-    iframeRef.contentWindow?.postMessage(
-      JSON.stringify({
-        event: "command",
-        func: "playVideo",
-        args: [],
-      }),
-      "*"
-    );
   };
 
   return (
@@ -214,20 +224,14 @@ export default function VideoLearningPage() {
                   </p>
                 </div>
               </div>
-
               {/* Video Player */}
-              <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
-                <div className="relative pt-[56.25%] bg-black">
-                  <iframe
-                    ref={(el) => setIframeRef(el)}
-                    className="absolute top-0 left-0 w-full h-full"
-                    src={video.url}
-                    title={video.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              </div>
+              <YoutubePlayerWithTranscript
+                videoId={videoId}
+                transcripts={transcripts}
+                seekTimeMs={seekTimeMs}
+                onSeekHandled={() => setSeekTimeMs(null)}
+                onTimeUpdate={setCurrentTimeMs}
+              />
 
               {/* Video Info */}
               <div className="bg-white rounded-2xl shadow-sm p-6">
@@ -281,33 +285,81 @@ export default function VideoLearningPage() {
               </div>
             </div>
 
-            {/* Transcript List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-              {transcripts.map((t) => (
-                <div
-                  key={t.id}
-                  className="group p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors border border-transparent hover:border-emerald-200"
-                  onClick={() => handleSeekToTime(t.startOffset)}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <button
-                      className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 group-hover:bg-emerald-100 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSeekToTime(t.startOffset);
-                      }}
+            {/* Transcript List with Auto-scroll */}
+            <div
+              ref={scrollContainerRef}
+              className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar"
+            >
+              {transcripts.map((t) => {
+                const isActive = activeTranscript?.id === t.id;
+
+                return (
+                  <div
+                    key={t.id}
+                    ref={(el) => {
+                      transcriptRefs.current[t.id] = el;
+                    }}
+                    className={`group p-3 rounded-lg cursor-pointer transition-all duration-300 border ${
+                      isActive
+                        ? "bg-emerald-50 border-emerald-300 shadow-md scale-105"
+                        : "hover:bg-gray-50 border-transparent hover:border-emerald-200"
+                    }`}
+                    onClick={() => handleSeekToTime(t.startOffset)}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <button
+                        className={`w-6 h-6 flex items-center justify-center rounded-full transition-colors ${
+                          isActive
+                            ? "bg-emerald-500"
+                            : "bg-gray-100 group-hover:bg-emerald-100"
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSeekToTime(t.startOffset);
+                        }}
+                      >
+                        <Play
+                          className={`w-3 h-3 ${
+                            isActive
+                              ? "text-white"
+                              : "text-gray-600 group-hover:text-emerald-600"
+                          }`}
+                        />
+                      </button>
+                      <span
+                        className={`text-xs font-medium ${
+                          isActive ? "text-emerald-700" : "text-gray-500"
+                        }`}
+                      >
+                        {formatTime(t.startOffset)}
+                      </span>
+                      {isActive && (
+                        <div className="ml-auto">
+                          <div className="flex gap-1">
+                            <div className="w-1 h-3 bg-emerald-500 rounded animate-pulse"></div>
+                            <div
+                              className="w-1 h-3 bg-emerald-500 rounded animate-pulse"
+                              style={{ animationDelay: "0.2s" }}
+                            ></div>
+                            <div
+                              className="w-1 h-3 bg-emerald-500 rounded animate-pulse"
+                              style={{ animationDelay: "0.4s" }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <p
+                      className={`leading-relaxed text-sm ${
+                        isActive ? "text-gray-900 font-medium" : "text-gray-900"
+                      }`}
                     >
-                      <Play className="w-3 h-3 text-gray-600 group-hover:text-emerald-600" />
-                    </button>
-                    <span className="text-xs text-gray-500">
-                      {formatTime(t.startOffset)}
-                    </span>
+                      {t.text}
+                    </p>
+                    {/* ✅ ĐÃ XÓA PROGRESS BAR Ở ĐÂY */}
                   </div>
-                  <p className="text-gray-900 leading-relaxed text-sm">
-                    {t.text}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
