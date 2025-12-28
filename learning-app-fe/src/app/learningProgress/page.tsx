@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import BackButton from "@/components/backButton";
 import {
   Target,
   BookOpen,
@@ -415,13 +416,20 @@ export default function UserLearningDashboard() {
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800">
-                Dashboard Học Tập
-              </h1>
-              <p className="text-gray-600 mt-2">
-                Theo dõi tiến độ học tiếng Nhật của bạn
-              </p>
+            <div className="flex items-center gap-6">
+              {/* Back Button */}
+              <BackButton to="/video" label="home" />
+
+              <div className="h-8 w-px bg-gray-200"></div>
+
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">
+                  Dashboard Học Tập
+                </h1>
+                <p className="text-gray-600 mt-2">
+                  Theo dõi tiến độ học tiếng Nhật của bạn
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-4">
               {dashboardData.lastLevel && (

@@ -1,23 +1,11 @@
 "use client";
-import { translateService } from "@/services/translateService";
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import YoutubePlayerWithTranscript from "@/components/YoutubePlayerWithTranscript";
+import BackButton from "@/components/backButton";
 
-import {
-  ChevronLeft,
-  Video,
-  BookOpen,
-  Bell,
-  Settings,
-  X,
-  FileText,
-  Menu,
-  Play,
-  Volume2,
-} from "lucide-react";
+import { Video, X, FileText, Menu, Play, Volume2 } from "lucide-react";
 
-// Import types (giữ nguyên)
 import {
   youtubeService,
   YoutubeTranscriptResponse,
@@ -32,20 +20,19 @@ export default function VideoLearningPage() {
   const [currentTimeMs, setCurrentTimeMs] = useState<number>(0);
 
   const [showSidebar, setShowSidebar] = useState(true);
-  const [showSubtitles, setShowSubtitles] = useState(true);
   const [activeTab, setActiveTab] = useState<"subtitle" | "translation">(
     "subtitle"
   );
-  const [selectedLevel, setSelectedLevel] = useState<"N5" | "N4" | "beginner">(
-    "N5"
-  );
-  const [isPlaying, setIsPlaying] = useState(false);
   const [transcripts, setTranscripts] = useState<TranscriptDTO[]>([]);
   const [videoTitle, setVideoTitle] = useState<string>("");
 
   // Refs for auto-scroll
   const transcriptRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // State để theo dõi xem người dùng có đang tự kéo không
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const video = {
     id: videoId,
@@ -71,9 +58,13 @@ export default function VideoLearningPage() {
     (t) => currentTimeMs >= t.startOffset && currentTimeMs < t.endOffset
   );
 
-  // Auto-scroll to active transcript
+  // Auto-scroll to active transcript (chỉ khi không user scroll)
   useEffect(() => {
-    if (activeTranscript && transcriptRefs.current[activeTranscript.id]) {
+    if (
+      !isUserScrolling &&
+      activeTranscript &&
+      transcriptRefs.current[activeTranscript.id]
+    ) {
       const element = transcriptRefs.current[activeTranscript.id];
       const container = scrollContainerRef.current;
 
@@ -89,30 +80,51 @@ export default function VideoLearningPage() {
         });
       }
     }
-  }, [activeTranscript]);
+  }, [activeTranscript, isUserScrolling]);
 
+  // Fetch transcripts
   useEffect(() => {
     if (!videoId) return;
+
+    let isMounted = true;
 
     async function fetchTranscript() {
       try {
         const data: YoutubeTranscriptResponse =
           await youtubeService.getTranscripts(videoId);
-        setTranscripts(data.transcriptsDTOS);
-        setVideoTitle(data.title);
+
+        if (isMounted) {
+          setTranscripts(data.transcriptsDTOS);
+          setVideoTitle(data.title);
+        }
       } catch (err) {
         console.error("Failed to fetch transcripts", err);
-        setTranscripts([]);
-        setVideoTitle("Không tải được video");
+        if (isMounted) {
+          setTranscripts([]);
+          setVideoTitle("Không tải được video");
+        }
       }
     }
 
     fetchTranscript();
+
+    return () => {
+      isMounted = false;
+    };
   }, [videoId]);
 
-  const handleBack = () => {
-    alert("Quay lại danh sách video");
-    router.push("/videos");
+  // Xử lý khi người dùng tự kéo scroll
+  const handleUserScroll = () => {
+    setIsUserScrolling(true);
+
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    // Sau 3 giây không kéo nữa, bật lại auto-scroll
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsUserScrolling(false);
+    }, 3000);
   };
 
   return (
@@ -166,6 +178,11 @@ export default function VideoLearningPage() {
         {/* Top Navigation Bar */}
         <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
+            {/* Back Button */}
+            <BackButton to="/video" label="Danh sách" />
+
+            <div className="h-6 w-px bg-gray-200"></div>
+
             <button
               className="lg:hidden text-gray-600"
               onClick={() => setShowSidebar(!showSidebar)}
@@ -224,6 +241,7 @@ export default function VideoLearningPage() {
                   </p>
                 </div>
               </div>
+
               {/* Video Player */}
               <YoutubePlayerWithTranscript
                 videoId={videoId}
@@ -234,7 +252,7 @@ export default function VideoLearningPage() {
               />
 
               {/* Video Info */}
-              <div className="bg-white rounded-2xl shadow-sm p-6">
+              <div className="bg-white rounded-2xl shadow-sm p-6 mt-6">
                 <div className="flex items-center gap-3 mb-4">
                   <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">
                     N5
@@ -257,9 +275,16 @@ export default function VideoLearningPage() {
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-lg font-bold text-gray-900">Phụ đề</h2>
-                <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                  <X className="w-5 h-5" />
-                </button>
+                <div className="flex items-center gap-2">
+                  {isUserScrolling && (
+                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                      Tự cuộn: Tắt
+                    </span>
+                  )}
+                  <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
               <div className="flex gap-2">
                 <button
@@ -288,6 +313,7 @@ export default function VideoLearningPage() {
             {/* Transcript List with Auto-scroll */}
             <div
               ref={scrollContainerRef}
+              onScroll={handleUserScroll}
               className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar"
             >
               {transcripts.map((t) => {
@@ -356,7 +382,6 @@ export default function VideoLearningPage() {
                     >
                       {t.text}
                     </p>
-                    {/* ✅ ĐÃ XÓA PROGRESS BAR Ở ĐÂY */}
                   </div>
                 );
               })}

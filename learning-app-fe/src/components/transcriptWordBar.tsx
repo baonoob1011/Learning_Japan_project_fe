@@ -1,99 +1,79 @@
 "use client";
 
-import React, { useMemo } from "react";
-import TinySegmenter from "tiny-segmenter";
+import React from "react";
+import HoverTranslateWord from "./HoverTranslateWord";
+import { TranscriptDTO } from "@/services/transcriptService";
 
-interface TranscriptDTO {
-  id: string;
-  text: string;
-  startOffset: number;
-  endOffset: number;
-}
-
-interface WordItem {
-  word: string;
-  startOffset: number;
-  endOffset: number;
-}
-
-interface Props {
+interface TranscriptWordBarProps {
   transcripts: TranscriptDTO[];
   currentTimeMs: number;
-  onWordClick?: (timeMs: number) => void;
 }
-
-const segmenter = new TinySegmenter();
 
 export default function TranscriptWordBar({
   transcripts,
   currentTimeMs,
-  onWordClick,
-}: Props) {
-  /**
-   * 1️⃣ Transcript đang active
-   */
-  const activeTranscript = useMemo(() => {
-    return transcripts.find(
-      (t) => currentTimeMs >= t.startOffset && currentTimeMs < t.endOffset
-    );
-  }, [transcripts, currentTimeMs]);
+}: TranscriptWordBarProps) {
+  // Tìm transcript hiện tại
+  const currentTranscript = transcripts.find(
+    (t) => currentTimeMs >= t.startOffset && currentTimeMs < t.endOffset
+  );
 
-  /**
-   * 2️⃣ Segment + chia time đều cho từng từ
-   */
-  const words: WordItem[] = useMemo(() => {
-    if (!activeTranscript) return [];
+  // Hàm tách từ - tách theo khoảng trắng và giữ lại dấu câu
+  const tokenizeText = (text: string) => {
+    const words = text.split(/\s+/).filter((word) => word.length > 0);
+    return words;
+  };
 
-    const segmented = segmenter
-      .segment(activeTranscript.text)
-      .filter((w) => w.trim() !== "");
+  // Tính toán từ nào đang được highlight (dựa trên thời gian)
+  const getHighlightedWordIndex = () => {
+    if (!currentTranscript) return -1;
 
-    const duration = activeTranscript.endOffset - activeTranscript.startOffset;
-    const step = duration / segmented.length;
+    const words = tokenizeText(currentTranscript.text);
+    const duration =
+      currentTranscript.endOffset - currentTranscript.startOffset;
+    const durationPerWord = duration / words.length;
+    const elapsed = currentTimeMs - currentTranscript.startOffset;
 
-    return segmented.map((word, index) => ({
-      word,
-      startOffset: activeTranscript.startOffset + index * step,
-      endOffset: activeTranscript.startOffset + (index + 1) * step,
-    }));
-  }, [activeTranscript]);
+    const wordIndex = Math.floor(elapsed / durationPerWord);
+    return Math.min(wordIndex, words.length - 1);
+  };
 
-  if (!activeTranscript) return null;
+  const highlightedIndex = getHighlightedWordIndex();
 
   return (
-    <div className="relative px-8 py-6">
-      {/* Words Container */}
-      <div className="flex flex-wrap gap-2.5 items-baseline">
-        {words.map((item, index) => {
-          const isActive =
-            currentTimeMs >= item.startOffset && currentTimeMs < item.endOffset;
+    <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl shadow-lg p-6 min-h-[120px] flex items-center justify-center">
+      {currentTranscript ? (
+        /* Text with word-by-word highlight - Large size like in image */
+        <div className="text-2xl leading-relaxed font-medium w-full">
+          {tokenizeText(currentTranscript.text).map((word, idx) => {
+            const isHighlighted = idx === highlightedIndex;
 
-          return (
-            <span
-              key={index}
-              onClick={() => onWordClick?.(item.startOffset)}
-              className={`
-                relative cursor-pointer transition-all duration-200
-                px-3 py-1.5 rounded-lg font-medium
-                ${
-                  isActive
-                    ? "bg-gradient-to-r from-emerald-500 to-cyan-500 text-white shadow-lg shadow-emerald-500/40 scale-105 -translate-y-0.5"
-                    : "bg-white/80 text-slate-700 hover:bg-white hover:shadow-md border border-slate-200/50"
-                }
-                backdrop-blur-sm
-              `}
-            >
-              {isActive && (
-                <>
-                  {/* Glow effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-lg blur-md opacity-40 -z-10"></div>
-                </>
-              )}
-              {item.word}
-            </span>
-          );
-        })}
-      </div>
+            return (
+              <React.Fragment key={idx}>
+                <span
+                  className={`inline-block transition-all duration-300 ${
+                    isHighlighted
+                      ? "text-emerald-400 font-bold scale-110 underline decoration-emerald-400 decoration-2 underline-offset-4"
+                      : "text-white"
+                  }`}
+                >
+                  <HoverTranslateWord
+                    word={word}
+                    sourceLang="ja"
+                    targetLang="vi"
+                  />
+                </span>
+                {idx < tokenizeText(currentTranscript.text).length - 1 && " "}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      ) : (
+        /* Placeholder khi chưa có transcript */
+        <div className="text-gray-400 text-lg italic text-center">
+          Phụ đề sẽ hiển thị tại đây...
+        </div>
+      )}
     </div>
   );
 }

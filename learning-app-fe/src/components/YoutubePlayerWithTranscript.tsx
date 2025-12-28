@@ -6,7 +6,7 @@ import { TranscriptDTO } from "@/services/transcriptService";
 
 /* ===== TYPES ===== */
 type YTPlayer = {
-  getCurrentTime: () => number;
+  getCurrentTime: () => number | undefined;
   seekTo: (seconds: number, allowSeekAhead: boolean) => void;
   playVideo: () => void;
 };
@@ -34,7 +34,7 @@ interface Props {
   transcripts: TranscriptDTO[];
   seekTimeMs?: number | null;
   onSeekHandled?: () => void;
-  onTimeUpdate?: (timeMs: number) => void; // ✅ Thêm prop này
+  onTimeUpdate?: (timeMs: number) => void;
 }
 
 export default function YoutubePlayerWithTranscript({
@@ -42,11 +42,11 @@ export default function YoutubePlayerWithTranscript({
   transcripts,
   seekTimeMs,
   onSeekHandled,
-  onTimeUpdate, // ✅ Nhận prop từ parent
+  onTimeUpdate,
 }: Props) {
   const playerRef = useRef<YTPlayer | null>(null);
-  const [currentTimeMs, setCurrentTimeMs] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [currentTimeMs, setCurrentTimeMs] = useState(0);
 
   /** ======================
    * INIT YOUTUBE PLAYER
@@ -62,13 +62,26 @@ export default function YoutubePlayerWithTranscript({
       },
       events: {
         onReady: () => {
-          // ✅ Lưu interval reference để cleanup sau
+          // ✅ Clear previous interval if exists
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+          }
+
+          // ✅ Start tracking time
           intervalRef.current = setInterval(() => {
-            const time = playerRef.current?.getCurrentTime();
-            if (typeof time === "number") {
-              const timeMs = time * 1000;
-              setCurrentTimeMs(timeMs);
-              onTimeUpdate?.(timeMs); // ✅ Gửi time về parent
+            if (!playerRef.current) return;
+
+            try {
+              const time = playerRef.current.getCurrentTime();
+
+              // ✅ Check if time is valid number
+              if (typeof time === "number" && !isNaN(time)) {
+                const timeMs = Math.floor(time * 1000);
+                setCurrentTimeMs(timeMs);
+                onTimeUpdate?.(timeMs);
+              }
+            } catch (error) {
+              console.warn("Error getting current time:", error);
             }
           }, 300);
         },
@@ -79,15 +92,16 @@ export default function YoutubePlayerWithTranscript({
   useEffect(() => {
     if (window.YT) {
       initPlayer();
-    } else {
-      const tag = document.createElement("script");
-      tag.src = "https://www.youtube.com/iframe_api";
-      document.body.appendChild(tag);
-
-      window.onYouTubeIframeAPIReady = initPlayer;
+      return;
     }
 
-    // ✅ Cleanup interval khi component unmount
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.body.appendChild(tag);
+
+    window.onYouTubeIframeAPIReady = initPlayer;
+
+    // ✅ Cleanup on unmount
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -100,21 +114,15 @@ export default function YoutubePlayerWithTranscript({
    ====================== */
   useEffect(() => {
     if (seekTimeMs != null && playerRef.current) {
-      playerRef.current.seekTo(seekTimeMs / 1000, true);
-      playerRef.current.playVideo();
-      onSeekHandled?.();
+      try {
+        playerRef.current.seekTo(seekTimeMs / 1000, true);
+        playerRef.current.playVideo();
+        onSeekHandled?.();
+      } catch (error) {
+        console.warn("Error seeking video:", error);
+      }
     }
   }, [seekTimeMs, onSeekHandled]);
-
-  /**
-   * ✅ HANDLE WORD CLICK - Click vào từ để seek video
-   */
-  const handleWordClick = (timeMs: number) => {
-    if (playerRef.current) {
-      playerRef.current.seekTo(timeMs / 1000, true);
-      playerRef.current.playVideo();
-    }
-  };
 
   return (
     <>
@@ -132,7 +140,6 @@ export default function YoutubePlayerWithTranscript({
       <TranscriptWordBar
         transcripts={transcripts}
         currentTimeMs={currentTimeMs}
-        onWordClick={handleWordClick} // ✅ Truyền handler xuống WordBar
       />
     </>
   );
