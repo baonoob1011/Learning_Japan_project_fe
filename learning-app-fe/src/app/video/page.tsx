@@ -1,5 +1,5 @@
 "use client";
-import { youtubeService } from "@/services/video";
+import { youtubeService } from "@/services/videoService";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import React, { useState, useEffect } from "react";

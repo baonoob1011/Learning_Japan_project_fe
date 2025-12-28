@@ -4,7 +4,7 @@ import Notification from "@/components/notification";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Check, X, Shield } from "lucide-react";
-import { register, RegisterRequest } from "@/services/user"; // Đường dẫn file register.ts
+import { register, RegisterRequest } from "@/services/userService"; // Đường dẫn file register.ts
 import Link from "next/link";
 
 export default function RegisterPage() {

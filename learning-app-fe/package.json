@@ -19,6 +19,7 @@
     "react-dom": "^19.2.3",
     "react-youtube": "^10.1.0",
     "recharts": "^3.6.0",
+    "tiny-segmenter": "^0.2.0",
     "youtube-transcript": "^1.2.1",
     "ytdl-core": "^4.11.5",
     "zustand": "^5.0.9"

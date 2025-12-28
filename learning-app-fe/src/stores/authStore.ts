@@ -1,7 +1,7 @@
 // stores/authStore.ts
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { UserLoginResponse } from "@/services/auth"; // interface login response
+import { UserLoginResponse } from "@/services/authService"; // interface login response
 
 export interface User {
   id?: string;

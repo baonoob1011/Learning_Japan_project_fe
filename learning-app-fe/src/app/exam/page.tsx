@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { examService, SectionWithQuestionsResponse } from "@/services/exam";
+import {
+  examService,
+  SectionWithQuestionsResponse,
+} from "@/services/examService";
 import { QUESTION_TYPE_ORDER } from "@/config/questionTypeOrder";
 import { LISTENING_TYPE_ORDER } from "@/config/listeningTypeOrder";
 import { useExamResultStore } from "@/stores/examResultStore";

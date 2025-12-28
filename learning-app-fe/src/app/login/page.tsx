@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
-import { login } from "@/services/auth";
+import { login } from "@/services/authService";
 import { useRouter } from "next/navigation";
 import { getRolesFromToken } from "@/utils/jwt"; // helper decode JWT
 

@@ -3,7 +3,11 @@ import { useRouter } from "next/navigation";
 
 import React, { useEffect, useState } from "react";
 import { Search, Clock, Users, ChevronDown } from "lucide-react";
-import { examService, ExamResponse, StartExamResponse } from "@/services/exam";
+import {
+  examService,
+  ExamResponse,
+  StartExamResponse,
+} from "@/services/examService";
 import BackButton from "@/components/backButton";
 
 interface ExamCardProps {

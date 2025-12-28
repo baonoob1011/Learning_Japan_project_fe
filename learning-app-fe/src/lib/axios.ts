@@ -1,7 +1,7 @@
 // src/lib/axios-client.ts
 import axios from "axios";
 import { useAuthStore } from "@/stores/authStore";
-import { refreshToken as refreshTokenApi } from "@/services/auth";
+import { refreshToken as refreshTokenApi } from "@/services/authService";
 
 // ----- Axios public (không auth) -----
 export const axiosPublic = axios.create({

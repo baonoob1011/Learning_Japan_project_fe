@@ -1,5 +1,5 @@
 "use client";
-
+import { translateService } from "@/services/translateService";
 import React, { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -20,7 +20,7 @@ import {
   youtubeService,
   YoutubeTranscriptResponse,
   TranscriptDTO,
-} from "@/services/transcript";
+} from "@/services/transcriptService";
 
 export default function VideoLearningPage() {
   const router = useRouter();

@@ -26,6 +26,9 @@ export const API_ENDPOINTS = {
     EXAM_START: "/exams/start",
     QUESTION_VIEW_ALL: "/questions",
   },
+  TRANSLATE: {
+    CREATE: "/translates",
+  },
 } as const;
 
 // Helper function để lấy full endpoint URL

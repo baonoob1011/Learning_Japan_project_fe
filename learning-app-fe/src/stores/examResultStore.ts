@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { SubmitExamResponse } from "@/services/exam";
+import { SubmitExamResponse } from "@/services/examService";
 
 interface ExamResultStore {
   result: SubmitExamResponse | null;

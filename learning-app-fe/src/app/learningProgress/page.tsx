@@ -31,7 +31,7 @@ import {
   learningProgressService,
   UserLearningDashboardResponse,
   DailyProgressDto,
-} from "@/services/learning-progress";
+} from "@/services/learningProgressService";
 
 // ✅ Type definitions
 interface StatType {
