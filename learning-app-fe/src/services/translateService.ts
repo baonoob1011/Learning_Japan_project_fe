@@ -4,7 +4,8 @@ import { API_ENDPOINTS } from "@/config/api";
 import { useAuthStore } from "@/stores/authStore";
 
 export interface TranslateRequest {
-  text: string;
+  videoId?: string; // ID video liên quan (optional)
+  text: string; // từ/câu cần dịch
   sourceLang: string; // "ja"
   targetLang: string; // "vi"
 }
@@ -14,8 +15,11 @@ export interface TranslateResult {
   translated: string;
   reading?: string;
   romaji?: string;
-  explanation?: string;
-  examples?: { jp: string; vi: string }[];
+  explain?: string;
+  partOfSpeech?: string; // loại từ
+  targetDefs?: string; // nghĩa ngôn ngữ đích
+  audioUrl?: string; // đường dẫn audio
+  videoId?: string;
 }
 
 // ✅ Cache để lưu kết quả dịch

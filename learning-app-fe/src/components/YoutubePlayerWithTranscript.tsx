@@ -140,6 +140,7 @@ export default function YoutubePlayerWithTranscript({
       <TranscriptWordBar
         transcripts={transcripts}
         currentTimeMs={currentTimeMs}
+        videoId={videoId}
       />
     </>
   );

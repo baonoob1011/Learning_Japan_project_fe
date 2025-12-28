@@ -7,11 +7,13 @@ import { TranscriptDTO } from "@/services/transcriptService";
 interface TranscriptWordBarProps {
   transcripts: TranscriptDTO[];
   currentTimeMs: number;
+  videoId?: string; // thêm videoId
 }
 
 export default function TranscriptWordBar({
   transcripts,
   currentTimeMs,
+  videoId,
 }: TranscriptWordBarProps) {
   // Tìm transcript hiện tại
   const currentTranscript = transcripts.find(
@@ -61,6 +63,7 @@ export default function TranscriptWordBar({
                     word={word}
                     sourceLang="ja"
                     targetLang="vi"
+                    videoId={videoId}
                   />
                 </span>
                 {idx < tokenizeText(currentTranscript.text).length - 1 && " "}

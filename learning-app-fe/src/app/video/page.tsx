@@ -330,6 +330,10 @@ export default function VideoListPage() {
   }, []);
 
   const handleVideoClick = (video: YoutubeVideoSummary) => {
+    // Trigger getById nhưng không cần await, chỉ gọi để cache hoặc log
+    youtubeService.getById(video.id).catch((err) => console.error(err));
+
+    // Navigate sang trang chi tiết
     router.push(`/video/${video.id}`);
   };
 

@@ -176,7 +176,7 @@ export default function VideoLearningPage() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Navigation Bar */}
-        <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+        <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-4">
             {/* Back Button */}
             <BackButton to="/video" label="Danh sách" />
@@ -228,51 +228,86 @@ export default function VideoLearningPage() {
 
         {/* Content Area with Video and Transcript */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Left: Video Section */}
-          <div className="flex-1 overflow-y-auto bg-gray-50 p-6">
-            <div className="max-w-4xl mx-auto">
-              {/* Tips Card */}
-              <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-6 flex items-start gap-3">
-                <div className="text-2xl">💡</div>
-                <div>
-                  <p className="text-gray-800 text-sm">
-                    <strong>Tips!</strong> Bôi đen văn bản để dịch và thêm vào
-                    phần từ vựng
-                  </p>
+          {/* Left: Video Section - NOW SCROLLABLE */}
+          <div
+            id="video-content-scroll-container"
+            className="flex-1 overflow-y-auto bg-gray-50 custom-scrollbar"
+          >
+            <div className="p-6">
+              <div className="max-w-4xl mx-auto">
+                {/* Tips Card */}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-6 flex items-start gap-3">
+                  <div className="text-2xl">💡</div>
+                  <div>
+                    <p className="text-gray-800 text-sm">
+                      <strong>Tips!</strong> Bôi đen văn bản để dịch và thêm vào
+                      phần từ vựng
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              {/* Video Player */}
-              <YoutubePlayerWithTranscript
-                videoId={videoId}
-                transcripts={transcripts}
-                seekTimeMs={seekTimeMs}
-                onSeekHandled={() => setSeekTimeMs(null)}
-                onTimeUpdate={setCurrentTimeMs}
-              />
+                {/* Video Player */}
+                <YoutubePlayerWithTranscript
+                  videoId={videoId}
+                  transcripts={transcripts}
+                  seekTimeMs={seekTimeMs}
+                  onSeekHandled={() => setSeekTimeMs(null)}
+                  onTimeUpdate={setCurrentTimeMs}
+                />
 
-              {/* Video Info */}
-              <div className="bg-white rounded-2xl shadow-sm p-6 mt-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">
-                    N5
-                  </span>
-                  <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
-                    Podcast
-                  </span>
+                {/* Video Info */}
+                <div className="bg-white rounded-2xl shadow-sm p-6 mt-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">
+                      N5
+                    </span>
+                    <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+                      Podcast
+                    </span>
+                  </div>
+                  <h1 className="text-xl font-bold text-gray-900 mb-2">
+                    {video.title}
+                  </h1>
+
+                  {/* Additional Info Section */}
+                  <div className="border-t border-gray-200 pt-4 mt-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                      Mô tả
+                    </h3>
+                    <p className="text-gray-700 text-sm leading-relaxed">
+                      Video học tiếng Nhật với phụ đề tiếng Việt. Click vào từng
+                      từ để xem nghĩa chi tiết và lưu vào bộ từ vựng của bạn.
+                    </p>
+                  </div>
+
+                  <div className="border-t border-gray-200 pt-4 mt-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                      Thông tin
+                    </h3>
+                    <div className="space-y-2 text-sm text-gray-700">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Độ khó:</span>
+                        <span>N5 - Cơ bản</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Thể loại:</span>
+                        <span>Podcast</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Số câu:</span>
+                        <span>{transcripts.length} câu</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <h1 className="text-xl font-bold text-gray-900 mb-2">
-                  {video.title}
-                </h1>
-                <p className="text-gray-600 text-sm">Video ID: {videoId}</p>
               </div>
             </div>
           </div>
 
           {/* Right: Transcript Sidebar */}
-          <div className="w-96 bg-white border-l border-gray-200 flex flex-col">
+          <div className="w-96 bg-white border-l border-gray-200 flex flex-col flex-shrink-0">
             {/* Transcript Header */}
-            <div className="p-4 border-b border-gray-200">
+            <div className="p-4 border-b border-gray-200 flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-lg font-bold text-gray-900">Phụ đề</h2>
                 <div className="flex items-center gap-2">

@@ -92,32 +92,36 @@ export const youtubeService = {
    * Lấy chi tiết 1 video
    * - Cache 5 phút per video ID
    * - Return từ cache nếu còn valid
-   */
-  async getById(
-    id: string,
-    forceRefresh: boolean = false
-  ): Promise<YoutubeVideoDetail> {
-    // ✅ Check cache
-    const cachedItem = cache.details.get(id);
-    if (!forceRefresh && isCacheValid(cachedItem)) {
-      console.log(`[Cache HIT] Video detail: ${id}`);
-      return cachedItem!.data;
-    }
+  //  */
+  // async getById(
+  //   id: string,
+  //   forceRefresh: boolean = false
+  // ): Promise<YoutubeVideoDetail> {
+  //   // ✅ Check cache
+  //   const cachedItem = cache.details.get(id);
+  //   if (!forceRefresh && isCacheValid(cachedItem)) {
+  //     console.log(`[Cache HIT] Video detail: ${id}`);
+  //     return cachedItem!.data;
+  //   }
 
-    console.log(`[Cache MISS] Fetching video detail: ${id}`);
-    const data = await fetchAPI<YoutubeVideoDetail>(
-      `${API_ENDPOINTS.VIDEO.VIEW}/${id}`
-    );
+  //   console.log(`[Cache MISS] Fetching video detail: ${id}`);
+  //   const data = await fetchAPI<YoutubeVideoDetail>(
+  //     `${API_ENDPOINTS.VIDEO.VIEW}/${id}`
+  //   );
 
-    // ✅ Save to cache
-    cache.details.set(id, {
-      data,
-      timestamp: Date.now(),
-    });
+  //   // ✅ Save to cache
+  //   cache.details.set(id, {
+  //     data,
+  //     timestamp: Date.now(),
+  //   });
 
-    return data;
+  //   return data;
+  // },
+  async getById(id: string, forceRefresh: boolean = false): Promise<void> {
+    // Chỉ trigger API, không dùng dữ liệu trả về
+    await fetchAPI<void>(`${API_ENDPOINTS.VIDEO.VIEW}/${id}`);
+    console.log(`[Trigger] Video detail API called: ${id}`);
   },
-
   /**
    * Xóa cache cho 1 video cụ thể
    */
@@ -158,16 +162,16 @@ export const youtubeService = {
   /**
    * Prefetch video details (tải trước cho UX tốt hơn)
    * Gọi hàm này khi user hover vào video card
-   */
-  async prefetchVideo(id: string): Promise<void> {
-    // Chỉ prefetch nếu chưa có trong cache
-    if (!cache.details.has(id)) {
-      try {
-        await this.getById(id);
-        console.log(`[Prefetch] Video ${id} loaded`);
-      } catch (err) {
-        console.warn(`[Prefetch FAILED] Video ${id}`, err);
-      }
-    }
-  },
+  //  */
+  // async prefetchVideo(id: string): Promise<void> {
+  //   // Chỉ prefetch nếu chưa có trong cache
+  //   if (!cache.details.has(id)) {
+  //     try {
+  //       await this.getById(id);
+  //       console.log(`[Prefetch] Video ${id} loaded`);
+  //     } catch (err) {
+  //       console.warn(`[Prefetch FAILED] Video ${id}`, err);
+  //     }
+  //   }
+  // },
 };
