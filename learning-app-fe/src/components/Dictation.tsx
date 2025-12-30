@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -8,6 +8,7 @@ import {
   Check,
   X,
   Play,
+  Pause,
 } from "lucide-react";
 
 // TranscriptDTO interface
@@ -53,59 +54,16 @@ export default function DictationPractice({
   const totalQuestions = transcripts.length;
 
   /** ======================
-   * PLAY SEGMENT
-   ====================== */
-  const handlePlaySegment = () => {
-    if (!playerRef.current || !currentTranscript) return;
-
-    const startSec = currentTranscript.startOffset / 1000;
-    const endSec = currentTranscript.endOffset / 1000;
-
-    // Clear any existing interval
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-
-    try {
-      // Seek to start and play
-      playerRef.current.seekTo(startSec, true);
-      playerRef.current.playVideo();
-      setIsPlaying(true);
-
-      // Monitor playback and stop at end
-      intervalRef.current = setInterval(() => {
-        if (!playerRef.current) return;
-
-        try {
-          const currentTime = playerRef.current.getCurrentTime();
-
-          // Check if time is valid number
-          if (typeof currentTime === "number" && !isNaN(currentTime)) {
-            if (currentTime >= endSec) {
-              playerRef.current.pauseVideo();
-              setIsPlaying(false);
-              if (intervalRef.current) {
-                clearInterval(intervalRef.current);
-              }
-            }
-          }
-        } catch (error) {
-          console.warn("Error checking current time:", error);
-        }
-      }, 100);
-    } catch (error) {
-      console.warn("Error playing segment:", error);
-      setIsPlaying(false);
-    }
-  };
-
-  /** ======================
-   * HELPER FUNCTIONS
+   * STOP PLAYBACK - Cleanup function
    ====================== */
   const stopPlayback = () => {
+    // Clear interval first
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
+
+    // Then pause video
     if (playerRef.current) {
       try {
         playerRef.current.pauseVideo();
@@ -113,9 +71,71 @@ export default function DictationPractice({
         console.warn("Error stopping playback:", error);
       }
     }
+
     setIsPlaying(false);
   };
 
+  /** ======================
+   * PLAY SEGMENT - Fixed version
+   ====================== */
+  const handlePlaySegment = () => {
+    if (!playerRef.current || !currentTranscript) return;
+
+    const startSec = currentTranscript.startOffset / 1000;
+    const endSec = currentTranscript.endOffset / 1000;
+
+    // Stop any existing playback first
+    stopPlayback();
+
+    try {
+      // Seek to start position
+      playerRef.current.seekTo(startSec, true);
+
+      // Small delay to ensure seek completes
+      setTimeout(() => {
+        if (!playerRef.current) return;
+
+        playerRef.current.playVideo();
+        setIsPlaying(true);
+
+        // Set up interval to monitor playback
+        intervalRef.current = setInterval(() => {
+          if (!playerRef.current) {
+            stopPlayback();
+            return;
+          }
+
+          try {
+            const currentTime = playerRef.current.getCurrentTime();
+
+            // Check if we've reached the end or passed it
+            if (typeof currentTime === "number" && currentTime >= endSec) {
+              stopPlayback();
+            }
+          } catch (error) {
+            console.warn("Error checking playback time:", error);
+            stopPlayback();
+          }
+        }, 100);
+      }, 100);
+    } catch (error) {
+      console.warn("Error starting playback:", error);
+      stopPlayback();
+    }
+  };
+
+  /** ======================
+   * CLEANUP on unmount or transcript change
+   ====================== */
+  useEffect(() => {
+    return () => {
+      stopPlayback();
+    };
+  }, [currentIndex]);
+
+  /** ======================
+   * HELPER FUNCTIONS
+   ====================== */
   const maskText = (text: string, revealed: Set<number>) =>
     text
       .split("")
@@ -171,6 +191,7 @@ export default function DictationPractice({
   };
 
   const handleReset = () => {
+    stopPlayback();
     setUserInput("");
     setRevealedChars(new Set());
     setShowAnswer(false);
@@ -258,20 +279,25 @@ export default function DictationPractice({
           Nhập những gì bạn nghe được...
         </p>
 
-        {/* Play button for current transcript */}
+        {/* Play/Pause button for current transcript */}
         <div className="mb-4 flex items-center gap-2">
-          <button
-            onClick={handlePlaySegment}
-            disabled={isPlaying}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm ${
-              isPlaying
-                ? "bg-gray-400 cursor-not-allowed text-white"
-                : "bg-emerald-500 hover:bg-emerald-600 text-white"
-            }`}
-          >
-            <Play className="w-4 h-4 fill-white" />
-            {isPlaying ? "Đang phát..." : "Phát lại"}
-          </button>
+          {isPlaying ? (
+            <button
+              onClick={stopPlayback}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              <Pause className="w-4 h-4 fill-white" />
+              Dừng
+            </button>
+          ) : (
+            <button
+              onClick={handlePlaySegment}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm bg-emerald-500 hover:bg-emerald-600 text-white"
+            >
+              <Play className="w-4 h-4 fill-white" />
+              Phát lại
+            </button>
+          )}
           <span className="text-xs text-gray-500">
             ({Math.floor(currentTranscript.startOffset / 1000)}s -{" "}
             {Math.floor(currentTranscript.endOffset / 1000)}s)

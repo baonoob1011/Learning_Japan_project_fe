@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import YoutubePlayerWithTranscript from "@/components/YoutubePlayerWithTranscript";
+import DictationPractice from "@/components/Dictation";
 import BackButton from "@/components/backButton";
 
 import { Video, X, FileText, Menu, Play, Volume2 } from "lucide-react";
@@ -12,6 +13,16 @@ import {
   TranscriptDTO,
 } from "@/services/transcriptService";
 
+// YouTube Player Type
+interface YTPlayer {
+  getCurrentTime: () => number | undefined;
+  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
+  playVideo: () => void;
+  pauseVideo: () => void;
+}
+
+type ViewMode = "video" | "dictation" | "pronunciation";
+
 export default function VideoLearningPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -20,15 +31,17 @@ export default function VideoLearningPage() {
   const [currentTimeMs, setCurrentTimeMs] = useState<number>(0);
 
   const [showSidebar, setShowSidebar] = useState(true);
+  const [viewMode, setViewMode] = useState<ViewMode>("video");
   const [activeTab, setActiveTab] = useState<"subtitle" | "translation">(
     "subtitle"
   );
   const [transcripts, setTranscripts] = useState<TranscriptDTO[]>([]);
   const [videoTitle, setVideoTitle] = useState<string>("");
 
-  // Refs for auto-scroll
+  // Refs for auto-scroll and YouTube player
   const transcriptRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<YTPlayer | null>(null);
 
   // State để theo dõi xem người dùng có đang tự kéo không
   const [isUserScrolling, setIsUserScrolling] = useState(false);
@@ -127,6 +140,15 @@ export default function VideoLearningPage() {
     }, 3000);
   };
 
+  // Cleanup scroll timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div className="fixed inset-0 bg-white flex">
       {/* Left Sidebar */}
@@ -190,17 +212,38 @@ export default function VideoLearningPage() {
               <Menu className="w-5 h-5" />
             </button>
 
-            <button className="px-4 py-2 bg-emerald-500 text-white rounded-full font-medium flex items-center gap-2 hover:bg-emerald-600 transition-colors">
+            <button
+              onClick={() => setViewMode("video")}
+              className={`px-4 py-2 rounded-full font-medium flex items-center gap-2 transition-colors ${
+                viewMode === "video"
+                  ? "bg-emerald-500 text-white"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
               <Video className="w-4 h-4" />
               Video
             </button>
 
-            <button className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-full font-medium flex items-center gap-2 transition-colors">
+            <button
+              onClick={() => setViewMode("dictation")}
+              className={`px-4 py-2 rounded-full font-medium flex items-center gap-2 transition-colors ${
+                viewMode === "dictation"
+                  ? "bg-emerald-500 text-white"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
               <span>🎯</span>
               Chép chính tả
             </button>
 
-            <button className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-full font-medium flex items-center gap-2 transition-colors">
+            <button
+              onClick={() => setViewMode("pronunciation")}
+              className={`px-4 py-2 rounded-full font-medium flex items-center gap-2 transition-colors ${
+                viewMode === "pronunciation"
+                  ? "bg-emerald-500 text-white"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
               <Volume2 className="w-4 h-4" />
               Phát âm
             </button>
@@ -226,202 +269,234 @@ export default function VideoLearningPage() {
           </div>
         </div>
 
-        {/* Content Area with Video and Transcript */}
+        {/* Content Area with Video and Transcript/Dictation */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Left: Video Section - NOW SCROLLABLE */}
-          <div
-            id="video-content-scroll-container"
-            className="flex-1 overflow-y-auto bg-gray-50 custom-scrollbar"
-          >
-            <div className="p-6">
-              <div className="max-w-4xl mx-auto">
-                {/* Tips Card */}
-                <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-6 flex items-start gap-3">
-                  <div className="text-2xl">💡</div>
-                  <div>
-                    <p className="text-gray-800 text-sm">
-                      <strong>Tips!</strong> Bôi đen văn bản để dịch và thêm vào
-                      phần từ vựng
-                    </p>
-                  </div>
-                </div>
-
-                {/* Video Player */}
-                <YoutubePlayerWithTranscript
-                  videoId={videoId}
-                  transcripts={transcripts}
-                  seekTimeMs={seekTimeMs}
-                  onSeekHandled={() => setSeekTimeMs(null)}
-                  onTimeUpdate={setCurrentTimeMs}
-                />
-
-                {/* Video Info */}
-                <div className="bg-white rounded-2xl shadow-sm p-6 mt-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">
-                      N5
-                    </span>
-                    <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
-                      Podcast
-                    </span>
-                  </div>
-                  <h1 className="text-xl font-bold text-gray-900 mb-2">
-                    {video.title}
-                  </h1>
-
-                  {/* Additional Info Section */}
-                  <div className="border-t border-gray-200 pt-4 mt-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                      Mô tả
-                    </h3>
-                    <p className="text-gray-700 text-sm leading-relaxed">
-                      Video học tiếng Nhật với phụ đề tiếng Việt. Click vào từng
-                      từ để xem nghĩa chi tiết và lưu vào bộ từ vựng của bạn.
-                    </p>
+          {/* Left: Video Section - SCROLLABLE (hiển thị cho cả video và dictation mode) */}
+          {(viewMode === "video" || viewMode === "dictation") && (
+            <div
+              id="video-content-scroll-container"
+              className="flex-1 overflow-y-auto bg-gray-50 custom-scrollbar"
+            >
+              <div className="p-6">
+                <div className="max-w-4xl mx-auto">
+                  {/* Tips Card */}
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-6 flex items-start gap-3">
+                    <div className="text-2xl">💡</div>
+                    <div>
+                      <p className="text-gray-800 text-sm">
+                        <strong>Tips!</strong> Bôi đen văn bản để dịch và thêm
+                        vào phần từ vựng
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="border-t border-gray-200 pt-4 mt-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                      Thông tin
-                    </h3>
-                    <div className="space-y-2 text-sm text-gray-700">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">Độ khó:</span>
-                        <span>N5 - Cơ bản</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">Thể loại:</span>
-                        <span>Podcast</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">Số câu:</span>
-                        <span>{transcripts.length} câu</span>
+                  {/* Video Player */}
+                  <YoutubePlayerWithTranscript
+                    ref={playerRef}
+                    videoId={videoId}
+                    transcripts={transcripts}
+                    seekTimeMs={seekTimeMs}
+                    onSeekHandled={() => setSeekTimeMs(null)}
+                    onTimeUpdate={setCurrentTimeMs}
+                  />
+
+                  {/* Video Info */}
+                  <div className="bg-white rounded-2xl shadow-sm p-6 mt-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">
+                        N5
+                      </span>
+                      <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+                        Podcast
+                      </span>
+                    </div>
+                    <h1 className="text-xl font-bold text-gray-900 mb-2">
+                      {video.title}
+                    </h1>
+
+                    {/* Additional Info Section */}
+                    <div className="border-t border-gray-200 pt-4 mt-4">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                        Mô tả
+                      </h3>
+                      <p className="text-gray-700 text-sm leading-relaxed">
+                        Video học tiếng Nhật với phụ đề tiếng Việt. Click vào
+                        từng từ để xem nghĩa chi tiết và lưu vào bộ từ vựng của
+                        bạn.
+                      </p>
+                    </div>
+
+                    <div className="border-t border-gray-200 pt-4 mt-4">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                        Thông tin
+                      </h3>
+                      <div className="space-y-2 text-sm text-gray-700">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">Độ khó:</span>
+                          <span>N5 - Cơ bản</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">Thể loại:</span>
+                          <span>Podcast</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">Số câu:</span>
+                          <span>{transcripts.length} câu</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Right: Transcript Sidebar */}
-          <div className="w-96 bg-white border-l border-gray-200 flex flex-col flex-shrink-0">
-            {/* Transcript Header */}
-            <div className="p-4 border-b border-gray-200 flex-shrink-0">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-bold text-gray-900">Phụ đề</h2>
-                <div className="flex items-center gap-2">
-                  {isUserScrolling && (
-                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                      Tự cuộn: Tắt
-                    </span>
-                  )}
-                  <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                    <X className="w-5 h-5" />
+          {/* Right: Transcript Sidebar (chỉ hiển thị khi viewMode === "video") */}
+          {viewMode === "video" && (
+            <div className="w-96 bg-white border-l border-gray-200 flex flex-col flex-shrink-0">
+              {/* Transcript Header */}
+              <div className="p-4 border-b border-gray-200 flex-shrink-0">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-lg font-bold text-gray-900">Phụ đề</h2>
+                  <div className="flex items-center gap-2">
+                    {isUserScrolling && (
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                        Tự cuộn: Tắt
+                      </span>
+                    )}
+                    <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                      activeTab === "subtitle"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "text-gray-600 hover:bg-gray-100"
+                    }`}
+                    onClick={() => setActiveTab("subtitle")}
+                  >
+                    Phụ đề
+                  </button>
+                  <button
+                    className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                      activeTab === "translation"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "text-gray-600 hover:bg-gray-100"
+                    }`}
+                    onClick={() => setActiveTab("translation")}
+                  >
+                    Bản dịch
                   </button>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <button
-                  className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                    activeTab === "subtitle"
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }`}
-                  onClick={() => setActiveTab("subtitle")}
-                >
-                  Phụ đề
-                </button>
-                <button
-                  className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                    activeTab === "translation"
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }`}
-                  onClick={() => setActiveTab("translation")}
-                >
-                  Bản dịch
-                </button>
+
+              {/* Transcript List with Auto-scroll */}
+              <div
+                ref={scrollContainerRef}
+                onScroll={handleUserScroll}
+                className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar"
+              >
+                {transcripts.map((t) => {
+                  const isActive = activeTranscript?.id === t.id;
+
+                  return (
+                    <div
+                      key={t.id}
+                      ref={(el) => {
+                        transcriptRefs.current[t.id] = el;
+                      }}
+                      className={`group p-3 rounded-lg cursor-pointer transition-all duration-300 border ${
+                        isActive
+                          ? "bg-emerald-50 border-emerald-300 shadow-md scale-105"
+                          : "hover:bg-gray-50 border-transparent hover:border-emerald-200"
+                      }`}
+                      onClick={() => handleSeekToTime(t.startOffset)}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <button
+                          className={`w-6 h-6 flex items-center justify-center rounded-full transition-colors ${
+                            isActive
+                              ? "bg-emerald-500"
+                              : "bg-gray-100 group-hover:bg-emerald-100"
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSeekToTime(t.startOffset);
+                          }}
+                        >
+                          <Play
+                            className={`w-3 h-3 ${
+                              isActive
+                                ? "text-white"
+                                : "text-gray-600 group-hover:text-emerald-600"
+                            }`}
+                          />
+                        </button>
+                        <span
+                          className={`text-xs font-medium ${
+                            isActive ? "text-emerald-700" : "text-gray-500"
+                          }`}
+                        >
+                          {formatTime(t.startOffset)}
+                        </span>
+                        {isActive && (
+                          <div className="ml-auto">
+                            <div className="flex gap-1">
+                              <div className="w-1 h-3 bg-emerald-500 rounded animate-pulse"></div>
+                              <div
+                                className="w-1 h-3 bg-emerald-500 rounded animate-pulse"
+                                style={{ animationDelay: "0.2s" }}
+                              ></div>
+                              <div
+                                className="w-1 h-3 bg-emerald-500 rounded animate-pulse"
+                                style={{ animationDelay: "0.4s" }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <p
+                        className={`leading-relaxed text-sm ${
+                          isActive
+                            ? "text-gray-900 font-medium"
+                            : "text-gray-900"
+                        }`}
+                      >
+                        {t.text}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
+          )}
 
-            {/* Transcript List with Auto-scroll */}
-            <div
-              ref={scrollContainerRef}
-              onScroll={handleUserScroll}
-              className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar"
-            >
-              {transcripts.map((t) => {
-                const isActive = activeTranscript?.id === t.id;
+          {/* Right: Dictation Component (thay thế transcript khi viewMode === "dictation") */}
+          {viewMode === "dictation" && (
+            <DictationPractice
+              transcripts={transcripts}
+              videoId={videoId}
+              playerRef={playerRef}
+            />
+          )}
 
-                return (
-                  <div
-                    key={t.id}
-                    ref={(el) => {
-                      transcriptRefs.current[t.id] = el;
-                    }}
-                    className={`group p-3 rounded-lg cursor-pointer transition-all duration-300 border ${
-                      isActive
-                        ? "bg-emerald-50 border-emerald-300 shadow-md scale-105"
-                        : "hover:bg-gray-50 border-transparent hover:border-emerald-200"
-                    }`}
-                    onClick={() => handleSeekToTime(t.startOffset)}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <button
-                        className={`w-6 h-6 flex items-center justify-center rounded-full transition-colors ${
-                          isActive
-                            ? "bg-emerald-500"
-                            : "bg-gray-100 group-hover:bg-emerald-100"
-                        }`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSeekToTime(t.startOffset);
-                        }}
-                      >
-                        <Play
-                          className={`w-3 h-3 ${
-                            isActive
-                              ? "text-white"
-                              : "text-gray-600 group-hover:text-emerald-600"
-                          }`}
-                        />
-                      </button>
-                      <span
-                        className={`text-xs font-medium ${
-                          isActive ? "text-emerald-700" : "text-gray-500"
-                        }`}
-                      >
-                        {formatTime(t.startOffset)}
-                      </span>
-                      {isActive && (
-                        <div className="ml-auto">
-                          <div className="flex gap-1">
-                            <div className="w-1 h-3 bg-emerald-500 rounded animate-pulse"></div>
-                            <div
-                              className="w-1 h-3 bg-emerald-500 rounded animate-pulse"
-                              style={{ animationDelay: "0.2s" }}
-                            ></div>
-                            <div
-                              className="w-1 h-3 bg-emerald-500 rounded animate-pulse"
-                              style={{ animationDelay: "0.4s" }}
-                            ></div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <p
-                      className={`leading-relaxed text-sm ${
-                        isActive ? "text-gray-900 font-medium" : "text-gray-900"
-                      }`}
-                    >
-                      {t.text}
-                    </p>
-                  </div>
-                );
-              })}
+          {/* Pronunciation Mode (full width) */}
+          {viewMode === "pronunciation" && (
+            <div className="flex-1 flex items-center justify-center bg-gray-50">
+              <div className="text-center">
+                <Volume2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Chế độ Phát âm
+                </h2>
+                <p className="text-gray-600">
+                  Tính năng đang được phát triển...
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
