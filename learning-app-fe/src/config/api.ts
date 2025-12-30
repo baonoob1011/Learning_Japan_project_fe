@@ -29,6 +29,9 @@ export const API_ENDPOINTS = {
   TRANSLATE: {
     CREATE: "/translates",
   },
+  VOCAB: {
+    CREATE: "/vocab",
+  },
 } as const;
 
 // Helper function để lấy full endpoint URL

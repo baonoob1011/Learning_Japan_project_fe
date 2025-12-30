@@ -7,7 +7,7 @@ import BackButton from "@/components/backButton";
 import { Video, X, FileText, Menu, Play, Volume2 } from "lucide-react";
 
 import {
-  youtubeService,
+  transcriptService,
   YoutubeTranscriptResponse,
   TranscriptDTO,
 } from "@/services/transcriptService";
@@ -91,7 +91,7 @@ export default function VideoLearningPage() {
     async function fetchTranscript() {
       try {
         const data: YoutubeTranscriptResponse =
-          await youtubeService.getTranscripts(videoId);
+          await transcriptService.getTranscripts(videoId);
 
         if (isMounted) {
           setTranscripts(data.transcriptsDTOS);

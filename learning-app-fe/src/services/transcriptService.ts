@@ -78,7 +78,7 @@ async function fetchTranscriptAPI(
 }
 
 // ==================== SERVICE ====================
-export const youtubeService = {
+export const transcriptService = {
   /**
    * ✅ Lấy transcript với các tối ưu:
    * 1. In-memory cache (10 phút TTL)

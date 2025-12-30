@@ -11,13 +11,12 @@ export interface TranslateRequest {
 }
 
 export interface TranslateResult {
-  original: string;
+  surface: string;
   translated: string;
   reading?: string;
   romaji?: string;
   explain?: string;
   partOfSpeech?: string; // loại từ
-  targetDefs?: string; // nghĩa ngôn ngữ đích
   audioUrl?: string; // đường dẫn audio
   videoId?: string;
 }
