@@ -5,6 +5,7 @@ import YoutubePlayerWithTranscript from "@/components/YoutubePlayerWithTranscrip
 import DictationPractice from "@/components/Dictation";
 import BackButton from "@/components/backButton";
 import { YoutubePlayerHandle } from "@/components/YoutubePlayer";
+import AutoScrollToggle from "@/components/AutoScrollToggle";
 
 import { Video, X, FileText, Menu, Play, Volume2 } from "lucide-react";
 
@@ -36,6 +37,9 @@ export default function VideoLearningPage() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YoutubePlayerHandle | null>(null);
 
+  // ✅ State mới: autoScrollEnabled (người dùng có thể toggle)
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
+
   // State để theo dõi xem người dùng có đang tự kéo không
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -64,9 +68,10 @@ export default function VideoLearningPage() {
     (t) => currentTimeMs >= t.startOffset && currentTimeMs < t.endOffset
   );
 
-  // Auto-scroll to active transcript (chỉ khi không user scroll)
+  // ✅ Auto-scroll chỉ hoạt động khi: autoScrollEnabled === true VÀ isUserScrolling === false
   useEffect(() => {
     if (
+      autoScrollEnabled &&
       !isUserScrolling &&
       activeTranscript &&
       transcriptRefs.current[activeTranscript.id]
@@ -86,7 +91,7 @@ export default function VideoLearningPage() {
         });
       }
     }
-  }, [activeTranscript, isUserScrolling]);
+  }, [activeTranscript, isUserScrolling, autoScrollEnabled]);
 
   // Fetch transcripts
   useEffect(() => {
@@ -121,6 +126,8 @@ export default function VideoLearningPage() {
 
   // Xử lý khi người dùng tự kéo scroll
   const handleUserScroll = () => {
+    if (!autoScrollEnabled) return; // Nếu đã tắt auto-scroll thì không cần xử lý
+
     setIsUserScrolling(true);
 
     if (scrollTimeoutRef.current) {
@@ -131,6 +138,12 @@ export default function VideoLearningPage() {
     scrollTimeoutRef.current = setTimeout(() => {
       setIsUserScrolling(false);
     }, 3000);
+  };
+
+  // ✅ Handler để toggle auto-scroll
+  const toggleAutoScroll = () => {
+    setAutoScrollEnabled((prev) => !prev);
+    setIsUserScrolling(false); // Reset user scrolling state
   };
 
   // Cleanup scroll timeout on unmount
@@ -283,7 +296,7 @@ export default function VideoLearningPage() {
                     </div>
                   </div>
 
-                  {/* Video Player - ✅ Thêm prop hideWordBar khi ở dictation mode */}
+                  {/* Video Player */}
                   <YoutubePlayerWithTranscript
                     ref={playerRef}
                     videoId={videoId}
@@ -291,7 +304,7 @@ export default function VideoLearningPage() {
                     seekTimeMs={seekTimeMs}
                     onSeekHandled={() => setSeekTimeMs(null)}
                     onTimeUpdate={setCurrentTimeMs}
-                    hideWordBar={viewMode === "dictation"} // ✅ Ẩn WordBar khi ở chế độ Dictation
+                    hideWordBar={viewMode === "dictation"}
                   />
 
                   {/* Video Info */}
@@ -353,11 +366,11 @@ export default function VideoLearningPage() {
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-lg font-bold text-gray-900">Phụ đề</h2>
                   <div className="flex items-center gap-2">
-                    {isUserScrolling && (
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                        Tự cuộn: Tắt
-                      </span>
-                    )}
+                    {/* ✅ Sử dụng AutoScrollToggle Component */}
+                    <AutoScrollToggle
+                      autoScrollEnabled={autoScrollEnabled}
+                      onToggle={toggleAutoScroll}
+                    />
                     <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                       <X className="w-5 h-5" />
                     </button>
