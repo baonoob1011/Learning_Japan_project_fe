@@ -45,12 +45,33 @@ export default function DictationPractice({
   const totalQuestions = transcripts.length;
 
   /** ======================
+   * HANDLE SEGMENT END - Tự động chuyển về nút "Phát lại"
+   ====================== */
+  const handleSegmentEnd = () => {
+    console.log("=== Segment ended - switching back to Play button ===");
+    setIsPlaying(false);
+  };
+
+  /** ======================
    * PLAY SEGMENT - Call YouTube component method
    ====================== */
   const handlePlaySegment = () => {
-    if (!playerRef.current || !currentTranscript) return;
+    console.log("=== handlePlaySegment called ===");
+    console.log("playerRef.current:", playerRef.current);
+    console.log("currentTranscript:", currentTranscript);
+
+    if (!playerRef.current || !currentTranscript) {
+      console.error("Missing playerRef or currentTranscript!");
+      return;
+    }
+
+    console.log("Calling playSegment with:", {
+      start: currentTranscript.startOffset,
+      end: currentTranscript.endOffset,
+    });
 
     setIsPlaying(true);
+
     playerRef.current.playSegment(
       currentTranscript.startOffset,
       currentTranscript.endOffset
@@ -76,19 +97,67 @@ export default function DictationPractice({
       if (playerRef.current) {
         playerRef.current.stopSegment();
       }
+      setIsPlaying(false);
     };
   }, [currentIndex]);
+
+  /** ======================
+   * SETUP CALLBACK for segment end
+   ====================== */
+  useEffect(() => {
+    console.log(
+      "🔧 Setting up callback, playerRef.current:",
+      playerRef.current
+    );
+
+    // Gán callback vào playerRef để YoutubePlayer có thể gọi
+    if (playerRef.current) {
+      const player = playerRef.current as YoutubePlayerHandle & {
+        onDictationSegmentEnd?: () => void;
+      };
+      player.onDictationSegmentEnd = handleSegmentEnd;
+      console.log("✅ Callback assigned successfully!");
+    } else {
+      console.log("❌ playerRef.current is null!");
+    }
+
+    return () => {
+      // Cleanup
+      if (playerRef.current) {
+        const player = playerRef.current as YoutubePlayerHandle & {
+          onDictationSegmentEnd?: () => void;
+        };
+        player.onDictationSegmentEnd = undefined;
+      }
+    };
+  }, []);
 
   /** ======================
    * HELPER FUNCTIONS
    ====================== */
   const maskText = (text: string, revealed: Set<number>) =>
-    text
-      .split("")
-      .map((char, idx) =>
-        revealed.has(idx) || /[\s、。！？「」『』（）]/.test(char) ? char : "•"
-      )
-      .join("");
+    text.split("").map((char, idx) => {
+      const isRevealed =
+        revealed.has(idx) || /[\s、。！？「」『』（）]/.test(char);
+      return (
+        <span
+          key={idx}
+          onClick={() => {
+            if (!isRevealed && !showAnswer) {
+              setRevealedChars(new Set([...revealedChars, idx]));
+            }
+          }}
+          className={`inline-block ${
+            !isRevealed && !showAnswer
+              ? "cursor-pointer hover:bg-yellow-100 hover:scale-110 transition-all"
+              : ""
+          }`}
+          style={{ minWidth: char === " " ? "0.5em" : "auto" }}
+        >
+          {isRevealed ? char : "•"}
+        </span>
+      );
+    });
 
   const revealHint = () => {
     const text = currentTranscript.text;
@@ -303,36 +372,37 @@ export default function DictationPractice({
       </div>
 
       {/* Bottom buttons */}
-      <div className="p-4 border-t bg-gray-50 space-y-2 flex-shrink-0">
+      <div className="p-4 border-t bg-gradient-to-b from-gray-50 to-white space-y-2 flex-shrink-0">
         {!showAnswer ? (
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button
               onClick={revealHint}
-              className="p-3 border rounded-xl hover:border-yellow-400 transition"
+              className="group relative p-3.5 bg-gradient-to-br from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 overflow-hidden"
               title="Gợi ý"
             >
-              <Lightbulb className="w-5 h-5 text-gray-600 hover:text-yellow-500 transition" />
+              <div className="absolute inset-0 bg-white/20 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out"></div>
+              <Lightbulb className="w-5 h-5 text-white relative z-10 drop-shadow-sm" />
             </button>
             <button
               onClick={checkAnswer}
               disabled={!userInput.trim()}
-              className="flex-1 bg-green-100 hover:bg-green-200 text-green-700 font-semibold py-3 px-6 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition"
+              className="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
             >
               Kiểm tra
             </button>
           </div>
         ) : (
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button
               onClick={handleReset}
-              className="flex-1 px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl font-semibold transition"
+              className="flex-1 px-4 py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl font-bold shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
             >
               Thử lại
             </button>
             <button
               onClick={handleNext}
               disabled={currentIndex === totalQuestions - 1}
-              className="flex-1 px-4 py-3 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white rounded-xl font-semibold disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-3.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 disabled:from-gray-300 disabled:to-gray-400 text-white rounded-xl font-bold shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none flex items-center justify-center gap-2"
             >
               Tiếp
               <ChevronRight className="w-4 h-4" />

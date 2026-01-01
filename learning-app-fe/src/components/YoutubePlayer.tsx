@@ -37,6 +37,7 @@ declare global {
 export interface YoutubePlayerHandle extends YTPlayer {
   playSegment: (startMs: number, endMs: number) => void;
   stopSegment: () => void;
+  onDictationSegmentEnd?: () => void; // ✅ Callback cho Dictation
 }
 
 interface YoutubePlayerProps {
@@ -49,6 +50,7 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
   ({ videoId, onPlayerReady, onSegmentEnd }, ref) => {
     const playerRef = useRef<YTPlayer | null>(null);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const handleRef = useRef<YoutubePlayerHandle | null>(null);
 
     /** ======================
      * STOP SEGMENT PLAYBACK
@@ -93,7 +95,14 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
 
           if (typeof currentTime === "number" && currentTime >= endSec) {
             stopSegment();
+
+            // ✅ Gọi callback từ props
             onSegmentEnd?.();
+
+            // ✅ Gọi callback từ Dictation nếu có
+            if (handleRef.current?.onDictationSegmentEnd) {
+              handleRef.current.onDictationSegmentEnd();
+            }
           }
         }, 50);
       } catch (error) {
@@ -105,15 +114,19 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
     // Expose all methods to parent component
     useImperativeHandle(
       ref,
-      () => ({
-        getCurrentTime: () => playerRef.current?.getCurrentTime(),
-        seekTo: (seconds: number, allowSeekAhead: boolean) =>
-          playerRef.current?.seekTo(seconds, allowSeekAhead),
-        playVideo: () => playerRef.current?.playVideo(),
-        pauseVideo: () => playerRef.current?.pauseVideo(),
-        playSegment,
-        stopSegment,
-      }),
+      () => {
+        const handle: YoutubePlayerHandle = {
+          getCurrentTime: () => playerRef.current?.getCurrentTime(),
+          seekTo: (seconds: number, allowSeekAhead: boolean) =>
+            playerRef.current?.seekTo(seconds, allowSeekAhead),
+          playVideo: () => playerRef.current?.playVideo(),
+          pauseVideo: () => playerRef.current?.pauseVideo(),
+          playSegment,
+          stopSegment,
+        };
+        handleRef.current = handle;
+        return handle;
+      },
       []
     );
 

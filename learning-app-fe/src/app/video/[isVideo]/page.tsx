@@ -283,7 +283,7 @@ export default function VideoLearningPage() {
                     </div>
                   </div>
 
-                  {/* Video Player */}
+                  {/* Video Player - ✅ Thêm prop hideWordBar khi ở dictation mode */}
                   <YoutubePlayerWithTranscript
                     ref={playerRef}
                     videoId={videoId}
@@ -291,6 +291,7 @@ export default function VideoLearningPage() {
                     seekTimeMs={seekTimeMs}
                     onSeekHandled={() => setSeekTimeMs(null)}
                     onTimeUpdate={setCurrentTimeMs}
+                    hideWordBar={viewMode === "dictation"} // ✅ Ẩn WordBar khi ở chế độ Dictation
                   />
 
                   {/* Video Info */}

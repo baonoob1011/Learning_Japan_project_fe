@@ -17,10 +17,21 @@ interface Props {
   seekTimeMs?: number | null;
   onSeekHandled?: () => void;
   onTimeUpdate?: (timeMs: number) => void;
+  hideWordBar?: boolean; // ✅ Thêm prop mới để ẩn WordBar
 }
 
 const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
-  ({ videoId, transcripts, seekTimeMs, onSeekHandled, onTimeUpdate }, ref) => {
+  (
+    {
+      videoId,
+      transcripts,
+      seekTimeMs,
+      onSeekHandled,
+      onTimeUpdate,
+      hideWordBar = false,
+    },
+    ref
+  ) => {
     const playerRef = useRef<YoutubePlayerHandle | null>(null);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const [currentTimeMs, setCurrentTimeMs] = useState(0);
@@ -28,16 +39,29 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
     // Expose playerRef to parent component
     useImperativeHandle(
       ref,
-      () => ({
-        getCurrentTime: () => playerRef.current?.getCurrentTime(),
-        seekTo: (seconds: number, allowSeekAhead: boolean) =>
-          playerRef.current?.seekTo(seconds, allowSeekAhead),
-        playVideo: () => playerRef.current?.playVideo(),
-        pauseVideo: () => playerRef.current?.pauseVideo(),
-        playSegment: (startMs: number, endMs: number) =>
-          playerRef.current?.playSegment(startMs, endMs),
-        stopSegment: () => playerRef.current?.stopSegment(),
-      }),
+      () => {
+        // Tạo handle object và return về
+        const handle: YoutubePlayerHandle = {
+          getCurrentTime: () => playerRef.current?.getCurrentTime(),
+          seekTo: (seconds: number, allowSeekAhead: boolean) =>
+            playerRef.current?.seekTo(seconds, allowSeekAhead),
+          playVideo: () => playerRef.current?.playVideo(),
+          pauseVideo: () => playerRef.current?.pauseVideo(),
+          playSegment: (startMs: number, endMs: number) =>
+            playerRef.current?.playSegment(startMs, endMs),
+          stopSegment: () => playerRef.current?.stopSegment(),
+          // ✅ Expose onDictationSegmentEnd property
+          get onDictationSegmentEnd() {
+            return playerRef.current?.onDictationSegmentEnd;
+          },
+          set onDictationSegmentEnd(callback: (() => void) | undefined) {
+            if (playerRef.current) {
+              playerRef.current.onDictationSegmentEnd = callback;
+            }
+          },
+        };
+        return handle;
+      },
       []
     );
 
@@ -106,12 +130,14 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
           onPlayerReady={handlePlayerReady}
         />
 
-        {/* WORD BAR */}
-        <TranscriptWordBar
-          transcripts={transcripts}
-          currentTimeMs={currentTimeMs}
-          videoId={videoId}
-        />
+        {/* WORD BAR - Chỉ hiện khi hideWordBar = false */}
+        {!hideWordBar && (
+          <TranscriptWordBar
+            transcripts={transcripts}
+            currentTimeMs={currentTimeMs}
+            videoId={videoId}
+          />
+        )}
       </>
     );
   }
