@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import YoutubePlayerWithTranscript from "@/components/YoutubePlayerWithTranscript";
 import DictationPractice from "@/components/Dictation";
 import BackButton from "@/components/backButton";
+import { YoutubePlayerHandle } from "@/components/YoutubePlayer";
 
 import { Video, X, FileText, Menu, Play, Volume2 } from "lucide-react";
 
@@ -12,14 +13,6 @@ import {
   YoutubeTranscriptResponse,
   TranscriptDTO,
 } from "@/services/transcriptService";
-
-// YouTube Player Type
-interface YTPlayer {
-  getCurrentTime: () => number | undefined;
-  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
-  playVideo: () => void;
-  pauseVideo: () => void;
-}
 
 type ViewMode = "video" | "dictation" | "pronunciation";
 
@@ -41,7 +34,7 @@ export default function VideoLearningPage() {
   // Refs for auto-scroll and YouTube player
   const transcriptRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<YTPlayer | null>(null);
+  const playerRef = useRef<YoutubePlayerHandle | null>(null);
 
   // State để theo dõi xem người dùng có đang tự kéo không
   const [isUserScrolling, setIsUserScrolling] = useState(false);

@@ -2,6 +2,7 @@ import { axiosClient } from "@/lib/axios";
 import { ApiResponse } from "@/services/api-types";
 import { API_ENDPOINTS } from "@/config/api";
 import { useAuthStore } from "@/stores/authStore";
+import axios from "axios";
 
 export interface YoutubeVideoSummary {
   id: string;
@@ -50,17 +51,23 @@ const getHeaders = () => {
 
 // ✅ Helper: Generic API caller với error handling
 async function fetchAPI<T>(url: string): Promise<T> {
-  const res = await axiosClient.get<ApiResponse<T>>(url, {
-    headers: getHeaders(),
-  });
+  try {
+    const res = await axiosClient.get<ApiResponse<T>>(url, {
+      headers: getHeaders(),
+    });
 
-  if (!res.data.success) {
-    throw new Error(res.data.message || "API request failed");
+    if (!res.data.success) {
+      throw new Error(res.data.message || "API Error");
+    }
+
+    return res.data.result;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message ?? error.message);
+    }
+    throw error;
   }
-
-  return res.data.result;
 }
-
 export const youtubeService = {
   /**
    * Lấy danh sách tất cả video

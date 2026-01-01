@@ -10,6 +10,7 @@ import {
   Play,
   Pause,
 } from "lucide-react";
+import YoutubePlayer, { YoutubePlayerHandle } from "./YoutubePlayer";
 
 // TranscriptDTO interface
 interface TranscriptDTO {
@@ -20,18 +21,10 @@ interface TranscriptDTO {
   createdAt: string;
 }
 
-// YouTube Player Type
-interface YTPlayer {
-  getCurrentTime: () => number | undefined;
-  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
-  playVideo: () => void;
-  pauseVideo: () => void;
-}
-
 interface DictationPracticeProps {
   transcripts: TranscriptDTO[];
   videoId: string;
-  playerRef: React.RefObject<YTPlayer | null>;
+  playerRef: React.RefObject<YoutubePlayerHandle | null>;
 }
 
 export default function DictationPractice({
@@ -46,90 +39,43 @@ export default function DictationPractice({
   const [results, setResults] = useState<boolean[]>(
     new Array(transcripts.length).fill(false)
   );
-
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
   const currentTranscript = transcripts[currentIndex];
   const totalQuestions = transcripts.length;
 
   /** ======================
-   * STOP PLAYBACK - Cleanup function
-   ====================== */
-  const stopPlayback = () => {
-    // Clear interval first
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    // Then pause video
-    if (playerRef.current) {
-      try {
-        playerRef.current.pauseVideo();
-      } catch (error) {
-        console.warn("Error stopping playback:", error);
-      }
-    }
-
-    setIsPlaying(false);
-  };
-
-  /** ======================
-   * PLAY SEGMENT - Fixed version
+   * PLAY SEGMENT - Call YouTube component method
    ====================== */
   const handlePlaySegment = () => {
     if (!playerRef.current || !currentTranscript) return;
 
-    const startSec = currentTranscript.startOffset / 1000;
-    const endSec = currentTranscript.endOffset / 1000;
+    setIsPlaying(true);
+    playerRef.current.playSegment(
+      currentTranscript.startOffset,
+      currentTranscript.endOffset
+    );
+  };
 
-    // Stop any existing playback first
-    stopPlayback();
-
-    try {
-      // Seek to start position
-      playerRef.current.seekTo(startSec, true);
-
-      // Small delay to ensure seek completes
-      setTimeout(() => {
-        if (!playerRef.current) return;
-
-        playerRef.current.playVideo();
-        setIsPlaying(true);
-
-        // Set up interval to monitor playback
-        intervalRef.current = setInterval(() => {
-          if (!playerRef.current) {
-            stopPlayback();
-            return;
-          }
-
-          try {
-            const currentTime = playerRef.current.getCurrentTime();
-
-            // Check if we've reached the end or passed it
-            if (typeof currentTime === "number" && currentTime >= endSec) {
-              stopPlayback();
-            }
-          } catch (error) {
-            console.warn("Error checking playback time:", error);
-            stopPlayback();
-          }
-        }, 100);
-      }, 100);
-    } catch (error) {
-      console.warn("Error starting playback:", error);
-      stopPlayback();
+  /** ======================
+   * STOP PLAYBACK - Call YouTube component method
+   ====================== */
+  const stopPlayback = () => {
+    if (playerRef.current) {
+      playerRef.current.stopSegment();
     }
+    setIsPlaying(false);
   };
 
   /** ======================
    * CLEANUP on unmount or transcript change
    ====================== */
   useEffect(() => {
+    // Cleanup when switching questions
     return () => {
-      stopPlayback();
+      if (playerRef.current) {
+        playerRef.current.stopSegment();
+      }
     };
   }, [currentIndex]);
 
