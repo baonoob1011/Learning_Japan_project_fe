@@ -6,7 +6,7 @@ import DictationPractice from "@/components/Dictation";
 import BackButton from "@/components/backButton";
 import { YoutubePlayerHandle } from "@/components/YoutubePlayer";
 import AutoScrollToggle from "@/components/AutoScrollToggle";
-
+import PronunciationPractice from "@/components/PronunciationPractice";
 import { Video, X, FileText, Menu, Play, Volume2 } from "lucide-react";
 
 import {
@@ -26,9 +26,6 @@ export default function VideoLearningPage() {
 
   const [showSidebar, setShowSidebar] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("video");
-  const [activeTab, setActiveTab] = useState<"subtitle" | "translation">(
-    "subtitle"
-  );
   const [transcripts, setTranscripts] = useState<TranscriptDTO[]>([]);
   const [videoTitle, setVideoTitle] = useState<string>("");
 
@@ -37,10 +34,8 @@ export default function VideoLearningPage() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YoutubePlayerHandle | null>(null);
 
-  // ✅ State mới: autoScrollEnabled (người dùng có thể toggle)
+  // State for auto-scroll
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
-
-  // State để theo dõi xem người dùng có đang tự kéo không
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -68,7 +63,7 @@ export default function VideoLearningPage() {
     (t) => currentTimeMs >= t.startOffset && currentTimeMs < t.endOffset
   );
 
-  // ✅ Auto-scroll chỉ hoạt động khi: autoScrollEnabled === true VÀ isUserScrolling === false
+  // Auto-scroll logic
   useEffect(() => {
     if (
       autoScrollEnabled &&
@@ -124,9 +119,9 @@ export default function VideoLearningPage() {
     };
   }, [videoId]);
 
-  // Xử lý khi người dùng tự kéo scroll
+  // Handle user scroll
   const handleUserScroll = () => {
-    if (!autoScrollEnabled) return; // Nếu đã tắt auto-scroll thì không cần xử lý
+    if (!autoScrollEnabled) return;
 
     setIsUserScrolling(true);
 
@@ -134,16 +129,15 @@ export default function VideoLearningPage() {
       clearTimeout(scrollTimeoutRef.current);
     }
 
-    // Sau 3 giây không kéo nữa, bật lại auto-scroll
     scrollTimeoutRef.current = setTimeout(() => {
       setIsUserScrolling(false);
     }, 3000);
   };
 
-  // ✅ Handler để toggle auto-scroll
+  // Toggle auto-scroll
   const toggleAutoScroll = () => {
     setAutoScrollEnabled((prev) => !prev);
-    setIsUserScrolling(false); // Reset user scrolling state
+    setIsUserScrolling(false);
   };
 
   // Cleanup scroll timeout on unmount
@@ -277,8 +271,10 @@ export default function VideoLearningPage() {
 
         {/* Content Area with Video and Transcript/Dictation */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Left: Video Section - SCROLLABLE (hiển thị cho cả video và dictation mode) */}
-          {(viewMode === "video" || viewMode === "dictation") && (
+          {/* Left: Video Section - SCROLLABLE */}
+          {(viewMode === "video" ||
+            viewMode === "dictation" ||
+            viewMode === "pronunciation") && (
             <div
               id="video-content-scroll-container"
               className="flex-1 overflow-y-auto bg-gray-50 custom-scrollbar"
@@ -304,7 +300,9 @@ export default function VideoLearningPage() {
                     seekTimeMs={seekTimeMs}
                     onSeekHandled={() => setSeekTimeMs(null)}
                     onTimeUpdate={setCurrentTimeMs}
-                    hideWordBar={viewMode === "dictation"}
+                    hideWordBar={
+                      viewMode === "dictation" || viewMode === "pronunciation"
+                    }
                   />
 
                   {/* Video Info */}
@@ -358,15 +356,14 @@ export default function VideoLearningPage() {
             </div>
           )}
 
-          {/* Right: Transcript Sidebar (chỉ hiển thị khi viewMode === "video") */}
+          {/* Right: Transcript Sidebar (only in video mode) */}
           {viewMode === "video" && (
             <div className="w-96 bg-white border-l border-gray-200 flex flex-col flex-shrink-0">
-              {/* Transcript Header */}
+              {/* Transcript Header - Removed tabs */}
               <div className="p-4 border-b border-gray-200 flex-shrink-0">
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between">
                   <h2 className="text-lg font-bold text-gray-900">Phụ đề</h2>
                   <div className="flex items-center gap-2">
-                    {/* ✅ Sử dụng AutoScrollToggle Component */}
                     <AutoScrollToggle
                       autoScrollEnabled={autoScrollEnabled}
                       onToggle={toggleAutoScroll}
@@ -375,28 +372,6 @@ export default function VideoLearningPage() {
                       <X className="w-5 h-5" />
                     </button>
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                      activeTab === "subtitle"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                    onClick={() => setActiveTab("subtitle")}
-                  >
-                    Phụ đề
-                  </button>
-                  <button
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                      activeTab === "translation"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                    onClick={() => setActiveTab("translation")}
-                  >
-                    Bản dịch
-                  </button>
                 </div>
               </div>
 
@@ -481,7 +456,7 @@ export default function VideoLearningPage() {
             </div>
           )}
 
-          {/* Right: Dictation Component (thay thế transcript khi viewMode === "dictation") */}
+          {/* Right: Dictation Component */}
           {viewMode === "dictation" && (
             <DictationPractice
               transcripts={transcripts}
@@ -490,19 +465,13 @@ export default function VideoLearningPage() {
             />
           )}
 
-          {/* Pronunciation Mode (full width) */}
+          {/* Right: Pronunciation Component */}
           {viewMode === "pronunciation" && (
-            <div className="flex-1 flex items-center justify-center bg-gray-50">
-              <div className="text-center">
-                <Volume2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Chế độ Phát âm
-                </h2>
-                <p className="text-gray-600">
-                  Tính năng đang được phát triển...
-                </p>
-              </div>
-            </div>
+            <PronunciationPractice
+              transcripts={transcripts}
+              videoId={videoId}
+              playerRef={playerRef}
+            />
           )}
         </div>
       </div>

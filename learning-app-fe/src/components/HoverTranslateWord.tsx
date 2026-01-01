@@ -24,7 +24,7 @@ export default function HoverTranslateWord({
     null
   );
   const [open, setOpen] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+
   const [copiedSuccess, setCopiedSuccess] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [savingVocab, setSavingVocab] = useState(false);
@@ -85,7 +85,7 @@ export default function HoverTranslateWord({
         window.removeEventListener("resize", updateOnScroll);
       };
     }
-  }, [open, expanded, translateData]);
+  }, [open, translateData]);
 
   // Close tooltip when clicking outside
   useEffect(() => {
@@ -97,7 +97,6 @@ export default function HoverTranslateWord({
         !wordRef.current.contains(event.target as Node)
       ) {
         setOpen(false);
-        setExpanded(false);
       }
     };
 
@@ -178,7 +177,6 @@ export default function HoverTranslateWord({
             handleTranslate();
           } else {
             setOpen(false);
-            setExpanded(false);
           }
         }}
         className="cursor-pointer hover:bg-yellow-300/40 active:bg-yellow-400/50 px-1 py-0.5 rounded-md transition-all duration-200 select-none hover:shadow-sm active:scale-95 inline-block"
@@ -375,99 +373,63 @@ export default function HoverTranslateWord({
                     </div>
                   </div>
 
-                  {/* Compact view */}
-                  {!expanded ? (
-                    <>
-                      {translateData.reading && (
-                        <div className="bg-pink-50 rounded-lg px-2 py-1.5 border border-pink-200">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-semibold text-pink-700 uppercase">
-                              KANJI
-                            </span>
-                            <span className="text-xs font-bold text-pink-600">
-                              {translateData.reading}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {translateData.romaji && (
-                        <div className="bg-purple-50 rounded-lg px-2 py-1.5 border border-purple-200">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-semibold text-purple-700 uppercase">
-                              ROMAJI
-                            </span>
-                            <span className="text-xs font-medium text-purple-600">
-                              {translateData.romaji}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {translateData.partOfSpeech && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setExpanded(true);
-                          }}
-                          className="w-full text-xs font-semibold text-emerald-600 hover:text-emerald-700 py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-all duration-200 border border-emerald-200"
-                        >
-                          Xem thêm ↓
-                        </button>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <div className="space-y-2">
-                        {translateData.reading && (
-                          <div className="bg-pink-50 rounded-lg px-2 py-1.5 border border-pink-200">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-semibold text-pink-700 uppercase">
-                                KANJI
-                              </span>
-                              <span className="text-xs font-bold text-pink-600">
-                                {translateData.reading}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
-                        {translateData.romaji && (
-                          <div className="bg-purple-50 rounded-lg px-2 py-1.5 border border-purple-200">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-semibold text-purple-700 uppercase">
-                                ROMAJI
-                              </span>
-                              <span className="text-xs font-medium text-purple-600">
-                                {translateData.romaji}
-                              </span>
-                            </div>
-                          </div>
-                        )}
+                  {/* Always show full details */}
+                  {translateData.reading && (
+                    <div className="bg-pink-50 rounded-lg px-2 py-1.5 border border-pink-200">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-semibold text-pink-700 uppercase">
+                          KANJI
+                        </span>
+                        <span className="text-xs font-bold text-pink-600">
+                          {translateData.reading}
+                        </span>
                       </div>
-
-                      {translateData.partOfSpeech && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-semibold text-gray-500 uppercase">
-                            LOẠI:
-                          </span>
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold text-blue-700 bg-blue-100 border border-blue-300">
-                            {translateData.partOfSpeech}
-                          </span>
-                        </div>
-                      )}
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setExpanded(false);
-                        }}
-                        className="w-full text-xs font-semibold text-gray-600 hover:text-gray-700 py-1.5 px-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-all duration-200 border border-gray-200"
-                      >
-                        Thu gọn ↑
-                      </button>
-                    </>
+                    </div>
                   )}
+
+                  {translateData.romaji && (
+                    <div className="bg-purple-50 rounded-lg px-2 py-1.5 border border-purple-200">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-semibold text-purple-700 uppercase">
+                          ROMAJI
+                        </span>
+                        <span className="text-xs font-medium text-purple-600">
+                          {translateData.romaji}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {translateData.partOfSpeech && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-semibold text-gray-500 uppercase">
+                        LOẠI:
+                      </span>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold text-blue-700 bg-blue-100 border border-blue-300">
+                        {translateData.partOfSpeech}
+                      </span>
+                    </div>
+                  )}
+
+                  <a
+                    href={`https://mazii.net/vi-VN/search/word/javi/${encodeURIComponent(
+                      translateData.surface
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center justify-center gap-2 w-full text-xs font-semibold text-blue-600 hover:text-blue-700 py-2 px-2 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all duration-200 border border-blue-200"
+                  >
+                    <img
+                      src="https://mazii.net/favicon.ico"
+                      alt="Mazii"
+                      className="w-4 h-4"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                    <span>Tra từ điển Mazii</span>
+                  </a>
                 </div>
               ) : null}
             </div>
