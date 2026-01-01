@@ -10,7 +10,6 @@ import {
   Play,
   Pause,
 } from "lucide-react";
-import YoutubePlayer, { YoutubePlayerHandle } from "./YoutubePlayer";
 
 // TranscriptDTO interface
 interface TranscriptDTO {
@@ -19,6 +18,11 @@ interface TranscriptDTO {
   startOffset: number;
   endOffset: number;
   createdAt: string;
+}
+
+interface YoutubePlayerHandle {
+  playSegment: (start: number, end: number) => void;
+  stopSegment: () => void;
 }
 
 interface DictationPracticeProps {
@@ -135,10 +139,22 @@ export default function DictationPractice({
   /** ======================
    * HELPER FUNCTIONS
    ====================== */
+
+  // Normalize text: loại bỏ dấu câu và khoảng trắng thừa để so sánh
+  const normalizeText = (text: string) => {
+    return text
+      .replace(/[\s、。！？「」『』（）.,!?;:'"()\[\]{}]/g, "") // Loại bỏ tất cả dấu câu
+      .toLowerCase()
+      .trim();
+  };
+
   const maskText = (text: string, revealed: Set<number>) =>
     text.split("").map((char, idx) => {
-      const isRevealed =
-        revealed.has(idx) || /[\s、。！？「」『』（）]/.test(char);
+      const isPunctuation = /[\s、。！？「」『』（）.,!?;:'"()\[\]{}]/.test(
+        char
+      );
+      const isRevealed = revealed.has(idx) || isPunctuation;
+
       return (
         <span
           key={idx}
@@ -147,38 +163,41 @@ export default function DictationPractice({
               setRevealedChars(new Set([...revealedChars, idx]));
             }
           }}
-          className={`inline-block ${
+          className={`inline-block transition-all duration-200 ${
             !isRevealed && !showAnswer
-              ? "cursor-pointer hover:bg-yellow-100 hover:scale-110 transition-all"
+              ? "cursor-pointer hover:bg-gradient-to-br hover:from-yellow-100 hover:to-amber-100 hover:scale-125 hover:shadow-lg rounded-lg px-1 mx-0.5 hover:-translate-y-0.5"
               : ""
           }`}
           style={{ minWidth: char === " " ? "0.5em" : "auto" }}
         >
-          {isRevealed ? char : "•"}
+          {isRevealed ? (
+            char
+          ) : (
+            <span className="inline-flex items-center justify-center w-3 h-3 bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-400 rounded-full shadow-md hover:shadow-xl hover:from-yellow-400 hover:via-amber-400 hover:to-orange-400 transition-all duration-300 animate-pulse"></span>
+          )}
         </span>
       );
     });
 
   const revealHint = () => {
+    // Hiện tất cả chữ cái, giữ lại dấu câu luôn hiện
     const text = currentTranscript.text;
-    const unrevealedIndices = text
-      .split("")
-      .map((_, i) => i)
-      .filter(
-        (i) =>
-          !revealedChars.has(i) && !/[\s、。！？「」『』（）]/.test(text[i])
-      );
-    if (unrevealedIndices.length) {
-      const randomIndex =
-        unrevealedIndices[Math.floor(Math.random() * unrevealedIndices.length)];
-      setRevealedChars(new Set([...revealedChars, randomIndex]));
-    }
+    const allIndices = new Set(
+      text
+        .split("")
+        .map((_, i) => i)
+        .filter(
+          (i) => !/[\s、。！？「」『』（）.,!?;:'"()\[\]{}]/.test(text[i])
+        )
+    );
+    setRevealedChars(allIndices);
   };
 
   const checkAnswer = () => {
-    const isCorrect =
-      userInput.trim().toLowerCase() ===
-      currentTranscript.text.trim().toLowerCase();
+    const normalizedInput = normalizeText(userInput);
+    const normalizedAnswer = normalizeText(currentTranscript.text);
+
+    const isCorrect = normalizedInput === normalizedAnswer;
     const newResults = [...results];
     newResults[currentIndex] = isCorrect;
     setResults(newResults);
@@ -291,7 +310,7 @@ export default function DictationPractice({
       {/* Content - Scrollable */}
       <div className="flex-1 overflow-y-auto p-5">
         <p className="text-sm text-gray-600 mb-3">
-          Nhập những gì bạn nghe được...
+          Nhập những gì bạn nghe được (không cần gõ dấu câu)...
         </p>
 
         {/* Play/Pause button for current transcript */}
