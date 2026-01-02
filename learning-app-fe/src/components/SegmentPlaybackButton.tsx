@@ -78,7 +78,7 @@ export default function SegmentPlaybackButton({
       ) : (
         <button
           onClick={handlePlaySegment}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-md hover:shadow-lg transform hover:scale-105 bg-gradient-to-r from-cyan-400 via-blue-500 to-teal-500 hover:from-cyan-500 hover:via-blue-600 hover:to-teal-600 text-white"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-md hover:shadow-lg transform hover:scale-105 bg-gradient-to-r from-cyan-400 via-blue-500 to-blue-600 hover:from-cyan-500 hover:via-blue-600 hover:to-blue-700 text-white"
         >
           <Play className="w-4 h-4 fill-white" />
           Phát lại

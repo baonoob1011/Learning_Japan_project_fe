@@ -47,7 +47,7 @@ export default function VideoPlayerSection({
           {/* Video Info */}
           <div className="bg-white rounded-2xl shadow-sm p-6 mt-6">
             <div className="flex items-center gap-3 mb-4">
-              <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">
+              <span className="px-3 py-1 bg-cyan-100 text-cyan-700 text-xs font-medium rounded-full">
                 N5
               </span>
               <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">

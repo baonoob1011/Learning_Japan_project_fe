@@ -56,10 +56,10 @@ export default function Sidebar({
                 />
               </div>
               <div>
-                <div className="text-xl font-bold bg-gradient-to-r from-cyan-500 via-blue-500 to-teal-500 bg-clip-text text-transparent leading-tight">
+                <div className="text-xl font-bold bg-gradient-to-r from-cyan-500 via-blue-500 to-blue-600 bg-clip-text text-transparent leading-tight">
                   NIBO
                 </div>
-                <div className="text-lg font-bold bg-gradient-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent leading-tight -mt-1">
+                <div className="text-lg font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent leading-tight -mt-1">
                   ACADEMY
                 </div>
               </div>
@@ -113,7 +113,7 @@ export default function Sidebar({
             className={`${
               isDarkMode
                 ? "from-yellow-900/30 to-orange-900/30"
-                : "from-cyan-50 via-blue-50 to-teal-50"
+                : "from-cyan-50 via-blue-50 to-indigo-50"
             } bg-gradient-to-r rounded-xl p-3 shadow-md`}
           >
             <div className="flex items-center justify-between mb-2">

@@ -60,12 +60,12 @@ const VideoModal: React.FC<VideoModalProps> = ({ video, isDark, onClose }) => {
       <div
         className={`${
           isDark ? "bg-gray-800" : "bg-white"
-        } rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden`}
+        } rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl`}
         onClick={(e) => e.stopPropagation()}
       >
         <div
           className={`flex items-center justify-between p-4 border-b ${
-            isDark ? "border-gray-700" : "border-gray-200"
+            isDark ? "border-gray-700" : "border-cyan-100"
           }`}
         >
           <h2
@@ -78,12 +78,12 @@ const VideoModal: React.FC<VideoModalProps> = ({ video, isDark, onClose }) => {
           <button
             onClick={onClose}
             className={`p-2 rounded-lg transition ${
-              isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"
+              isDark ? "hover:bg-gray-700" : "hover:bg-cyan-50"
             }`}
           >
             <X
               className={`w-5 h-5 ${
-                isDark ? "text-gray-300" : "text-gray-600"
+                isDark ? "text-gray-300" : "text-cyan-500"
               }`}
             />
           </button>
@@ -132,12 +132,12 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
 
   const getThumbnailGradient = (videoId: string) => {
     const colors = [
-      "from-cyan-400 to-blue-500",
+      "from-cyan-400 to-cyan-500",
+      "from-cyan-300 to-cyan-600",
+      "from-cyan-400 to-teal-500",
       "from-teal-400 to-cyan-500",
-      "from-blue-400 to-indigo-500",
-      "from-cyan-500 to-teal-600",
-      "from-sky-400 to-blue-500",
-      "from-teal-500 to-emerald-500",
+      "from-cyan-500 to-cyan-600",
+      "from-cyan-300 to-teal-400",
     ];
     let hash = 0;
     for (let i = 0; i < videoId.length; i++) {
@@ -151,8 +151,10 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
     <div
       onClick={onClick}
       className={`${
-        isDark ? "bg-gray-800" : "bg-white"
-      } rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group`}
+        isDark
+          ? "bg-gray-800 border-gray-700"
+          : "bg-white/90 backdrop-blur-sm border-cyan-100"
+      } rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer group border`}
     >
       <div className="relative">
         {thumbnailUrl ? (
@@ -188,7 +190,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
         )}
 
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
-          <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform scale-75 group-hover:scale-100">
+          <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform scale-75 group-hover:scale-100 shadow-lg">
             <Play className="w-7 h-7 text-cyan-500 ml-1" />
           </div>
         </div>
@@ -204,7 +206,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
         </h3>
         <div
           className={`flex items-center gap-3 text-xs ${
-            isDark ? "text-gray-400" : "text-gray-500"
+            isDark ? "text-gray-400" : "text-gray-600"
           }`}
         >
           <div className="flex items-center gap-1">
@@ -321,7 +323,7 @@ export default function VideoListPage() {
       className={`flex h-screen ${
         isDarkMode
           ? "bg-gray-900"
-          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50"
+          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
       }`}
     >
       {selectedVideo && (
@@ -354,7 +356,7 @@ export default function VideoListPage() {
               className={`text-2xl font-bold ${
                 isDarkMode
                   ? "text-gray-100"
-                  : "bg-gradient-to-r from-cyan-600 via-blue-600 to-teal-600 bg-clip-text text-transparent"
+                  : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
               }`}
             >
               Luyện Shadowing để dàng thông qua bất kỳ video nào bạn yêu thích
@@ -371,7 +373,7 @@ export default function VideoListPage() {
               >
                 <Bell
                   className={`w-5 h-5 ${
-                    isDarkMode ? "text-gray-300" : "text-cyan-600"
+                    isDarkMode ? "text-gray-300" : "text-cyan-500"
                   }`}
                 />
               </button>
@@ -382,11 +384,11 @@ export default function VideoListPage() {
               >
                 <Settings
                   className={`w-5 h-5 ${
-                    isDarkMode ? "text-gray-300" : "text-cyan-600"
+                    isDarkMode ? "text-gray-300" : "text-cyan-500"
                   }`}
                 />
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-400 to-pink-500 text-white rounded-lg hover:from-rose-500 hover:to-pink-600 transition shadow-md">
+              <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-lg hover:from-cyan-500 hover:to-cyan-600 transition shadow-md">
                 <Globe className="w-4 h-4" />
                 VN
                 <ChevronDown className="w-4 h-4" />
@@ -403,7 +405,7 @@ export default function VideoListPage() {
           </div>
 
           <div className="flex gap-4">
-            <div className="flex gap-3 bg-gradient-to-r from-cyan-400 via-blue-500 to-teal-400 text-white px-4 py-3 rounded-xl shadow-lg">
+            <div className="flex gap-3 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white px-4 py-3 rounded-xl shadow-lg">
               <button className="flex items-center gap-2 px-4 py-2 bg-white text-cyan-500 rounded-lg font-medium shadow-md hover:shadow-lg transition transform hover:scale-105">
                 <Video className="w-4 h-4" />
                 Youtube
@@ -436,7 +438,7 @@ export default function VideoListPage() {
 
               <button
                 onClick={fetchVideos}
-                className="px-6 py-3 bg-gradient-to-r from-cyan-400 via-blue-500 to-teal-500 text-white rounded-xl font-medium hover:shadow-xl transition transform hover:scale-105 flex items-center gap-2"
+                className="px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-xl font-medium hover:shadow-xl transition transform hover:scale-105 flex items-center gap-2"
               >
                 <Video className="w-4 h-4" />
                 Tải lại
@@ -459,7 +461,7 @@ export default function VideoListPage() {
                 onClick={() => setActiveTab(tab.label)}
                 className={`px-4 py-2 rounded-lg font-medium transition whitespace-nowrap ${
                   activeTab === tab.label
-                    ? "bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-lg"
+                    ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg"
                     : isDarkMode
                     ? "text-gray-300 hover:bg-gray-700"
                     : "text-gray-600 hover:bg-cyan-50"
@@ -491,7 +493,7 @@ export default function VideoListPage() {
               <div className="text-center">
                 <AlertCircle
                   className={`w-12 h-12 mx-auto mb-4 ${
-                    isDarkMode ? "text-red-400" : "text-red-500"
+                    isDarkMode ? "text-cyan-400" : "text-cyan-500"
                   }`}
                 />
                 <p
@@ -510,7 +512,7 @@ export default function VideoListPage() {
                 </p>
                 <button
                   onClick={fetchVideos}
-                  className="px-6 py-2 bg-gradient-to-r from-cyan-400 to-blue-500 text-white rounded-lg hover:shadow-lg transition"
+                  className="px-6 py-2 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-lg hover:shadow-lg transition"
                 >
                   Thử lại
                 </button>
