@@ -132,12 +132,12 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
 
   const getThumbnailGradient = (videoId: string) => {
     const colors = [
-      "from-blue-400 to-purple-500",
-      "from-green-400 to-teal-500",
-      "from-orange-400 to-red-500",
-      "from-pink-400 to-rose-500",
-      "from-indigo-400 to-blue-500",
-      "from-yellow-400 to-orange-500",
+      "from-cyan-400 to-blue-500",
+      "from-teal-400 to-cyan-500",
+      "from-blue-400 to-indigo-500",
+      "from-cyan-500 to-teal-600",
+      "from-sky-400 to-blue-500",
+      "from-teal-500 to-emerald-500",
     ];
     let hash = 0;
     for (let i = 0; i < videoId.length; i++) {
@@ -189,7 +189,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
 
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
           <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform scale-75 group-hover:scale-100">
-            <Play className="w-7 h-7 text-teal-500 ml-1" />
+            <Play className="w-7 h-7 text-cyan-500 ml-1" />
           </div>
         </div>
       </div>
@@ -318,7 +318,11 @@ export default function VideoListPage() {
 
   return (
     <div
-      className={`flex h-screen ${isDarkMode ? "bg-gray-900" : "bg-gray-50"}`}
+      className={`flex h-screen ${
+        isDarkMode
+          ? "bg-gray-900"
+          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50"
+      }`}
     >
       {selectedVideo && (
         <VideoModal
@@ -342,13 +346,15 @@ export default function VideoListPage() {
           className={`${
             isDarkMode
               ? "bg-gray-800 border-gray-700"
-              : "bg-white border-gray-200"
-          } border-b px-6 py-4`}
+              : "bg-white/80 backdrop-blur-sm border-cyan-100"
+          } border-b px-6 py-4 shadow-lg`}
         >
           <div className="flex items-center justify-between mb-4">
             <h1
               className={`text-2xl font-bold ${
-                isDarkMode ? "text-gray-100" : "text-gray-800"
+                isDarkMode
+                  ? "text-gray-100"
+                  : "bg-gradient-to-r from-cyan-600 via-blue-600 to-teal-600 bg-clip-text text-transparent"
               }`}
             >
               Luyện Shadowing để dàng thông qua bất kỳ video nào bạn yêu thích
@@ -360,44 +366,49 @@ export default function VideoListPage() {
               />
               <button
                 className={`p-2 ${
-                  isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+                  isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-50"
                 } rounded-lg transition`}
               >
                 <Bell
                   className={`w-5 h-5 ${
-                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                    isDarkMode ? "text-gray-300" : "text-cyan-600"
                   }`}
                 />
               </button>
               <button
                 className={`p-2 ${
-                  isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+                  isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-50"
                 } rounded-lg transition`}
               >
                 <Settings
                   className={`w-5 h-5 ${
-                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                    isDarkMode ? "text-gray-300" : "text-cyan-600"
                   }`}
                 />
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
+              <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-400 to-pink-500 text-white rounded-lg hover:from-rose-500 hover:to-pink-600 transition shadow-md">
                 <Globe className="w-4 h-4" />
                 VN
                 <ChevronDown className="w-4 h-4" />
               </button>
-              <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
-                <span className="text-xl">🐸</span>
+              <div className="relative">
+                <div className="absolute inset-0 bg-cyan-400 rounded-full blur-md opacity-40"></div>
+                <img
+                  src="/logo-cat.png"
+                  alt="NIBO Academy"
+                  className="w-10 h-10 object-contain relative z-10 rounded-full"
+                />
               </div>
             </div>
           </div>
 
           <div className="flex gap-4">
-            <div className="flex gap-3 bg-teal-500 text-white px-4 py-3 rounded-xl">
-              <button className="flex items-center gap-2 px-4 py-2 bg-white text-teal-500 rounded-lg font-medium">
+            <div className="flex gap-3 bg-gradient-to-r from-cyan-400 via-blue-500 to-teal-400 text-white px-4 py-3 rounded-xl shadow-lg">
+              <button className="flex items-center gap-2 px-4 py-2 bg-white text-cyan-500 rounded-lg font-medium shadow-md hover:shadow-lg transition transform hover:scale-105">
                 <Video className="w-4 h-4" />
                 Youtube
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 text-white hover:bg-teal-600 rounded-lg font-medium transition">
+              <button className="flex items-center gap-2 px-4 py-2 text-white hover:bg-white/20 rounded-lg font-medium transition">
                 <Play className="w-4 h-4" />
                 Tải lên
               </button>
@@ -413,19 +424,19 @@ export default function VideoListPage() {
                   className={`w-full px-4 py-3 ${
                     isDarkMode
                       ? "bg-gray-700 border-gray-600 text-gray-100"
-                      : "bg-white border-gray-300 text-gray-700"
-                  } border rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400`}
+                      : "bg-white border-cyan-200 text-gray-700"
+                  } border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400 transition`}
                 />
                 <Search
                   className={`absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 ${
-                    isDarkMode ? "text-gray-400" : "text-gray-400"
+                    isDarkMode ? "text-gray-400" : "text-cyan-400"
                   }`}
                 />
               </div>
 
               <button
                 onClick={fetchVideos}
-                className="px-6 py-3 bg-gradient-to-r from-teal-400 to-emerald-500 text-white rounded-xl font-medium hover:shadow-lg transition flex items-center gap-2"
+                className="px-6 py-3 bg-gradient-to-r from-cyan-400 via-blue-500 to-teal-500 text-white rounded-xl font-medium hover:shadow-xl transition transform hover:scale-105 flex items-center gap-2"
               >
                 <Video className="w-4 h-4" />
                 Tải lại
@@ -438,8 +449,8 @@ export default function VideoListPage() {
           className={`${
             isDarkMode
               ? "bg-gray-800 border-gray-700"
-              : "bg-white border-gray-200"
-          } border-b px-6 py-3 overflow-x-auto`}
+              : "bg-white/80 backdrop-blur-sm border-cyan-100"
+          } border-b px-6 py-3 overflow-x-auto shadow-md`}
         >
           <div className="flex gap-2 min-w-max">
             {tabs.map((tab) => (
@@ -448,10 +459,10 @@ export default function VideoListPage() {
                 onClick={() => setActiveTab(tab.label)}
                 className={`px-4 py-2 rounded-lg font-medium transition whitespace-nowrap ${
                   activeTab === tab.label
-                    ? "bg-teal-500 text-white"
+                    ? "bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-lg"
                     : isDarkMode
                     ? "text-gray-300 hover:bg-gray-700"
-                    : "text-gray-600 hover:bg-gray-100"
+                    : "text-gray-600 hover:bg-cyan-50"
                 }`}
               >
                 <span className="mr-2">{tab.icon}</span>
@@ -465,7 +476,7 @@ export default function VideoListPage() {
           {loading ? (
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto"></div>
                 <p
                   className={`mt-4 ${
                     isDarkMode ? "text-gray-400" : "text-gray-600"
@@ -499,7 +510,7 @@ export default function VideoListPage() {
                 </p>
                 <button
                   onClick={fetchVideos}
-                  className="px-6 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition"
+                  className="px-6 py-2 bg-gradient-to-r from-cyan-400 to-blue-500 text-white rounded-lg hover:shadow-lg transition"
                 >
                   Thử lại
                 </button>
@@ -510,7 +521,7 @@ export default function VideoListPage() {
               <div className="text-center">
                 <Video
                   className={`w-12 h-12 mx-auto mb-4 ${
-                    isDarkMode ? "text-gray-600" : "text-gray-400"
+                    isDarkMode ? "text-gray-600" : "text-cyan-400"
                   }`}
                 />
                 <p

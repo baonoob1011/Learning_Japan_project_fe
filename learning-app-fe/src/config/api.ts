@@ -35,6 +35,9 @@ export const API_ENDPOINTS = {
   },
   VOCAB: {
     CREATE: "/vocab",
+    GET_MY: "/vocab",
+    UPDATE_MEANING: "/vocab/meaning",
+    DELETE: (surface: string) => `/vocab/${encodeURIComponent(surface)}`,
   },
 } as const;
 

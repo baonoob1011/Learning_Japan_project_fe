@@ -1,45 +1,52 @@
 // src/services/vocabService.ts
-import { axiosClient } from "@/lib/axios";
-import { ApiResponse } from "@/services/api-types";
+import { http } from "@/lib/http";
 import { API_ENDPOINTS } from "@/config/api";
-import { useAuthStore } from "@/stores/authStore";
 
-// request body
-export interface SaveVocabRequest {
+/* ===================== TYPES ===================== */
+
+export interface UpdateVocabRequest {
   surface: string;
+  translated: string;
 }
 
-// helper headers
-const getHeaders = () => {
-  const { accessToken } = useAuthStore.getState();
-  return {
-    Authorization: accessToken ? `Bearer ${accessToken}` : "",
-  };
-};
-
-// generic POST (void)
-async function postAPI<T>(url: string, body?: unknown): Promise<T> {
-  const res = await axiosClient.post<ApiResponse<T>>(url, body, {
-    headers: getHeaders(),
-  });
-
-  if (!res.data.success) {
-    throw new Error(res.data.message || "API request failed");
-  }
-
-  return res.data.result;
+export interface VocabResponse {
+  id: string;
+  surface: string;
+  reading: string;
+  romaji: string;
+  translated: string;
+  partOfSpeech: string;
+  audioUrl?: string;
 }
+
+/* ===================== SERVICE ===================== */
 
 export const vocabService = {
   /**
-   * Lưu từ vựng cho user hiện tại
-   * - API trả void (result = null)
+   * Lưu vocab cho user hiện tại
    */
-  async save(surface: string): Promise<void> {
-    await postAPI<void>(API_ENDPOINTS.VOCAB.CREATE, {
-      surface,
-    });
+  save(surface: string): Promise<void> {
+    return http.post<void>(API_ENDPOINTS.VOCAB.CREATE, { surface });
+  },
 
-    console.log(`[Vocab Saved] ${surface}`);
+  /**
+   * Lấy danh sách vocab đã lưu
+   */
+  getMyVocabs(): Promise<VocabResponse[]> {
+    return http.get<VocabResponse[]>(API_ENDPOINTS.VOCAB.GET_MY);
+  },
+
+  /**
+   * Chỉ sửa nghĩa vocab
+   */
+  updateMeaning(request: UpdateVocabRequest): Promise<void> {
+    return http.put<void>(API_ENDPOINTS.VOCAB.UPDATE_MEANING, request);
+  },
+
+  /**
+   * Xóa vocab của user hiện tại
+   */
+  remove(surface: string): Promise<void> {
+    return http.delete<void>(API_ENDPOINTS.VOCAB.DELETE(surface));
   },
 };

@@ -177,7 +177,7 @@ export default function VideoLearningPage() {
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-white flex">
+    <div className="fixed inset-0 bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50 flex">
       {/* Sidebar Component */}
       <Sidebar
         sidebarOpen={showSidebar}
@@ -189,10 +189,10 @@ export default function VideoLearningPage() {
       {/* Main Content Wrapper */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Navigation Bar */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-center flex-shrink-0 relative">
+        <div className="bg-white/80 backdrop-blur-sm border-b border-cyan-100 px-6 py-4 flex items-center justify-center flex-shrink-0 relative shadow-lg">
           {/* Menu button - absolute left */}
           <button
-            className="lg:hidden absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-colors"
+            className="lg:hidden absolute left-4 top-1/2 -translate-y-1/2 text-cyan-600 hover:bg-cyan-50 p-2 rounded-lg transition-colors"
             onClick={() => setShowSidebar(!showSidebar)}
           >
             <Menu className="w-5 h-5" />
@@ -204,8 +204,8 @@ export default function VideoLearningPage() {
               onClick={() => setViewMode("video")}
               className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all ${
                 viewMode === "video"
-                  ? "bg-emerald-500 text-white shadow-lg shadow-emerald-200"
-                  : "text-gray-700 hover:bg-gray-100 bg-white"
+                  ? "bg-gradient-to-r from-cyan-400 via-blue-500 to-teal-500 text-white shadow-lg shadow-cyan-200"
+                  : "text-gray-700 hover:bg-cyan-50 bg-white border-2 border-cyan-100"
               }`}
             >
               <Video className="w-5 h-5" />
@@ -216,8 +216,8 @@ export default function VideoLearningPage() {
               onClick={() => setViewMode("dictation")}
               className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all ${
                 viewMode === "dictation"
-                  ? "bg-emerald-500 text-white shadow-lg shadow-emerald-200"
-                  : "text-gray-700 hover:bg-gray-100 bg-white"
+                  ? "bg-gradient-to-r from-cyan-400 via-blue-500 to-teal-500 text-white shadow-lg shadow-cyan-200"
+                  : "text-gray-700 hover:bg-cyan-50 bg-white border-2 border-cyan-100"
               }`}
             >
               <span className="text-lg">🎯</span>
@@ -228,20 +228,20 @@ export default function VideoLearningPage() {
               onClick={() => setViewMode("pronunciation")}
               className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all ${
                 viewMode === "pronunciation"
-                  ? "bg-emerald-500 text-white shadow-lg shadow-emerald-200"
-                  : "text-gray-700 hover:bg-gray-100 bg-white"
+                  ? "bg-gradient-to-r from-cyan-400 via-blue-500 to-teal-500 text-white shadow-lg shadow-cyan-200"
+                  : "text-gray-700 hover:bg-cyan-50 bg-white border-2 border-cyan-100"
               }`}
             >
               <Volume2 className="w-5 h-5" />
               <span>Phát âm</span>
             </button>
 
-            <button className="px-8 py-3.5 text-gray-700 hover:bg-gray-100 rounded-full text-base font-medium flex items-center gap-3 transition-all bg-white">
+            <button className="px-8 py-3.5 text-gray-700 hover:bg-cyan-50 rounded-full text-base font-medium flex items-center gap-3 transition-all bg-white border-2 border-cyan-100">
               <span className="text-lg">❓</span>
               <span>Bài tập</span>
             </button>
 
-            <button className="px-8 py-3.5 text-gray-700 hover:bg-gray-100 rounded-full text-base font-medium flex items-center gap-3 transition-all bg-white">
+            <button className="px-8 py-3.5 text-gray-700 hover:bg-cyan-50 rounded-full text-base font-medium flex items-center gap-3 transition-all bg-white border-2 border-cyan-100">
               <span className="text-lg">📊</span>
               <span>So đồ</span>
             </button>
@@ -249,12 +249,12 @@ export default function VideoLearningPage() {
 
           {/* Action buttons - absolute right */}
           <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-3">
-            <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+            <button className="p-2 text-cyan-600 hover:bg-cyan-50 rounded-lg transition-colors">
               <FileText className="w-5 h-5" />
             </button>
             <button
               onClick={() => router.push("/video")}
-              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 text-cyan-600 hover:bg-cyan-50 rounded-lg transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -280,10 +280,10 @@ export default function VideoLearningPage() {
               onClick={() => setShowVocabSidebar(true)}
               className={`fixed ${
                 showSidebar ? "left-72" : "left-24"
-              } top-1/2 -translate-y-1/2 z-40 w-6 h-12 bg-white border border-gray-200 rounded-r-lg flex items-center justify-center hover:bg-gray-50 transition-all shadow-sm`}
+              } top-1/2 -translate-y-1/2 z-40 w-6 h-12 bg-white border-2 border-cyan-200 rounded-r-lg flex items-center justify-center hover:bg-cyan-50 transition-all shadow-md`}
               title="Mở từ vựng"
             >
-              <BookOpen className="w-4 h-4 text-gray-600" />
+              <BookOpen className="w-4 h-4 text-cyan-600" />
             </button>
           )}
 
@@ -307,17 +307,19 @@ export default function VideoLearningPage() {
 
           {/* Right: Transcript Sidebar (only in video mode) */}
           {viewMode === "video" && (
-            <div className="w-96 bg-white border-l border-gray-200 flex flex-col flex-shrink-0">
+            <div className="w-96 bg-white/90 backdrop-blur-sm border-l border-cyan-100 flex flex-col flex-shrink-0 shadow-xl">
               {/* Transcript Header */}
-              <div className="p-4 border-b border-gray-200 flex-shrink-0">
+              <div className="p-4 border-b border-cyan-100 flex-shrink-0">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-bold text-gray-900">Phụ đề</h2>
+                  <h2 className="text-lg font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
+                    Phụ đề
+                  </h2>
                   <div className="flex items-center gap-2">
                     <AutoScrollToggle
                       autoScrollEnabled={autoScrollEnabled}
                       onToggle={toggleAutoScroll}
                     />
-                    <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button className="p-2 text-cyan-600 hover:bg-cyan-50 rounded-lg transition-colors">
                       <X className="w-5 h-5" />
                     </button>
                   </div>
@@ -341,8 +343,8 @@ export default function VideoLearningPage() {
                       }}
                       className={`group p-3 rounded-lg cursor-pointer transition-all duration-300 border ${
                         isActive
-                          ? "bg-emerald-50 border-emerald-300 shadow-md scale-105"
-                          : "hover:bg-gray-50 border-transparent hover:border-emerald-200"
+                          ? "bg-gradient-to-r from-cyan-50 via-blue-50 to-teal-50 border-cyan-300 shadow-lg scale-105"
+                          : "hover:bg-cyan-50 border-transparent hover:border-cyan-200 bg-white/70"
                       }`}
                       onClick={() => handleSeekToTime(t.startOffset)}
                     >
@@ -350,8 +352,8 @@ export default function VideoLearningPage() {
                         <button
                           className={`w-6 h-6 flex items-center justify-center rounded-full transition-colors ${
                             isActive
-                              ? "bg-emerald-500"
-                              : "bg-gray-100 group-hover:bg-emerald-100"
+                              ? "bg-gradient-to-r from-cyan-400 to-blue-500"
+                              : "bg-gray-100 group-hover:bg-cyan-100"
                           }`}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -362,13 +364,13 @@ export default function VideoLearningPage() {
                             className={`w-3 h-3 ${
                               isActive
                                 ? "text-white"
-                                : "text-gray-600 group-hover:text-emerald-600"
+                                : "text-gray-600 group-hover:text-cyan-600"
                             }`}
                           />
                         </button>
                         <span
                           className={`text-xs font-medium ${
-                            isActive ? "text-emerald-700" : "text-gray-500"
+                            isActive ? "text-cyan-700" : "text-gray-500"
                           }`}
                         >
                           {formatTime(t.startOffset)}
@@ -376,13 +378,13 @@ export default function VideoLearningPage() {
                         {isActive && (
                           <div className="ml-auto">
                             <div className="flex gap-1">
-                              <div className="w-1 h-3 bg-emerald-500 rounded animate-pulse"></div>
+                              <div className="w-1 h-3 bg-cyan-500 rounded animate-pulse"></div>
                               <div
-                                className="w-1 h-3 bg-emerald-500 rounded animate-pulse"
+                                className="w-1 h-3 bg-cyan-500 rounded animate-pulse"
                                 style={{ animationDelay: "0.2s" }}
                               ></div>
                               <div
-                                className="w-1 h-3 bg-emerald-500 rounded animate-pulse"
+                                className="w-1 h-3 bg-cyan-500 rounded animate-pulse"
                                 style={{ animationDelay: "0.4s" }}
                               ></div>
                             </div>
@@ -431,15 +433,15 @@ export default function VideoLearningPage() {
           width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(243, 244, 246, 0.5);
+          background: rgba(207, 250, 254, 0.3);
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #d1d5db;
+          background: linear-gradient(to bottom, #22d3ee, #06b6d4);
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #9ca3af;
+          background: linear-gradient(to bottom, #06b6d4, #0891b2);
         }
       `}</style>
     </div>

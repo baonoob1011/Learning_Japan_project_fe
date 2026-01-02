@@ -15,7 +15,7 @@ export default function AutoScrollToggle({
       onClick={onToggle}
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
         autoScrollEnabled
-          ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+          ? "bg-gradient-to-r from-cyan-100 to-blue-100 text-cyan-700 hover:from-cyan-200 hover:to-blue-200 shadow-sm"
           : "bg-gray-100 text-gray-600 hover:bg-gray-200"
       }`}
       title={autoScrollEnabled ? "Tắt tự cuộn" : "Bật tự cuộn"}

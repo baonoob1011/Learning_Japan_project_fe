@@ -7,7 +7,7 @@ import { TranscriptDTO } from "@/services/transcriptService";
 interface TranscriptWordBarProps {
   transcripts: TranscriptDTO[];
   currentTimeMs: number;
-  videoId?: string; // thêm videoId
+  videoId?: string;
 }
 
 export default function TranscriptWordBar({
@@ -45,7 +45,7 @@ export default function TranscriptWordBar({
   return (
     <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl shadow-lg p-6 min-h-[120px] flex items-center justify-center">
       {currentTranscript ? (
-        /* Text with word-by-word highlight - Large size like in image */
+        /* Text with word-by-word highlight - Large size with cyan/blue theme */
         <div className="text-2xl leading-relaxed font-medium w-full">
           {tokenizeText(currentTranscript.text).map((word, idx) => {
             const isHighlighted = idx === highlightedIndex;
@@ -55,7 +55,7 @@ export default function TranscriptWordBar({
                 <span
                   className={`inline-block transition-all duration-300 ${
                     isHighlighted
-                      ? "text-emerald-400 font-bold scale-110 underline decoration-emerald-400 decoration-2 underline-offset-4"
+                      ? "text-cyan-400 font-bold scale-110 underline decoration-cyan-400 decoration-2 underline-offset-4"
                       : "text-white"
                   }`}
                 >

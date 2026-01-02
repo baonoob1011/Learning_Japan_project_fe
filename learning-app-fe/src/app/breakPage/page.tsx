@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import BackButton from "@/components/backButton";
 
 export default function BreakPage() {
   const [timeLeft, setTimeLeft] = useState(5 * 60); // 5 phút nghỉ
@@ -81,21 +80,15 @@ export default function BreakPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
-      {/* Header - BackButton removed since we don't allow going back */}
-      <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50 flex flex-col">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-sm border-b border-cyan-100 px-6 py-3 flex items-center justify-between">
         <div className="w-24"></div> {/* Spacer for layout balance */}
-        <div className="text-2xl">🐸</div>
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-600 via-blue-600 to-teal-600 bg-clip-text text-transparent">
+          Thời gian nghỉ
+        </h1>
         <div className="flex items-center gap-4">
-          <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
-            🛍️ Sản phẩm
-          </button>
-          <button className="text-xl">🍜</button>
-          <button className="text-xl">🎮</button>
-          <button className="flex items-center gap-1 text-gray-600">
-            🇻🇳 VN
-          </button>
-          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
+          <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold shadow-md">
             B
           </div>
         </div>
@@ -106,10 +99,10 @@ export default function BreakPage() {
         <div className="max-w-2xl w-full text-center">
           {/* Icon */}
           <div className="mb-8">
-            <div className="w-32 h-32 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <div className="w-32 h-32 bg-gradient-to-br from-cyan-100 via-blue-100 to-teal-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
               <span className="text-7xl">☕</span>
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-3">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-600 via-blue-600 to-teal-600 bg-clip-text text-transparent mb-3">
               Nghỉ giải lao
             </h1>
             <p className="text-lg text-gray-600">
@@ -119,8 +112,8 @@ export default function BreakPage() {
 
           {/* Timer */}
           <div className="mb-12">
-            <div className="inline-flex items-center justify-center bg-white rounded-3xl shadow-2xl px-12 py-8 mb-6">
-              <span className="font-mono text-8xl font-bold text-emerald-500">
+            <div className="inline-flex items-center justify-center bg-white rounded-3xl shadow-2xl px-12 py-8 mb-6 border-2 border-cyan-100">
+              <span className="font-mono text-8xl font-bold bg-gradient-to-r from-cyan-500 via-blue-500 to-teal-500 bg-clip-text text-transparent">
                 {formatTime(timeLeft)}
               </span>
             </div>
@@ -132,7 +125,7 @@ export default function BreakPage() {
           {/* Start Button */}
           <button
             onClick={handleStartTest}
-            className="px-16 py-5 bg-emerald-500 text-white text-xl font-bold rounded-full hover:bg-emerald-600 transition shadow-2xl transform hover:scale-105"
+            className="px-16 py-5 bg-gradient-to-r from-cyan-500 via-blue-500 to-teal-500 text-white text-xl font-bold rounded-full hover:shadow-2xl transition transform hover:scale-105"
           >
             Bắt đầu phần tiếp theo
           </button>
@@ -143,11 +136,11 @@ export default function BreakPage() {
           </div>
 
           {/* Info Box */}
-          <div className="mt-8 bg-white rounded-xl p-6 shadow-md max-w-md mx-auto">
+          <div className="mt-8 bg-white rounded-xl p-6 shadow-md max-w-md mx-auto border border-cyan-100">
             <div className="flex items-start gap-3 text-left">
               <span className="text-2xl">💡</span>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Lưu ý:</h3>
+                <h3 className="font-semibold text-cyan-700 mb-1">Lưu ý:</h3>
                 <p className="text-sm text-gray-600">
                   Câu trả lời của Phần {nextSection - 1} đã được lưu tự động.
                   Bạn sẽ không thể quay lại chỉnh sửa sau khi bắt đầu Phần{" "}

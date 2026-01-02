@@ -136,7 +136,7 @@ export default function DictationPractice({
           {isRevealed ? (
             char
           ) : (
-            <span className="inline-flex items-center justify-center w-3 h-3 bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-400 rounded-full shadow-md hover:shadow-xl hover:from-yellow-400 hover:via-amber-400 hover:to-orange-400 transition-all duration-300 animate-pulse"></span>
+            <span className="inline-flex items-center justify-center w-3 h-3 bg-gradient-to-br from-cyan-400 via-blue-400 to-teal-400 rounded-full shadow-md hover:shadow-xl hover:from-yellow-400 hover:via-amber-400 hover:to-orange-400 transition-all duration-300 animate-pulse"></span>
           )}
         </span>
       );
@@ -205,12 +205,14 @@ export default function DictationPractice({
   const totalAnswered = results.filter((_, i) => i <= currentIndex).length;
 
   return (
-    <div className="w-96 bg-white border-l border-gray-200 flex flex-col flex-shrink-0">
+    <div className="w-96 bg-white/90 backdrop-blur-sm border-l border-cyan-100 flex flex-col flex-shrink-0 shadow-xl">
       {/* Header */}
-      <div className="p-5 border-b bg-gradient-to-r from-green-50 to-emerald-50 flex-shrink-0">
+      <div className="p-5 border-b border-cyan-100 bg-gradient-to-r from-cyan-50 via-blue-50 to-teal-50 flex-shrink-0">
         <div className="flex items-center justify-between mb-1">
-          <h3 className="font-semibold text-gray-900 text-lg">Chép chính tả</h3>
-          <button className="p-2 text-gray-600 hover:bg-white rounded-lg transition-colors">
+          <h3 className="font-semibold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent text-lg">
+            Chép chính tả
+          </h3>
+          <button className="p-2 text-cyan-600 hover:bg-cyan-100 rounded-lg transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -218,10 +220,10 @@ export default function DictationPractice({
           (Câu hỏi {currentIndex + 1}/{totalQuestions})
         </p>
         <div className="mt-2 flex items-center gap-2">
-          <div className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
+          <div className="px-3 py-1 bg-gradient-to-r from-cyan-100 to-blue-100 text-cyan-700 rounded-full text-xs font-medium shadow-sm">
             {correctCount}/{totalAnswered} đúng
           </div>
-          <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+          <div className="px-3 py-1 bg-gradient-to-r from-blue-100 to-teal-100 text-blue-700 rounded-full text-xs font-medium shadow-sm">
             {totalAnswered > 0
               ? Math.round((correctCount / totalAnswered) * 100)
               : 0}
@@ -231,13 +233,13 @@ export default function DictationPractice({
       </div>
 
       {/* Question navigation */}
-      <div className="p-4 border-b bg-gray-50 flex items-center gap-2 flex-shrink-0">
+      <div className="p-4 border-b border-cyan-50 bg-gradient-to-r from-gray-50 to-cyan-50 flex items-center gap-2 flex-shrink-0">
         <button
           onClick={handlePrev}
           disabled={currentIndex === 0}
-          className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed border bg-white"
+          className="p-2 rounded-lg hover:bg-cyan-100 disabled:opacity-30 disabled:cursor-not-allowed border border-cyan-200 bg-white"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-5 h-5 text-cyan-600" />
         </button>
 
         <div className="flex-1 flex gap-2 overflow-x-auto">
@@ -245,14 +247,14 @@ export default function DictationPractice({
             <button
               key={idx}
               onClick={() => handleQuestionSelect(idx)}
-              className={`min-w-[68px] h-11 rounded-lg font-medium text-sm px-3 flex-shrink-0 ${
+              className={`min-w-[68px] h-11 rounded-lg font-medium text-sm px-3 flex-shrink-0 transition-all ${
                 idx === currentIndex
-                  ? "bg-green-500 text-white shadow-md"
+                  ? "bg-gradient-to-r from-cyan-400 via-blue-500 to-teal-500 text-white shadow-lg"
                   : results[idx]
-                  ? "bg-green-100 text-green-700 border border-green-300"
+                  ? "bg-gradient-to-r from-cyan-100 to-blue-100 text-cyan-700 border border-cyan-300"
                   : idx < currentIndex
                   ? "bg-red-100 text-red-700 border border-red-300"
-                  : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-100"
+                  : "bg-white text-gray-700 border border-cyan-200 hover:bg-cyan-50"
               }`}
             >
               Câu {idx + 1}
@@ -263,9 +265,9 @@ export default function DictationPractice({
         <button
           onClick={handleNext}
           disabled={currentIndex === totalQuestions - 1}
-          className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed border bg-white"
+          className="p-2 rounded-lg hover:bg-cyan-100 disabled:opacity-30 disabled:cursor-not-allowed border border-cyan-200 bg-white"
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-5 h-5 text-cyan-600" />
         </button>
       </div>
 
@@ -283,7 +285,7 @@ export default function DictationPractice({
           onPlayingChange={setIsPlaying}
         />
 
-        <div className="mb-4 p-4 bg-gray-100 rounded-xl border border-gray-200">
+        <div className="mb-4 p-4 bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50 rounded-xl border border-cyan-200 shadow-sm">
           <p className="text-center text-lg font-medium text-gray-900 tracking-wide leading-relaxed">
             {maskText(currentTranscript.text, revealedChars)}
           </p>
@@ -294,7 +296,7 @@ export default function DictationPractice({
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
             placeholder="Gõ câu trả lời của bạn ở đây..."
-            className="w-full h-32 p-4 border rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 resize-none outline-none transition text-gray-900"
+            className="w-full h-32 p-4 border-2 border-cyan-200 rounded-xl focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200 resize-none outline-none transition text-gray-900"
           />
         )}
 
@@ -302,20 +304,20 @@ export default function DictationPractice({
           <div className="space-y-3">
             <div className="flex items-center justify-center mb-3">
               {results[currentIndex] ? (
-                <div className="flex items-center gap-2 px-5 py-2 bg-green-100 text-green-700 rounded-full">
+                <div className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-cyan-100 to-blue-100 text-cyan-700 rounded-full shadow-md">
                   <Check className="w-5 h-5" />
                   <span className="font-semibold">Chính xác!</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 px-5 py-2 bg-red-100 text-red-700 rounded-full">
+                <div className="flex items-center gap-2 px-5 py-2 bg-red-100 text-red-700 rounded-full shadow-md">
                   <X className="w-5 h-5" />
                   <span className="font-semibold">Chưa chính xác</span>
                 </div>
               )}
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <p className="text-xs font-medium text-blue-700 mb-2">
+            <div className="bg-gradient-to-br from-cyan-50 to-blue-50 border border-cyan-200 rounded-xl p-4 shadow-sm">
+              <p className="text-xs font-medium text-cyan-700 mb-2">
                 Đáp án đúng:
               </p>
               <p className="text-base text-gray-900">
@@ -324,7 +326,7 @@ export default function DictationPractice({
             </div>
 
             {!results[currentIndex] && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 shadow-sm">
                 <p className="text-xs font-medium text-red-700 mb-2">
                   Câu trả lời của bạn:
                 </p>
@@ -336,7 +338,7 @@ export default function DictationPractice({
       </div>
 
       {/* Bottom buttons */}
-      <div className="p-4 border-t bg-gradient-to-b from-gray-50 to-white space-y-2 flex-shrink-0">
+      <div className="p-4 border-t border-cyan-100 bg-gradient-to-b from-cyan-50 to-white space-y-2 flex-shrink-0">
         {!showAnswer ? (
           <div className="flex gap-3">
             <button
@@ -350,7 +352,7 @@ export default function DictationPractice({
             <button
               onClick={checkAnswer}
               disabled={!userInput.trim()}
-              className="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
+              className="flex-1 bg-gradient-to-r from-cyan-400 via-blue-500 to-teal-500 hover:from-cyan-500 hover:via-blue-600 hover:to-teal-600 text-white font-bold py-3.5 px-6 rounded-xl shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
             >
               Kiểm tra
             </button>
@@ -366,7 +368,7 @@ export default function DictationPractice({
             <button
               onClick={handleNext}
               disabled={currentIndex === totalQuestions - 1}
-              className="flex-1 px-4 py-3.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 disabled:from-gray-300 disabled:to-gray-400 text-white rounded-xl font-bold shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-3.5 bg-gradient-to-r from-cyan-400 via-blue-500 to-teal-500 hover:from-cyan-500 hover:via-blue-600 hover:to-teal-600 disabled:from-gray-300 disabled:to-gray-400 text-white rounded-xl font-bold shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none flex items-center justify-center gap-2"
             >
               Tiếp
               <ChevronRight className="w-4 h-4" />
