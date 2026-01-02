@@ -33,17 +33,6 @@ export default function VideoPlayerSection({
     >
       <div className="p-6">
         <div className="max-w-4xl mx-auto">
-          {/* Tips Card */}
-          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-6 flex items-start gap-3">
-            <div className="text-2xl">💡</div>
-            <div>
-              <p className="text-gray-800 text-sm">
-                <strong>Tips!</strong> Bôi đen văn bản để dịch và thêm vào phần
-                từ vựng
-              </p>
-            </div>
-          </div>
-
           {/* Video Player */}
           <YoutubePlayerWithTranscript
             ref={playerRef}

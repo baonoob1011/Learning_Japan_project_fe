@@ -3,11 +3,20 @@ import React, { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import VideoPlayerSection from "@/components/VideoPlayerSection";
 import DictationPractice from "@/components/Dictation";
-import BackButton from "@/components/backButton";
+import Sidebar from "@/components/Sidebar";
 import { YoutubePlayerHandle } from "@/components/YoutubePlayer";
 import AutoScrollToggle from "@/components/AutoScrollToggle";
 import PronunciationPractice from "@/components/PronunciationPractice";
-import { Video, X, FileText, Menu, Play, Volume2 } from "lucide-react";
+import VocabularySidebar from "@/components/VocabularySidebar";
+import {
+  Video,
+  X,
+  FileText,
+  Menu,
+  Play,
+  Volume2,
+  BookOpen,
+} from "lucide-react";
 
 import {
   transcriptService,
@@ -25,9 +34,13 @@ export default function VideoLearningPage() {
   const [currentTimeMs, setCurrentTimeMs] = useState<number>(0);
 
   const [showSidebar, setShowSidebar] = useState(true);
+  const [showVocabSidebar, setShowVocabSidebar] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("video");
   const [transcripts, setTranscripts] = useState<TranscriptDTO[]>([]);
   const [videoTitle, setVideoTitle] = useState<string>("");
+  const [selectedText, setSelectedText] = useState<string>("");
+  const [isDarkMode] = useState(false);
+  const [currentStreak] = useState(4);
 
   // Refs for auto-scroll and YouTube player
   const transcriptRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -143,129 +156,138 @@ export default function VideoLearningPage() {
     };
   }, []);
 
+  // Handle text selection
+  useEffect(() => {
+    const handleSelection = () => {
+      const selection = window.getSelection();
+      const text = selection?.toString().trim();
+      if (text && text.length > 0 && text.length < 50) {
+        setSelectedText(text);
+        setShowVocabSidebar(true);
+      }
+    };
+
+    document.addEventListener("mouseup", handleSelection);
+    document.addEventListener("touchend", handleSelection);
+
+    return () => {
+      document.removeEventListener("mouseup", handleSelection);
+      document.removeEventListener("touchend", handleSelection);
+    };
+  }, []);
+
   return (
     <div className="fixed inset-0 bg-white flex">
-      {/* Left Sidebar */}
-      <div
-        className={`${
-          showSidebar ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 fixed lg:relative w-20 h-full bg-white shadow-lg flex flex-col items-center py-6 gap-6 transition-transform duration-300 ease-in-out z-50 border-r border-gray-200`}
-      >
-        {/* Logo */}
-        <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center cursor-pointer hover:scale-110 transition-transform duration-200">
-          <span className="text-2xl">🐸</span>
-        </div>
+      {/* Sidebar Component */}
+      <Sidebar
+        sidebarOpen={showSidebar}
+        setSidebarOpen={setShowSidebar}
+        isDarkMode={isDarkMode}
+        currentStreak={currentStreak}
+      />
 
-        {/* Navigation Icons */}
-        <div className="flex flex-col gap-3 mt-4">
-          <button className="p-3 text-gray-400 hover:text-gray-700 transition-colors">
-            <span className="text-xl">🏠</span>
-          </button>
-          <button className="p-3 text-gray-400 hover:text-gray-700 transition-colors">
-            <span className="text-xl">🇨🇳</span>
-          </button>
-          <button className="p-3 text-gray-400 hover:text-gray-700 transition-colors">
-            <span className="text-xl">🇯🇵</span>
-          </button>
-          <button className="p-3 bg-emerald-100 rounded-xl">
-            <Video className="w-6 h-6 text-emerald-600" />
-          </button>
-          <button className="p-3 text-gray-400 hover:text-gray-700 transition-colors">
-            <span className="text-xl">▶️</span>
-          </button>
-        </div>
-
-        {/* Bottom Icons */}
-        <div className="mt-auto flex flex-col gap-3">
-          <button className="p-3 text-gray-400 hover:text-gray-700 transition-colors">
-            <span className="text-xl">📖</span>
-          </button>
-          <button className="p-3 text-gray-400 hover:text-gray-700 transition-colors">
-            <span className="text-xl">🔄</span>
-          </button>
-          <button className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white hover:bg-emerald-600 transition-colors">
-            <span className="text-lg">👤</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Main Content */}
+      {/* Main Content Wrapper */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Navigation Bar */}
-        <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between flex-shrink-0">
+        <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-center flex-shrink-0 relative">
+          {/* Menu button - absolute left */}
+          <button
+            className="lg:hidden absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-colors"
+            onClick={() => setShowSidebar(!showSidebar)}
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+
+          {/* Center Navigation Buttons */}
           <div className="flex items-center gap-4">
-            {/* Back Button */}
-            <BackButton to="/video" label="Danh sách" />
-
-            <div className="h-6 w-px bg-gray-200"></div>
-
-            <button
-              className="lg:hidden text-gray-600"
-              onClick={() => setShowSidebar(!showSidebar)}
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-
             <button
               onClick={() => setViewMode("video")}
-              className={`px-4 py-2 rounded-full font-medium flex items-center gap-2 transition-colors ${
+              className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all ${
                 viewMode === "video"
-                  ? "bg-emerald-500 text-white"
-                  : "text-gray-700 hover:bg-gray-100"
+                  ? "bg-emerald-500 text-white shadow-lg shadow-emerald-200"
+                  : "text-gray-700 hover:bg-gray-100 bg-white"
               }`}
             >
-              <Video className="w-4 h-4" />
-              Video
+              <Video className="w-5 h-5" />
+              <span>Video</span>
             </button>
 
             <button
               onClick={() => setViewMode("dictation")}
-              className={`px-4 py-2 rounded-full font-medium flex items-center gap-2 transition-colors ${
+              className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all ${
                 viewMode === "dictation"
-                  ? "bg-emerald-500 text-white"
-                  : "text-gray-700 hover:bg-gray-100"
+                  ? "bg-emerald-500 text-white shadow-lg shadow-emerald-200"
+                  : "text-gray-700 hover:bg-gray-100 bg-white"
               }`}
             >
-              <span>🎯</span>
-              Chép chính tả
+              <span className="text-lg">🎯</span>
+              <span>Chép chính tả</span>
             </button>
 
             <button
               onClick={() => setViewMode("pronunciation")}
-              className={`px-4 py-2 rounded-full font-medium flex items-center gap-2 transition-colors ${
+              className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all ${
                 viewMode === "pronunciation"
-                  ? "bg-emerald-500 text-white"
-                  : "text-gray-700 hover:bg-gray-100"
+                  ? "bg-emerald-500 text-white shadow-lg shadow-emerald-200"
+                  : "text-gray-700 hover:bg-gray-100 bg-white"
               }`}
             >
-              <Volume2 className="w-4 h-4" />
-              Phát âm
+              <Volume2 className="w-5 h-5" />
+              <span>Phát âm</span>
             </button>
 
-            <button className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-full font-medium flex items-center gap-2 transition-colors">
-              <span>❓</span>
-              Bài tập
+            <button className="px-8 py-3.5 text-gray-700 hover:bg-gray-100 rounded-full text-base font-medium flex items-center gap-3 transition-all bg-white">
+              <span className="text-lg">❓</span>
+              <span>Bài tập</span>
             </button>
 
-            <button className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-full font-medium flex items-center gap-2 transition-colors">
-              <span>📊</span>
-              So đồ
+            <button className="px-8 py-3.5 text-gray-700 hover:bg-gray-100 rounded-full text-base font-medium flex items-center gap-3 transition-all bg-white">
+              <span className="text-lg">📊</span>
+              <span>So đồ</span>
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Action buttons - absolute right */}
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-3">
             <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
               <FileText className="w-5 h-5" />
             </button>
-            <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+            <button
+              onClick={() => router.push("/video")}
+              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* Content Area with Video and Transcript/Dictation */}
+        {/* Content Area - Below Header */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Left: Video Section - Using Component */}
+          {/* Vocabulary Sidebar - Below Header */}
+          {showVocabSidebar && (
+            <VocabularySidebar
+              videoId={videoId}
+              isVisible={showVocabSidebar}
+              onToggle={() => setShowVocabSidebar(false)}
+              selectedText={selectedText}
+              onAddFromSelection={setSelectedText}
+            />
+          )}
+
+          {/* Toggle button when vocab sidebar is hidden */}
+          {!showVocabSidebar && (
+            <button
+              onClick={() => setShowVocabSidebar(true)}
+              className={`fixed ${
+                showSidebar ? "left-72" : "left-24"
+              } top-1/2 -translate-y-1/2 z-40 w-6 h-12 bg-white border border-gray-200 rounded-r-lg flex items-center justify-center hover:bg-gray-50 transition-all shadow-sm`}
+              title="Mở từ vựng"
+            >
+              <BookOpen className="w-4 h-4 text-gray-600" />
+            </button>
+          )}
+
+          {/* Video Player Section */}
           {(viewMode === "video" ||
             viewMode === "dictation" ||
             viewMode === "pronunciation") && (

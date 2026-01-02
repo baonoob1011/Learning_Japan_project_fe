@@ -1,6 +1,8 @@
 "use client";
 import { youtubeService } from "@/services/videoService";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import ThemeToggle from "@/components/ThemeToggle";
+import Sidebar from "@/components/Sidebar";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -8,17 +10,11 @@ import {
   Video,
   Play,
   Clock,
-  Star,
-  ChevronLeft,
-  Menu,
   Bell,
   Gift,
   Settings,
   Globe,
   ChevronDown,
-  BookOpen,
-  Sun,
-  Moon,
   AlertCircle,
   X,
 } from "lucide-react";
@@ -47,7 +43,6 @@ interface VideoModalProps {
 
 const VideoModal: React.FC<VideoModalProps> = ({ video, isDark, onClose }) => {
   const getYouTubeEmbedUrl = (url: string) => {
-    // Extract video ID from various YouTube URL formats
     const videoIdMatch = url.match(
       /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\?\/]+)/
     );
@@ -68,7 +63,6 @@ const VideoModal: React.FC<VideoModalProps> = ({ video, isDark, onClose }) => {
         } rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div
           className={`flex items-center justify-between p-4 border-b ${
             isDark ? "border-gray-700" : "border-gray-200"
@@ -95,7 +89,6 @@ const VideoModal: React.FC<VideoModalProps> = ({ video, isDark, onClose }) => {
           </button>
         </div>
 
-        {/* Video Player */}
         <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
           <iframe
             src={getYouTubeEmbedUrl(video.urlVideo)}
@@ -105,7 +98,6 @@ const VideoModal: React.FC<VideoModalProps> = ({ video, isDark, onClose }) => {
           />
         </div>
 
-        {/* Video Info */}
         <div className="p-4">
           <div
             className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}
@@ -127,14 +119,12 @@ const VideoModal: React.FC<VideoModalProps> = ({ video, isDark, onClose }) => {
 // Video Card Component
 const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
   const getYouTubeThumbnail = (url: string) => {
-    // Extract video ID and return thumbnail
     const videoIdMatch = url.match(
       /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\?\/]+)/
     );
     if (videoIdMatch && videoIdMatch[1]) {
       return `https://img.youtube.com/vi/${videoIdMatch[1]}/maxresdefault.jpg`;
     }
-    // Fallback gradient
     return null;
   };
 
@@ -165,7 +155,6 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
       } rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group`}
     >
       <div className="relative">
-        {/* Thumbnail */}
         {thumbnailUrl ? (
           <div className="w-full h-40 relative bg-gray-200">
             <img
@@ -173,7 +162,6 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
               alt={video.title}
               className="w-full h-full object-cover"
               onError={(e) => {
-                // Fallback to gradient if image fails to load
                 e.currentTarget.style.display = "none";
                 e.currentTarget.parentElement?.classList.add(
                   "bg-gradient-to-br",
@@ -192,7 +180,6 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
           </div>
         )}
 
-        {/* Duration */}
         {video.duration && (
           <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
             <Clock className="w-3 h-3" />
@@ -200,7 +187,6 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
           </div>
         )}
 
-        {/* Hover overlay */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
           <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform scale-75 group-hover:scale-100">
             <Play className="w-7 h-7 text-teal-500 ml-1" />
@@ -270,7 +256,6 @@ const formatDate = (dateString?: string): string => {
 export default function VideoListPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLanguage, setSelectedLanguage] = useState("JA");
   const [activeTab, setActiveTab] = useState("Toàn bộ");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentStreak, setCurrentStreak] = useState(4);
@@ -323,10 +308,7 @@ export default function VideoListPage() {
   }, []);
 
   const handleVideoClick = (video: YoutubeVideoSummary) => {
-    // Trigger getById nhưng không cần await, chỉ gọi để cache hoặc log
     youtubeService.getById(video.id).catch((err) => console.error(err));
-
-    // Navigate sang trang chi tiết
     router.push(`/video/${video.id}`);
   };
 
@@ -338,7 +320,6 @@ export default function VideoListPage() {
     <div
       className={`flex h-screen ${isDarkMode ? "bg-gray-900" : "bg-gray-50"}`}
     >
-      {/* Video Modal */}
       {selectedVideo && (
         <VideoModal
           video={selectedVideo}
@@ -347,173 +328,13 @@ export default function VideoListPage() {
         />
       )}
 
-      {/* Sidebar */}
-      <div
-        className={`${sidebarOpen ? "w-72" : "w-20"} ${
-          isDarkMode
-            ? "bg-gray-800 border-gray-700"
-            : "bg-white border-gray-200"
-        } border-r transition-all duration-300 flex flex-col`}
-      >
-        <div
-          className={`p-4 ${
-            isDarkMode ? "border-gray-700" : "border-gray-200"
-          } border-b flex items-center justify-between`}
-        >
-          {sidebarOpen ? (
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-emerald-400 rounded-full flex items-center justify-center">
-                <span className="text-2xl">🐸</span>
-              </div>
-              <div>
-                <div className="text-emerald-500 font-bold text-lg leading-tight">
-                  Goro
-                </div>
-                <div className="text-teal-400 font-bold text-lg leading-tight -mt-1">
-                  Domo
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="w-10 h-10 bg-emerald-400 rounded-full flex items-center justify-center mx-auto">
-              <span className="text-2xl">🐸</span>
-            </div>
-          )}
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className={`${
-              isDarkMode
-                ? "text-gray-400 hover:text-gray-200"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {sidebarOpen ? (
-              <ChevronLeft className="w-5 h-5" />
-            ) : (
-              <Menu className="w-5 h-5" />
-            )}
-          </button>
-        </div>
-
-        {sidebarOpen && (
-          <div
-            className={`p-4 ${
-              isDarkMode ? "border-gray-700" : "border-gray-200"
-            } border-b`}
-          >
-            <div
-              className={`${
-                isDarkMode
-                  ? "from-yellow-900/30 to-orange-900/30"
-                  : "from-yellow-50 to-orange-50"
-              } bg-gradient-to-r rounded-xl p-3`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span
-                  className={`text-sm font-medium ${
-                    isDarkMode ? "text-gray-300" : "text-gray-700"
-                  }`}
-                >
-                  Streak
-                </span>
-                <span className="text-2xl">🔥</span>
-              </div>
-              <div className="flex items-baseline gap-2">
-                {[...Array(7)].map((_, i) => (
-                  <div
-                    key={i}
-                    className={`flex-1 h-8 rounded ${
-                      i < currentStreak
-                        ? "bg-gradient-to-t from-emerald-400 to-emerald-300"
-                        : isDarkMode
-                        ? "bg-gray-700"
-                        : "bg-gray-200"
-                    } flex items-end justify-center pb-1`}
-                  >
-                    <Star
-                      className={`w-3 h-3 ${
-                        i < currentStreak
-                          ? "text-white"
-                          : isDarkMode
-                          ? "text-gray-600"
-                          : "text-gray-400"
-                      }`}
-                      fill={i < currentStreak ? "currentColor" : "none"}
-                    />
-                  </div>
-                ))}
-              </div>
-              <div
-                className={`flex justify-between mt-2 text-xs ${
-                  isDarkMode ? "text-gray-400" : "text-gray-600"
-                }`}
-              >
-                <span>Th2</span>
-                <span>Th3</span>
-                <span>Th4</span>
-                <span>Th5</span>
-                <span>Th6</span>
-                <span>Th7</span>
-                <span>CN</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="space-y-2">
-            <button className="w-full flex items-center gap-3 px-4 py-3 bg-emerald-50 text-emerald-600 rounded-xl font-medium hover:bg-emerald-100 transition">
-              <Video className="w-5 h-5" />
-              {sidebarOpen && <span>Danh sách video</span>}
-            </button>
-            <button
-              className={`w-full flex items-center gap-3 px-4 py-3 ${
-                isDarkMode
-                  ? "text-gray-300 hover:bg-gray-700"
-                  : "text-gray-600 hover:bg-gray-50"
-              } rounded-xl transition`}
-            >
-              <Play className="w-5 h-5" />
-              {sidebarOpen && <span>Video của tôi</span>}
-            </button>
-            <button
-              onClick={() => router.push("/learningProgress")}
-              className={`w-full flex items-center gap-3 px-4 py-3 ${
-                isDarkMode
-                  ? "text-gray-300 hover:bg-gray-700"
-                  : "text-gray-600 hover:bg-gray-50"
-              } rounded-xl transition`}
-            >
-              <Clock className="w-5 h-5" />
-              {sidebarOpen && <span>Xem gần đây</span>}
-            </button>
-            <button
-              onClick={() => router.push("/practice")}
-              className="w-full flex items-center gap-3 px-4 py-3 bg-emerald-50 text-emerald-600 rounded-xl font-medium hover:bg-emerald-100 transition"
-            >
-              <BookOpen className="w-5 h-5" />
-              {sidebarOpen && <span>Luyện đề</span>}
-            </button>
-          </div>
-        </div>
-
-        {sidebarOpen && (
-          <div
-            className={`p-4 ${
-              isDarkMode ? "border-gray-700" : "border-gray-200"
-            } border-t`}
-          ></div>
-        )}
-
-        {sidebarOpen && (
-          <div className="p-4">
-            <button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition flex items-center justify-center gap-2">
-              <Gift className="w-5 h-5" />
-              Nâng cấp Plus
-            </button>
-          </div>
-        )}
-      </div>
+      {/* Sidebar Component */}
+      <Sidebar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        isDarkMode={isDarkMode}
+        currentStreak={currentStreak}
+      />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -533,18 +354,10 @@ export default function VideoListPage() {
               Luyện Shadowing để dàng thông qua bất kỳ video nào bạn yêu thích
             </h1>
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                className={`p-2 ${
-                  isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
-                } rounded-lg transition`}
-              >
-                {isDarkMode ? (
-                  <Sun className="w-5 h-5 text-yellow-400" />
-                ) : (
-                  <Moon className="w-5 h-5 text-gray-600" />
-                )}
-              </button>
+              <ThemeToggle
+                isDarkMode={isDarkMode}
+                onToggle={() => setIsDarkMode(!isDarkMode)}
+              />
               <button
                 className={`p-2 ${
                   isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
@@ -649,8 +462,6 @@ export default function VideoListPage() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          <div className="mb-4"></div>
-
           {loading ? (
             <div className="flex items-center justify-center h-64">
               <div className="text-center">

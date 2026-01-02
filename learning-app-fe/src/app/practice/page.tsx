@@ -1,23 +1,21 @@
 "use client";
 import { useRouter } from "next/navigation";
-
 import React, { useEffect, useState } from "react";
-import { Search, Clock, Users, ChevronDown } from "lucide-react";
+import { Clock, Users } from "lucide-react";
 import {
   examService,
   ExamResponse,
   StartExamResponse,
 } from "@/services/examService";
-import BackButton from "@/components/backButton";
+import Sidebar from "@/components/Sidebar";
 
 interface ExamCardProps {
-  id: string; // ID của exam
+  id: string;
   title: string;
   duration: number;
   participants: number;
   sections: number;
   questions: number;
-
   isDark: boolean;
 }
 
@@ -27,7 +25,6 @@ const ExamCard: React.FC<ExamCardProps> = ({
   duration,
   participants,
   sections,
-
   questions,
   isDark,
 }) => {
@@ -37,12 +34,10 @@ const ExamCard: React.FC<ExamCardProps> = ({
   const handleStartExam = async () => {
     setLoading(true);
     try {
-      // Gọi API start exam
       const res: StartExamResponse = await examService.startExam({
         examId: id,
       });
 
-      // Điều hướng sang trang làm bài, truyền participantId và duration
       router.push(
         `/exam?examId=${res.examId}` +
           `&participantId=${res.participantId}` +
@@ -114,6 +109,8 @@ export default function PracticePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeLevel, setActiveLevel] = useState("N1");
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [currentStreak, setCurrentStreak] = useState(3);
 
   const [exams, setExams] = useState<ExamResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -121,7 +118,6 @@ export default function PracticePage() {
 
   const levels = ["N1", "N2", "N3", "N4", "N5"];
 
-  // 🔥 CALL API
   useEffect(() => {
     const fetchExams = async () => {
       try {
@@ -144,83 +140,97 @@ export default function PracticePage() {
   );
 
   return (
-    <div
-      className={`min-h-screen ${isDarkMode ? "bg-gray-900" : "bg-gray-50"}`}
-    >
-      {/* HEADER */}
-      <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
-        <BackButton to="/video" />
-        <div className="text-2xl">🐸</div>
-        <div className="flex items-center gap-4">
-          <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
-            🛍️ Sản phẩm
-          </button>
-          <button className="text-xl">🍜</button>
-          <button className="text-xl">🎮</button>
-          <button className="flex items-center gap-1 text-gray-600">
-            🇻🇳 VN
-          </button>
-          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
-            B
+    <div className="flex h-screen">
+      {/* Sidebar Component */}
+      <Sidebar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        isDarkMode={isDarkMode}
+        currentStreak={currentStreak}
+      />
+
+      {/* Main Content */}
+      <div
+        className={`flex-1 flex flex-col overflow-hidden ${
+          isDarkMode ? "bg-gray-900" : "bg-gray-50"
+        }`}
+      >
+        {/* HEADER */}
+        <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+          <div className="text-2xl">🐸</div>
+          <div className="flex items-center gap-4">
+            <button className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
+              🛍️ Sản phẩm
+            </button>
+            <button className="text-xl">🍜</button>
+            <button className="text-xl">🎮</button>
+            <button className="flex items-center gap-1 text-gray-600">
+              🇻🇳 VN
+            </button>
+            <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
+              B
+            </div>
+          </div>
+        </header>
+
+        {/* CONTENT */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-7xl mx-auto px-6 py-8">
+            {/* Level Tabs */}
+            <div className="flex gap-3 mb-6">
+              {levels.map((level) => (
+                <button
+                  key={level}
+                  onClick={() => setActiveLevel(level)}
+                  className={`px-6 py-3 rounded-xl font-semibold ${
+                    activeLevel === level
+                      ? "bg-emerald-500 text-white"
+                      : "bg-white text-gray-700"
+                  }`}
+                >
+                  JLPT {level}
+                </button>
+              ))}
+            </div>
+
+            {/* Search */}
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Tìm đề thi..."
+              className="mb-6 px-4 py-3 border rounded-xl w-full max-w-md"
+            />
+
+            {/* Loading */}
+            {loading && <p>⏳ Đang tải đề thi...</p>}
+
+            {/* Error */}
+            {error && <p className="text-red-500">{error}</p>}
+
+            {/* Exam Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {filteredExams.map((exam) => (
+                <ExamCard
+                  key={exam.id}
+                  id={exam.id}
+                  title={exam.code}
+                  duration={exam.duration}
+                  participants={exam.participant ?? 0}
+                  sections={exam.numSections}
+                  questions={exam.numQuestions}
+                  isDark={isDarkMode}
+                />
+              ))}
+            </div>
+
+            {/* Empty */}
+            {!loading && filteredExams.length === 0 && (
+              <p className="text-center mt-10 text-gray-500">
+                Không có đề thi phù hợp
+              </p>
+            )}
           </div>
         </div>
-      </header>
-
-      {/* CONTENT */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Level Tabs */}
-        <div className="flex gap-3 mb-6">
-          {levels.map((level) => (
-            <button
-              key={level}
-              onClick={() => setActiveLevel(level)}
-              className={`px-6 py-3 rounded-xl font-semibold ${
-                activeLevel === level
-                  ? "bg-emerald-500 text-white"
-                  : "bg-white text-gray-700"
-              }`}
-            >
-              JLPT {level}
-            </button>
-          ))}
-        </div>
-
-        {/* Search */}
-        <input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Tìm đề thi..."
-          className="mb-6 px-4 py-3 border rounded-xl w-full max-w-md"
-        />
-
-        {/* Loading */}
-        {loading && <p>⏳ Đang tải đề thi...</p>}
-
-        {/* Error */}
-        {error && <p className="text-red-500">{error}</p>}
-
-        {/* Exam Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {filteredExams.map((exam) => (
-            <ExamCard
-              key={exam.id}
-              id={exam.id}
-              title={exam.code}
-              duration={exam.duration}
-              participants={exam.participant ?? 0} // lấy từ response
-              sections={exam.numSections}
-              questions={exam.numQuestions}
-              isDark={isDarkMode}
-            />
-          ))}
-        </div>
-
-        {/* Empty */}
-        {!loading && filteredExams.length === 0 && (
-          <p className="text-center mt-10 text-gray-500">
-            Không có đề thi phù hợp
-          </p>
-        )}
       </div>
     </div>
   );
