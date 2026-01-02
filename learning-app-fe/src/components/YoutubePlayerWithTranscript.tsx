@@ -17,7 +17,7 @@ interface Props {
   seekTimeMs?: number | null;
   onSeekHandled?: () => void;
   onTimeUpdate?: (timeMs: number) => void;
-  hideWordBar?: boolean; // ✅ Thêm prop mới để ẩn WordBar
+  hideWordBar?: boolean;
 }
 
 const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
@@ -40,7 +40,6 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
     useImperativeHandle(
       ref,
       () => {
-        // Tạo handle object và return về
         const handle: YoutubePlayerHandle = {
           getCurrentTime: () => playerRef.current?.getCurrentTime(),
           seekTo: (seconds: number, allowSeekAhead: boolean) =>
@@ -50,13 +49,30 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
           playSegment: (startMs: number, endMs: number) =>
             playerRef.current?.playSegment(startMs, endMs),
           stopSegment: () => playerRef.current?.stopSegment(),
+
           // ✅ Expose onDictationSegmentEnd property
           get onDictationSegmentEnd() {
             return playerRef.current?.onDictationSegmentEnd;
           },
           set onDictationSegmentEnd(callback: (() => void) | undefined) {
             if (playerRef.current) {
+              console.log(
+                "🔗 YoutubePlayerWithTranscript: Setting onDictationSegmentEnd callback"
+              );
               playerRef.current.onDictationSegmentEnd = callback;
+            }
+          },
+
+          // ✅ NEW: Expose onPronunciationSegmentEnd property
+          get onPronunciationSegmentEnd() {
+            return playerRef.current?.onPronunciationSegmentEnd;
+          },
+          set onPronunciationSegmentEnd(callback: (() => void) | undefined) {
+            if (playerRef.current) {
+              console.log(
+                "🔗 YoutubePlayerWithTranscript: Setting onPronunciationSegmentEnd callback"
+              );
+              playerRef.current.onPronunciationSegmentEnd = callback;
             }
           },
         };
@@ -69,21 +85,20 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
      * HANDLE PLAYER READY
      ====================== */
     const handlePlayerReady = () => {
-      // Player is ready, ref is already set by YoutubePlayer component
+      console.log("✅ YoutubePlayerWithTranscript: Player ready");
 
-      // ✅ Clear previous interval if exists
+      // Clear previous interval if exists
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
 
-      // ✅ Start tracking time
+      // Start tracking time
       intervalRef.current = setInterval(() => {
         if (!playerRef.current) return;
 
         try {
           const time = playerRef.current.getCurrentTime();
 
-          // ✅ Check if time is valid number
           if (typeof time === "number" && !isNaN(time)) {
             const timeMs = Math.floor(time * 1000);
             setCurrentTimeMs(timeMs);

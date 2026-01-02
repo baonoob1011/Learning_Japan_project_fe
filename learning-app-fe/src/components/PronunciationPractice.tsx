@@ -1,17 +1,18 @@
 "use client";
+import { pronunciationService } from "@/services/pronunciationService";
+import { useRef } from "react";
 
 import React, { useState, useEffect } from "react";
 import {
   ChevronLeft,
   ChevronRight,
   Mic,
-  Play,
-  Pause,
   Volume2,
   RotateCcw,
   CheckCircle2,
   XCircle,
 } from "lucide-react";
+import SegmentPlaybackButton from "./SegmentPlaybackButton";
 
 // TranscriptDTO interface
 interface TranscriptDTO {
@@ -41,9 +42,12 @@ export default function PronunciationPractice({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false); // ✅ NEW: Loading state
   const [pronunciationScore, setPronunciationScore] = useState<number | null>(
     null
   );
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<BlobPart[]>([]);
   const [completionRate, setCompletionRate] = useState<number | null>(null);
   const [accuracyScore, setAccuracyScore] = useState<number | null>(null);
   const [results, setResults] = useState<
@@ -54,36 +58,12 @@ export default function PronunciationPractice({
   const totalQuestions = transcripts.length;
 
   /** ======================
-   * HANDLE SEGMENT END
+   * HANDLE SEGMENT END - Tự động chuyển về nút "Phát lại"
    ====================== */
   const handleSegmentEnd = () => {
-    console.log("=== Pronunciation: Segment ended ===");
+    console.log("🎉 Pronunciation: SEGMENT ENDED - Switching to Play button");
+    console.log("🔄 Setting isPlaying = false");
     setIsPlaying(false);
-  };
-
-  /** ======================
-   * PLAY SEGMENT
-   ====================== */
-  const handlePlaySegment = () => {
-    console.log("=== Pronunciation: handlePlaySegment called ===");
-    console.log("playerRef.current:", playerRef.current);
-    console.log("currentTranscript:", currentTranscript);
-
-    if (!playerRef.current || !currentTranscript) {
-      console.error("Missing playerRef or currentTranscript!");
-      return;
-    }
-
-    console.log("Calling playSegment with:", {
-      start: currentTranscript.startOffset,
-      end: currentTranscript.endOffset,
-    });
-
-    setIsPlaying(true);
-    playerRef.current.playSegment(
-      currentTranscript.startOffset,
-      currentTranscript.endOffset
-    );
   };
 
   /** ======================
@@ -99,33 +79,129 @@ export default function PronunciationPractice({
   /** ======================
    * RECORDING FUNCTIONS
    ====================== */
-  const startRecording = () => {
-    setIsRecording(true);
-    // Simulate recording - in real app, you'd use Web Speech API or similar
-    setTimeout(() => {
-      stopRecording();
-    }, 3000);
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      const recorder = new MediaRecorder(stream, {
+        mimeType: "audio/webm;codecs=opus",
+      });
+
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        const blob = new Blob(audioChunksRef.current, {
+          type: "audio/webm;codecs=opus",
+        });
+
+        const file = new File([blob], "record.webm", {
+          type: "audio/webm",
+        });
+
+        await submitPronunciation(file);
+
+        stream.getTracks().forEach((t) => t.stop());
+        setIsRecording(false);
+      };
+
+      recorder.start();
+      mediaRecorderRef.current = recorder;
+      setIsRecording(true);
+
+      // auto stop sau 3s
+      setTimeout(() => {
+        recorder.stop();
+      }, 3000);
+    } catch (err) {
+      console.error("Mic error:", err);
+    }
   };
 
-  const stopRecording = () => {
-    setIsRecording(false);
-    // Simulate scoring - in real app, you'd send audio to pronunciation API
-    const mockScore = Math.floor(Math.random() * 30) + 70; // 70-100
-    const mockCompletion = Math.floor(Math.random() * 20) + 80; // 80-100
-    const mockAccuracy = Math.floor(Math.random() * 25) + 75; // 75-100
+  const submitPronunciation = async (file: File) => {
+    try {
+      console.log("📤 Submitting pronunciation to backend...");
+      setIsProcessing(true); // ✅ Start loading
 
-    setPronunciationScore(mockScore);
-    setCompletionRate(mockCompletion);
-    setAccuracyScore(mockAccuracy);
+      // 1️⃣ submit audio → nhận jobId
+      const jobId = await pronunciationService.submitPronunciation(
+        file,
+        currentTranscript.text
+      );
 
-    const newResults = [...results];
-    newResults[currentIndex] = {
-      score: mockScore,
-      accuracy: mockAccuracy,
-      completion: mockCompletion,
+      setIsRecording(false);
+      console.log("✅ Got jobId:", jobId);
+
+      // 2️⃣ Poll kết quả
+      const pollResult = async (): Promise<void> => {
+        const result = await pronunciationService.getPronunciationResult(jobId);
+
+        if (result) {
+          console.log("✅ Got result:", result);
+          const accuracy = Math.round(result.accuracy);
+
+          setPronunciationScore(accuracy);
+          setAccuracyScore(accuracy);
+          setCompletionRate(accuracy);
+
+          const newResults = [...results];
+          newResults[currentIndex] = {
+            score: accuracy,
+            accuracy,
+            completion: accuracy,
+          };
+          setResults(newResults);
+
+          setIsProcessing(false); // ✅ Stop loading
+        } else {
+          console.log("⏳ Still processing, polling again...");
+          // Nếu chưa có kết quả → chờ 2s rồi poll lại
+          setTimeout(pollResult, 2000);
+        }
+      };
+
+      pollResult();
+    } catch (e) {
+      console.error("Pronunciation API failed", e);
+      setIsRecording(false);
+      setIsProcessing(false); // ✅ Stop loading on error
+    }
+  };
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const pollResult = async (jobId: string) => {
+      if (isCancelled) return;
+      const result = await pronunciationService.getPronunciationResult(jobId);
+      if (result) {
+        const accuracy = Math.round(result.accuracy);
+        if (!isCancelled) {
+          setPronunciationScore(accuracy);
+          setAccuracyScore(accuracy);
+          setCompletionRate(accuracy);
+          const newResults = [...results];
+          newResults[currentIndex] = {
+            score: accuracy,
+            accuracy,
+            completion: accuracy,
+          };
+          setResults(newResults);
+        }
+      } else {
+        setTimeout(() => pollResult(jobId), 2000);
+      }
     };
-    setResults(newResults);
-  };
+
+    return () => {
+      isCancelled = true; // cancel polling khi unmount / đổi câu
+    };
+  }, [currentIndex, results]);
 
   /** ======================
    * NAVIGATION
@@ -156,6 +232,7 @@ export default function PronunciationPractice({
     setPronunciationScore(null);
     setCompletionRate(null);
     setAccuracyScore(null);
+    setIsProcessing(false); // ✅ Reset loading state
   };
 
   const handleRetry = () => {
@@ -304,32 +381,13 @@ export default function PronunciationPractice({
           </p>
         </div>
 
-        {/* Playback Controls */}
-        <div className="mb-6 space-y-3">
-          <div className="flex items-center gap-2">
-            {isPlaying ? (
-              <button
-                onClick={stopPlayback}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-colors shadow-sm bg-orange-500 hover:bg-orange-600 text-white"
-              >
-                <Pause className="w-5 h-5 fill-white" />
-                Dừng phát
-              </button>
-            ) : (
-              <button
-                onClick={handlePlaySegment}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-colors shadow-sm bg-emerald-500 hover:bg-emerald-600 text-white"
-              >
-                <Play className="w-5 h-5 fill-white" />
-                Nghe mẫu
-              </button>
-            )}
-          </div>
-          <p className="text-xs text-center text-gray-500">
-            Thời gian: {Math.floor(currentTranscript.startOffset / 1000)}s -{" "}
-            {Math.floor(currentTranscript.endOffset / 1000)}s
-          </p>
-        </div>
+        {/* Playback Controls - Using Component */}
+        <SegmentPlaybackButton
+          transcript={currentTranscript}
+          playerRef={playerRef}
+          isPlaying={isPlaying}
+          onPlayingChange={setIsPlaying}
+        />
 
         {/* Recording Section */}
         <div className="mb-6">
@@ -343,6 +401,41 @@ export default function PronunciationPractice({
                   Đang ghi âm...
                 </p>
                 <p className="text-xs text-gray-500">Hãy đọc theo câu mẫu</p>
+              </div>
+            ) : isProcessing ? (
+              // ✅ LOADING STATE - Đang xử lý
+              <div className="text-center">
+                <div className="w-20 h-20 mx-auto mb-4 relative">
+                  {/* Spinning circle */}
+                  <div className="absolute inset-0 border-4 border-emerald-200 rounded-full"></div>
+                  <div className="absolute inset-0 border-4 border-emerald-500 rounded-full border-t-transparent animate-spin"></div>
+                  {/* Icon in center */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-2xl">🤖</div>
+                  </div>
+                </div>
+                <p className="text-sm font-medium text-gray-700 mb-2">
+                  Đang phân tích...
+                </p>
+                <p className="text-xs text-gray-500">
+                  Vui lòng đợi trong giây lát
+                </p>
+
+                {/* Progress dots animation */}
+                <div className="flex justify-center gap-1 mt-3">
+                  <div
+                    className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce"
+                    style={{ animationDelay: "0s" }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce"
+                    style={{ animationDelay: "0.2s" }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce"
+                    style={{ animationDelay: "0.4s" }}
+                  ></div>
+                </div>
               </div>
             ) : (
               <button
@@ -399,11 +492,11 @@ export default function PronunciationPractice({
                   Độ chính xác
                 </p>
                 <p
-                  className={`text-2xl font-bold ${getScoreColor(
-                    accuracyScore!
-                  )}`}
+                  className={`text-2xl font-bold ${
+                    accuracyScore !== null ? getScoreColor(accuracyScore) : ""
+                  }`}
                 >
-                  {accuracyScore}
+                  {accuracyScore ?? 0}
                   <span className="text-sm">/100</span>
                 </p>
               </div>
@@ -442,15 +535,8 @@ export default function PronunciationPractice({
       {/* Bottom Buttons */}
       <div className="p-4 border-t bg-gradient-to-b from-gray-50 to-white space-y-2 flex-shrink-0">
         {pronunciationScore === null ? (
-          <div className="flex gap-3">
-            <button
-              onClick={handlePlaySegment}
-              disabled={isPlaying}
-              className="flex-1 px-4 py-3.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 disabled:from-gray-300 disabled:to-gray-400 text-white rounded-xl font-bold shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
-            >
-              <Volume2 className="w-4 h-4" />
-              Nghe lại
-            </button>
+          <div className="text-center text-sm text-gray-500 py-2">
+            Nhấn mic để ghi âm câu trả lời
           </div>
         ) : (
           <div className="flex gap-3">

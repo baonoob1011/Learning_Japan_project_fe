@@ -1,15 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Lightbulb,
-  Check,
-  X,
-  Play,
-  Pause,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Lightbulb, Check, X } from "lucide-react";
+import SegmentPlaybackButton from "./SegmentPlaybackButton";
 
 // TranscriptDTO interface
 interface TranscriptDTO {
@@ -57,33 +50,7 @@ export default function DictationPractice({
   };
 
   /** ======================
-   * PLAY SEGMENT - Call YouTube component method
-   ====================== */
-  const handlePlaySegment = () => {
-    console.log("=== handlePlaySegment called ===");
-    console.log("playerRef.current:", playerRef.current);
-    console.log("currentTranscript:", currentTranscript);
-
-    if (!playerRef.current || !currentTranscript) {
-      console.error("Missing playerRef or currentTranscript!");
-      return;
-    }
-
-    console.log("Calling playSegment with:", {
-      start: currentTranscript.startOffset,
-      end: currentTranscript.endOffset,
-    });
-
-    setIsPlaying(true);
-
-    playerRef.current.playSegment(
-      currentTranscript.startOffset,
-      currentTranscript.endOffset
-    );
-  };
-
-  /** ======================
-   * STOP PLAYBACK - Call YouTube component method
+   * STOP PLAYBACK
    ====================== */
   const stopPlayback = () => {
     if (playerRef.current) {
@@ -110,23 +77,21 @@ export default function DictationPractice({
    ====================== */
   useEffect(() => {
     console.log(
-      "🔧 Setting up callback, playerRef.current:",
+      "🔧 Dictation: Setting up callback, playerRef.current:",
       playerRef.current
     );
 
-    // Gán callback vào playerRef để YoutubePlayer có thể gọi
     if (playerRef.current) {
       const player = playerRef.current as YoutubePlayerHandle & {
         onDictationSegmentEnd?: () => void;
       };
       player.onDictationSegmentEnd = handleSegmentEnd;
-      console.log("✅ Callback assigned successfully!");
+      console.log("✅ Dictation: Callback assigned successfully!");
     } else {
-      console.log("❌ playerRef.current is null!");
+      console.log("❌ Dictation: playerRef.current is null!");
     }
 
     return () => {
-      // Cleanup
       if (playerRef.current) {
         const player = playerRef.current as YoutubePlayerHandle & {
           onDictationSegmentEnd?: () => void;
@@ -139,11 +104,9 @@ export default function DictationPractice({
   /** ======================
    * HELPER FUNCTIONS
    ====================== */
-
-  // Normalize text: loại bỏ dấu câu và khoảng trắng thừa để so sánh
   const normalizeText = (text: string) => {
     return text
-      .replace(/[\s、。！？「」『』（）.,!?;:'"()\[\]{}]/g, "") // Loại bỏ tất cả dấu câu
+      .replace(/[\s、。！？「」『』（）.,!?;:'"()\[\]{}]/g, "")
       .toLowerCase()
       .trim();
   };
@@ -180,7 +143,6 @@ export default function DictationPractice({
     });
 
   const revealHint = () => {
-    // Hiện tất cả chữ cái, giữ lại dấu câu luôn hiện
     const text = currentTranscript.text;
     const allIndices = new Set(
       text
@@ -313,30 +275,13 @@ export default function DictationPractice({
           Nhập những gì bạn nghe được (không cần gõ dấu câu)...
         </p>
 
-        {/* Play/Pause button for current transcript */}
-        <div className="mb-4 flex items-center gap-2">
-          {isPlaying ? (
-            <button
-              onClick={stopPlayback}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              <Pause className="w-4 h-4 fill-white" />
-              Dừng
-            </button>
-          ) : (
-            <button
-              onClick={handlePlaySegment}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm bg-emerald-500 hover:bg-emerald-600 text-white"
-            >
-              <Play className="w-4 h-4 fill-white" />
-              Phát lại
-            </button>
-          )}
-          <span className="text-xs text-gray-500">
-            ({Math.floor(currentTranscript.startOffset / 1000)}s -{" "}
-            {Math.floor(currentTranscript.endOffset / 1000)}s)
-          </span>
-        </div>
+        {/* Playback Button Component */}
+        <SegmentPlaybackButton
+          transcript={currentTranscript}
+          playerRef={playerRef}
+          isPlaying={isPlaying}
+          onPlayingChange={setIsPlaying}
+        />
 
         <div className="mb-4 p-4 bg-gray-100 rounded-xl border border-gray-200">
           <p className="text-center text-lg font-medium text-gray-900 tracking-wide leading-relaxed">

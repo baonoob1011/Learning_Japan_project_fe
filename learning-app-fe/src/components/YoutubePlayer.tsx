@@ -38,6 +38,7 @@ export interface YoutubePlayerHandle extends YTPlayer {
   playSegment: (startMs: number, endMs: number) => void;
   stopSegment: () => void;
   onDictationSegmentEnd?: () => void; // ✅ Callback cho Dictation
+  onPronunciationSegmentEnd?: () => void; // ✅ Callback cho Pronunciation
 }
 
 interface YoutubePlayerProps {
@@ -72,7 +73,12 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
      * PLAY SEGMENT (startMs to endMs)
      ====================== */
     const playSegment = (startMs: number, endMs: number) => {
-      if (!playerRef.current) return;
+      console.log("🎬 YoutubePlayer: playSegment called", { startMs, endMs });
+
+      if (!playerRef.current) {
+        console.error("❌ YoutubePlayer: playerRef.current is null!");
+        return;
+      }
 
       const startSec = startMs / 1000;
       const endSec = endMs / 1000;
@@ -84,6 +90,12 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
         // ✅ Seek + play NGAY, không setTimeout
         playerRef.current.seekTo(startSec, true);
         playerRef.current.playVideo();
+        console.log(
+          "✅ YoutubePlayer: Video playing from",
+          startSec,
+          "to",
+          endSec
+        );
 
         intervalRef.current = setInterval(() => {
           if (!playerRef.current) {
@@ -94,6 +106,10 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
           const currentTime = playerRef.current.getCurrentTime();
 
           if (typeof currentTime === "number" && currentTime >= endSec) {
+            console.log(
+              "🎯 YoutubePlayer: Segment END reached at",
+              currentTime
+            );
             stopSegment();
 
             // ✅ Gọi callback từ props
@@ -101,7 +117,14 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
 
             // ✅ Gọi callback từ Dictation nếu có
             if (handleRef.current?.onDictationSegmentEnd) {
+              console.log("📞 Calling onDictationSegmentEnd");
               handleRef.current.onDictationSegmentEnd();
+            }
+
+            // ✅ Gọi callback từ Pronunciation nếu có
+            if (handleRef.current?.onPronunciationSegmentEnd) {
+              console.log("📞 Calling onPronunciationSegmentEnd");
+              handleRef.current.onPronunciationSegmentEnd();
             }
           }
         }, 50);
@@ -125,6 +148,7 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
           stopSegment,
         };
         handleRef.current = handle;
+        console.log("🔗 YoutubePlayer: Handle created and stored");
         return handle;
       },
       []
@@ -136,6 +160,8 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
     const initPlayer = () => {
       if (!window.YT) return;
 
+      console.log("🚀 YoutubePlayer: Initializing player for video", videoId);
+
       playerRef.current = new window.YT.Player("youtube-player", {
         videoId,
         playerVars: {
@@ -144,6 +170,7 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
         },
         events: {
           onReady: () => {
+            console.log("✅ YoutubePlayer: Player ready!");
             if (playerRef.current) {
               onPlayerReady?.(playerRef.current);
             }
@@ -165,6 +192,7 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
       window.onYouTubeIframeAPIReady = initPlayer;
 
       return () => {
+        console.log("🧹 YoutubePlayer: Cleaning up");
         stopSegment();
       };
     }, [videoId]);
