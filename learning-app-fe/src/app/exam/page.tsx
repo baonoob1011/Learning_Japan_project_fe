@@ -434,12 +434,12 @@ export default function ExamPage() {
 
   /* ------------------ UI ------------------ */
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-cyan-100 shadow-sm sticky top-0 z-10">
+      <div className="bg-white/80 backdrop-blur-sm border-b border-cyan-100 shadow-lg sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl font-semibold bg-gradient-to-r from-cyan-600 via-blue-600 to-teal-600 bg-clip-text text-transparent">
+            <h1 className="text-xl font-semibold bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent">
               Phần {currentSectionOrder}: {currentSection?.title || ""}
             </h1>
           </div>
@@ -468,7 +468,7 @@ export default function ExamPage() {
                 className="mb-8"
               >
                 {/* Instruction Banner */}
-                <div className="bg-gradient-to-r from-cyan-600 via-blue-600 to-teal-600 text-white px-6 py-4 rounded-t-lg mb-0">
+                <div className="bg-gradient-to-r from-cyan-400 to-cyan-500 text-white px-6 py-4 rounded-t-lg mb-0 shadow-md">
                   <p className="text-base font-medium">
                     {group.mondaiLabel}
                     {instructionMap[group.assessmentType]?.replace(
@@ -487,13 +487,13 @@ export default function ExamPage() {
                       ref={(el) => {
                         questionRefs.current[q.id] = el;
                       }}
-                      className={`bg-white border-x border-b border-cyan-100 p-6 shadow-sm ${
+                      className={`bg-white/90 backdrop-blur-sm border-x border-b border-cyan-100 p-6 shadow-sm ${
                         isLastInGroup ? "rounded-b-lg mb-8" : ""
                       }`}
                     >
                       {/* Question Text */}
                       <div className="mb-5">
-                        <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-full text-base font-bold mb-3">
+                        <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-full text-base font-bold mb-3 shadow-md">
                           {q.questionOrder}
                         </div>
                         <h3 className="text-lg font-normal text-gray-900 leading-relaxed">
@@ -517,7 +517,7 @@ export default function ExamPage() {
                           <img
                             src={q.imageUrl}
                             alt="Question image"
-                            className="max-w-full h-auto rounded-lg"
+                            className="max-w-full h-auto rounded-lg shadow-sm"
                           />
                         </div>
                       )}
@@ -527,10 +527,10 @@ export default function ExamPage() {
                         {q.options.map((o) => (
                           <label
                             key={o.label}
-                            className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition ${
+                            className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition ${
                               mergedAnswers[q.id] === o.text
-                                ? "border-cyan-500 bg-cyan-50"
-                                : "border-gray-300 hover:bg-gray-50"
+                                ? "border-cyan-400 bg-cyan-50"
+                                : "border-cyan-200 hover:bg-cyan-50/50"
                             }`}
                           >
                             <input
@@ -540,7 +540,7 @@ export default function ExamPage() {
                               onChange={() =>
                                 setAnswers((p) => ({ ...p, [q.id]: o.text }))
                               }
-                              className="w-5 h-5 text-cyan-500 focus:ring-cyan-500"
+                              className="w-5 h-5 text-cyan-500 focus:ring-cyan-400"
                             />
                             <span className="text-base text-gray-900">
                               {o.label}. {o.text}
@@ -557,7 +557,7 @@ export default function ExamPage() {
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-80 bg-white border-l border-cyan-100 flex flex-col h-screen sticky top-0">
+        <div className="w-80 bg-white/80 backdrop-blur-sm border-l border-cyan-100 flex flex-col h-screen sticky top-0">
           <div className="flex-1 overflow-y-auto px-6 py-4">
             <div className="text-center mb-4">
               <span className="font-mono text-3xl font-bold text-cyan-600">
@@ -586,10 +586,10 @@ export default function ExamPage() {
                         <button
                           key={q.id}
                           onClick={() => scrollToQuestion(q.id)}
-                          className={`w-10 h-10 rounded-full text-sm font-medium transition ${
+                          className={`w-10 h-10 rounded-full text-sm font-medium transition shadow-sm ${
                             mergedAnswers[q.id]
-                              ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md"
-                              : "bg-white text-gray-700 border border-cyan-200 hover:bg-cyan-50"
+                              ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-md transform hover:scale-105"
+                              : "bg-white text-gray-700 border-2 border-cyan-200 hover:bg-cyan-50 hover:border-cyan-300"
                           }`}
                         >
                           {q.questionOrder}
@@ -602,12 +602,12 @@ export default function ExamPage() {
             </div>
           </div>
 
-          <div className="sticky bottom-0 bg-white p-4 border-t border-cyan-100 flex justify-center">
+          <div className="sticky bottom-0 bg-white/80 backdrop-blur-sm p-4 border-t border-cyan-100 flex justify-center">
             <button
               className={`px-10 py-2.5 rounded-full font-medium text-sm shadow-lg transition ${
                 isSubmitting
                   ? "bg-gray-400 text-gray-200 cursor-not-allowed"
-                  : "bg-gradient-to-r from-cyan-500 via-blue-500 to-teal-500 text-white hover:shadow-xl hover:scale-105"
+                  : "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white hover:shadow-xl hover:scale-105"
               }`}
               disabled={isSubmitting}
               onClick={handleSubmitClick}
@@ -623,10 +623,10 @@ export default function ExamPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center">
             <div className="mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-cyan-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-cyan-100 to-cyan-200 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-4xl">📝</span>
               </div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent mb-3">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent mb-3">
                 Nộp bài
               </h2>
               <p className="text-gray-600 text-base">
@@ -654,7 +654,7 @@ export default function ExamPage() {
               </button>
               <button
                 onClick={handleSubmit}
-                className="flex-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-teal-500 text-white py-3 rounded-full font-medium hover:shadow-xl transition transform hover:scale-105"
+                className="flex-1 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white py-3 rounded-full font-medium hover:shadow-xl transition transform hover:scale-105"
               >
                 Xác nhận
               </button>

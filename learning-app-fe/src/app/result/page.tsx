@@ -38,16 +38,19 @@ export default function ExamResultPage() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-cyan-100 shadow-sm px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+      <header className="bg-white/80 backdrop-blur-sm border-b border-cyan-100 shadow-lg px-6 py-3 flex items-center justify-between sticky top-0 z-10">
         <BackButton to="/video" />
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-600 via-blue-600 to-teal-600 bg-clip-text text-transparent">
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent">
           Kết quả thi
         </h1>
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold shadow-md">
-            B
+          <div className="relative">
+            <div className="absolute inset-0 bg-cyan-400 rounded-full blur-md opacity-40"></div>
+            <div className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold shadow-md relative z-10">
+              B
+            </div>
           </div>
         </div>
       </header>
@@ -58,7 +61,7 @@ export default function ExamResultPage() {
           {/* Left Content */}
           <div className="flex-1">
             <div className="bg-white rounded-2xl shadow-lg border border-cyan-100 overflow-hidden mb-6">
-              <div className="bg-gradient-to-r from-cyan-500 via-blue-500 to-teal-500 px-8 py-6">
+              <div className="bg-gradient-to-r from-cyan-400 to-cyan-500 px-8 py-6">
                 <h1 className="text-2xl font-bold text-white drop-shadow-md">
                   Kết quả luyện đề: {result.examCode}
                 </h1>
@@ -67,7 +70,7 @@ export default function ExamResultPage() {
               {/* Score Circle */}
               <div className="px-8 py-10">
                 <div className="flex flex-col items-center">
-                  <h2 className="text-center text-cyan-600 font-bold text-xl mb-6 flex items-center gap-2">
+                  <h2 className="text-center text-cyan-500 font-bold text-xl mb-6 flex items-center gap-2">
                     <span className="text-2xl">🏆</span>
                     Điểm số của bạn
                   </h2>
@@ -104,14 +107,13 @@ export default function ExamResultPage() {
                             x2="100%"
                             y2="100%"
                           >
-                            <stop offset="0%" stopColor="#06b6d4" />
-                            <stop offset="50%" stopColor="#3b82f6" />
-                            <stop offset="100%" stopColor="#14b8a6" />
+                            <stop offset="0%" stopColor="#22d3ee" />
+                            <stop offset="100%" stopColor="#06b6d4" />
                           </linearGradient>
                         </defs>
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-6xl font-bold bg-gradient-to-br from-cyan-500 via-blue-500 to-teal-500 bg-clip-text text-transparent">
+                        <span className="text-6xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-500 bg-clip-text text-transparent">
                           {result.totalScore}
                         </span>
                         <span className="text-sm text-gray-500 mt-1">
@@ -123,27 +125,27 @@ export default function ExamResultPage() {
 
                   {/* Stats Cards */}
                   <div className="grid grid-cols-3 gap-6 w-full max-w-2xl">
-                    <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-2xl border-2 border-cyan-300 p-6 text-center hover:shadow-lg transition-all hover:scale-105">
+                    <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-2xl border-2 border-cyan-200 p-6 text-center hover:shadow-lg transition-all hover:scale-105">
                       <div className="text-4xl mb-3 animate-bounce">✅</div>
                       <div className="text-sm font-medium text-gray-600 mb-2">
                         Số câu đúng
                       </div>
-                      <div className="text-4xl font-bold text-cyan-600">
+                      <div className="text-4xl font-bold text-cyan-500">
                         {currentQuestions.filter((q) => q.isCorrect).length}
                       </div>
                     </div>
 
-                    <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl border-2 border-red-300 p-6 text-center hover:shadow-lg transition-all hover:scale-105">
+                    <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl border-2 border-red-200 p-6 text-center hover:shadow-lg transition-all hover:scale-105">
                       <div className="text-4xl mb-3">❌</div>
                       <div className="text-sm font-medium text-gray-600 mb-2">
                         Số câu sai
                       </div>
-                      <div className="text-4xl font-bold text-red-600">
+                      <div className="text-4xl font-bold text-red-500">
                         {wrongAnswers}
                       </div>
                     </div>
 
-                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-300 p-6 text-center hover:shadow-lg transition-all hover:scale-105">
+                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-200 p-6 text-center hover:shadow-lg transition-all hover:scale-105">
                       <div className="text-4xl mb-3">⊝</div>
                       <div className="text-sm font-medium text-gray-600 mb-2">
                         Bỏ qua
@@ -172,7 +174,7 @@ export default function ExamResultPage() {
                         onClick={() => setCurrentSection(section)}
                         className={`px-6 py-3 rounded-xl font-semibold transition-all ${
                           currentSection === section
-                            ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md"
+                            ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-md"
                             : "text-gray-700 hover:bg-cyan-50"
                         }`}
                       >
@@ -193,7 +195,7 @@ export default function ExamResultPage() {
                     onClick={() => setActiveTab("answers")}
                     className={`px-6 py-3 rounded-xl font-semibold transition-all ${
                       activeTab === "answers"
-                        ? "bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-md"
+                        ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-md"
                         : "text-gray-700 hover:bg-cyan-50"
                     }`}
                   >
@@ -203,7 +205,7 @@ export default function ExamResultPage() {
                     onClick={() => setActiveTab("detail")}
                     className={`px-6 py-3 rounded-xl font-semibold transition-all ${
                       activeTab === "detail"
-                        ? "bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-md"
+                        ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-md"
                         : "text-gray-700 hover:bg-cyan-50"
                     }`}
                   >
@@ -214,7 +216,7 @@ export default function ExamResultPage() {
             </div>
 
             {/* Section Title */}
-            <div className="bg-gradient-to-r from-cyan-500 via-blue-500 to-teal-500 text-white rounded-2xl px-8 py-5 mb-6 shadow-lg">
+            <div className="bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-2xl px-8 py-5 mb-6 shadow-lg">
               <h2 className="text-xl font-bold flex items-center gap-3">
                 <span className="text-2xl">📖</span>
                 Phần {currentSection}:{" "}
@@ -235,10 +237,10 @@ export default function ExamResultPage() {
                       <div
                         className={`w-14 h-14 rounded-full flex items-center justify-center text-sm font-bold shadow-md transition-all group-hover:scale-110 ${
                           q.isCorrect
-                            ? "bg-gradient-to-br from-cyan-100 to-cyan-200 text-cyan-700 border-2 border-cyan-300"
+                            ? "bg-gradient-to-br from-cyan-100 to-cyan-200 text-cyan-600 border-2 border-cyan-300"
                             : q.answer === null
                             ? "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500 border-2 border-gray-300"
-                            : "bg-gradient-to-br from-red-100 to-red-200 text-red-700 border-2 border-red-300"
+                            : "bg-gradient-to-br from-red-100 to-red-200 text-red-600 border-2 border-red-300"
                         }`}
                       >
                         {q.questionOrder}
@@ -280,10 +282,10 @@ export default function ExamResultPage() {
                             <div
                               className={`w-12 h-12 rounded-full flex items-center justify-center font-bold flex-shrink-0 shadow-md ${
                                 q.isCorrect
-                                  ? "bg-gradient-to-br from-cyan-100 to-cyan-200 text-cyan-700 border-2 border-cyan-300"
+                                  ? "bg-gradient-to-br from-cyan-100 to-cyan-200 text-cyan-600 border-2 border-cyan-300"
                                   : q.answer === null
                                   ? "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500 border-2 border-gray-300"
-                                  : "bg-gradient-to-br from-red-100 to-red-200 text-red-700 border-2 border-red-300"
+                                  : "bg-gradient-to-br from-red-100 to-red-200 text-red-600 border-2 border-red-300"
                               }`}
                             >
                               {q.questionOrder}
@@ -322,9 +324,9 @@ export default function ExamResultPage() {
                                 key={idx}
                                 className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
                                   isCorrectAnswer
-                                    ? "border-cyan-400 bg-gradient-to-r from-cyan-50 to-cyan-100 shadow-md"
+                                    ? "border-cyan-300 bg-gradient-to-r from-cyan-50 to-cyan-100 shadow-md"
                                     : isUserAnswer && !q.isCorrect
-                                    ? "border-red-400 bg-gradient-to-r from-red-50 to-red-100 shadow-md"
+                                    ? "border-red-300 bg-gradient-to-r from-red-50 to-red-100 shadow-md"
                                     : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                                 }`}
                               >
@@ -337,21 +339,21 @@ export default function ExamResultPage() {
                                 <span
                                   className={`text-base flex-1 ${
                                     isCorrectAnswer
-                                      ? "text-cyan-700 font-semibold"
+                                      ? "text-cyan-600 font-semibold"
                                       : isUserAnswer && !q.isCorrect
-                                      ? "text-red-700 font-medium"
+                                      ? "text-red-600 font-medium"
                                       : "text-gray-900"
                                   }`}
                                 >
                                   {String.fromCharCode(65 + idx)}. {option}
                                 </span>
                                 {isCorrectAnswer && (
-                                  <span className="ml-auto text-cyan-600 font-bold flex items-center gap-1 bg-cyan-100 px-3 py-1 rounded-full">
+                                  <span className="ml-auto text-cyan-500 font-bold flex items-center gap-1 bg-cyan-100 px-3 py-1 rounded-full">
                                     ✓ Đáp án đúng
                                   </span>
                                 )}
                                 {isUserAnswer && !q.isCorrect && (
-                                  <span className="ml-auto text-red-600 font-bold flex items-center gap-1 bg-red-100 px-3 py-1 rounded-full">
+                                  <span className="ml-auto text-red-500 font-bold flex items-center gap-1 bg-red-100 px-3 py-1 rounded-full">
                                     ✗ Bạn đã chọn
                                   </span>
                                 )}
@@ -361,9 +363,9 @@ export default function ExamResultPage() {
                         </div>
 
                         {q.explanation && (
-                          <div className="mt-5 p-4 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl border-2 border-cyan-200 shadow-sm">
+                          <div className="mt-5 p-4 bg-gradient-to-r from-cyan-50 to-cyan-100 rounded-xl border-2 border-cyan-200 shadow-sm">
                             <p className="text-sm text-cyan-900 leading-relaxed">
-                              <span className="font-bold text-cyan-700 flex items-center gap-2 mb-2">
+                              <span className="font-bold text-cyan-600 flex items-center gap-2 mb-2">
                                 💡 Giải thích:
                               </span>
                               {q.explanation}
@@ -385,13 +387,13 @@ export default function ExamResultPage() {
                 <span className="text-2xl">📚</span>
                 Vocabulary
               </h3>
-              <div className="bg-gradient-to-br from-cyan-50 to-teal-50 border-2 border-cyan-300 rounded-xl p-4 mb-4 shadow-sm">
+              <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 border-2 border-cyan-200 rounded-xl p-4 mb-4 shadow-sm">
                 <p className="text-sm text-cyan-800 leading-relaxed">
                   💡 <span className="font-semibold">Tips!</span> Bôi đen văn
                   bản để dịch và thêm vào phần từ vựng
                 </p>
               </div>
-              <div className="flex flex-col items-center justify-center gap-4 py-10 border-2 border-dashed border-cyan-300 rounded-xl bg-cyan-50">
+              <div className="flex flex-col items-center justify-center gap-4 py-10 border-2 border-dashed border-cyan-200 rounded-xl bg-cyan-50">
                 <div className="w-20 h-20 flex items-center justify-center bg-cyan-100 rounded-full">
                   <span className="text-5xl text-cyan-400">📄</span>
                 </div>
@@ -399,7 +401,7 @@ export default function ExamResultPage() {
                   Bôi đen văn bản để thêm vào phần từ vựng
                 </p>
               </div>
-              <button className="mt-5 w-full text-cyan-600 hover:text-cyan-700 font-semibold text-sm flex items-center justify-center gap-2 bg-cyan-50 hover:bg-cyan-100 py-3 rounded-xl transition-all border-2 border-cyan-200">
+              <button className="mt-5 w-full text-cyan-500 hover:text-cyan-600 font-semibold text-sm flex items-center justify-center gap-2 bg-cyan-50 hover:bg-cyan-100 py-3 rounded-xl transition-all border-2 border-cyan-200">
                 Nhập văn bản để dịch
                 <svg
                   className="w-4 h-4"

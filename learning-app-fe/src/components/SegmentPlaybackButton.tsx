@@ -70,7 +70,7 @@ export default function SegmentPlaybackButton({
       {isPlaying ? (
         <button
           onClick={stopPlayback}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-md hover:shadow-lg transform hover:scale-105 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-md hover:shadow-lg transform hover:scale-105 bg-gradient-to-r from-orange-400 to-red-500 hover:from-orange-500 hover:to-red-600 text-white"
         >
           <Pause className="w-4 h-4 fill-white" />
           Dừng
@@ -78,13 +78,13 @@ export default function SegmentPlaybackButton({
       ) : (
         <button
           onClick={handlePlaySegment}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-md hover:shadow-lg transform hover:scale-105 bg-gradient-to-r from-cyan-400 via-blue-500 to-blue-600 hover:from-cyan-500 hover:via-blue-600 hover:to-blue-700 text-white"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-md hover:shadow-lg transform hover:scale-105 bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white"
         >
           <Play className="w-4 h-4 fill-white" />
           Phát lại
         </button>
       )}
-      <span className="text-xs text-cyan-600 font-medium">
+      <span className="text-xs text-cyan-500 font-medium">
         ({Math.floor(transcript.startOffset / 1000)}s -{" "}
         {Math.floor(transcript.endOffset / 1000)}s)
       </span>

@@ -56,8 +56,10 @@ const ExamCard: React.FC<ExamCardProps> = ({
   return (
     <div
       className={`${
-        isDark ? "bg-gray-800" : "bg-white"
-      } rounded-2xl p-6 shadow-sm hover:shadow-md transition-all`}
+        isDark
+          ? "bg-gray-800 border-gray-700"
+          : "bg-white/90 backdrop-blur-sm border-cyan-100"
+      } rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all border`}
     >
       <h3
         className={`text-lg font-bold mb-4 ${
@@ -78,7 +80,7 @@ const ExamCard: React.FC<ExamCardProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <Users className="w-5 h-5 text-blue-500" />
+          <Users className="w-5 h-5 text-cyan-500" />
           {participants > 0 && (
             <span
               className={`text-sm ${
@@ -98,7 +100,7 @@ const ExamCard: React.FC<ExamCardProps> = ({
       <button
         onClick={handleStartExam}
         disabled={loading}
-        className="w-full py-3 bg-gradient-to-r from-cyan-500 via-blue-500 to-teal-500 text-white rounded-xl font-semibold hover:shadow-lg transition transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+        className="w-full py-3 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-xl font-semibold hover:shadow-lg transition transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
       >
         {loading ? "Đang bắt đầu..." : "Bắt đầu thi"}
       </button>
@@ -141,7 +143,13 @@ export default function PracticePage() {
   );
 
   return (
-    <div className="flex h-screen">
+    <div
+      className={`flex h-screen ${
+        isDarkMode
+          ? "bg-gray-900"
+          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
+      }`}
+    >
       {/* Sidebar Component */}
       <Sidebar
         sidebarOpen={sidebarOpen}
@@ -151,26 +159,20 @@ export default function PracticePage() {
       />
 
       {/* Main Content */}
-      <div
-        className={`flex-1 flex flex-col overflow-hidden ${
-          isDarkMode
-            ? "bg-gray-900"
-            : "bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50"
-        }`}
-      >
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* HEADER */}
         <header
           className={`${
             isDarkMode
-              ? "bg-gray-800/80 border-gray-700"
-              : "bg-white/80 border-cyan-100"
-          } backdrop-blur-sm border-b px-6 py-3 flex items-center justify-between sticky top-0 z-10`}
+              ? "bg-gray-800 border-gray-700"
+              : "bg-white/80 backdrop-blur-sm border-cyan-100"
+          } border-b px-6 py-3 flex items-center justify-between sticky top-0 z-10 shadow-lg`}
         >
           <h1
             className={`text-2xl font-bold ${
               isDarkMode
                 ? "text-gray-100"
-                : "bg-gradient-to-r from-cyan-600 via-blue-600 to-teal-600 bg-clip-text text-transparent"
+                : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
             }`}
           >
             Luyện thi JLPT
@@ -180,8 +182,11 @@ export default function PracticePage() {
               isDarkMode={isDarkMode}
               onToggle={() => setIsDarkMode(!isDarkMode)}
             />
-            <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold shadow-md">
-              B
+            <div className="relative">
+              <div className="absolute inset-0 bg-cyan-400 rounded-full blur-md opacity-40"></div>
+              <div className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold shadow-md relative z-10">
+                B
+              </div>
             </div>
           </div>
         </header>
@@ -197,7 +202,9 @@ export default function PracticePage() {
                   onClick={() => setActiveLevel(level)}
                   className={`px-6 py-3 rounded-xl font-semibold transition transform hover:scale-105 ${
                     activeLevel === level
-                      ? "bg-gradient-to-r from-cyan-500 via-blue-500 to-teal-500 text-white shadow-lg"
+                      ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg"
+                      : isDarkMode
+                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600 border border-gray-600"
                       : "bg-white text-gray-700 hover:bg-cyan-50 border border-cyan-200"
                   }`}
                 >
@@ -211,18 +218,44 @@ export default function PracticePage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm đề thi..."
-              className="mb-6 px-4 py-3 border-2 border-cyan-200 rounded-xl w-full max-w-md focus:outline-none focus:ring-2 focus:ring-cyan-400 transition"
+              className={`mb-6 px-4 py-3 ${
+                isDarkMode
+                  ? "bg-gray-700 border-gray-600 text-gray-100"
+                  : "bg-white border-cyan-200 text-gray-700"
+              } border-2 rounded-xl w-full max-w-md focus:outline-none focus:ring-2 focus:ring-cyan-400 transition`}
             />
 
             {/* Loading */}
             {loading && (
-              <p className="text-cyan-600 flex items-center gap-2">
-                <span className="animate-spin">⏳</span> Đang tải đề thi...
-              </p>
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto"></div>
+                  <p
+                    className={`mt-4 ${
+                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    Đang tải đề thi...
+                  </p>
+                </div>
+              </div>
             )}
 
             {/* Error */}
-            {error && <p className="text-red-500">{error}</p>}
+            {error && (
+              <div className="text-center py-8">
+                <p
+                  className={`text-lg font-medium mb-2 ${
+                    isDarkMode ? "text-gray-200" : "text-gray-800"
+                  }`}
+                >
+                  Không thể tải đề thi
+                </p>
+                <p className={isDarkMode ? "text-gray-400" : "text-red-500"}>
+                  {error}
+                </p>
+              </div>
+            )}
 
             {/* Exam Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -242,7 +275,11 @@ export default function PracticePage() {
 
             {/* Empty */}
             {!loading && filteredExams.length === 0 && (
-              <p className="text-center mt-10 text-gray-500">
+              <p
+                className={`text-center mt-10 ${
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                }`}
+              >
                 Không có đề thi phù hợp
               </p>
             )}

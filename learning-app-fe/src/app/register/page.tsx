@@ -4,7 +4,7 @@ import Notification from "@/components/notification";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Check, X, Shield } from "lucide-react";
-import { register, RegisterRequest } from "@/services/userService"; // Đường dẫn file register.ts
+import { register, RegisterRequest } from "@/services/userService";
 import Link from "next/link";
 
 export default function RegisterPage() {
@@ -72,14 +72,14 @@ export default function RegisterPage() {
     if (passwordStrength < 50) return { text: "Yếu", color: "text-red-500" };
     if (passwordStrength < 75)
       return { text: "Trung bình", color: "text-yellow-500" };
-    if (passwordStrength < 100) return { text: "Mạnh", color: "text-blue-500" };
+    if (passwordStrength < 100) return { text: "Mạnh", color: "text-cyan-500" };
     return { text: "Rất mạnh", color: "text-green-500" };
   };
 
   const getStrengthColor = () => {
     if (passwordStrength < 50) return "bg-red-500";
     if (passwordStrength < 75) return "bg-yellow-500";
-    if (passwordStrength < 100) return "bg-blue-500";
+    if (passwordStrength < 100) return "bg-cyan-500";
     return "bg-green-500";
   };
 
@@ -140,22 +140,8 @@ export default function RegisterPage() {
         "🎉 Đăng ký thành công! Chào mừng bạn đến với Corodomo!"
       );
 
-      // Redirect sang login sau 1 giây
-      try {
-        const data: RegisterRequest = { fullName, email, password };
-        await register(data);
-
-        // Chuyển ngay sang login
-        router.push("/login");
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          showNotification("error", err.message);
-        } else {
-          showNotification("error", "Có lỗi xảy ra khi đăng ký");
-        }
-      } finally {
-        setLoading(false);
-      }
+      // Chuyển ngay sang login
+      router.push("/login");
     } catch (err: unknown) {
       if (err instanceof Error) {
         showNotification("error", err.message);
@@ -170,7 +156,7 @@ export default function RegisterPage() {
   const strengthLabel = getStrengthLabel();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-blue-50 px-4 py-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 px-4 py-8">
       {/* Notification */}
       {notification && (
         <Notification
@@ -181,21 +167,24 @@ export default function RegisterPage() {
         />
       )}
 
-      <div className="w-full max-w-lg bg-white rounded-3xl shadow-xl p-8 space-y-6">
+      <div className="w-full max-w-lg bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-cyan-100 p-8 space-y-6">
         {/* Logo */}
         <div className="flex justify-center mb-2">
           <div className="flex items-center gap-2">
-            <div className="w-12 h-12 bg-emerald-400 rounded-full flex items-center justify-center">
-              <span className="text-2xl">🐸</span>
+            <div className="relative">
+              <div className="absolute inset-0 bg-cyan-400 rounded-full blur-md opacity-40"></div>
+              <div className="w-12 h-12 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full flex items-center justify-center relative z-10">
+                <span className="text-2xl">🐸</span>
+              </div>
             </div>
             <div className="text-left">
-              <div className="text-emerald-500 font-bold text-xl">Coro</div>
-              <div className="text-teal-400 font-bold text-xl -mt-1">domo</div>
+              <div className="text-cyan-500 font-bold text-xl">Coro</div>
+              <div className="text-cyan-400 font-bold text-xl -mt-1">domo</div>
             </div>
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold text-gray-800 text-center">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent text-center">
           Đăng ký tài khoản
         </h2>
         <p className="text-gray-500 text-center text-sm -mt-2">
@@ -214,10 +203,9 @@ export default function RegisterPage() {
               value={fullName}
               onChange={(e) => {
                 setFullName(e.target.value);
-                // Khi user nhập thì reset lỗi tương ứng
                 setErrors((prev) => ({ ...prev, fullName: "" }));
               }}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition text-black"
+              className="w-full px-4 py-3 border-2 border-cyan-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition text-black"
             />
             {errors.fullName && (
               <p className="text-red-600 text-sm mt-1 flex items-center gap-1">
@@ -239,7 +227,7 @@ export default function RegisterPage() {
                 setEmail(e.target.value);
                 setErrors((prev) => ({ ...prev, email: "" }));
               }}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition text-black"
+              className="w-full px-4 py-3 border-2 border-cyan-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition text-black"
             />
             {errors.email && (
               <p className="text-red-600 text-sm mt-1 flex items-center gap-1">
@@ -262,12 +250,12 @@ export default function RegisterPage() {
                   setPassword(e.target.value);
                   setErrors((prev) => ({ ...prev, password: "" }));
                 }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition pr-12 text-black"
+                className="w-full px-4 py-3 border-2 border-cyan-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition pr-12 text-black"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-cyan-500 transition"
               >
                 {showPassword ? (
                   <EyeOff className="w-5 h-5" />
@@ -304,7 +292,7 @@ export default function RegisterPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 mt-3 p-3 bg-gray-50 rounded-lg">
+                <div className="grid grid-cols-2 gap-2 mt-3 p-3 bg-cyan-50 rounded-lg border border-cyan-100">
                   {[
                     { label: "Ít nhất 8 ký tự", met: passwordCriteria.length },
                     {
@@ -356,12 +344,12 @@ export default function RegisterPage() {
                   setConfirmPassword(e.target.value);
                   setErrors((prev) => ({ ...prev, confirmPassword: "" }));
                 }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition pr-12 text-black"
+                className="w-full px-4 py-3 border-2 border-cyan-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition pr-12 text-black"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-cyan-500 transition"
               >
                 {showConfirmPassword ? (
                   <EyeOff className="w-5 h-5" />
@@ -386,7 +374,7 @@ export default function RegisterPage() {
           <button
             onClick={handleRegister}
             disabled={loading}
-            className="w-full bg-gradient-to-r from-teal-400 to-cyan-500 hover:from-teal-500 hover:to-cyan-600 text-white py-3 rounded-xl transition font-medium shadow-lg mt-6 disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white py-3 rounded-xl transition font-medium shadow-lg mt-6 disabled:opacity-50 transform hover:scale-105"
           >
             {loading ? "Đang đăng ký..." : "Đăng ký ngay"}
           </button>
@@ -396,7 +384,7 @@ export default function RegisterPage() {
             <span className="text-gray-600 text-sm">Đã có tài khoản? </span>
             <Link
               href="/login"
-              className="text-teal-500 hover:text-teal-600 font-medium"
+              className="text-cyan-500 hover:text-cyan-600 font-medium transition"
             >
               Đăng nhập ngay
             </Link>
