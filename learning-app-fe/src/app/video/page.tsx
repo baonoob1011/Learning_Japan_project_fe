@@ -281,13 +281,6 @@ export default function VideoListPage() {
   const [selectedVideo, setSelectedVideo] =
     useState<YoutubeVideoSummary | null>(null);
 
-  const languages = [
-    { code: "JA", label: "🇯🇵 Tiếng Nhật", flag: "🇯🇵" },
-    { code: "EN", label: "🇺🇸 Tiếng Anh", flag: "🇺🇸" },
-    { code: "ZH-CN", label: "🇨🇳 Tiếng Trung", flag: "🇨🇳" },
-    { code: "KO", label: "🇰🇷 Tiếng Hàn", flag: "🇰🇷" },
-  ];
-
   const tabs = [
     { icon: "✨", label: "Toàn bộ" },
     { icon: "⏰", label: "Tin tức" },
@@ -509,32 +502,7 @@ export default function VideoListPage() {
             className={`p-4 ${
               isDarkMode ? "border-gray-700" : "border-gray-200"
             } border-t`}
-          >
-            <div
-              className={`text-xs ${
-                isDarkMode ? "text-gray-400" : "text-gray-500"
-              } mb-2`}
-            >
-              Language
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {languages.map((lang) => (
-                <button
-                  key={lang.code}
-                  onClick={() => setSelectedLanguage(lang.code)}
-                  className={`px-3 py-2 rounded-lg text-xs font-medium transition ${
-                    selectedLanguage === lang.code
-                      ? "bg-emerald-500 text-white"
-                      : isDarkMode
-                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
-                >
-                  {lang.flag} {lang.code}
-                </button>
-              ))}
-            </div>
-          </div>
+          ></div>
         )}
 
         {sidebarOpen && (
@@ -681,15 +649,7 @@ export default function VideoListPage() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          <div className="mb-4">
-            <h2
-              className={`text-xl font-bold ${
-                isDarkMode ? "text-gray-100" : "text-gray-800"
-              }`}
-            >
-              N5 - N4
-            </h2>
-          </div>
+          <div className="mb-4"></div>
 
           {loading ? (
             <div className="flex items-center justify-center h-64">
