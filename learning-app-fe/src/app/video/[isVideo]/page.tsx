@@ -1,10 +1,12 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import YoutubePlayerWithTranscript from "@/components/YoutubePlayerWithTranscript";
+import VideoPlayerSection from "@/components/VideoPlayerSection";
 import DictationPractice from "@/components/Dictation";
 import BackButton from "@/components/backButton";
-
+import { YoutubePlayerHandle } from "@/components/YoutubePlayer";
+import AutoScrollToggle from "@/components/AutoScrollToggle";
+import PronunciationPractice from "@/components/PronunciationPractice";
 import { Video, X, FileText, Menu, Play, Volume2 } from "lucide-react";
 
 import {
@@ -12,14 +14,6 @@ import {
   YoutubeTranscriptResponse,
   TranscriptDTO,
 } from "@/services/transcriptService";
-
-// YouTube Player Type
-interface YTPlayer {
-  getCurrentTime: () => number | undefined;
-  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
-  playVideo: () => void;
-  pauseVideo: () => void;
-}
 
 type ViewMode = "video" | "dictation" | "pronunciation";
 
@@ -32,26 +26,18 @@ export default function VideoLearningPage() {
 
   const [showSidebar, setShowSidebar] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("video");
-  const [activeTab, setActiveTab] = useState<"subtitle" | "translation">(
-    "subtitle"
-  );
   const [transcripts, setTranscripts] = useState<TranscriptDTO[]>([]);
   const [videoTitle, setVideoTitle] = useState<string>("");
 
   // Refs for auto-scroll and YouTube player
   const transcriptRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<YTPlayer | null>(null);
+  const playerRef = useRef<YoutubePlayerHandle | null>(null);
 
-  // State để theo dõi xem người dùng có đang tự kéo không
+  // State for auto-scroll
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const video = {
-    id: videoId,
-    title: videoTitle || "Đang tải...",
-    url: `https://www.youtube.com/embed/${videoId}?enablejsapi=1`,
-  };
 
   const handleSeekToTime = (timeMs: number) => {
     setSeekTimeMs(timeMs);
@@ -71,9 +57,10 @@ export default function VideoLearningPage() {
     (t) => currentTimeMs >= t.startOffset && currentTimeMs < t.endOffset
   );
 
-  // Auto-scroll to active transcript (chỉ khi không user scroll)
+  // Auto-scroll logic
   useEffect(() => {
     if (
+      autoScrollEnabled &&
       !isUserScrolling &&
       activeTranscript &&
       transcriptRefs.current[activeTranscript.id]
@@ -93,7 +80,7 @@ export default function VideoLearningPage() {
         });
       }
     }
-  }, [activeTranscript, isUserScrolling]);
+  }, [activeTranscript, isUserScrolling, autoScrollEnabled]);
 
   // Fetch transcripts
   useEffect(() => {
@@ -126,18 +113,25 @@ export default function VideoLearningPage() {
     };
   }, [videoId]);
 
-  // Xử lý khi người dùng tự kéo scroll
+  // Handle user scroll
   const handleUserScroll = () => {
+    if (!autoScrollEnabled) return;
+
     setIsUserScrolling(true);
 
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
     }
 
-    // Sau 3 giây không kéo nữa, bật lại auto-scroll
     scrollTimeoutRef.current = setTimeout(() => {
       setIsUserScrolling(false);
     }, 3000);
+  };
+
+  // Toggle auto-scroll
+  const toggleAutoScroll = () => {
+    setAutoScrollEnabled((prev) => !prev);
+    setIsUserScrolling(false);
   };
 
   // Cleanup scroll timeout on unmount
@@ -271,125 +265,40 @@ export default function VideoLearningPage() {
 
         {/* Content Area with Video and Transcript/Dictation */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Left: Video Section - SCROLLABLE (hiển thị cho cả video và dictation mode) */}
-          {(viewMode === "video" || viewMode === "dictation") && (
-            <div
-              id="video-content-scroll-container"
-              className="flex-1 overflow-y-auto bg-gray-50 custom-scrollbar"
-            >
-              <div className="p-6">
-                <div className="max-w-4xl mx-auto">
-                  {/* Tips Card */}
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-6 flex items-start gap-3">
-                    <div className="text-2xl">💡</div>
-                    <div>
-                      <p className="text-gray-800 text-sm">
-                        <strong>Tips!</strong> Bôi đen văn bản để dịch và thêm
-                        vào phần từ vựng
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Video Player */}
-                  <YoutubePlayerWithTranscript
-                    ref={playerRef}
-                    videoId={videoId}
-                    transcripts={transcripts}
-                    seekTimeMs={seekTimeMs}
-                    onSeekHandled={() => setSeekTimeMs(null)}
-                    onTimeUpdate={setCurrentTimeMs}
-                  />
-
-                  {/* Video Info */}
-                  <div className="bg-white rounded-2xl shadow-sm p-6 mt-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">
-                        N5
-                      </span>
-                      <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
-                        Podcast
-                      </span>
-                    </div>
-                    <h1 className="text-xl font-bold text-gray-900 mb-2">
-                      {video.title}
-                    </h1>
-
-                    {/* Additional Info Section */}
-                    <div className="border-t border-gray-200 pt-4 mt-4">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                        Mô tả
-                      </h3>
-                      <p className="text-gray-700 text-sm leading-relaxed">
-                        Video học tiếng Nhật với phụ đề tiếng Việt. Click vào
-                        từng từ để xem nghĩa chi tiết và lưu vào bộ từ vựng của
-                        bạn.
-                      </p>
-                    </div>
-
-                    <div className="border-t border-gray-200 pt-4 mt-4">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                        Thông tin
-                      </h3>
-                      <div className="space-y-2 text-sm text-gray-700">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">Độ khó:</span>
-                          <span>N5 - Cơ bản</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">Thể loại:</span>
-                          <span>Podcast</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">Số câu:</span>
-                          <span>{transcripts.length} câu</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Left: Video Section - Using Component */}
+          {(viewMode === "video" ||
+            viewMode === "dictation" ||
+            viewMode === "pronunciation") && (
+            <VideoPlayerSection
+              playerRef={playerRef}
+              videoId={videoId}
+              videoTitle={videoTitle}
+              transcripts={transcripts}
+              seekTimeMs={seekTimeMs}
+              onSeekHandled={() => setSeekTimeMs(null)}
+              onTimeUpdate={setCurrentTimeMs}
+              hideWordBar={
+                viewMode === "dictation" || viewMode === "pronunciation"
+              }
+            />
           )}
 
-          {/* Right: Transcript Sidebar (chỉ hiển thị khi viewMode === "video") */}
+          {/* Right: Transcript Sidebar (only in video mode) */}
           {viewMode === "video" && (
             <div className="w-96 bg-white border-l border-gray-200 flex flex-col flex-shrink-0">
               {/* Transcript Header */}
               <div className="p-4 border-b border-gray-200 flex-shrink-0">
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between">
                   <h2 className="text-lg font-bold text-gray-900">Phụ đề</h2>
                   <div className="flex items-center gap-2">
-                    {isUserScrolling && (
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                        Tự cuộn: Tắt
-                      </span>
-                    )}
+                    <AutoScrollToggle
+                      autoScrollEnabled={autoScrollEnabled}
+                      onToggle={toggleAutoScroll}
+                    />
                     <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                       <X className="w-5 h-5" />
                     </button>
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                      activeTab === "subtitle"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                    onClick={() => setActiveTab("subtitle")}
-                  >
-                    Phụ đề
-                  </button>
-                  <button
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                      activeTab === "translation"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                    onClick={() => setActiveTab("translation")}
-                  >
-                    Bản dịch
-                  </button>
                 </div>
               </div>
 
@@ -474,7 +383,7 @@ export default function VideoLearningPage() {
             </div>
           )}
 
-          {/* Right: Dictation Component (thay thế transcript khi viewMode === "dictation") */}
+          {/* Right: Dictation Component */}
           {viewMode === "dictation" && (
             <DictationPractice
               transcripts={transcripts}
@@ -483,19 +392,13 @@ export default function VideoLearningPage() {
             />
           )}
 
-          {/* Pronunciation Mode (full width) */}
+          {/* Right: Pronunciation Component */}
           {viewMode === "pronunciation" && (
-            <div className="flex-1 flex items-center justify-center bg-gray-50">
-              <div className="text-center">
-                <Volume2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Chế độ Phát âm
-                </h2>
-                <p className="text-gray-600">
-                  Tính năng đang được phát triển...
-                </p>
-              </div>
-            </div>
+            <PronunciationPractice
+              transcripts={transcripts}
+              videoId={videoId}
+              playerRef={playerRef}
+            />
           )}
         </div>
       </div>

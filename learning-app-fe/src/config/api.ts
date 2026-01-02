@@ -29,6 +29,10 @@ export const API_ENDPOINTS = {
   TRANSLATE: {
     CREATE: "/translates",
   },
+  PRONUNCIATION: {
+    SUBMIT: "/pronunciation/submit",
+    RESULT: "/pronunciation/result",
+  },
   VOCAB: {
     CREATE: "/vocab",
   },

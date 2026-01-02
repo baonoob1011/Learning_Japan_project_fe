@@ -7,34 +7,9 @@ import React, {
   useImperativeHandle,
   forwardRef,
 } from "react";
+import YoutubePlayer, { YoutubePlayerHandle } from "./YoutubePlayer";
 import TranscriptWordBar from "./transcriptWordBar";
 import { TranscriptDTO } from "@/services/transcriptService";
-
-/* ===== TYPES ===== */
-type YTPlayer = {
-  getCurrentTime: () => number | undefined;
-  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
-  playVideo: () => void;
-  pauseVideo: () => void;
-};
-
-declare global {
-  interface Window {
-    YT?: {
-      Player: new (
-        elementId: string,
-        config: {
-          videoId: string;
-          playerVars?: Record<string, unknown>;
-          events?: {
-            onReady?: () => void;
-          };
-        }
-      ) => YTPlayer;
-    };
-    onYouTubeIframeAPIReady?: () => void;
-  }
-}
 
 interface Props {
   videoId: string;
@@ -42,77 +17,98 @@ interface Props {
   seekTimeMs?: number | null;
   onSeekHandled?: () => void;
   onTimeUpdate?: (timeMs: number) => void;
+  hideWordBar?: boolean;
 }
 
-const YoutubePlayerWithTranscript = forwardRef<YTPlayer, Props>(
-  ({ videoId, transcripts, seekTimeMs, onSeekHandled, onTimeUpdate }, ref) => {
-    const playerRef = useRef<YTPlayer | null>(null);
+const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
+  (
+    {
+      videoId,
+      transcripts,
+      seekTimeMs,
+      onSeekHandled,
+      onTimeUpdate,
+      hideWordBar = false,
+    },
+    ref
+  ) => {
+    const playerRef = useRef<YoutubePlayerHandle | null>(null);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const [currentTimeMs, setCurrentTimeMs] = useState(0);
 
     // Expose playerRef to parent component
-    useImperativeHandle(ref, () => playerRef.current!, []);
+    useImperativeHandle(
+      ref,
+      () => {
+        const handle: YoutubePlayerHandle = {
+          getCurrentTime: () => playerRef.current?.getCurrentTime(),
+          seekTo: (seconds: number, allowSeekAhead: boolean) =>
+            playerRef.current?.seekTo(seconds, allowSeekAhead),
+          playVideo: () => playerRef.current?.playVideo(),
+          pauseVideo: () => playerRef.current?.pauseVideo(),
+          playSegment: (startMs: number, endMs: number) =>
+            playerRef.current?.playSegment(startMs, endMs),
+          stopSegment: () => playerRef.current?.stopSegment(),
+
+          // ✅ Expose onDictationSegmentEnd property
+          get onDictationSegmentEnd() {
+            return playerRef.current?.onDictationSegmentEnd;
+          },
+          set onDictationSegmentEnd(callback: (() => void) | undefined) {
+            if (playerRef.current) {
+              console.log(
+                "🔗 YoutubePlayerWithTranscript: Setting onDictationSegmentEnd callback"
+              );
+              playerRef.current.onDictationSegmentEnd = callback;
+            }
+          },
+
+          // ✅ NEW: Expose onPronunciationSegmentEnd property
+          get onPronunciationSegmentEnd() {
+            return playerRef.current?.onPronunciationSegmentEnd;
+          },
+          set onPronunciationSegmentEnd(callback: (() => void) | undefined) {
+            if (playerRef.current) {
+              console.log(
+                "🔗 YoutubePlayerWithTranscript: Setting onPronunciationSegmentEnd callback"
+              );
+              playerRef.current.onPronunciationSegmentEnd = callback;
+            }
+          },
+        };
+        return handle;
+      },
+      []
+    );
 
     /** ======================
-     * INIT YOUTUBE PLAYER
+     * HANDLE PLAYER READY
      ====================== */
-    const initPlayer = () => {
-      if (!window.YT) return;
+    const handlePlayerReady = () => {
+      console.log("✅ YoutubePlayerWithTranscript: Player ready");
 
-      playerRef.current = new window.YT.Player("youtube-player", {
-        videoId,
-        playerVars: {
-          rel: 0,
-          modestbranding: 1,
-        },
-        events: {
-          onReady: () => {
-            // ✅ Clear previous interval if exists
-            if (intervalRef.current) {
-              clearInterval(intervalRef.current);
-            }
-
-            // ✅ Start tracking time
-            intervalRef.current = setInterval(() => {
-              if (!playerRef.current) return;
-
-              try {
-                const time = playerRef.current.getCurrentTime();
-
-                // ✅ Check if time is valid number
-                if (typeof time === "number" && !isNaN(time)) {
-                  const timeMs = Math.floor(time * 1000);
-                  setCurrentTimeMs(timeMs);
-                  onTimeUpdate?.(timeMs);
-                }
-              } catch (error) {
-                console.warn("Error getting current time:", error);
-              }
-            }, 300);
-          },
-        },
-      });
-    };
-
-    useEffect(() => {
-      if (window.YT) {
-        initPlayer();
-        return;
+      // Clear previous interval if exists
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
       }
 
-      const tag = document.createElement("script");
-      tag.src = "https://www.youtube.com/iframe_api";
-      document.body.appendChild(tag);
+      // Start tracking time
+      intervalRef.current = setInterval(() => {
+        if (!playerRef.current) return;
 
-      window.onYouTubeIframeAPIReady = initPlayer;
+        try {
+          const time = playerRef.current.getCurrentTime();
 
-      // ✅ Cleanup on unmount
-      return () => {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
+          if (typeof time === "number" && !isNaN(time)) {
+            const timeMs = Math.floor(time * 1000);
+            setCurrentTimeMs(timeMs);
+            onTimeUpdate?.(timeMs);
+          }
+        } catch (error) {
+          console.warn("Error getting current time:", error);
         }
-      };
-    }, [videoId]);
+      }, 300);
+    };
 
     /** ======================
      * SEEK FROM OUTSIDE
@@ -129,24 +125,34 @@ const YoutubePlayerWithTranscript = forwardRef<YTPlayer, Props>(
       }
     }, [seekTimeMs, onSeekHandled]);
 
+    /** ======================
+     * CLEANUP
+     ====================== */
+    useEffect(() => {
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+      };
+    }, []);
+
     return (
       <>
         {/* VIDEO */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-2">
-          <div className="relative pt-[56.25%] bg-black">
-            <div
-              id="youtube-player"
-              className="absolute top-0 left-0 w-full h-full"
-            />
-          </div>
-        </div>
-
-        {/* WORD BAR */}
-        <TranscriptWordBar
-          transcripts={transcripts}
-          currentTimeMs={currentTimeMs}
+        <YoutubePlayer
+          ref={playerRef}
           videoId={videoId}
+          onPlayerReady={handlePlayerReady}
         />
+
+        {/* WORD BAR - Chỉ hiện khi hideWordBar = false */}
+        {!hideWordBar && (
+          <TranscriptWordBar
+            transcripts={transcripts}
+            currentTimeMs={currentTimeMs}
+            videoId={videoId}
+          />
+        )}
       </>
     );
   }

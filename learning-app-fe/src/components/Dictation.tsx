@@ -1,15 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Lightbulb,
-  Check,
-  X,
-  Play,
-  Pause,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Lightbulb, Check, X } from "lucide-react";
+import SegmentPlaybackButton from "./SegmentPlaybackButton";
 
 // TranscriptDTO interface
 interface TranscriptDTO {
@@ -20,18 +13,15 @@ interface TranscriptDTO {
   createdAt: string;
 }
 
-// YouTube Player Type
-interface YTPlayer {
-  getCurrentTime: () => number | undefined;
-  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
-  playVideo: () => void;
-  pauseVideo: () => void;
+interface YoutubePlayerHandle {
+  playSegment: (start: number, end: number) => void;
+  stopSegment: () => void;
 }
 
 interface DictationPracticeProps {
   transcripts: TranscriptDTO[];
   videoId: string;
-  playerRef: React.RefObject<YTPlayer | null>;
+  playerRef: React.RefObject<YoutubePlayerHandle | null>;
 }
 
 export default function DictationPractice({
@@ -46,124 +36,130 @@ export default function DictationPractice({
   const [results, setResults] = useState<boolean[]>(
     new Array(transcripts.length).fill(false)
   );
-
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
   const currentTranscript = transcripts[currentIndex];
   const totalQuestions = transcripts.length;
 
   /** ======================
-   * STOP PLAYBACK - Cleanup function
+   * HANDLE SEGMENT END - Tự động chuyển về nút "Phát lại"
    ====================== */
-  const stopPlayback = () => {
-    // Clear interval first
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    // Then pause video
-    if (playerRef.current) {
-      try {
-        playerRef.current.pauseVideo();
-      } catch (error) {
-        console.warn("Error stopping playback:", error);
-      }
-    }
-
+  const handleSegmentEnd = () => {
+    console.log("=== Segment ended - switching back to Play button ===");
     setIsPlaying(false);
   };
 
   /** ======================
-   * PLAY SEGMENT - Fixed version
+   * STOP PLAYBACK
    ====================== */
-  const handlePlaySegment = () => {
-    if (!playerRef.current || !currentTranscript) return;
-
-    const startSec = currentTranscript.startOffset / 1000;
-    const endSec = currentTranscript.endOffset / 1000;
-
-    // Stop any existing playback first
-    stopPlayback();
-
-    try {
-      // Seek to start position
-      playerRef.current.seekTo(startSec, true);
-
-      // Small delay to ensure seek completes
-      setTimeout(() => {
-        if (!playerRef.current) return;
-
-        playerRef.current.playVideo();
-        setIsPlaying(true);
-
-        // Set up interval to monitor playback
-        intervalRef.current = setInterval(() => {
-          if (!playerRef.current) {
-            stopPlayback();
-            return;
-          }
-
-          try {
-            const currentTime = playerRef.current.getCurrentTime();
-
-            // Check if we've reached the end or passed it
-            if (typeof currentTime === "number" && currentTime >= endSec) {
-              stopPlayback();
-            }
-          } catch (error) {
-            console.warn("Error checking playback time:", error);
-            stopPlayback();
-          }
-        }, 100);
-      }, 100);
-    } catch (error) {
-      console.warn("Error starting playback:", error);
-      stopPlayback();
+  const stopPlayback = () => {
+    if (playerRef.current) {
+      playerRef.current.stopSegment();
     }
+    setIsPlaying(false);
   };
 
   /** ======================
    * CLEANUP on unmount or transcript change
    ====================== */
   useEffect(() => {
+    // Cleanup when switching questions
     return () => {
-      stopPlayback();
+      if (playerRef.current) {
+        playerRef.current.stopSegment();
+      }
+      setIsPlaying(false);
     };
   }, [currentIndex]);
 
   /** ======================
+   * SETUP CALLBACK for segment end
+   ====================== */
+  useEffect(() => {
+    console.log(
+      "🔧 Dictation: Setting up callback, playerRef.current:",
+      playerRef.current
+    );
+
+    if (playerRef.current) {
+      const player = playerRef.current as YoutubePlayerHandle & {
+        onDictationSegmentEnd?: () => void;
+      };
+      player.onDictationSegmentEnd = handleSegmentEnd;
+      console.log("✅ Dictation: Callback assigned successfully!");
+    } else {
+      console.log("❌ Dictation: playerRef.current is null!");
+    }
+
+    return () => {
+      if (playerRef.current) {
+        const player = playerRef.current as YoutubePlayerHandle & {
+          onDictationSegmentEnd?: () => void;
+        };
+        player.onDictationSegmentEnd = undefined;
+      }
+    };
+  }, []);
+
+  /** ======================
    * HELPER FUNCTIONS
    ====================== */
+  const normalizeText = (text: string) => {
+    return text
+      .replace(/[\s、。！？「」『』（）.,!?;:'"()\[\]{}]/g, "")
+      .toLowerCase()
+      .trim();
+  };
+
   const maskText = (text: string, revealed: Set<number>) =>
-    text
-      .split("")
-      .map((char, idx) =>
-        revealed.has(idx) || /[\s、。！？「」『』（）]/.test(char) ? char : "•"
-      )
-      .join("");
+    text.split("").map((char, idx) => {
+      const isPunctuation = /[\s、。！？「」『』（）.,!?;:'"()\[\]{}]/.test(
+        char
+      );
+      const isRevealed = revealed.has(idx) || isPunctuation;
+
+      return (
+        <span
+          key={idx}
+          onClick={() => {
+            if (!isRevealed && !showAnswer) {
+              setRevealedChars(new Set([...revealedChars, idx]));
+            }
+          }}
+          className={`inline-block transition-all duration-200 ${
+            !isRevealed && !showAnswer
+              ? "cursor-pointer hover:bg-gradient-to-br hover:from-yellow-100 hover:to-amber-100 hover:scale-125 hover:shadow-lg rounded-lg px-1 mx-0.5 hover:-translate-y-0.5"
+              : ""
+          }`}
+          style={{ minWidth: char === " " ? "0.5em" : "auto" }}
+        >
+          {isRevealed ? (
+            char
+          ) : (
+            <span className="inline-flex items-center justify-center w-3 h-3 bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-400 rounded-full shadow-md hover:shadow-xl hover:from-yellow-400 hover:via-amber-400 hover:to-orange-400 transition-all duration-300 animate-pulse"></span>
+          )}
+        </span>
+      );
+    });
 
   const revealHint = () => {
     const text = currentTranscript.text;
-    const unrevealedIndices = text
-      .split("")
-      .map((_, i) => i)
-      .filter(
-        (i) =>
-          !revealedChars.has(i) && !/[\s、。！？「」『』（）]/.test(text[i])
-      );
-    if (unrevealedIndices.length) {
-      const randomIndex =
-        unrevealedIndices[Math.floor(Math.random() * unrevealedIndices.length)];
-      setRevealedChars(new Set([...revealedChars, randomIndex]));
-    }
+    const allIndices = new Set(
+      text
+        .split("")
+        .map((_, i) => i)
+        .filter(
+          (i) => !/[\s、。！？「」『』（）.,!?;:'"()\[\]{}]/.test(text[i])
+        )
+    );
+    setRevealedChars(allIndices);
   };
 
   const checkAnswer = () => {
-    const isCorrect =
-      userInput.trim().toLowerCase() ===
-      currentTranscript.text.trim().toLowerCase();
+    const normalizedInput = normalizeText(userInput);
+    const normalizedAnswer = normalizeText(currentTranscript.text);
+
+    const isCorrect = normalizedInput === normalizedAnswer;
     const newResults = [...results];
     newResults[currentIndex] = isCorrect;
     setResults(newResults);
@@ -276,33 +272,16 @@ export default function DictationPractice({
       {/* Content - Scrollable */}
       <div className="flex-1 overflow-y-auto p-5">
         <p className="text-sm text-gray-600 mb-3">
-          Nhập những gì bạn nghe được...
+          Nhập những gì bạn nghe được (không cần gõ dấu câu)...
         </p>
 
-        {/* Play/Pause button for current transcript */}
-        <div className="mb-4 flex items-center gap-2">
-          {isPlaying ? (
-            <button
-              onClick={stopPlayback}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              <Pause className="w-4 h-4 fill-white" />
-              Dừng
-            </button>
-          ) : (
-            <button
-              onClick={handlePlaySegment}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm bg-emerald-500 hover:bg-emerald-600 text-white"
-            >
-              <Play className="w-4 h-4 fill-white" />
-              Phát lại
-            </button>
-          )}
-          <span className="text-xs text-gray-500">
-            ({Math.floor(currentTranscript.startOffset / 1000)}s -{" "}
-            {Math.floor(currentTranscript.endOffset / 1000)}s)
-          </span>
-        </div>
+        {/* Playback Button Component */}
+        <SegmentPlaybackButton
+          transcript={currentTranscript}
+          playerRef={playerRef}
+          isPlaying={isPlaying}
+          onPlayingChange={setIsPlaying}
+        />
 
         <div className="mb-4 p-4 bg-gray-100 rounded-xl border border-gray-200">
           <p className="text-center text-lg font-medium text-gray-900 tracking-wide leading-relaxed">
@@ -357,36 +336,37 @@ export default function DictationPractice({
       </div>
 
       {/* Bottom buttons */}
-      <div className="p-4 border-t bg-gray-50 space-y-2 flex-shrink-0">
+      <div className="p-4 border-t bg-gradient-to-b from-gray-50 to-white space-y-2 flex-shrink-0">
         {!showAnswer ? (
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button
               onClick={revealHint}
-              className="p-3 border rounded-xl hover:border-yellow-400 transition"
+              className="group relative p-3.5 bg-gradient-to-br from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 overflow-hidden"
               title="Gợi ý"
             >
-              <Lightbulb className="w-5 h-5 text-gray-600 hover:text-yellow-500 transition" />
+              <div className="absolute inset-0 bg-white/20 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out"></div>
+              <Lightbulb className="w-5 h-5 text-white relative z-10 drop-shadow-sm" />
             </button>
             <button
               onClick={checkAnswer}
               disabled={!userInput.trim()}
-              className="flex-1 bg-green-100 hover:bg-green-200 text-green-700 font-semibold py-3 px-6 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition"
+              className="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
             >
               Kiểm tra
             </button>
           </div>
         ) : (
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button
               onClick={handleReset}
-              className="flex-1 px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl font-semibold transition"
+              className="flex-1 px-4 py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl font-bold shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
             >
               Thử lại
             </button>
             <button
               onClick={handleNext}
               disabled={currentIndex === totalQuestions - 1}
-              className="flex-1 px-4 py-3 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white rounded-xl font-semibold disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-3.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 disabled:from-gray-300 disabled:to-gray-400 text-white rounded-xl font-bold shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none flex items-center justify-center gap-2"
             >
               Tiếp
               <ChevronRight className="w-4 h-4" />
