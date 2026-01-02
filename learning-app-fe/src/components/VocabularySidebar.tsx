@@ -118,8 +118,8 @@ export default function VocabularySidebar({
           isDarkMode ? "border-gray-700" : "border-gray-200"
         }`}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between w-full px-1">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <div
               className={`p-1.5 rounded ${
                 isDarkMode ? "bg-gray-700" : "bg-gray-100"
@@ -137,14 +137,14 @@ export default function VocabularySidebar({
           </div>
           <button
             onClick={onToggle}
-            className={`p-2 rounded-lg transition-colors ${
+            className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${
               isDarkMode
                 ? "text-gray-400 hover:bg-gray-700"
-                : "text-gray-600 hover:bg-gray-100"
+                : "text-gray-400 hover:bg-gray-100"
             }`}
             title="Đóng từ vựng"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -154,29 +154,7 @@ export default function VocabularySidebar({
         className={`px-4 py-3 border-b flex-shrink-0 ${
           isDarkMode ? "border-gray-700" : "border-gray-200"
         }`}
-      >
-        <div className="flex items-center justify-between">
-          <p
-            className={`text-sm ${
-              isDarkMode ? "text-gray-400" : "text-gray-500"
-            }`}
-          >
-            {vocabularyList.length} từ
-          </p>
-          <button
-            onClick={handleAddVocab}
-            className={`p-1.5 rounded-lg transition-colors flex items-center gap-1 text-sm ${
-              isDarkMode
-                ? "text-emerald-400 hover:bg-emerald-900/30"
-                : "text-emerald-600 hover:bg-emerald-50"
-            }`}
-            title="Thêm từ mới"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Thêm</span>
-          </button>
-        </div>
-      </div>
+      ></div>
 
       {/* Selection Tip Banner */}
       {selectedText && (
