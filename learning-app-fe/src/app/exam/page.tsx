@@ -11,6 +11,7 @@ import { LISTENING_TYPE_ORDER } from "@/config/listeningTypeOrder";
 import { useExamResultStore } from "@/stores/examResultStore";
 import { AssessmentType } from "@/enums/assessmentType";
 import { instructionMap } from "@/config/instructionMap";
+import BreakComponent from "@/components/BreakComponent";
 
 interface Question {
   id: string;
@@ -61,6 +62,7 @@ export default function ExamPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [unansweredCount, setUnansweredCount] = useState(0);
+  const [showBreak, setShowBreak] = useState(false);
   const questionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   /* ------------------ PREVENT BACK NAVIGATION ------------------ */
@@ -72,9 +74,7 @@ export default function ExamPage() {
 
     if (currentSectionOrder <= completedSection) {
       const nextSection = completedSection + 1;
-      router.replace(
-        `/breakPage?participantId=${participantId}&examId=${examId}&nextSection=${nextSection}`
-      );
+      setShowBreak(true);
       return;
     }
 
@@ -327,6 +327,20 @@ export default function ExamPage() {
 
   const TOTAL_SECTIONS = sections.length;
 
+  /* ------------------ HANDLE BREAK END ------------------ */
+  const handleBreakEnd = () => {
+    setShowBreak(false);
+    const completedSectionStr = localStorage.getItem("examCompletedSection");
+    const completedSection = completedSectionStr
+      ? Number(completedSectionStr)
+      : 0;
+    const nextSection = completedSection + 1;
+    setCurrentSectionOrder(nextSection);
+    router.replace(
+      `/exam?participantId=${participantId}&section=${nextSection}&examId=${examId}`
+    );
+  };
+
   /* ------------------ SUBMIT ------------------ */
   const handleSubmitClick = () => {
     if (!participantId) {
@@ -355,11 +369,7 @@ export default function ExamPage() {
         currentSectionOrder.toString()
       );
 
-      router.push(
-        `/breakPage?participantId=${participantId}&examId=${examId}&nextSection=${
-          currentSectionOrder + 1
-        }`
-      );
+      setShowBreak(true);
     } else {
       setIsSubmitting(true);
       try {
@@ -403,6 +413,24 @@ export default function ExamPage() {
   const currentSection = sections.find(
     (s) => s.sectionOrder === currentSectionOrder
   );
+
+  // Show break component if needed
+  if (showBreak && participantId && examId) {
+    const completedSectionStr = localStorage.getItem("examCompletedSection");
+    const completedSection = completedSectionStr
+      ? Number(completedSectionStr)
+      : 0;
+    const nextSection = completedSection + 1;
+
+    return (
+      <BreakComponent
+        participantId={participantId}
+        nextSection={nextSection}
+        examId={examId}
+        onBreakEnd={handleBreakEnd}
+      />
+    );
+  }
 
   /* ------------------ UI ------------------ */
   return (
