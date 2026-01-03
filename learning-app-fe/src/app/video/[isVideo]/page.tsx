@@ -1,4 +1,5 @@
 "use client";
+import { useDarkMode } from "@/hooks/useDarkMode";
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import VideoPlayerSection from "@/components/VideoPlayerSection";
@@ -8,6 +9,7 @@ import { YoutubePlayerHandle } from "@/components/YoutubePlayer";
 import AutoScrollToggle from "@/components/AutoScrollToggle";
 import PronunciationPractice from "@/components/PronunciationPractice";
 import VocabularySidebar from "@/components/VocabularySidebar";
+import ThemeToggle from "@/components/ThemeToggle";
 import {
   Video,
   X,
@@ -39,18 +41,15 @@ export default function VideoLearningPage() {
   const [transcripts, setTranscripts] = useState<TranscriptDTO[]>([]);
   const [videoTitle, setVideoTitle] = useState<string>("");
   const [selectedText, setSelectedText] = useState<string>("");
-  const [isDarkMode] = useState(false);
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [currentStreak] = useState(4);
 
-  // NEW: State để trigger refresh vocabulary sidebar
   const [vocabRefreshTrigger, setVocabRefreshTrigger] = useState(0);
 
-  // Refs for auto-scroll and YouTube player
   const transcriptRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YoutubePlayerHandle | null>(null);
 
-  // State for auto-scroll
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -68,19 +67,15 @@ export default function VideoLearningPage() {
     return `${minutes}:${seconds}`;
   };
 
-  // NEW: Callback khi vocab được save thành công
   const handleVocabSaved = () => {
     setVocabRefreshTrigger((prev) => prev + 1);
-    // Đảm bảo vocab sidebar được mở khi save vocab
     setShowVocabSidebar(true);
   };
 
-  // Find active transcript
   const activeTranscript = transcripts.find(
     (t) => currentTimeMs >= t.startOffset && currentTimeMs < t.endOffset
   );
 
-  // Auto-scroll logic
   useEffect(() => {
     if (
       autoScrollEnabled &&
@@ -105,7 +100,6 @@ export default function VideoLearningPage() {
     }
   }, [activeTranscript, isUserScrolling, autoScrollEnabled]);
 
-  // Fetch transcripts
   useEffect(() => {
     if (!videoId) return;
 
@@ -136,7 +130,6 @@ export default function VideoLearningPage() {
     };
   }, [videoId]);
 
-  // Handle user scroll
   const handleUserScroll = () => {
     if (!autoScrollEnabled) return;
 
@@ -151,13 +144,11 @@ export default function VideoLearningPage() {
     }, 3000);
   };
 
-  // Toggle auto-scroll
   const toggleAutoScroll = () => {
     setAutoScrollEnabled((prev) => !prev);
     setIsUserScrolling(false);
   };
 
-  // Cleanup scroll timeout on unmount
   useEffect(() => {
     return () => {
       if (scrollTimeoutRef.current) {
@@ -166,7 +157,6 @@ export default function VideoLearningPage() {
     };
   }, []);
 
-  // Handle text selection
   useEffect(() => {
     const handleSelection = () => {
       const selection = window.getSelection();
@@ -187,8 +177,13 @@ export default function VideoLearningPage() {
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 flex">
-      {/* Sidebar Component */}
+    <div
+      className={`fixed inset-0 flex transition-colors duration-300 ${
+        isDarkMode
+          ? "bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800"
+          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
+      }`}
+    >
       <Sidebar
         sidebarOpen={showSidebar}
         setSidebarOpen={setShowSidebar}
@@ -196,25 +191,33 @@ export default function VideoLearningPage() {
         currentStreak={currentStreak}
       />
 
-      {/* Main Content Wrapper */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Navigation Bar */}
-        <div className="bg-white/80 backdrop-blur-sm border-b border-cyan-100 px-6 py-4 flex items-center justify-center flex-shrink-0 relative shadow-lg">
-          {/* Menu button - absolute left */}
+        <div
+          className={`backdrop-blur-sm border-b px-6 py-4 flex items-center justify-center flex-shrink-0 relative shadow-lg transition-colors duration-300 ${
+            isDarkMode
+              ? "bg-gray-800/90 border-gray-700"
+              : "bg-white/80 border-cyan-100"
+          }`}
+        >
           <button
-            className="lg:hidden absolute left-4 top-1/2 -translate-y-1/2 text-cyan-500 hover:bg-cyan-50 p-2 rounded-lg transition-colors"
+            className={`lg:hidden absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors ${
+              isDarkMode
+                ? "text-cyan-400 hover:bg-gray-700"
+                : "text-cyan-500 hover:bg-cyan-50"
+            }`}
             onClick={() => setShowSidebar(!showSidebar)}
           >
             <Menu className="w-5 h-5" />
           </button>
 
-          {/* Center Navigation Buttons */}
           <div className="flex items-center gap-4">
             <button
               onClick={() => setViewMode("video")}
               className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all ${
                 viewMode === "video"
-                  ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg shadow-cyan-200"
+                  ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg"
+                  : isDarkMode
+                  ? "text-gray-300 hover:bg-gray-700 bg-gray-800 border-2 border-gray-600"
                   : "text-gray-700 hover:bg-cyan-50 bg-white border-2 border-cyan-100"
               }`}
             >
@@ -226,7 +229,9 @@ export default function VideoLearningPage() {
               onClick={() => setViewMode("dictation")}
               className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all ${
                 viewMode === "dictation"
-                  ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg shadow-cyan-200"
+                  ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg"
+                  : isDarkMode
+                  ? "text-gray-300 hover:bg-gray-700 bg-gray-800 border-2 border-gray-600"
                   : "text-gray-700 hover:bg-cyan-50 bg-white border-2 border-cyan-100"
               }`}
             >
@@ -238,7 +243,9 @@ export default function VideoLearningPage() {
               onClick={() => setViewMode("pronunciation")}
               className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all ${
                 viewMode === "pronunciation"
-                  ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg shadow-cyan-200"
+                  ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg"
+                  : isDarkMode
+                  ? "text-gray-300 hover:bg-gray-700 bg-gray-800 border-2 border-gray-600"
                   : "text-gray-700 hover:bg-cyan-50 bg-white border-2 border-cyan-100"
               }`}
             >
@@ -246,34 +253,54 @@ export default function VideoLearningPage() {
               <span>Phát âm</span>
             </button>
 
-            <button className="px-8 py-3.5 text-gray-700 hover:bg-cyan-50 rounded-full text-base font-medium flex items-center gap-3 transition-all bg-white border-2 border-cyan-100">
+            <button
+              className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all border-2 ${
+                isDarkMode
+                  ? "text-gray-300 hover:bg-gray-700 bg-gray-800 border-gray-600"
+                  : "text-gray-700 hover:bg-cyan-50 bg-white border-cyan-100"
+              }`}
+            >
               <span className="text-lg">❓</span>
               <span>Bài tập</span>
             </button>
 
-            <button className="px-8 py-3.5 text-gray-700 hover:bg-cyan-50 rounded-full text-base font-medium flex items-center gap-3 transition-all bg-white border-2 border-cyan-100">
+            <button
+              className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all border-2 ${
+                isDarkMode
+                  ? "text-gray-300 hover:bg-gray-700 bg-gray-800 border-gray-600"
+                  : "text-gray-700 hover:bg-cyan-50 bg-white border-cyan-100"
+              }`}
+            >
               <span className="text-lg">📊</span>
               <span>So đồ</span>
             </button>
           </div>
 
-          {/* Action buttons - absolute right */}
           <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-3">
-            <button className="p-2 text-cyan-500 hover:bg-cyan-50 rounded-lg transition-colors">
+            <ThemeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
+            <button
+              className={`p-2 rounded-lg transition-colors ${
+                isDarkMode
+                  ? "text-cyan-400 hover:bg-gray-700"
+                  : "text-cyan-500 hover:bg-cyan-50"
+              }`}
+            >
               <FileText className="w-5 h-5" />
             </button>
             <button
               onClick={() => router.push("/video")}
-              className="p-2 text-cyan-500 hover:bg-cyan-50 rounded-lg transition-colors"
+              className={`p-2 rounded-lg transition-colors ${
+                isDarkMode
+                  ? "text-cyan-400 hover:bg-gray-700"
+                  : "text-cyan-500 hover:bg-cyan-50"
+              }`}
             >
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* Content Area - Below Header */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Vocabulary Sidebar - Below Header - UPDATED với refreshTrigger */}
           {showVocabSidebar && (
             <VocabularySidebar
               videoId={videoId}
@@ -281,23 +308,30 @@ export default function VideoLearningPage() {
               onToggle={() => setShowVocabSidebar(false)}
               onAddFromSelection={setSelectedText}
               refreshTrigger={vocabRefreshTrigger}
+              isDarkMode={isDarkMode}
             />
           )}
 
-          {/* Toggle button when vocab sidebar is hidden */}
           {!showVocabSidebar && (
             <button
               onClick={() => setShowVocabSidebar(true)}
               className={`fixed ${
                 showSidebar ? "left-72" : "left-24"
-              } top-1/2 -translate-y-1/2 z-40 w-6 h-12 bg-white border-2 border-cyan-200 rounded-r-lg flex items-center justify-center hover:bg-cyan-50 transition-all shadow-md`}
+              } top-1/2 -translate-y-1/2 z-40 w-6 h-12 border-2 rounded-r-lg flex items-center justify-center transition-all shadow-md ${
+                isDarkMode
+                  ? "bg-gray-800 border-gray-600 hover:bg-gray-700"
+                  : "bg-white border-cyan-200 hover:bg-cyan-50"
+              }`}
               title="Mở từ vựng"
             >
-              <BookOpen className="w-4 h-4 text-cyan-500" />
+              <BookOpen
+                className={`w-4 h-4 ${
+                  isDarkMode ? "text-cyan-400" : "text-cyan-500"
+                }`}
+              />
             </button>
           )}
 
-          {/* Video Player Section - UPDATED với onVocabSaved callback */}
           {(viewMode === "video" ||
             viewMode === "dictation" ||
             viewMode === "pronunciation") && (
@@ -313,16 +347,31 @@ export default function VideoLearningPage() {
                 viewMode === "dictation" || viewMode === "pronunciation"
               }
               onVocabSaved={handleVocabSaved}
+              isDarkMode={isDarkMode}
             />
           )}
 
-          {/* Right: Transcript Sidebar (only in video mode) */}
           {viewMode === "video" && (
-            <div className="w-96 bg-white/90 backdrop-blur-sm border-l border-cyan-100 flex flex-col flex-shrink-0 shadow-xl">
-              {/* Transcript Header */}
-              <div className="p-4 border-b border-cyan-100 flex-shrink-0">
+            <div
+              className={`w-96 backdrop-blur-sm border-l flex flex-col flex-shrink-0 shadow-xl transition-colors duration-300 ${
+                isDarkMode
+                  ? "bg-gray-800/90 border-gray-700"
+                  : "bg-white/90 border-cyan-100"
+              }`}
+            >
+              <div
+                className={`p-4 border-b flex-shrink-0 transition-colors duration-300 ${
+                  isDarkMode ? "border-gray-700" : "border-cyan-100"
+                }`}
+              >
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-bold bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent">
+                  <h2
+                    className={`text-lg font-bold bg-gradient-to-r bg-clip-text text-transparent ${
+                      isDarkMode
+                        ? "from-cyan-400 to-cyan-500"
+                        : "from-cyan-500 to-cyan-600"
+                    }`}
+                  >
                     Phụ đề
                   </h2>
                   <div className="flex items-center gap-2">
@@ -330,14 +379,19 @@ export default function VideoLearningPage() {
                       autoScrollEnabled={autoScrollEnabled}
                       onToggle={toggleAutoScroll}
                     />
-                    <button className="p-2 text-cyan-500 hover:bg-cyan-50 rounded-lg transition-colors">
+                    <button
+                      className={`p-2 rounded-lg transition-colors ${
+                        isDarkMode
+                          ? "text-cyan-400 hover:bg-gray-700"
+                          : "text-cyan-500 hover:bg-cyan-50"
+                      }`}
+                    >
                       <X className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Transcript List with Auto-scroll */}
               <div
                 ref={scrollContainerRef}
                 onScroll={handleUserScroll}
@@ -354,7 +408,11 @@ export default function VideoLearningPage() {
                       }}
                       className={`group p-3 rounded-lg cursor-pointer transition-all duration-300 border ${
                         isActive
-                          ? "bg-gradient-to-r from-cyan-50 via-blue-50 to-indigo-50 border-cyan-300 shadow-lg scale-105"
+                          ? isDarkMode
+                            ? "bg-gradient-to-r from-gray-700 via-slate-700 to-gray-700 border-cyan-500 shadow-lg shadow-cyan-500/20 scale-105"
+                            : "bg-gradient-to-r from-cyan-50 via-blue-50 to-indigo-50 border-cyan-300 shadow-lg scale-105"
+                          : isDarkMode
+                          ? "hover:bg-gray-700 border-transparent hover:border-gray-600 bg-gray-800/50"
                           : "hover:bg-cyan-50 border-transparent hover:border-cyan-200 bg-white/70"
                       }`}
                       onClick={() => handleSeekToTime(t.startOffset)}
@@ -364,6 +422,8 @@ export default function VideoLearningPage() {
                           className={`w-6 h-6 flex items-center justify-center rounded-full transition-colors ${
                             isActive
                               ? "bg-gradient-to-r from-cyan-400 to-cyan-500"
+                              : isDarkMode
+                              ? "bg-gray-700 group-hover:bg-gray-600"
                               : "bg-gray-100 group-hover:bg-cyan-100"
                           }`}
                           onClick={(e) => {
@@ -375,13 +435,21 @@ export default function VideoLearningPage() {
                             className={`w-3 h-3 ${
                               isActive
                                 ? "text-white"
+                                : isDarkMode
+                                ? "text-gray-300 group-hover:text-cyan-400"
                                 : "text-gray-600 group-hover:text-cyan-500"
                             }`}
                           />
                         </button>
                         <span
                           className={`text-xs font-medium ${
-                            isActive ? "text-cyan-700" : "text-gray-500"
+                            isActive
+                              ? isDarkMode
+                                ? "text-cyan-400"
+                                : "text-cyan-700"
+                              : isDarkMode
+                              ? "text-gray-400"
+                              : "text-gray-500"
                           }`}
                         >
                           {formatTime(t.startOffset)}
@@ -389,13 +457,21 @@ export default function VideoLearningPage() {
                         {isActive && (
                           <div className="ml-auto">
                             <div className="flex gap-1">
-                              <div className="w-1 h-3 bg-cyan-500 rounded animate-pulse"></div>
                               <div
-                                className="w-1 h-3 bg-cyan-500 rounded animate-pulse"
+                                className={`w-1 h-3 rounded animate-pulse ${
+                                  isDarkMode ? "bg-cyan-400" : "bg-cyan-500"
+                                }`}
+                              ></div>
+                              <div
+                                className={`w-1 h-3 rounded animate-pulse ${
+                                  isDarkMode ? "bg-cyan-400" : "bg-cyan-500"
+                                }`}
                                 style={{ animationDelay: "0.2s" }}
                               ></div>
                               <div
-                                className="w-1 h-3 bg-cyan-500 rounded animate-pulse"
+                                className={`w-1 h-3 rounded animate-pulse ${
+                                  isDarkMode ? "bg-cyan-400" : "bg-cyan-500"
+                                }`}
                                 style={{ animationDelay: "0.4s" }}
                               ></div>
                             </div>
@@ -405,7 +481,11 @@ export default function VideoLearningPage() {
                       <p
                         className={`leading-relaxed text-sm ${
                           isActive
-                            ? "text-gray-900 font-medium"
+                            ? isDarkMode
+                              ? "text-gray-100 font-medium"
+                              : "text-gray-900 font-medium"
+                            : isDarkMode
+                            ? "text-gray-300"
                             : "text-gray-900"
                         }`}
                       >
@@ -418,33 +498,34 @@ export default function VideoLearningPage() {
             </div>
           )}
 
-          {/* Right: Dictation Component */}
           {viewMode === "dictation" && (
             <DictationPractice
               transcripts={transcripts}
               videoId={videoId}
               playerRef={playerRef}
+              isDarkMode={isDarkMode}
             />
           )}
 
-          {/* Right: Pronunciation Component */}
           {viewMode === "pronunciation" && (
             <PronunciationPractice
               transcripts={transcripts}
               videoId={videoId}
               playerRef={playerRef}
+              isDarkMode={isDarkMode}
             />
           )}
         </div>
       </div>
 
-      {/* Custom Scrollbar Styles */}
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(207, 250, 254, 0.3);
+          background: ${isDarkMode
+            ? "rgba(55, 65, 81, 0.3)"
+            : "rgba(207, 250, 254, 0.3)"};
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {

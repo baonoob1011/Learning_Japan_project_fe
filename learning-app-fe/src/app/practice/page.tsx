@@ -9,6 +9,7 @@ import {
 } from "@/services/examService";
 import Sidebar from "@/components/Sidebar";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useDarkMode } from "@/hooks/useDarkMode";
 
 interface ExamCardProps {
   id: string;
@@ -111,7 +112,7 @@ const ExamCard: React.FC<ExamCardProps> = ({
 export default function PracticePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeLevel, setActiveLevel] = useState("N1");
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentStreak, setCurrentStreak] = useState(3);
 
@@ -178,10 +179,7 @@ export default function PracticePage() {
             Luyện thi JLPT
           </h1>
           <div className="flex items-center gap-4">
-            <ThemeToggle
-              isDarkMode={isDarkMode}
-              onToggle={() => setIsDarkMode(!isDarkMode)}
-            />
+            <ThemeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
             <div className="relative">
               <div className="absolute inset-0 bg-cyan-400 rounded-full blur-md opacity-40"></div>
               <div className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold shadow-md relative z-10">

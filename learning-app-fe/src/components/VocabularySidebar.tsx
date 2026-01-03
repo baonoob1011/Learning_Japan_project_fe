@@ -17,7 +17,7 @@ interface VocabularySidebarProps {
   onToggle?: () => void;
   onAddFromSelection?: (word: string) => void;
   isDarkMode?: boolean;
-  refreshTrigger?: number; // ADDED: Trigger để force refresh
+  refreshTrigger?: number;
 }
 
 export default function VocabularySidebar({
@@ -26,7 +26,7 @@ export default function VocabularySidebar({
   onToggle,
   onAddFromSelection,
   isDarkMode = false,
-  refreshTrigger = 0, // ADDED
+  refreshTrigger = 0,
 }: VocabularySidebarProps) {
   const mapApiToUI = (v: VocabResponse): VocabularyItem => ({
     id: v.id,
@@ -63,7 +63,7 @@ export default function VocabularySidebar({
     fetchVocabs();
   }, [videoId, isVisible]);
 
-  // ADDED: Refresh khi có refreshTrigger thay đổi
+  // Refresh khi có refreshTrigger thay đổi
   useEffect(() => {
     if (refreshTrigger > 0 && isVisible) {
       fetchVocabs();
@@ -130,29 +130,29 @@ export default function VocabularySidebar({
 
   return (
     <div
-      className={`relative w-80 h-full border-r flex flex-col ${
+      className={`relative w-80 h-full border-r flex flex-col transition-colors duration-300 ${
         isDarkMode
-          ? "bg-gray-800 border-gray-700"
+          ? "bg-gray-800/90 border-gray-700"
           : "bg-white/90 backdrop-blur-sm border-cyan-100"
       }`}
     >
       {/* Header */}
       <div
-        className={`p-4 border-b flex-shrink-0 ${
+        className={`p-4 border-b flex-shrink-0 transition-colors duration-300 ${
           isDarkMode ? "border-gray-700" : "border-cyan-100"
         }`}
       >
         <div className="flex items-center justify-between w-full px-1">
           <div className="flex items-center gap-2 flex-shrink-0">
             <div
-              className={`p-1.5 rounded ${
+              className={`p-1.5 rounded transition-colors duration-300 ${
                 isDarkMode ? "bg-gray-700" : "bg-cyan-50"
               }`}
             >
               <span className="text-lg">📖</span>
             </div>
             <h2
-              className={`text-lg font-bold ${
+              className={`text-lg font-bold transition-colors duration-300 ${
                 isDarkMode
                   ? "text-gray-100"
                   : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
@@ -177,12 +177,12 @@ export default function VocabularySidebar({
 
       {/* Sub-header with count */}
       <div
-        className={`px-4 py-3 border-b flex-shrink-0 flex items-center justify-between ${
+        className={`px-4 py-3 border-b flex-shrink-0 flex items-center justify-between transition-colors duration-300 ${
           isDarkMode ? "border-gray-700" : "border-cyan-100"
         }`}
       >
         <span
-          className={`text-sm ${
+          className={`text-sm transition-colors duration-300 ${
             isDarkMode ? "text-gray-400" : "text-gray-600"
           }`}
         >
@@ -191,7 +191,9 @@ export default function VocabularySidebar({
         {loading && (
           <div className="flex items-center gap-2">
             <svg
-              className="animate-spin h-4 w-4 text-cyan-500"
+              className={`animate-spin h-4 w-4 ${
+                isDarkMode ? "text-cyan-400" : "text-cyan-500"
+              }`}
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -210,7 +212,13 @@ export default function VocabularySidebar({
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               ></path>
             </svg>
-            <span className="text-xs text-cyan-500">Đang tải...</span>
+            <span
+              className={`text-xs ${
+                isDarkMode ? "text-cyan-400" : "text-cyan-500"
+              }`}
+            >
+              Đang tải...
+            </span>
           </div>
         )}
       </div>
@@ -220,9 +228,9 @@ export default function VocabularySidebar({
         {vocabularyList.map((vocab) => (
           <div
             key={vocab.id}
-            className={`group border rounded-lg p-3 transition-all ${
+            className={`group border rounded-lg p-3 transition-all duration-300 ${
               isDarkMode
-                ? "bg-gray-700/50 border-gray-600 hover:border-cyan-500"
+                ? "bg-gray-700/50 border-gray-600 hover:border-cyan-500 hover:shadow-lg hover:shadow-cyan-500/10"
                 : "bg-white border-cyan-100 hover:border-cyan-300 hover:shadow-sm"
             }`}
           >
@@ -235,10 +243,10 @@ export default function VocabularySidebar({
                   onChange={(e) =>
                     setEditForm({ ...editForm, word: e.target.value })
                   }
-                  className={`w-full px-2 py-1 text-lg font-bold border rounded focus:outline-none focus:ring-2 focus:ring-cyan-400 ${
+                  className={`w-full px-2 py-1 text-lg font-bold border rounded focus:outline-none focus:ring-2 transition-colors duration-300 ${
                     isDarkMode
-                      ? "bg-gray-800 border-cyan-600 text-gray-100"
-                      : "bg-white border-cyan-300 text-gray-900"
+                      ? "bg-gray-800 border-gray-600 text-gray-100 focus:ring-cyan-400 focus:border-cyan-400"
+                      : "bg-white border-cyan-300 text-gray-900 focus:ring-cyan-400"
                   }`}
                   placeholder="Từ"
                 />
@@ -248,10 +256,10 @@ export default function VocabularySidebar({
                   onChange={(e) =>
                     setEditForm({ ...editForm, reading: e.target.value })
                   }
-                  className={`w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-cyan-400 ${
+                  className={`w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 transition-colors duration-300 ${
                     isDarkMode
-                      ? "bg-gray-800 border-cyan-600 text-gray-100"
-                      : "bg-white border-cyan-300 text-gray-900"
+                      ? "bg-gray-800 border-gray-600 text-gray-100 focus:ring-cyan-400 focus:border-cyan-400"
+                      : "bg-white border-cyan-300 text-gray-900 focus:ring-cyan-400"
                   }`}
                   placeholder="Phiên âm"
                 />
@@ -261,17 +269,17 @@ export default function VocabularySidebar({
                   onChange={(e) =>
                     setEditForm({ ...editForm, translation: e.target.value })
                   }
-                  className={`w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-cyan-400 ${
+                  className={`w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 transition-colors duration-300 ${
                     isDarkMode
-                      ? "bg-gray-800 border-cyan-600 text-gray-100"
-                      : "bg-white border-cyan-300 text-gray-900"
+                      ? "bg-gray-800 border-gray-600 text-gray-100 focus:ring-cyan-400 focus:border-cyan-400"
+                      : "bg-white border-cyan-300 text-gray-900 focus:ring-cyan-400"
                   }`}
                   placeholder="Nghĩa tiếng Việt"
                 />
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleSaveEdit(vocab.id)}
-                    className="flex-1 px-3 py-1.5 bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white text-sm rounded transition-colors"
+                    className="flex-1 px-3 py-1.5 bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white text-sm rounded transition-all"
                   >
                     Lưu
                   </button>
@@ -293,21 +301,21 @@ export default function VocabularySidebar({
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
                     <h3
-                      className={`text-lg font-bold mb-1 ${
+                      className={`text-lg font-bold mb-1 transition-colors duration-300 ${
                         isDarkMode ? "text-gray-100" : "text-gray-900"
                       }`}
                     >
                       {vocab.word}
                     </h3>
                     <p
-                      className={`text-sm mb-1 ${
+                      className={`text-sm mb-1 transition-colors duration-300 ${
                         isDarkMode ? "text-gray-400" : "text-gray-600"
                       }`}
                     >
                       {vocab.reading}
                     </p>
                     <p
-                      className={`text-sm font-medium ${
+                      className={`text-sm font-medium transition-colors duration-300 ${
                         isDarkMode ? "text-cyan-400" : "text-cyan-700"
                       }`}
                     >
@@ -318,7 +326,7 @@ export default function VocabularySidebar({
 
                 {/* Action Buttons */}
                 <div
-                  className={`flex items-center gap-2 mt-3 pt-3 border-t ${
+                  className={`flex items-center gap-2 mt-3 pt-3 border-t transition-colors duration-300 ${
                     isDarkMode ? "border-gray-600" : "border-cyan-100"
                   }`}
                 >
@@ -376,7 +384,7 @@ export default function VocabularySidebar({
           <div className="text-center py-12 px-4">
             <div className="mb-4 flex justify-center">
               <div
-                className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors duration-300 ${
                   isDarkMode ? "bg-cyan-900/30" : "bg-cyan-100"
                 }`}
               >
@@ -384,7 +392,7 @@ export default function VocabularySidebar({
               </div>
             </div>
             <p
-              className={`mb-4 text-sm leading-relaxed ${
+              className={`mb-4 text-sm leading-relaxed transition-colors duration-300 ${
                 isDarkMode ? "text-gray-400" : "text-gray-700"
               }`}
             >

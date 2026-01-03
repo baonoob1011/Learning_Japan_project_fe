@@ -46,13 +46,12 @@ export default function Sidebar({
             <div className="flex items-center gap-3">
               <div
                 onClick={() => router.push("/video")}
-                className="relative cursor-pointer group"
+                className="cursor-pointer group"
               >
-                <div className="absolute inset-0 bg-cyan-400 rounded-full blur-md opacity-40 group-hover:opacity-60 transition"></div>
                 <img
                   src="/logo-cat.png"
                   alt="NIBO Academy"
-                  className="w-12 h-12 object-contain relative z-10 rounded-full drop-shadow-lg transform group-hover:scale-110 transition-transform"
+                  className="w-14 h-14 object-contain transform group-hover:scale-110 transition-transform"
                 />
               </div>
               <div>
@@ -79,13 +78,12 @@ export default function Sidebar({
           <div className="flex items-center justify-between w-full px-1">
             <div
               onClick={() => router.push("/video")}
-              className="relative cursor-pointer group"
+              className="cursor-pointer group"
             >
-              <div className="absolute inset-0 bg-cyan-400 rounded-full blur-md opacity-40 group-hover:opacity-60 transition"></div>
               <img
                 src="/logo-cat.png"
                 alt="NIBO Academy"
-                className="w-10 h-10 object-contain relative z-10 rounded-full drop-shadow-lg transform group-hover:scale-110 transition-transform"
+                className="w-12 h-12 object-contain transform group-hover:scale-110 transition-transform"
               />
             </div>
             <button

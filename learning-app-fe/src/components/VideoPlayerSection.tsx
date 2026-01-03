@@ -15,6 +15,7 @@ interface VideoPlayerSectionProps {
   onTimeUpdate: (timeMs: number) => void;
   hideWordBar?: boolean;
   onVocabSaved?: () => void;
+  isDarkMode?: boolean;
 }
 
 export default function VideoPlayerSection({
@@ -27,11 +28,14 @@ export default function VideoPlayerSection({
   onTimeUpdate,
   hideWordBar = false,
   onVocabSaved,
+  isDarkMode = false,
 }: VideoPlayerSectionProps) {
   return (
     <div
       id="video-content-scroll-container"
-      className="flex-1 overflow-y-auto bg-gray-50 custom-scrollbar"
+      className={`flex-1 overflow-y-auto custom-scrollbar transition-colors duration-300 ${
+        isDarkMode ? "bg-gray-900" : "bg-gray-50"
+      }`}
     >
       <div className="p-6">
         <div className="max-w-4xl mx-auto">
@@ -48,35 +52,79 @@ export default function VideoPlayerSection({
           />
 
           {/* Video Info */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 mt-6">
+          <div
+            className={`rounded-2xl shadow-sm p-6 mt-6 transition-colors duration-300 ${
+              isDarkMode ? "bg-gray-800 border border-gray-700" : "bg-white"
+            }`}
+          >
             <div className="flex items-center gap-3 mb-4">
-              <span className="px-3 py-1 bg-cyan-100 text-cyan-700 text-xs font-medium rounded-full">
+              <span
+                className={`px-3 py-1 text-xs font-medium rounded-full transition-colors duration-300 ${
+                  isDarkMode
+                    ? "bg-cyan-900/50 text-cyan-300"
+                    : "bg-cyan-100 text-cyan-700"
+                }`}
+              >
                 N5
               </span>
-              <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+              <span
+                className={`px-3 py-1 text-xs font-medium rounded-full transition-colors duration-300 ${
+                  isDarkMode
+                    ? "bg-purple-900/50 text-purple-300"
+                    : "bg-purple-100 text-purple-700"
+                }`}
+              >
                 Podcast
               </span>
             </div>
-            <h1 className="text-xl font-bold text-gray-900 mb-2">
+            <h1
+              className={`text-xl font-bold mb-2 transition-colors duration-300 ${
+                isDarkMode ? "text-gray-100" : "text-gray-900"
+              }`}
+            >
               {videoTitle || "Đang tải..."}
             </h1>
 
             {/* Additional Info Section */}
-            <div className="border-t border-gray-200 pt-4 mt-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+            <div
+              className={`border-t pt-4 mt-4 transition-colors duration-300 ${
+                isDarkMode ? "border-gray-700" : "border-gray-200"
+              }`}
+            >
+              <h3
+                className={`text-lg font-semibold mb-3 transition-colors duration-300 ${
+                  isDarkMode ? "text-gray-100" : "text-gray-900"
+                }`}
+              >
                 Mô tả
               </h3>
-              <p className="text-gray-700 text-sm leading-relaxed">
+              <p
+                className={`text-sm leading-relaxed transition-colors duration-300 ${
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
                 Video học tiếng Nhật với phụ đề tiếng Việt. Click vào từng từ để
                 xem nghĩa chi tiết và lưu vào bộ từ vựng của bạn.
               </p>
             </div>
 
-            <div className="border-t border-gray-200 pt-4 mt-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+            <div
+              className={`border-t pt-4 mt-4 transition-colors duration-300 ${
+                isDarkMode ? "border-gray-700" : "border-gray-200"
+              }`}
+            >
+              <h3
+                className={`text-lg font-semibold mb-3 transition-colors duration-300 ${
+                  isDarkMode ? "text-gray-100" : "text-gray-900"
+                }`}
+              >
                 Thông tin
               </h3>
-              <div className="space-y-2 text-sm text-gray-700">
+              <div
+                className={`space-y-2 text-sm transition-colors duration-300 ${
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Độ khó:</span>
                   <span>N5 - Cơ bản</span>
@@ -100,15 +148,17 @@ export default function VideoPlayerSection({
           width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(243, 244, 246, 0.5);
+          background: ${isDarkMode
+            ? "rgba(31, 41, 55, 0.5)"
+            : "rgba(243, 244, 246, 0.5)"};
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #d1d5db;
+          background: ${isDarkMode ? "#4b5563" : "#d1d5db"};
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #9ca3af;
+          background: ${isDarkMode ? "#6b7280" : "#9ca3af"};
         }
       `}</style>
     </div>

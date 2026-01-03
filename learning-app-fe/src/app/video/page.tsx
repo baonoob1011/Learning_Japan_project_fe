@@ -3,6 +3,7 @@ import { youtubeService } from "@/services/videoService";
 import { useRouter } from "next/navigation";
 import ThemeToggle from "@/components/ThemeToggle";
 import Sidebar from "@/components/Sidebar";
+import { useDarkMode } from "@/hooks/useDarkMode";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -261,7 +262,7 @@ export default function VideoListPage() {
   const [activeTab, setActiveTab] = useState("Toàn bộ");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentStreak, setCurrentStreak] = useState(4);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [videos, setVideos] = useState<YoutubeVideoSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -362,10 +363,7 @@ export default function VideoListPage() {
               Luyện Shadowing để dàng thông qua bất kỳ video nào bạn yêu thích
             </h1>
             <div className="flex items-center gap-3">
-              <ThemeToggle
-                isDarkMode={isDarkMode}
-                onToggle={() => setIsDarkMode(!isDarkMode)}
-              />
+              <ThemeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
               <button
                 className={`p-2 ${
                   isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-50"
@@ -393,12 +391,12 @@ export default function VideoListPage() {
                 VN
                 <ChevronDown className="w-4 h-4" />
               </button>
-              <div className="relative">
-                <div className="absolute inset-0 bg-cyan-400 rounded-full blur-md opacity-40"></div>
+              {/* Fixed Logo - No shadow, clean like sidebar */}
+              <div className="cursor-pointer group">
                 <img
                   src="/logo-cat.png"
                   alt="NIBO Academy"
-                  className="w-10 h-10 object-contain relative z-10 rounded-full"
+                  className="w-10 h-10 object-contain transform group-hover:scale-110 transition-transform"
                 />
               </div>
             </div>

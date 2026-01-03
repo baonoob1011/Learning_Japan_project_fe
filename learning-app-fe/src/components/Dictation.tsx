@@ -22,12 +22,14 @@ interface DictationPracticeProps {
   transcripts: TranscriptDTO[];
   videoId: string;
   playerRef: React.RefObject<YoutubePlayerHandle | null>;
+  isDarkMode?: boolean;
 }
 
 export default function DictationPractice({
   transcripts,
   videoId,
   playerRef,
+  isDarkMode = false,
 }: DictationPracticeProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userInput, setUserInput] = useState("");
@@ -205,25 +207,65 @@ export default function DictationPractice({
   const totalAnswered = results.filter((_, i) => i <= currentIndex).length;
 
   return (
-    <div className="w-96 bg-white/90 backdrop-blur-sm border-l border-cyan-100 flex flex-col flex-shrink-0 shadow-xl">
+    <div
+      className={`w-96 backdrop-blur-sm border-l flex flex-col flex-shrink-0 shadow-xl transition-colors duration-300 ${
+        isDarkMode
+          ? "bg-gray-800/90 border-gray-700"
+          : "bg-white/90 border-cyan-100"
+      }`}
+    >
       {/* Header */}
-      <div className="p-5 border-b border-cyan-100 bg-gradient-to-r from-cyan-50 via-blue-50 to-indigo-50 flex-shrink-0">
+      <div
+        className={`p-5 border-b flex-shrink-0 transition-colors duration-300 ${
+          isDarkMode
+            ? "bg-gray-800 border-gray-700"
+            : "bg-gradient-to-r from-cyan-50 via-blue-50 to-indigo-50 border-cyan-100"
+        }`}
+      >
         <div className="flex items-center justify-between mb-1">
-          <h3 className="font-bold bg-gradient-to-r from-cyan-500 via-blue-500 to-blue-600 bg-clip-text text-transparent text-lg">
+          <h3
+            className={`font-bold bg-gradient-to-r bg-clip-text text-transparent text-lg ${
+              isDarkMode
+                ? "from-cyan-400 to-cyan-500"
+                : "from-cyan-500 via-blue-500 to-blue-600"
+            }`}
+          >
             Chép chính tả
           </h3>
-          <button className="p-2 text-cyan-500 hover:bg-cyan-50 rounded-lg transition-colors">
+          <button
+            className={`p-2 rounded-lg transition-colors ${
+              isDarkMode
+                ? "text-cyan-400 hover:bg-gray-700"
+                : "text-cyan-500 hover:bg-cyan-50"
+            }`}
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
-        <p className="text-sm text-cyan-700">
+        <p
+          className={`text-sm ${
+            isDarkMode ? "text-cyan-400" : "text-cyan-700"
+          }`}
+        >
           (Câu hỏi {currentIndex + 1}/{totalQuestions})
         </p>
         <div className="mt-2 flex items-center gap-2">
-          <div className="px-3 py-1 bg-gradient-to-r from-cyan-100 to-blue-100 text-cyan-700 rounded-full text-xs font-medium shadow-sm">
+          <div
+            className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm ${
+              isDarkMode
+                ? "bg-cyan-900/50 text-cyan-300"
+                : "bg-gradient-to-r from-cyan-100 to-blue-100 text-cyan-700"
+            }`}
+          >
             {correctCount}/{totalAnswered} đúng
           </div>
-          <div className="px-3 py-1 bg-gradient-to-r from-cyan-100 to-blue-100 text-cyan-700 rounded-full text-xs font-medium shadow-sm">
+          <div
+            className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm ${
+              isDarkMode
+                ? "bg-cyan-900/50 text-cyan-300"
+                : "bg-gradient-to-r from-cyan-100 to-blue-100 text-cyan-700"
+            }`}
+          >
             {totalAnswered > 0
               ? Math.round((correctCount / totalAnswered) * 100)
               : 0}
@@ -233,13 +275,27 @@ export default function DictationPractice({
       </div>
 
       {/* Question navigation */}
-      <div className="p-4 border-b border-cyan-50 bg-gradient-to-r from-white via-cyan-50/30 to-white flex items-center gap-2 flex-shrink-0">
+      <div
+        className={`p-4 border-b flex items-center gap-2 flex-shrink-0 transition-colors duration-300 ${
+          isDarkMode
+            ? "border-gray-700 bg-gray-800/50"
+            : "border-cyan-50 bg-gradient-to-r from-white via-cyan-50/30 to-white"
+        }`}
+      >
         <button
           onClick={handlePrev}
           disabled={currentIndex === 0}
-          className="p-2 rounded-lg hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 disabled:opacity-30 disabled:cursor-not-allowed border border-cyan-200 bg-white transition-all"
+          className={`p-2 rounded-lg border transition-all ${
+            isDarkMode
+              ? "border-gray-600 bg-gray-700 hover:bg-gray-600 disabled:opacity-30"
+              : "border-cyan-200 bg-white hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 disabled:opacity-30"
+          } disabled:cursor-not-allowed`}
         >
-          <ChevronLeft className="w-5 h-5 text-cyan-600" />
+          <ChevronLeft
+            className={`w-5 h-5 ${
+              isDarkMode ? "text-cyan-400" : "text-cyan-600"
+            }`}
+          />
         </button>
 
         <div className="flex-1 flex gap-2 overflow-x-auto">
@@ -253,7 +309,11 @@ export default function DictationPractice({
                   : results[idx]
                   ? "bg-gradient-to-r from-cyan-400 to-blue-400 text-white"
                   : idx < currentIndex
-                  ? "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-500 border border-gray-200"
+                  ? isDarkMode
+                    ? "bg-gray-700 text-gray-400 border border-gray-600"
+                    : "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-500 border border-gray-200"
+                  : isDarkMode
+                  ? "bg-gray-700 text-gray-300 border border-gray-600 hover:bg-gray-600"
                   : "bg-white text-gray-700 border border-cyan-200 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50"
               }`}
             >
@@ -265,15 +325,33 @@ export default function DictationPractice({
         <button
           onClick={handleNext}
           disabled={currentIndex === totalQuestions - 1}
-          className="p-2 rounded-lg hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 disabled:opacity-30 disabled:cursor-not-allowed border border-cyan-200 bg-white transition-all"
+          className={`p-2 rounded-lg border transition-all ${
+            isDarkMode
+              ? "border-gray-600 bg-gray-700 hover:bg-gray-600 disabled:opacity-30"
+              : "border-cyan-200 bg-white hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 disabled:opacity-30"
+          } disabled:cursor-not-allowed`}
         >
-          <ChevronRight className="w-5 h-5 text-cyan-600" />
+          <ChevronRight
+            className={`w-5 h-5 ${
+              isDarkMode ? "text-cyan-400" : "text-cyan-600"
+            }`}
+          />
         </button>
       </div>
 
       {/* Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto p-5 bg-gradient-to-b from-white via-cyan-50/20 to-blue-50/30">
-        <p className="text-sm text-cyan-700 mb-3">
+      <div
+        className={`flex-1 overflow-y-auto p-5 transition-colors duration-300 ${
+          isDarkMode
+            ? "bg-gradient-to-b from-gray-800 via-gray-800 to-gray-900"
+            : "bg-gradient-to-b from-white via-cyan-50/20 to-blue-50/30"
+        }`}
+      >
+        <p
+          className={`text-sm mb-3 ${
+            isDarkMode ? "text-cyan-400" : "text-cyan-700"
+          }`}
+        >
           Nhập những gì bạn nghe được (không cần gõ dấu câu)...
         </p>
 
@@ -285,8 +363,18 @@ export default function DictationPractice({
           onPlayingChange={setIsPlaying}
         />
 
-        <div className="mb-4 p-5 bg-gradient-to-r from-cyan-50/50 via-blue-50/50 to-indigo-50/50 rounded-2xl border border-cyan-100/50 shadow-sm">
-          <p className="text-center text-lg font-medium text-gray-900 tracking-wide leading-relaxed">
+        <div
+          className={`mb-4 p-5 rounded-2xl border shadow-sm transition-colors duration-300 ${
+            isDarkMode
+              ? "bg-gray-700/50 border-gray-600"
+              : "bg-gradient-to-r from-cyan-50/50 via-blue-50/50 to-indigo-50/50 border-cyan-100/50"
+          }`}
+        >
+          <p
+            className={`text-center text-lg font-medium tracking-wide leading-relaxed ${
+              isDarkMode ? "text-gray-100" : "text-gray-900"
+            }`}
+          >
             {maskText(currentTranscript.text, revealedChars)}
           </p>
         </div>
@@ -296,7 +384,11 @@ export default function DictationPractice({
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
             placeholder="Gõ câu trả lời của bạn ở đây..."
-            className="w-full h-32 p-4 border-2 border-cyan-200 rounded-xl focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 resize-none outline-none transition text-gray-900 bg-white"
+            className={`w-full h-32 p-4 border-2 rounded-xl resize-none outline-none transition ${
+              isDarkMode
+                ? "border-gray-600 bg-gray-700 text-gray-100 placeholder-gray-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-900/50"
+                : "border-cyan-200 bg-white text-gray-900 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
+            }`}
           />
         )}
 
@@ -304,33 +396,75 @@ export default function DictationPractice({
           <div className="space-y-3">
             <div className="flex items-center justify-center mb-3">
               {results[currentIndex] ? (
-                <div className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-cyan-100 to-blue-100 text-cyan-700 rounded-full shadow-sm">
+                <div
+                  className={`flex items-center gap-2 px-5 py-2 rounded-full shadow-sm ${
+                    isDarkMode
+                      ? "bg-emerald-900/50 text-emerald-300"
+                      : "bg-gradient-to-r from-cyan-100 to-blue-100 text-cyan-700"
+                  }`}
+                >
                   <Check className="w-5 h-5" />
                   <span className="font-semibold">Chính xác!</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 px-5 py-2 bg-red-50 text-red-600 rounded-full">
+                <div
+                  className={`flex items-center gap-2 px-5 py-2 rounded-full ${
+                    isDarkMode
+                      ? "bg-red-900/50 text-red-300"
+                      : "bg-red-50 text-red-600"
+                  }`}
+                >
                   <X className="w-5 h-5" />
                   <span className="font-semibold">Chưa chính xác</span>
                 </div>
               )}
             </div>
 
-            <div className="bg-gradient-to-r from-cyan-50/50 via-blue-50/50 to-indigo-50/50 border border-cyan-100 rounded-xl p-4 shadow-sm">
-              <p className="text-xs font-medium text-cyan-700 mb-2">
+            <div
+              className={`border rounded-xl p-4 shadow-sm transition-colors duration-300 ${
+                isDarkMode
+                  ? "bg-gray-700/50 border-gray-600"
+                  : "bg-gradient-to-r from-cyan-50/50 via-blue-50/50 to-indigo-50/50 border-cyan-100"
+              }`}
+            >
+              <p
+                className={`text-xs font-medium mb-2 ${
+                  isDarkMode ? "text-cyan-400" : "text-cyan-700"
+                }`}
+              >
                 Đáp án đúng:
               </p>
-              <p className="text-base text-gray-900">
+              <p
+                className={`text-base ${
+                  isDarkMode ? "text-gray-100" : "text-gray-900"
+                }`}
+              >
                 {currentTranscript.text}
               </p>
             </div>
 
             {!results[currentIndex] && (
-              <div className="bg-red-50/50 border border-red-100 rounded-xl p-4">
-                <p className="text-xs font-medium text-red-600 mb-2">
+              <div
+                className={`border rounded-xl p-4 ${
+                  isDarkMode
+                    ? "bg-red-900/20 border-red-800"
+                    : "bg-red-50/50 border-red-100"
+                }`}
+              >
+                <p
+                  className={`text-xs font-medium mb-2 ${
+                    isDarkMode ? "text-red-400" : "text-red-600"
+                  }`}
+                >
                   Câu trả lời của bạn:
                 </p>
-                <p className="text-base text-gray-900">{userInput}</p>
+                <p
+                  className={`text-base ${
+                    isDarkMode ? "text-gray-100" : "text-gray-900"
+                  }`}
+                >
+                  {userInput}
+                </p>
               </div>
             )}
           </div>
@@ -338,7 +472,13 @@ export default function DictationPractice({
       </div>
 
       {/* Bottom buttons */}
-      <div className="p-4 border-t border-cyan-100 bg-white space-y-2 flex-shrink-0">
+      <div
+        className={`p-4 border-t space-y-2 flex-shrink-0 transition-colors duration-300 ${
+          isDarkMode
+            ? "border-gray-700 bg-gray-800"
+            : "border-cyan-100 bg-white"
+        }`}
+      >
         {!showAnswer ? (
           <div className="flex gap-3">
             <button
