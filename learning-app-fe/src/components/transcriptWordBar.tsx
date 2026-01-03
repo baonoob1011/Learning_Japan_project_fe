@@ -8,12 +8,14 @@ interface TranscriptWordBarProps {
   transcripts: TranscriptDTO[];
   currentTimeMs: number;
   videoId?: string;
+  onVocabSaved?: () => void; // ADDED: Callback khi save vocab thành công
 }
 
 export default function TranscriptWordBar({
   transcripts,
   currentTimeMs,
   videoId,
+  onVocabSaved, // ADDED
 }: TranscriptWordBarProps) {
   // Tìm transcript hiện tại
   const currentTranscript = transcripts.find(
@@ -64,6 +66,7 @@ export default function TranscriptWordBar({
                     sourceLang="ja"
                     targetLang="vi"
                     videoId={videoId}
+                    onVocabSaved={onVocabSaved} // ADDED: Truyền callback xuống
                   />
                 </span>
                 {idx < tokenizeText(currentTranscript.text).length - 1 && " "}

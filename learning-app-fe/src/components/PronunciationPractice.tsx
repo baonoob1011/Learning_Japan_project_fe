@@ -11,6 +11,7 @@ import {
   RotateCcw,
   CheckCircle2,
   XCircle,
+  X,
 } from "lucide-react";
 import SegmentPlaybackButton from "./SegmentPlaybackButton";
 
@@ -260,19 +261,19 @@ export default function PronunciationPractice({
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return "text-emerald-600";
-    if (score >= 75) return "text-cyan-600";
-    if (score >= 60) return "text-cyan-500";
-    return "text-cyan-400";
+    if (score >= 75) return "text-cyan-500";
+    if (score >= 60) return "text-cyan-400";
+    return "text-gray-500";
   };
 
   const getScoreBgColor = (score: number) => {
     if (score >= 90)
-      return "bg-gradient-to-r from-emerald-50/50 via-green-50/50 to-emerald-50/50 border-emerald-100";
+      return "bg-gradient-to-r from-emerald-50/50 via-green-50/50 to-emerald-50/50 border-emerald-200";
     if (score >= 75)
-      return "bg-gradient-to-r from-cyan-50 via-blue-50 to-indigo-50 border-cyan-100";
+      return "bg-gradient-to-r from-cyan-50/50 via-blue-50/50 to-indigo-50/50 border-cyan-200";
     if (score >= 60)
       return "bg-gradient-to-r from-cyan-50/40 via-blue-50/40 to-cyan-50/40 border-cyan-100";
-    return "bg-gradient-to-r from-cyan-50/30 via-blue-50/30 to-cyan-50/30 border-cyan-100";
+    return "bg-gradient-to-r from-gray-50/50 via-gray-50/50 to-gray-50/50 border-gray-200";
   };
 
   const completedCount = results.filter((r) => r !== null).length;
@@ -290,30 +291,33 @@ export default function PronunciationPractice({
       {/* Header */}
       <div className="p-5 border-b border-cyan-100 bg-gradient-to-r from-cyan-50 via-blue-50 to-indigo-50 flex-shrink-0">
         <div className="flex items-center justify-between mb-1">
-          <h3 className="font-bold bg-gradient-to-r from-cyan-500 via-blue-500 to-blue-600 bg-clip-text text-transparent text-lg flex items-center gap-2">
+          <h3 className="font-bold bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent text-lg flex items-center gap-2">
             <Volume2 className="w-5 h-5 text-cyan-500" />
             Luyện phát âm
           </h3>
+          <button className="p-2 text-cyan-500 hover:bg-cyan-50 rounded-lg transition-colors">
+            <X className="w-5 h-5" />
+          </button>
         </div>
         <p className="text-sm text-cyan-700">
           (Câu {currentIndex + 1}/{totalQuestions})
         </p>
         <div className="mt-2 flex items-center gap-2">
-          <div className="px-3 py-1 bg-white text-cyan-700 rounded-full text-xs font-medium shadow-sm border border-cyan-100">
+          <div className="px-3 py-1 bg-gradient-to-r from-cyan-100 to-blue-100 text-cyan-700 rounded-full text-xs font-medium shadow-sm">
             {completedCount}/{totalQuestions} hoàn thành
           </div>
-          <div className="px-3 py-1 bg-white text-cyan-700 rounded-full text-xs font-medium shadow-sm border border-cyan-100">
+          <div className="px-3 py-1 bg-gradient-to-r from-cyan-100 to-blue-100 text-cyan-700 rounded-full text-xs font-medium shadow-sm">
             TB: {avgScore} điểm
           </div>
         </div>
       </div>
 
       {/* Question Navigation */}
-      <div className="p-4 border-b border-cyan-100 bg-white flex items-center gap-2 flex-shrink-0">
+      <div className="p-4 border-b border-cyan-50 bg-gradient-to-r from-white via-cyan-50/30 to-white flex items-center gap-2 flex-shrink-0">
         <button
           onClick={handlePrev}
           disabled={currentIndex === 0}
-          className="p-2 rounded-lg hover:bg-cyan-50 disabled:opacity-30 disabled:cursor-not-allowed border border-cyan-200 bg-white transition-all"
+          className="p-2 rounded-lg hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 disabled:opacity-30 disabled:cursor-not-allowed border border-cyan-200 bg-white transition-all"
         >
           <ChevronLeft className="w-5 h-5 text-cyan-600" />
         </button>
@@ -325,12 +329,12 @@ export default function PronunciationPractice({
               onClick={() => handleQuestionSelect(idx)}
               className={`min-w-[68px] h-11 rounded-lg font-medium text-sm px-3 flex-shrink-0 transition-all ${
                 idx === currentIndex
-                  ? "bg-gradient-to-r from-cyan-300 to-blue-300 text-white shadow-sm"
+                  ? "bg-gradient-to-r from-cyan-400 to-blue-400 text-white shadow-md"
                   : results[idx]
-                  ? "bg-gradient-to-r from-cyan-300 to-blue-300 text-white"
+                  ? "bg-gradient-to-r from-cyan-400 to-blue-400 text-white"
                   : idx < currentIndex
-                  ? "bg-gray-200 text-gray-500 border border-gray-200"
-                  : "bg-white text-gray-700 border border-cyan-200 hover:bg-cyan-50"
+                  ? "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-500 border border-gray-200"
+                  : "bg-white text-gray-700 border border-cyan-200 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50"
               }`}
             >
               Câu {idx + 1}
@@ -341,7 +345,7 @@ export default function PronunciationPractice({
         <button
           onClick={handleNext}
           disabled={currentIndex === totalQuestions - 1}
-          className="p-2 rounded-lg hover:bg-cyan-50 disabled:opacity-30 disabled:cursor-not-allowed border border-cyan-200 bg-white transition-all"
+          className="p-2 rounded-lg hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 disabled:opacity-30 disabled:cursor-not-allowed border border-cyan-200 bg-white transition-all"
         >
           <ChevronRight className="w-5 h-5 text-cyan-600" />
         </button>
@@ -350,11 +354,11 @@ export default function PronunciationPractice({
       {/* Content - Scrollable */}
       <div className="flex-1 overflow-y-auto p-5 bg-gradient-to-b from-white via-cyan-50/20 to-blue-50/30">
         {/* Current Sentence Display */}
-        <div className="mb-4 p-4 bg-gradient-to-r from-cyan-50 via-blue-50 to-indigo-50 rounded-2xl border border-cyan-100 shadow-sm">
+        <div className="mb-4 p-5 bg-gradient-to-r from-cyan-50/50 via-blue-50/50 to-indigo-50/50 rounded-2xl border border-cyan-100/50 shadow-sm">
           <p className="text-sm text-cyan-700 font-medium mb-2">
             Câu hiện tại:
           </p>
-          <p className="text-center text-lg font-bold text-gray-900 tracking-wide leading-relaxed">
+          <p className="text-center text-lg font-medium text-gray-900 tracking-wide leading-relaxed">
             {currentTranscript.text}
           </p>
         </div>
@@ -369,10 +373,10 @@ export default function PronunciationPractice({
 
         {/* Recording Section */}
         <div className="mb-6">
-          <div className="bg-gradient-to-r from-cyan-50 via-blue-50 to-indigo-50 rounded-2xl p-6 border border-cyan-100 shadow-sm">
+          <div className="bg-gradient-to-r from-cyan-50/50 via-blue-50/50 to-indigo-50/50 rounded-2xl p-6 border border-cyan-100/50 shadow-sm">
             {isRecording ? (
               <div className="text-center">
-                <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-cyan-300 to-blue-300 rounded-full flex items-center justify-center animate-pulse shadow-lg">
+                <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-cyan-400 to-blue-400 rounded-full flex items-center justify-center animate-pulse shadow-lg">
                   <Mic className="w-10 h-10 text-white" />
                 </div>
                 <p className="text-sm font-medium text-gray-700 mb-2">
@@ -417,7 +421,7 @@ export default function PronunciationPractice({
                 disabled={pronunciationScore !== null}
                 className="w-full"
               >
-                <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-cyan-300 to-blue-300 hover:from-cyan-400 hover:to-blue-400 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg hover:shadow-xl">
+                <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-cyan-400 to-blue-400 hover:from-cyan-500 hover:to-blue-500 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg hover:shadow-xl">
                   <Mic className="w-10 h-10 text-white" />
                 </div>
                 <p className="text-sm font-medium text-gray-700">
@@ -461,7 +465,7 @@ export default function PronunciationPractice({
 
             {/* Detailed Scores */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 bg-gradient-to-r from-cyan-50 via-blue-50 to-indigo-50 border border-cyan-100 rounded-xl shadow-sm">
+              <div className="p-3 bg-gradient-to-r from-cyan-50/50 via-blue-50/50 to-indigo-50/50 border border-cyan-100/50 rounded-xl shadow-sm">
                 <p className="text-xs text-cyan-700 font-medium mb-1">
                   Độ chính xác
                 </p>
@@ -474,7 +478,7 @@ export default function PronunciationPractice({
                   <span className="text-sm">/100</span>
                 </p>
               </div>
-              <div className="p-3 bg-gradient-to-r from-cyan-50 via-blue-50 to-indigo-50 border border-cyan-100 rounded-xl shadow-sm">
+              <div className="p-3 bg-gradient-to-r from-cyan-50/50 via-blue-50/50 to-indigo-50/50 border border-cyan-100/50 rounded-xl shadow-sm">
                 <p className="text-xs text-cyan-700 font-medium mb-1">
                   Độ hoàn thiện
                 </p>
@@ -490,7 +494,7 @@ export default function PronunciationPractice({
             </div>
 
             {/* Feedback */}
-            <div className="p-4 bg-gradient-to-r from-cyan-50 via-blue-50 to-indigo-50 border border-cyan-100 rounded-xl shadow-sm">
+            <div className="p-4 bg-gradient-to-r from-cyan-50/50 via-blue-50/50 to-indigo-50/50 border border-cyan-100/50 rounded-xl shadow-sm">
               <p className="text-xs font-medium text-cyan-700 mb-2">
                 Đánh giá:
               </p>
@@ -516,7 +520,7 @@ export default function PronunciationPractice({
           <div className="flex gap-3">
             <button
               onClick={handleRetry}
-              className="flex-1 px-4 py-3.5 bg-gradient-to-r from-cyan-300 to-blue-300 hover:from-cyan-400 hover:to-blue-400 text-white rounded-xl font-bold shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-3.5 bg-gradient-to-r from-cyan-400 to-blue-400 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl font-bold shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
             >
               <RotateCcw className="w-4 h-4" />
               Thử lại
@@ -524,7 +528,7 @@ export default function PronunciationPractice({
             <button
               onClick={handleNext}
               disabled={currentIndex === totalQuestions - 1}
-              className="flex-1 px-4 py-3.5 bg-gradient-to-r from-cyan-300 to-blue-300 hover:from-cyan-400 hover:to-blue-400 disabled:bg-gray-300 text-white rounded-xl font-bold shadow-md hover:shadow-lg disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-3.5 bg-gradient-to-r from-cyan-400 to-blue-400 hover:from-cyan-500 hover:to-blue-500 disabled:bg-gray-300 text-white rounded-xl font-bold shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none flex items-center justify-center gap-2"
             >
               Tiếp
               <ChevronRight className="w-4 h-4" />

@@ -134,13 +134,11 @@ export default function RegisterPage() {
       const data: RegisterRequest = { fullName, email, password };
       await register(data);
 
-      // Hiển thị thông báo thành công
       showNotification(
         "success",
-        "🎉 Đăng ký thành công! Chào mừng bạn đến với Corodomo!"
+        "🎉 Đăng ký thành công! Chào mừng bạn đến với NIBO Academy!"
       );
 
-      // Chuyển ngay sang login
       router.push("/login");
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -170,16 +168,14 @@ export default function RegisterPage() {
       <div className="w-full max-w-lg bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-cyan-100 p-8 space-y-6">
         {/* Logo */}
         <div className="flex justify-center mb-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <div className="relative">
               <div className="absolute inset-0 bg-cyan-400 rounded-full blur-md opacity-40"></div>
-              <div className="w-12 h-12 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full flex items-center justify-center relative z-10">
-                <span className="text-2xl">🐸</span>
-              </div>
-            </div>
-            <div className="text-left">
-              <div className="text-cyan-500 font-bold text-xl">Coro</div>
-              <div className="text-cyan-400 font-bold text-xl -mt-1">domo</div>
+              <img
+                src="/logo-cat.png"
+                alt="NIBO Academy Logo"
+                className="w-12 h-12 object-contain relative z-10 drop-shadow-lg"
+              />
             </div>
           </div>
         </div>

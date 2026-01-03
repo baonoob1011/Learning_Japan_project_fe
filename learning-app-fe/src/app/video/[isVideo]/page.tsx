@@ -42,6 +42,9 @@ export default function VideoLearningPage() {
   const [isDarkMode] = useState(false);
   const [currentStreak] = useState(4);
 
+  // NEW: State để trigger refresh vocabulary sidebar
+  const [vocabRefreshTrigger, setVocabRefreshTrigger] = useState(0);
+
   // Refs for auto-scroll and YouTube player
   const transcriptRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -63,6 +66,13 @@ export default function VideoLearningPage() {
       .padStart(2, "0");
     const seconds = (totalSeconds % 60).toString().padStart(2, "0");
     return `${minutes}:${seconds}`;
+  };
+
+  // NEW: Callback khi vocab được save thành công
+  const handleVocabSaved = () => {
+    setVocabRefreshTrigger((prev) => prev + 1);
+    // Đảm bảo vocab sidebar được mở khi save vocab
+    setShowVocabSidebar(true);
   };
 
   // Find active transcript
@@ -263,14 +273,14 @@ export default function VideoLearningPage() {
 
         {/* Content Area - Below Header */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Vocabulary Sidebar - Below Header */}
+          {/* Vocabulary Sidebar - Below Header - UPDATED với refreshTrigger */}
           {showVocabSidebar && (
             <VocabularySidebar
               videoId={videoId}
               isVisible={showVocabSidebar}
               onToggle={() => setShowVocabSidebar(false)}
-              selectedText={selectedText}
               onAddFromSelection={setSelectedText}
+              refreshTrigger={vocabRefreshTrigger}
             />
           )}
 
@@ -287,7 +297,7 @@ export default function VideoLearningPage() {
             </button>
           )}
 
-          {/* Video Player Section */}
+          {/* Video Player Section - UPDATED với onVocabSaved callback */}
           {(viewMode === "video" ||
             viewMode === "dictation" ||
             viewMode === "pronunciation") && (
@@ -302,6 +312,7 @@ export default function VideoLearningPage() {
               hideWordBar={
                 viewMode === "dictation" || viewMode === "pronunciation"
               }
+              onVocabSaved={handleVocabSaved}
             />
           )}
 
@@ -343,7 +354,7 @@ export default function VideoLearningPage() {
                       }}
                       className={`group p-3 rounded-lg cursor-pointer transition-all duration-300 border ${
                         isActive
-                          ? "bg-gradient-to-r from-cyan-50 via-cyan-100 to-teal-50 border-cyan-300 shadow-lg scale-105"
+                          ? "bg-gradient-to-r from-cyan-50 via-blue-50 to-indigo-50 border-cyan-300 shadow-lg scale-105"
                           : "hover:bg-cyan-50 border-transparent hover:border-cyan-200 bg-white/70"
                       }`}
                       onClick={() => handleSeekToTime(t.startOffset)}

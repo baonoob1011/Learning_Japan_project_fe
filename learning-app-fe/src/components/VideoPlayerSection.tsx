@@ -14,6 +14,7 @@ interface VideoPlayerSectionProps {
   onSeekHandled: () => void;
   onTimeUpdate: (timeMs: number) => void;
   hideWordBar?: boolean;
+  onVocabSaved?: () => void;
 }
 
 export default function VideoPlayerSection({
@@ -25,6 +26,7 @@ export default function VideoPlayerSection({
   onSeekHandled,
   onTimeUpdate,
   hideWordBar = false,
+  onVocabSaved,
 }: VideoPlayerSectionProps) {
   return (
     <div
@@ -42,6 +44,7 @@ export default function VideoPlayerSection({
             onSeekHandled={onSeekHandled}
             onTimeUpdate={onTimeUpdate}
             hideWordBar={hideWordBar}
+            onVocabSaved={onVocabSaved}
           />
 
           {/* Video Info */}

@@ -9,6 +9,7 @@ interface HoverTranslateWordProps {
   sourceLang?: string;
   targetLang?: string;
   videoId?: string;
+  onVocabSaved?: () => void; // ADDED: Callback khi save thành công
 }
 
 const translateCache = new Map<string, TranslateResult>();
@@ -18,6 +19,7 @@ export default function HoverTranslateWord({
   sourceLang = "ja",
   targetLang = "vi",
   videoId,
+  onVocabSaved, // ADDED
 }: HoverTranslateWordProps) {
   const [loading, setLoading] = useState(false);
   const [translateData, setTranslateData] = useState<TranslateResult | null>(
@@ -39,11 +41,9 @@ export default function HoverTranslateWord({
         const rect = wordRef.current!.getBoundingClientRect();
         const tooltipRect = tooltipRef.current!.getBoundingClientRect();
 
-        // Calculate position relative to viewport
         const top = rect.bottom + window.scrollY + 8;
         let left = rect.left + window.scrollX + rect.width / 2;
 
-        // Check if tooltip would go off-screen to the right
         const tooltipWidth = tooltipRect.width || 280;
         const viewportWidth = window.innerWidth;
 
@@ -51,7 +51,6 @@ export default function HoverTranslateWord({
           left = viewportWidth - tooltipWidth / 2 - 10 + window.scrollX;
         }
 
-        // Check if tooltip would go off-screen to the left
         if (left - tooltipWidth / 2 < 10) {
           left = tooltipWidth / 2 + 10 + window.scrollX;
         }
@@ -59,7 +58,6 @@ export default function HoverTranslateWord({
         setPosition({ top, left });
       };
 
-      // Initial position update with slight delay to ensure tooltip is rendered
       setTimeout(updatePosition, 0);
 
       const scrollContainer = document.getElementById(
@@ -157,6 +155,12 @@ export default function HoverTranslateWord({
       setSavingVocab(true);
       await vocabService.save(translateData.surface);
       setSavedSuccess(true);
+
+      // ADDED: Gọi callback để cập nhật VocabularySidebar
+      if (onVocabSaved) {
+        onVocabSaved();
+      }
+
       setTimeout(() => setSavedSuccess(false), 2000);
     } catch (err) {
       console.error("Save vocab error", err);
@@ -179,12 +183,12 @@ export default function HoverTranslateWord({
             setOpen(false);
           }
         }}
-        className="cursor-pointer hover:bg-yellow-300/40 active:bg-yellow-400/50 px-1 py-0.5 rounded-md transition-all duration-200 select-none hover:shadow-sm active:scale-95 inline-block"
+        className="cursor-pointer hover:bg-cyan-300/40 active:bg-cyan-400/50 px-1 py-0.5 rounded-md transition-all duration-200 select-none hover:shadow-sm active:scale-95 inline-block"
       >
         {word}
       </span>
 
-      {/* TOOLTIP POPUP - Absolute Position, Always Below */}
+      {/* TOOLTIP POPUP */}
       {open && (
         <div
           ref={tooltipRef}
@@ -195,13 +199,11 @@ export default function HoverTranslateWord({
             transform: "translateX(-50%)",
           }}
         >
-          {/* Arrow pointing up */}
-          <div className="absolute left-1/2 -translate-x-1/2 -top-2 w-0 h-0 border-l-8 border-r-8 border-l-transparent border-r-transparent border-b-8 border-b-emerald-400 drop-shadow-xl"></div>
+          <div className="absolute left-1/2 -translate-x-1/2 -top-2 w-0 h-0 border-l-8 border-r-8 border-l-transparent border-r-transparent border-b-8 border-b-cyan-400 drop-shadow-xl"></div>
 
-          {/* Popup Content - Compact */}
-          <div className="bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden w-[280px] max-h-[400px] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
-            {/* Header - Compact */}
-            <div className="bg-gradient-to-r from-emerald-400 to-teal-400 px-3 py-2 flex items-center justify-between">
+          <div className="bg-white rounded-xl shadow-2xl border border-cyan-200 overflow-hidden w-[280px] max-h-[400px] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-cyan-400 to-cyan-500 px-3 py-2 flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 {translateData?.audioUrl && (
                   <button
@@ -329,12 +331,12 @@ export default function HoverTranslateWord({
               </button>
             </div>
 
-            {/* Body - Compact */}
+            {/* Body */}
             <div className="p-3">
               {loading ? (
                 <div className="flex flex-col items-center justify-center gap-2 text-gray-400 py-6">
                   <svg
-                    className="animate-spin h-5 w-5 text-emerald-500"
+                    className="animate-spin h-5 w-5 text-cyan-500"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -357,7 +359,6 @@ export default function HoverTranslateWord({
                 </div>
               ) : translateData ? (
                 <div className="space-y-2">
-                  {/* Original Word */}
                   {translateData.surface && (
                     <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-lg p-2 border border-cyan-200">
                       <div className="text-lg font-bold text-cyan-700">
@@ -366,21 +367,19 @@ export default function HoverTranslateWord({
                     </div>
                   )}
 
-                  {/* Translation */}
-                  <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg p-2 border border-emerald-200">
-                    <div className="text-base font-bold text-emerald-700">
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-2 border border-blue-200">
+                    <div className="text-base font-bold text-blue-700">
                       {translateData.translated}
                     </div>
                   </div>
 
-                  {/* Always show full details */}
                   {translateData.reading && (
-                    <div className="bg-pink-50 rounded-lg px-2 py-1.5 border border-pink-200">
+                    <div className="bg-cyan-50 rounded-lg px-2 py-1.5 border border-cyan-200">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-semibold text-pink-700 uppercase">
+                        <span className="text-[10px] font-semibold text-cyan-700 uppercase">
                           KANJI
                         </span>
-                        <span className="text-xs font-bold text-pink-600">
+                        <span className="text-xs font-bold text-cyan-600">
                           {translateData.reading}
                         </span>
                       </div>
@@ -388,12 +387,12 @@ export default function HoverTranslateWord({
                   )}
 
                   {translateData.romaji && (
-                    <div className="bg-purple-50 rounded-lg px-2 py-1.5 border border-purple-200">
+                    <div className="bg-indigo-50 rounded-lg px-2 py-1.5 border border-indigo-200">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-semibold text-purple-700 uppercase">
+                        <span className="text-[10px] font-semibold text-indigo-700 uppercase">
                           ROMAJI
                         </span>
-                        <span className="text-xs font-medium text-purple-600">
+                        <span className="text-xs font-medium text-indigo-600">
                           {translateData.romaji}
                         </span>
                       </div>
@@ -405,7 +404,7 @@ export default function HoverTranslateWord({
                       <span className="text-[10px] font-semibold text-gray-500 uppercase">
                         LOẠI:
                       </span>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold text-blue-700 bg-blue-100 border border-blue-300">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold text-cyan-700 bg-cyan-100 border border-cyan-300">
                         {translateData.partOfSpeech}
                       </span>
                     </div>
@@ -418,7 +417,7 @@ export default function HoverTranslateWord({
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="flex items-center justify-center gap-2 w-full text-xs font-semibold text-blue-600 hover:text-blue-700 py-2 px-2 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all duration-200 border border-blue-200"
+                    className="flex items-center justify-center gap-2 w-full text-xs font-semibold text-cyan-600 hover:text-cyan-700 py-2 px-2 bg-cyan-50 hover:bg-cyan-100 rounded-lg transition-all duration-200 border border-cyan-200"
                   >
                     <img
                       src="https://mazii.net/favicon.ico"

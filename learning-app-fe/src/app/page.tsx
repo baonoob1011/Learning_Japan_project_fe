@@ -7,9 +7,9 @@ export default function HomePage() {
   const { user, isAuthenticated, logout } = useAuthStore();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-100">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50">
       {/* Header */}
-      <header className="flex justify-between items-center px-8 py-4 bg-white/80 backdrop-blur-sm shadow-lg">
+      <header className="flex justify-between items-center px-8 py-4 bg-white/80 backdrop-blur-sm shadow-lg border-b border-cyan-100">
         <div className="flex items-center gap-3">
           <div className="relative">
             <div className="absolute inset-0 bg-cyan-400 rounded-full blur-md opacity-40"></div>
@@ -19,7 +19,7 @@ export default function HomePage() {
               className="w-12 h-12 object-contain relative z-10 drop-shadow-lg"
             />
           </div>
-          <span className="text-2xl font-bold bg-gradient-to-r from-cyan-500 via-blue-500 to-teal-500 bg-clip-text text-transparent">
+          <span className="text-2xl font-bold bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent">
             NIBO ACADEMY
           </span>
         </div>
@@ -41,7 +41,7 @@ export default function HomePage() {
           ) : (
             <Link
               href="/login"
-              className="px-5 py-2.5 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-500 hover:to-blue-600 text-white rounded-lg text-sm font-medium shadow-md hover:shadow-lg transition-all"
+              className="px-5 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white rounded-lg text-sm font-medium shadow-md hover:shadow-lg transition-all"
             >
               Đăng nhập
             </Link>
@@ -52,7 +52,7 @@ export default function HomePage() {
       {/* Main */}
       <main className="max-w-6xl mx-auto px-6 py-16">
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-cyan-600 via-blue-600 to-teal-600 bg-clip-text text-transparent mb-4">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent mb-4">
             📚 Chào mừng đến với NIBO Academy
           </h1>
 
@@ -72,12 +72,12 @@ export default function HomePage() {
           <FeatureCard
             title="📊 Thi thử"
             desc="Thi thử như thi thật, chấm điểm tự động."
-            gradient="from-blue-400 to-blue-500"
+            gradient="from-cyan-500 to-cyan-600"
           />
           <FeatureCard
             title="🤖 AI hỗ trợ"
             desc="AI giải thích đáp án, gợi ý cách học hiệu quả."
-            gradient="from-teal-400 to-teal-500"
+            gradient="from-cyan-400 to-blue-500"
           />
         </div>
 
@@ -85,14 +85,14 @@ export default function HomePage() {
         <div className="flex gap-4 justify-center">
           <Link
             href="/courses"
-            className="px-8 py-4 bg-gradient-to-r from-cyan-400 via-blue-500 to-teal-500 hover:from-cyan-500 hover:via-blue-600 hover:to-teal-600 text-white rounded-2xl font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
+            className="px-8 py-4 bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white rounded-2xl font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
           >
             Bắt đầu học
           </Link>
 
           <Link
             href="/exams"
-            className="px-8 py-4 border-3 border-cyan-400 bg-white text-cyan-600 hover:bg-cyan-50 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+            className="px-8 py-4 border-2 border-cyan-400 bg-white text-cyan-600 hover:bg-cyan-50 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
           >
             Làm bài kiểm tra
           </Link>
@@ -114,7 +114,7 @@ function FeatureCard({
   return (
     <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all transform hover:scale-105 border border-cyan-100">
       <div
-        className={`inline-block px-4 py-2 bg-gradient-to-r ${gradient} rounded-xl mb-4`}
+        className={`inline-block px-4 py-2 bg-gradient-to-r ${gradient} rounded-xl mb-4 shadow-md`}
       >
         <h3 className="text-xl font-bold text-white">{title}</h3>
       </div>

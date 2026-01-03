@@ -1,14 +1,8 @@
 "use client";
-import React, { useState } from "react";
-import {
-  Volume2,
-  Copy,
-  Edit,
-  Trash2,
-  Plus,
-  X,
-  ChevronLeft,
-} from "lucide-react";
+import { vocabService, VocabResponse } from "@/services/vocabService";
+
+import React, { useState, useEffect } from "react";
+import { Volume2, Copy, Edit, Trash2, ChevronLeft } from "lucide-react";
 
 export interface VocabularyItem {
   id: string;
@@ -21,33 +15,60 @@ interface VocabularySidebarProps {
   videoId: string;
   isVisible?: boolean;
   onToggle?: () => void;
-  selectedText?: string;
   onAddFromSelection?: (word: string) => void;
   isDarkMode?: boolean;
+  refreshTrigger?: number; // ADDED: Trigger để force refresh
 }
 
 export default function VocabularySidebar({
   videoId,
   isVisible = true,
   onToggle,
-  selectedText,
   onAddFromSelection,
   isDarkMode = false,
+  refreshTrigger = 0, // ADDED
 }: VocabularySidebarProps) {
-  const [vocabularyList, setVocabularyList] = useState<VocabularyItem[]>([
-    { id: "1", word: "みな", reading: "mina", translation: "Tất cả" },
-    { id: "2", word: "元気", reading: "genki", translation: "Khỏe mạnh" },
-    { id: "3", word: "今日", reading: "kyou", translation: "Hôm nay" },
-    { id: "4", word: "パイト", reading: "paito", translation: "Part-time" },
-    { id: "5", word: "サイズ", reading: "saizu", translation: "Size" },
-  ]);
+  const mapApiToUI = (v: VocabResponse): VocabularyItem => ({
+    id: v.id,
+    word: v.surface,
+    reading: v.reading || v.romaji || "",
+    translation: v.translated,
+  });
 
+  const [vocabularyList, setVocabularyList] = useState<VocabularyItem[]>([]);
+  const [loading, setLoading] = useState(false);
   const [editingVocab, setEditingVocab] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
     word: "",
     reading: "",
     translation: "",
   });
+
+  // Fetch vocabs function
+  const fetchVocabs = async () => {
+    try {
+      setLoading(true);
+      const res = await vocabService.getMyVocabs();
+      setVocabularyList(res.map(mapApiToUI));
+    } catch (err) {
+      console.error("Fetch vocab failed", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initial fetch
+  useEffect(() => {
+    if (!isVisible) return;
+    fetchVocabs();
+  }, [videoId, isVisible]);
+
+  // ADDED: Refresh khi có refreshTrigger thay đổi
+  useEffect(() => {
+    if (refreshTrigger > 0 && isVisible) {
+      fetchVocabs();
+    }
+  }, [refreshTrigger, isVisible]);
 
   const handlePlayAudio = (word: string) => {
     if ("speechSynthesis" in window) {
@@ -61,26 +82,15 @@ export default function VocabularySidebar({
     navigator.clipboard.writeText(word);
   };
 
-  const handleDeleteVocab = (id: string) => {
-    setVocabularyList(vocabularyList.filter((v) => v.id !== id));
-  };
+  const handleDeleteVocab = async (id: string) => {
+    const vocab = vocabularyList.find((v) => v.id === id);
+    if (!vocab) return;
 
-  const handleAddVocab = () => {
-    const newVocab: VocabularyItem = {
-      id: Date.now().toString(),
-      word: selectedText || "新しい",
-      reading: "",
-      translation: "",
-    };
-    setVocabularyList([newVocab, ...vocabularyList]);
-    setEditingVocab(newVocab.id);
-    setEditForm({
-      word: newVocab.word,
-      reading: newVocab.reading,
-      translation: newVocab.translation,
-    });
-    if (onAddFromSelection && selectedText) {
-      onAddFromSelection("");
+    try {
+      await vocabService.remove(vocab.word);
+      setVocabularyList((prev) => prev.filter((v) => v.id !== id));
+    } catch (e) {
+      console.error("Delete vocab failed", e);
     }
   };
 
@@ -93,11 +103,23 @@ export default function VocabularySidebar({
     });
   };
 
-  const handleSaveEdit = (id: string) => {
-    setVocabularyList(
-      vocabularyList.map((v) => (v.id === id ? { ...v, ...editForm } : v))
-    );
-    setEditingVocab(null);
+  const handleSaveEdit = async (id: string) => {
+    const vocab = vocabularyList.find((v) => v.id === id);
+    if (!vocab) return;
+
+    try {
+      await vocabService.updateMeaning({
+        surface: vocab.word,
+        translated: editForm.translation,
+      });
+
+      setVocabularyList((prev) =>
+        prev.map((v) => (v.id === id ? { ...v, ...editForm } : v))
+      );
+      setEditingVocab(null);
+    } catch (e) {
+      console.error("Update vocab failed", e);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -109,27 +131,31 @@ export default function VocabularySidebar({
   return (
     <div
       className={`relative w-80 h-full border-r flex flex-col ${
-        isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+        isDarkMode
+          ? "bg-gray-800 border-gray-700"
+          : "bg-white/90 backdrop-blur-sm border-cyan-100"
       }`}
     >
       {/* Header */}
       <div
         className={`p-4 border-b flex-shrink-0 ${
-          isDarkMode ? "border-gray-700" : "border-gray-200"
+          isDarkMode ? "border-gray-700" : "border-cyan-100"
         }`}
       >
         <div className="flex items-center justify-between w-full px-1">
           <div className="flex items-center gap-2 flex-shrink-0">
             <div
               className={`p-1.5 rounded ${
-                isDarkMode ? "bg-gray-700" : "bg-gray-100"
+                isDarkMode ? "bg-gray-700" : "bg-cyan-50"
               }`}
             >
               <span className="text-lg">📖</span>
             </div>
             <h2
               className={`text-lg font-bold ${
-                isDarkMode ? "text-gray-100" : "text-gray-900"
+                isDarkMode
+                  ? "text-gray-100"
+                  : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
               }`}
             >
               Từ vựng
@@ -140,7 +166,7 @@ export default function VocabularySidebar({
             className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${
               isDarkMode
                 ? "text-gray-400 hover:bg-gray-700"
-                : "text-gray-400 hover:bg-gray-100"
+                : "text-cyan-500 hover:bg-cyan-50"
             }`}
             title="Đóng từ vựng"
           >
@@ -149,52 +175,45 @@ export default function VocabularySidebar({
         </div>
       </div>
 
-      {/* Sub-header with count and add button */}
+      {/* Sub-header with count */}
       <div
-        className={`px-4 py-3 border-b flex-shrink-0 ${
-          isDarkMode ? "border-gray-700" : "border-gray-200"
+        className={`px-4 py-3 border-b flex-shrink-0 flex items-center justify-between ${
+          isDarkMode ? "border-gray-700" : "border-cyan-100"
         }`}
-      ></div>
-
-      {/* Selection Tip Banner */}
-      {selectedText && (
-        <div
-          className={`mx-4 mt-4 p-3 border rounded-lg ${
-            isDarkMode
-              ? "bg-emerald-900/30 border-emerald-700"
-              : "bg-emerald-50 border-emerald-200"
+      >
+        <span
+          className={`text-sm ${
+            isDarkMode ? "text-gray-400" : "text-gray-600"
           }`}
         >
-          <div className="flex items-start gap-2">
-            <div className="flex-1">
-              <p
-                className={`text-xs font-medium mb-1 ${
-                  isDarkMode ? "text-emerald-400" : "text-emerald-700"
-                }`}
-              >
-                💡 Tips! Văn bản đã chọn:
-              </p>
-              <p
-                className={`text-sm font-bold mb-2 ${
-                  isDarkMode ? "text-gray-100" : "text-gray-900"
-                }`}
-              >
-                {selectedText}
-              </p>
-            </div>
+          {vocabularyList.length} từ vựng
+        </span>
+        {loading && (
+          <div className="flex items-center gap-2">
+            <svg
+              className="animate-spin h-4 w-4 text-cyan-500"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <span className="text-xs text-cyan-500">Đang tải...</span>
           </div>
-          <button
-            onClick={handleAddVocab}
-            className={`w-full px-3 py-2 text-sm rounded-lg font-medium transition-colors ${
-              isDarkMode
-                ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                : "bg-emerald-500 hover:bg-emerald-600 text-white"
-            }`}
-          >
-            + Thêm vào từ vựng
-          </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Vocabulary List */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
@@ -203,8 +222,8 @@ export default function VocabularySidebar({
             key={vocab.id}
             className={`group border rounded-lg p-3 transition-all ${
               isDarkMode
-                ? "bg-gray-700/50 border-gray-600 hover:border-emerald-500"
-                : "bg-white border-gray-200 hover:border-emerald-300 hover:shadow-sm"
+                ? "bg-gray-700/50 border-gray-600 hover:border-cyan-500"
+                : "bg-white border-cyan-100 hover:border-cyan-300 hover:shadow-sm"
             }`}
           >
             {editingVocab === vocab.id ? (
@@ -216,10 +235,10 @@ export default function VocabularySidebar({
                   onChange={(e) =>
                     setEditForm({ ...editForm, word: e.target.value })
                   }
-                  className={`w-full px-2 py-1 text-lg font-bold border rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+                  className={`w-full px-2 py-1 text-lg font-bold border rounded focus:outline-none focus:ring-2 focus:ring-cyan-400 ${
                     isDarkMode
-                      ? "bg-gray-800 border-emerald-600 text-gray-100"
-                      : "bg-white border-emerald-300 text-gray-900"
+                      ? "bg-gray-800 border-cyan-600 text-gray-100"
+                      : "bg-white border-cyan-300 text-gray-900"
                   }`}
                   placeholder="Từ"
                 />
@@ -229,10 +248,10 @@ export default function VocabularySidebar({
                   onChange={(e) =>
                     setEditForm({ ...editForm, reading: e.target.value })
                   }
-                  className={`w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+                  className={`w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-cyan-400 ${
                     isDarkMode
-                      ? "bg-gray-800 border-emerald-600 text-gray-100"
-                      : "bg-white border-emerald-300 text-gray-900"
+                      ? "bg-gray-800 border-cyan-600 text-gray-100"
+                      : "bg-white border-cyan-300 text-gray-900"
                   }`}
                   placeholder="Phiên âm"
                 />
@@ -242,17 +261,17 @@ export default function VocabularySidebar({
                   onChange={(e) =>
                     setEditForm({ ...editForm, translation: e.target.value })
                   }
-                  className={`w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+                  className={`w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-cyan-400 ${
                     isDarkMode
-                      ? "bg-gray-800 border-emerald-600 text-gray-100"
-                      : "bg-white border-emerald-300 text-gray-900"
+                      ? "bg-gray-800 border-cyan-600 text-gray-100"
+                      : "bg-white border-cyan-300 text-gray-900"
                   }`}
                   placeholder="Nghĩa tiếng Việt"
                 />
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleSaveEdit(vocab.id)}
-                    className="flex-1 px-3 py-1.5 bg-emerald-500 text-white text-sm rounded hover:bg-emerald-600 transition-colors"
+                    className="flex-1 px-3 py-1.5 bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white text-sm rounded transition-colors"
                   >
                     Lưu
                   </button>
@@ -289,7 +308,7 @@ export default function VocabularySidebar({
                     </p>
                     <p
                       className={`text-sm font-medium ${
-                        isDarkMode ? "text-emerald-400" : "text-emerald-700"
+                        isDarkMode ? "text-cyan-400" : "text-cyan-700"
                       }`}
                     >
                       {vocab.translation}
@@ -300,15 +319,15 @@ export default function VocabularySidebar({
                 {/* Action Buttons */}
                 <div
                   className={`flex items-center gap-2 mt-3 pt-3 border-t ${
-                    isDarkMode ? "border-gray-600" : "border-gray-100"
+                    isDarkMode ? "border-gray-600" : "border-cyan-100"
                   }`}
                 >
                   <button
                     onClick={() => handlePlayAudio(vocab.word)}
                     className={`p-2 rounded transition-colors ${
                       isDarkMode
-                        ? "text-gray-400 hover:text-emerald-400 hover:bg-emerald-900/30"
-                        : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
+                        ? "text-gray-400 hover:text-cyan-400 hover:bg-cyan-900/30"
+                        : "text-gray-600 hover:text-cyan-600 hover:bg-cyan-50"
                     }`}
                     title="Phát âm"
                   >
@@ -353,12 +372,12 @@ export default function VocabularySidebar({
           </div>
         ))}
 
-        {vocabularyList.length === 0 && (
+        {vocabularyList.length === 0 && !loading && (
           <div className="text-center py-12 px-4">
             <div className="mb-4 flex justify-center">
               <div
                 className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                  isDarkMode ? "bg-yellow-900/30" : "bg-yellow-100"
+                  isDarkMode ? "bg-cyan-900/30" : "bg-cyan-100"
                 }`}
               >
                 <span className="text-3xl">💡</span>
@@ -383,15 +402,19 @@ export default function VocabularySidebar({
         .custom-scrollbar::-webkit-scrollbar-track {
           background: ${isDarkMode
             ? "rgba(55, 65, 81, 0.5)"
-            : "rgba(243, 244, 246, 0.5)"};
+            : "rgba(207, 250, 254, 0.3)"};
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: ${isDarkMode ? "#4b5563" : "#d1d5db"};
+          background: ${isDarkMode
+            ? "#4b5563"
+            : "linear-gradient(to bottom, #22d3ee, #06b6d4)"};
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: ${isDarkMode ? "#6b7280" : "#9ca3af"};
+          background: ${isDarkMode
+            ? "#6b7280"
+            : "linear-gradient(to bottom, #06b6d4, #0891b2)"};
         }
       `}</style>
     </div>

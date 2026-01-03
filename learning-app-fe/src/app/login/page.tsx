@@ -53,7 +53,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 px-4">
       <div className="w-full max-w-md bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 space-y-6 border border-cyan-100">
         {/* Logo */}
         <div className="flex justify-center mb-4">
@@ -69,7 +69,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent text-center">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent text-center">
           Chào mừng đến với NIBO Academy
         </h2>
         <p className="text-gray-600 text-center text-sm">
@@ -78,7 +78,7 @@ export default function LoginPage() {
 
         {/* Social login buttons */}
         <div className="space-y-3">
-          <button className="w-full bg-gradient-to-r from-cyan-400 via-blue-500 to-teal-400 text-white py-3 rounded-xl flex items-center justify-center gap-2 hover:from-cyan-500 hover:via-blue-600 hover:to-teal-500 transition font-medium shadow-lg hover:shadow-xl transform hover:scale-105">
+          <button className="w-full bg-gradient-to-r from-cyan-400 to-cyan-500 text-white py-3 rounded-xl flex items-center justify-center gap-2 hover:from-cyan-500 hover:to-cyan-600 transition font-medium shadow-lg hover:shadow-xl transform hover:scale-105">
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
                 fill="currentColor"
@@ -199,7 +199,7 @@ export default function LoginPage() {
           <button
             onClick={handleLogin}
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-cyan-400 via-blue-500 to-teal-500 hover:from-cyan-500 hover:via-blue-600 hover:to-teal-600 text-white py-3 rounded-xl transition disabled:opacity-50 font-medium shadow-xl hover:shadow-2xl transform hover:scale-105"
+            className="w-full bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white py-3 rounded-xl transition disabled:opacity-50 font-medium shadow-xl hover:shadow-2xl transform hover:scale-105"
           >
             {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
           </button>

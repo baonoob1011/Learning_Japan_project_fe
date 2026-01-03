@@ -18,6 +18,7 @@ interface Props {
   onSeekHandled?: () => void;
   onTimeUpdate?: (timeMs: number) => void;
   hideWordBar?: boolean;
+  onVocabSaved?: () => void; // ADDED: Callback khi save vocab thành công
 }
 
 const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
@@ -29,6 +30,7 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
       onSeekHandled,
       onTimeUpdate,
       hideWordBar = false,
+      onVocabSaved, // ADDED
     },
     ref
   ) => {
@@ -151,6 +153,7 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
             transcripts={transcripts}
             currentTimeMs={currentTimeMs}
             videoId={videoId}
+            onVocabSaved={onVocabSaved} // ADDED: Truyền callback xuống
           />
         )}
       </>
