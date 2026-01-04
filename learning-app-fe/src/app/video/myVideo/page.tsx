@@ -371,7 +371,7 @@ export default function SavedVideosPage() {
                 Bắt đầu lưu video để học sau
               </p>
               <button
-                onClick={() => router.push("/")}
+                onClick={() => router.push("/video")}
                 className="px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-full font-medium hover:shadow-lg transition-all flex items-center gap-2"
               >
                 <Video className="w-5 h-5" />
