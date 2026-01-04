@@ -38,6 +38,9 @@ export default function DictationPractice({
   const [results, setResults] = useState<boolean[]>(
     new Array(transcripts.length).fill(false)
   );
+  const [attempted, setAttempted] = useState<boolean[]>(
+    new Array(transcripts.length).fill(false)
+  );
   const [isPlaying, setIsPlaying] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -187,14 +190,25 @@ export default function DictationPractice({
 
     const isCorrect = normalizedInput === normalizedAnswer;
     const newResults = [...results];
+    const newAttempted = [...attempted];
     newResults[currentIndex] = isCorrect;
+    newAttempted[currentIndex] = true;
     setResults(newResults);
+    setAttempted(newAttempted);
     setShowAnswer(true);
   };
 
   const handleNext = () => {
     if (currentIndex < totalQuestions - 1) {
       stopPlayback();
+
+      // Mark current question as skipped if not attempted
+      if (!showAnswer) {
+        const newAttempted = [...attempted];
+        newAttempted[currentIndex] = true;
+        setAttempted(newAttempted);
+      }
+
       setCurrentIndex(currentIndex + 1);
       setUserInput("");
       setRevealedChars(new Set());
@@ -205,6 +219,14 @@ export default function DictationPractice({
   const handlePrev = () => {
     if (currentIndex > 0) {
       stopPlayback();
+
+      // Mark current question as skipped if not attempted
+      if (!showAnswer) {
+        const newAttempted = [...attempted];
+        newAttempted[currentIndex] = true;
+        setAttempted(newAttempted);
+      }
+
       setCurrentIndex(currentIndex - 1);
       setUserInput("");
       setRevealedChars(new Set());
@@ -221,6 +243,14 @@ export default function DictationPractice({
 
   const handleQuestionSelect = (idx: number) => {
     stopPlayback();
+
+    // Mark current question as skipped if moving to a different question and not attempted
+    if (idx !== currentIndex && !showAnswer) {
+      const newAttempted = [...attempted];
+      newAttempted[currentIndex] = true;
+      setAttempted(newAttempted);
+    }
+
     setCurrentIndex(idx);
     setUserInput("");
     setRevealedChars(new Set());
@@ -228,7 +258,31 @@ export default function DictationPractice({
   };
 
   const correctCount = results.filter(Boolean).length;
-  const totalAnswered = results.filter((_, i) => i <= currentIndex).length;
+  const totalAnswered = attempted.filter(Boolean).length;
+
+  // Get button style based on status
+  const getButtonStyle = (idx: number) => {
+    if (idx === currentIndex) {
+      return "bg-gradient-to-r from-cyan-400 to-blue-400 text-white shadow-md";
+    }
+
+    if (attempted[idx]) {
+      if (results[idx]) {
+        // Correct answer
+        return "bg-gradient-to-r from-cyan-400 to-blue-400 text-white";
+      } else {
+        // Wrong or skipped
+        return isDarkMode
+          ? "bg-red-900/50 text-red-300 border border-red-800"
+          : "bg-red-100 text-red-700 border border-red-300";
+      }
+    }
+
+    // Not attempted yet
+    return isDarkMode
+      ? "bg-gray-700 text-gray-300 border border-gray-600 hover:bg-yellow-600 hover:border-yellow-500 hover:text-white hover:shadow-md hover:scale-105 transition-all duration-200"
+      : "bg-white text-gray-700 border border-cyan-200 hover:bg-yellow-100 hover:border-yellow-400 hover:shadow-md hover:scale-105 transition-all duration-200";
+  };
 
   return (
     <div
@@ -339,19 +393,9 @@ export default function DictationPractice({
             <button
               key={idx}
               onClick={() => handleQuestionSelect(idx)}
-              className={`min-w-[68px] h-11 rounded-lg font-medium text-sm px-3 flex-shrink-0 transition-all ${
-                idx === currentIndex
-                  ? "bg-gradient-to-r from-cyan-400 to-blue-400 text-white shadow-md"
-                  : results[idx]
-                  ? "bg-gradient-to-r from-cyan-400 to-blue-400 text-white"
-                  : idx < currentIndex
-                  ? isDarkMode
-                    ? "bg-gray-700 text-gray-400 border border-gray-600"
-                    : "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-500 border border-gray-200"
-                  : isDarkMode
-                  ? "bg-gray-700 text-gray-300 border border-gray-600 hover:bg-gray-600"
-                  : "bg-white text-gray-700 border border-cyan-200 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50"
-              }`}
+              className={`min-w-[68px] h-11 rounded-lg font-medium text-sm px-3 flex-shrink-0 ${getButtonStyle(
+                idx
+              )}`}
             >
               Câu {idx + 1}
             </button>
