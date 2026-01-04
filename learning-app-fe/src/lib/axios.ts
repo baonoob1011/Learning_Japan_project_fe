@@ -20,6 +20,13 @@ export const axiosClient = axios.create({
   timeout: 10000,
 });
 
+// ----- Axios client cho upload (timeout 10 phút) -----
+export const axiosUpload = axios.create({
+  baseURL:
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1",
+  timeout: 600000, // 10 phút (600,000ms)
+});
+
 // ----- Custom error -----
 export class HttpClientError extends Error {
   constructor(message: string) {
@@ -38,8 +45,50 @@ const getTokenExpiration = (token: string) => {
   }
 };
 
-// ----- Axios interceptor tự động refresh token -----
+// ----- Axios interceptor tự động refresh token cho axiosClient -----
 axiosClient.interceptors.request.use(async (config) => {
+  const { accessToken, refreshToken, logout, setTokens, user } =
+    useAuthStore.getState();
+
+  if (!accessToken) return config;
+
+  const now = Date.now();
+  const exp = getTokenExpiration(accessToken);
+
+  // Đảm bảo config.headers đúng type AxiosHeaders
+  if (!config.headers) {
+    config.headers = axios.AxiosHeaders.from({});
+  } else if (!(config.headers instanceof axios.AxiosHeaders)) {
+    config.headers = axios.AxiosHeaders.from(config.headers);
+  }
+
+  // Nếu token sắp hết hạn <1 phút, refresh token
+  if (exp - now < 60 * 1000 && refreshToken && user?.username) {
+    try {
+      const result = await refreshTokenApi({
+        username: user.username,
+        refreshToken,
+      });
+
+      setTokens({
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+      });
+
+      config.headers.set("Authorization", `Bearer ${result.accessToken}`);
+    } catch (err) {
+      console.error("Refresh token failed", err);
+      logout();
+    }
+  } else {
+    config.headers.set("Authorization", `Bearer ${accessToken}`);
+  }
+
+  return config;
+});
+
+// ----- Axios interceptor tự động refresh token cho axiosUpload -----
+axiosUpload.interceptors.request.use(async (config) => {
   const { accessToken, refreshToken, logout, setTokens, user } =
     useAuthStore.getState();
 

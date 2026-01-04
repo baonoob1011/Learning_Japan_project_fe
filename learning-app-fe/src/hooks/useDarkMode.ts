@@ -1,8 +1,8 @@
-// hooks/useDarkMode.ts
-import { useState, useEffect, useRef } from "react";
+"use client";
+import { useState, useEffect } from "react";
 
 export function useDarkMode() {
-  const isInitialMount = useRef(true);
+  const [mounted, setMounted] = useState(false);
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     // Chỉ đọc localStorage trên client, return false cho server
@@ -18,15 +18,11 @@ export function useDarkMode() {
   });
 
   useEffect(() => {
-    // Skip initial mount để tránh warning
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-  }, []);
+    // Set mounted để tránh hydration error
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setMounted(true);
 
-  useEffect(() => {
-    // Chỉ lắng nghe storage changes từ tabs khác
+    // Lắng nghe storage changes từ tabs khác
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "darkMode" && e.newValue !== null) {
         setIsDarkMode(e.newValue === "true");
@@ -49,5 +45,5 @@ export function useDarkMode() {
     });
   };
 
-  return { isDarkMode, toggleDarkMode };
+  return { isDarkMode, toggleDarkMode, mounted };
 }

@@ -1,4 +1,4 @@
-import { axiosClient } from "@/lib/axios";
+import { axiosClient, axiosUpload } from "@/lib/axios";
 import { ApiResponse } from "@/services/api-types";
 import { API_ENDPOINTS } from "@/config/api";
 import { useAuthStore } from "@/stores/authStore";
@@ -6,6 +6,30 @@ import axios from "axios";
 import { http } from "@/lib/http";
 
 /* ===================== TYPES ===================== */
+
+export interface UploadYoutubeVideoRequest {
+  url: string;
+  videoTag: VideoTag;
+  level: JLPTLevel;
+} /* ===================== ENUM ===================== */
+
+export type JLPTLevel = "N5" | "N4" | "N3" | "N2" | "N1";
+
+export type VideoTag =
+  | "NEWS"
+  | "BEGINNER"
+  | "PODCAST"
+  | "TECHNOLOGY"
+  | "BUSINESS"
+  | "TED"
+  | "GRAMMAR"
+  | "ANIME"
+  | "SHORT_VIDEO"
+  | "MOVIE"
+  | "TRAVEL"
+  | "CULTURE"
+  | "FOOD"
+  | "KIDS";
 
 export interface YoutubeVideoSummary {
   id: string;
@@ -54,6 +78,29 @@ async function fetchAPI<T>(url: string): Promise<T> {
 /* ===================== SERVICE ===================== */
 
 export const youtubeService = {
+  /**
+   * Upload video - sử dụng axiosUpload với timeout 10 phút
+   */
+  async uploadVideo(request: UploadYoutubeVideoRequest): Promise<void> {
+    try {
+      const res = await axiosUpload.post<ApiResponse<void>>(
+        API_ENDPOINTS.VIDEO.UPLOAD,
+        request,
+        {
+          headers: getHeaders(),
+        }
+      );
+
+      if (!res.data.success) {
+        throw new Error(res.data.message || "Upload failed");
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message ?? error.message);
+      }
+      throw error;
+    }
+  },
   /**
    * Lấy danh sách tất cả video
    * ❌ Không cache
