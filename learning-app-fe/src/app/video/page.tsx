@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import UserDropdown from "@/components/UserDropdown";
+import LoadingCat from "@/components/LoadingCat";
 import UploadVideoModal from "@/components/UploadVideoModal";
 import React, { useState, useEffect } from "react";
 import {
@@ -315,66 +316,13 @@ export default function VideoListPage() {
   if (!mounted) {
     return (
       <div className="flex h-screen bg-gray-900">
-        <div className="flex-1 flex flex-col items-center justify-center gap-6">
-          {/* Cute Cat Image Loading */}
-          <div className="relative">
-            <div className="animate-bounce">
-              <img
-                src="/cat-load.png"
-                alt="Loading cat"
-                className="w-32 h-32 object-contain drop-shadow-2xl"
-              />
-            </div>
-
-            {/* Running effect - dust clouds */}
-            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 flex gap-2">
-              <div
-                className="w-3 h-3 bg-cyan-300 rounded-full animate-ping"
-                style={{ animationDelay: "0s" }}
-              ></div>
-              <div
-                className="w-3 h-3 bg-cyan-300 rounded-full animate-ping"
-                style={{ animationDelay: "0.2s" }}
-              ></div>
-              <div
-                className="w-3 h-3 bg-cyan-300 rounded-full animate-ping"
-                style={{ animationDelay: "0.4s" }}
-              ></div>
-            </div>
-          </div>
-
-          {/* Loading text with animated dots */}
-          <div className="text-center">
-            <h3 className="text-2xl font-bold text-cyan-400 mb-2 flex items-center gap-2">
-              Đang tải
-              <span className="flex gap-1">
-                <span
-                  className="animate-bounce"
-                  style={{ animationDelay: "0s" }}
-                >
-                  .
-                </span>
-                <span
-                  className="animate-bounce"
-                  style={{ animationDelay: "0.2s" }}
-                >
-                  .
-                </span>
-                <span
-                  className="animate-bounce"
-                  style={{ animationDelay: "0.4s" }}
-                >
-                  .
-                </span>
-              </span>
-            </h3>
-            <p className="text-gray-400 text-sm">Vui lòng đợi trong giây lát</p>
-          </div>
-
-          {/* Progress bar */}
-          <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full animate-pulse"></div>
-          </div>
+        <div className="flex-1 flex items-center justify-center">
+          <LoadingCat
+            size="xl"
+            isDark={true}
+            message="Đang tải"
+            subMessage="Vui lòng đợi trong giây lát"
+          />
         </div>
       </div>
     );
@@ -522,76 +470,12 @@ export default function VideoListPage() {
           <div className="flex-1 overflow-y-auto p-6">
             {loading ? (
               <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  {/* Cute Cat Image Loading */}
-                  <div className="relative mb-6">
-                    <div className="animate-bounce">
-                      <img
-                        src="/cat-load.png"
-                        alt="Loading cat"
-                        className="w-28 h-28 object-contain mx-auto drop-shadow-xl"
-                      />
-                    </div>
-
-                    {/* Running effect - dust clouds */}
-                    <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 flex gap-2">
-                      <div
-                        className={`w-2 h-2 rounded-full animate-ping ${
-                          isDarkMode ? "bg-cyan-500" : "bg-cyan-400"
-                        }`}
-                        style={{ animationDelay: "0s" }}
-                      ></div>
-                      <div
-                        className={`w-2 h-2 rounded-full animate-ping ${
-                          isDarkMode ? "bg-cyan-500" : "bg-cyan-400"
-                        }`}
-                        style={{ animationDelay: "0.2s" }}
-                      ></div>
-                      <div
-                        className={`w-2 h-2 rounded-full animate-ping ${
-                          isDarkMode ? "bg-cyan-500" : "bg-cyan-400"
-                        }`}
-                        style={{ animationDelay: "0.4s" }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  {/* Loading text */}
-                  <h3
-                    className={`text-xl font-bold mb-1 flex items-center gap-2 justify-center ${
-                      isDarkMode ? "text-cyan-400" : "text-cyan-600"
-                    }`}
-                  >
-                    Đang tải video
-                    <span className="flex gap-1">
-                      <span
-                        className="animate-bounce"
-                        style={{ animationDelay: "0s" }}
-                      >
-                        .
-                      </span>
-                      <span
-                        className="animate-bounce"
-                        style={{ animationDelay: "0.2s" }}
-                      >
-                        .
-                      </span>
-                      <span
-                        className="animate-bounce"
-                        style={{ animationDelay: "0.4s" }}
-                      >
-                        .
-                      </span>
-                    </span>
-                  </h3>
-                  <p
-                    className={`text-sm ${
-                      isDarkMode ? "text-gray-500" : "text-gray-500"
-                    }`}
-                  >
-                    Vui lòng đợi trong giây lát
-                  </p>
-                </div>
+                <LoadingCat
+                  size="lg"
+                  isDark={isDarkMode}
+                  message="Đang tải video"
+                  subMessage="Vui lòng đợi trong giây lát"
+                />
               </div>
             ) : error ? (
               <div className="flex items-center justify-center h-64">

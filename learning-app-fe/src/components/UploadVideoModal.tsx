@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Video, Star, Tag, Sparkles, Loader2 } from "lucide-react";
 import { youtubeService } from "@/services/videoService";
+import LoadingCat from "@/components/LoadingCat";
 
 export interface VideoUploadData {
   youtubeUrl: string;
@@ -143,70 +144,15 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
         } rounded-2xl w-full max-w-2xl shadow-2xl transform transition-all my-8 relative`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Loading Overlay with Cute Cat Image */}
+        {/* Loading Overlay with LoadingCat Component */}
         {isLoading && (
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm rounded-2xl z-50 flex flex-col items-center justify-center gap-4">
-            {/* Cute Cat Image Animation */}
-            <div className="relative">
-              <div className="animate-bounce">
-                <img
-                  src="/cat-load.png"
-                  alt="Loading cat"
-                  className="w-24 h-24 object-contain drop-shadow-2xl"
-                />
-              </div>
-
-              {/* Running effect - dust clouds */}
-              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1.5">
-                <div
-                  className="w-2 h-2 bg-cyan-400 rounded-full animate-ping"
-                  style={{ animationDelay: "0s" }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-cyan-400 rounded-full animate-ping"
-                  style={{ animationDelay: "0.2s" }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-cyan-400 rounded-full animate-ping"
-                  style={{ animationDelay: "0.4s" }}
-                ></div>
-              </div>
-            </div>
-
-            {/* Loading text */}
-            <div className="text-center">
-              <h3 className="text-xl font-bold text-white mb-1 flex items-center gap-2 justify-center">
-                Đang xử lý
-                <span className="flex gap-1">
-                  <span
-                    className="animate-bounce"
-                    style={{ animationDelay: "0s" }}
-                  >
-                    .
-                  </span>
-                  <span
-                    className="animate-bounce"
-                    style={{ animationDelay: "0.2s" }}
-                  >
-                    .
-                  </span>
-                  <span
-                    className="animate-bounce"
-                    style={{ animationDelay: "0.4s" }}
-                  >
-                    .
-                  </span>
-                </span>
-              </h3>
-              <p className="text-cyan-200 text-xs">
-                Vui lòng đợi trong giây lát
-              </p>
-            </div>
-
-            {/* Progress bar */}
-            <div className="w-48 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full animate-pulse"></div>
-            </div>
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm rounded-2xl z-50 flex items-center justify-center">
+            <LoadingCat
+              size="md"
+              isDark={true}
+              message="Đang xử lý"
+              subMessage="Vui lòng đợi trong giây lát"
+            />
           </div>
         )}
 

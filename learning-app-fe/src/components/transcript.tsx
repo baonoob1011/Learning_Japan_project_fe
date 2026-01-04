@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { tokenizeJapanese } from "@/utils/japaneseTokenizer";
-import { Word } from "./Word";
+import { Word } from "./word";
 
 interface TranscriptProps {
   text: string;
