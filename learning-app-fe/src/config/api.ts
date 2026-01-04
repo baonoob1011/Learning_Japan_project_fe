@@ -12,6 +12,7 @@ export const API_ENDPOINTS = {
   REFRESH_TOKEN: "/auth/refresh-token",
   LOG_OUT: "/auth/logout",
   VIDEO: {
+    SAVE: (videoId: string) => `/youtube/${videoId}`,
     VIEW: "/youtube",
     VIEW_BY_ID: "/transcripts",
   },

@@ -9,7 +9,7 @@ interface HoverTranslateWordProps {
   sourceLang?: string;
   targetLang?: string;
   videoId?: string;
-  onVocabSaved?: () => void; // ADDED: Callback khi save thành công
+  onVocabSaved?: () => void;
 }
 
 const translateCache = new Map<string, TranslateResult>();
@@ -19,7 +19,7 @@ export default function HoverTranslateWord({
   sourceLang = "ja",
   targetLang = "vi",
   videoId,
-  onVocabSaved, // ADDED
+  onVocabSaved,
 }: HoverTranslateWordProps) {
   const [loading, setLoading] = useState(false);
   const [translateData, setTranslateData] = useState<TranslateResult | null>(
@@ -34,53 +34,54 @@ export default function HoverTranslateWord({
   const tooltipRef = useRef<HTMLDivElement>(null);
   const wordRef = useRef<HTMLSpanElement>(null);
 
-  // Update position when popup opens
+  // Calculate and update position
+  const updatePosition = () => {
+    if (!wordRef.current || !tooltipRef.current) return;
+
+    const rect = wordRef.current.getBoundingClientRect();
+    const tooltipRect = tooltipRef.current.getBoundingClientRect();
+
+    const top = rect.bottom + window.scrollY + 8;
+    let left = rect.left + window.scrollX + rect.width / 2;
+
+    const tooltipWidth = tooltipRect.width || 280;
+    const viewportWidth = window.innerWidth;
+
+    if (left + tooltipWidth / 2 > viewportWidth - 10) {
+      left = viewportWidth - tooltipWidth / 2 - 10 + window.scrollX;
+    }
+
+    if (left - tooltipWidth / 2 < 10) {
+      left = tooltipWidth / 2 + 10 + window.scrollX;
+    }
+
+    setPosition({ top, left });
+  };
+
+  // Update position when popup opens or data changes
   useEffect(() => {
-    if (open && wordRef.current && tooltipRef.current) {
-      const updatePosition = () => {
-        const rect = wordRef.current!.getBoundingClientRect();
-        const tooltipRect = tooltipRef.current!.getBoundingClientRect();
-
-        const top = rect.bottom + window.scrollY + 8;
-        let left = rect.left + window.scrollX + rect.width / 2;
-
-        const tooltipWidth = tooltipRect.width || 280;
-        const viewportWidth = window.innerWidth;
-
-        if (left + tooltipWidth / 2 > viewportWidth - 10) {
-          left = viewportWidth - tooltipWidth / 2 - 10 + window.scrollX;
-        }
-
-        if (left - tooltipWidth / 2 < 10) {
-          left = tooltipWidth / 2 + 10 + window.scrollX;
-        }
-
-        setPosition({ top, left });
-      };
-
-      setTimeout(updatePosition, 0);
+    if (open) {
+      // Initial position calculation - use requestAnimationFrame for immediate update
+      requestAnimationFrame(() => {
+        updatePosition();
+      });
 
       const scrollContainer = document.getElementById(
         "video-content-scroll-container"
       );
-      const updateOnScroll = () => {
-        if (wordRef.current && tooltipRef.current) {
-          updatePosition();
-        }
-      };
 
       if (scrollContainer) {
-        scrollContainer.addEventListener("scroll", updateOnScroll);
+        scrollContainer.addEventListener("scroll", updatePosition);
       }
-      window.addEventListener("scroll", updateOnScroll, true);
-      window.addEventListener("resize", updateOnScroll);
+      window.addEventListener("scroll", updatePosition, true);
+      window.addEventListener("resize", updatePosition);
 
       return () => {
         if (scrollContainer) {
-          scrollContainer.removeEventListener("scroll", updateOnScroll);
+          scrollContainer.removeEventListener("scroll", updatePosition);
         }
-        window.removeEventListener("scroll", updateOnScroll, true);
-        window.removeEventListener("resize", updateOnScroll);
+        window.removeEventListener("scroll", updatePosition, true);
+        window.removeEventListener("resize", updatePosition);
       };
     }
   }, [open, translateData]);
@@ -110,16 +111,28 @@ export default function HoverTranslateWord({
   const handleTranslate = async () => {
     const cacheKey = `${word}_${sourceLang}_${targetLang}_${videoId ?? ""}`;
 
+    // Calculate initial position immediately
+    if (wordRef.current) {
+      const rect = wordRef.current.getBoundingClientRect();
+      const initialTop = rect.bottom + window.scrollY + 8;
+      const initialLeft = rect.left + window.scrollX + rect.width / 2;
+      setPosition({ top: initialTop, left: initialLeft });
+    }
+
+    // Check cache first
     if (translateCache.has(cacheKey)) {
-      setTranslateData(translateCache.get(cacheKey)!);
+      const cachedData = translateCache.get(cacheKey)!;
+      setTranslateData(cachedData);
       setOpen(true);
       return;
     }
 
-    try {
-      setLoading(true);
-      setOpen(true);
+    // Open popup immediately with loading state
+    setOpen(true);
+    setLoading(true);
+    setTranslateData(null);
 
+    try {
       const res = await translateService.translate({
         videoId,
         text: word,
@@ -156,12 +169,16 @@ export default function HoverTranslateWord({
       await vocabService.save(translateData.surface);
       setSavedSuccess(true);
 
-      // ADDED: Gọi callback để cập nhật VocabularySidebar
+      // Call callback to refresh vocab sidebar AND open it
       if (onVocabSaved) {
         onVocabSaved();
       }
 
-      setTimeout(() => setSavedSuccess(false), 2000);
+      // Close the translation popup after saving
+      setTimeout(() => {
+        setSavedSuccess(false);
+        setOpen(false);
+      }, 1000);
     } catch (err) {
       console.error("Save vocab error", err);
       alert("Lỗi khi lưu từ vựng");
@@ -192,17 +209,18 @@ export default function HoverTranslateWord({
       {open && (
         <div
           ref={tooltipRef}
-          className="absolute z-[9999] transition-all duration-200"
+          className="fixed z-[9999] transition-all duration-150"
           style={{
             top: `${position.top}px`,
             left: `${position.left}px`,
             transform: "translateX(-50%)",
+            pointerEvents: "auto",
           }}
         >
           <div className="absolute left-1/2 -translate-x-1/2 -top-2 w-0 h-0 border-l-8 border-r-8 border-l-transparent border-r-transparent border-b-8 border-b-cyan-400 drop-shadow-xl"></div>
 
-          <div className="bg-white rounded-xl shadow-2xl border border-cyan-200 overflow-hidden w-[280px] max-h-[400px] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
-            {/* Header */}
+          <div className="bg-white rounded-xl shadow-2xl border border-cyan-200 overflow-hidden w-[280px] max-h-[400px] overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
+            {/* Header - Always visible */}
             <div className="bg-gradient-to-r from-cyan-400 to-cyan-500 px-3 py-2 flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 {translateData?.audioUrl && (
@@ -232,7 +250,8 @@ export default function HoverTranslateWord({
                     e.stopPropagation();
                     handleCopy();
                   }}
-                  className={`text-white hover:bg-white/20 rounded-lg p-1 transition-all duration-200 ${
+                  disabled={!translateData?.surface}
+                  className={`text-white hover:bg-white/20 rounded-lg p-1 transition-all duration-200 disabled:opacity-50 ${
                     copiedSuccess ? "bg-white/30" : ""
                   }`}
                 >
@@ -273,8 +292,8 @@ export default function HoverTranslateWord({
                   e.stopPropagation();
                   handleSaveVocab();
                 }}
-                disabled={savingVocab}
-                className={`text-white hover:bg-white/20 rounded-lg p-1 transition-all duration-200 ${
+                disabled={savingVocab || !translateData?.surface}
+                className={`text-white hover:bg-white/20 rounded-lg p-1 transition-all duration-200 disabled:opacity-50 ${
                   savedSuccess ? "bg-white/30" : ""
                 }`}
               >

@@ -18,7 +18,7 @@ interface Props {
   onSeekHandled?: () => void;
   onTimeUpdate?: (timeMs: number) => void;
   hideWordBar?: boolean;
-  onVocabSaved?: () => void; // ADDED: Callback khi save vocab thành công
+  onVocabSaved?: () => void;
 }
 
 const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
@@ -30,13 +30,33 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
       onSeekHandled,
       onTimeUpdate,
       hideWordBar = false,
-      onVocabSaved, // ADDED
+      onVocabSaved,
     },
     ref
   ) => {
     const playerRef = useRef<YoutubePlayerHandle | null>(null);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const [currentTimeMs, setCurrentTimeMs] = useState(0);
+    const isPlayerReadyRef = useRef(false); // ✅ Track player ready state
+
+    // ✅ Log mount/unmount
+    useEffect(() => {
+      console.log(
+        "🎬 YoutubePlayerWithTranscript MOUNTED for videoId:",
+        videoId
+      );
+      return () => {
+        console.log(
+          "🧹 YoutubePlayerWithTranscript UNMOUNTED for videoId:",
+          videoId
+        );
+        // ✅ Cleanup interval on unmount
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+      };
+    }, [videoId]);
 
     // Expose playerRef to parent component
     useImperativeHandle(
@@ -48,11 +68,11 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
             playerRef.current?.seekTo(seconds, allowSeekAhead),
           playVideo: () => playerRef.current?.playVideo(),
           pauseVideo: () => playerRef.current?.pauseVideo(),
+          destroy: () => playerRef.current?.destroy(),
           playSegment: (startMs: number, endMs: number) =>
             playerRef.current?.playSegment(startMs, endMs),
           stopSegment: () => playerRef.current?.stopSegment(),
 
-          // ✅ Expose onDictationSegmentEnd property
           get onDictationSegmentEnd() {
             return playerRef.current?.onDictationSegmentEnd;
           },
@@ -65,7 +85,6 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
             }
           },
 
-          // ✅ NEW: Expose onPronunciationSegmentEnd property
           get onPronunciationSegmentEnd() {
             return playerRef.current?.onPronunciationSegmentEnd;
           },
@@ -87,16 +106,29 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
      * HANDLE PLAYER READY
      ====================== */
     const handlePlayerReady = () => {
-      console.log("✅ YoutubePlayerWithTranscript: Player ready");
+      console.log(
+        "✅ YoutubePlayerWithTranscript: Player ready for videoId:",
+        videoId
+      );
 
-      // Clear previous interval if exists
+      isPlayerReadyRef.current = true;
+
+      // ✅ Clear previous interval if exists
       if (intervalRef.current) {
+        console.log("🧹 Clearing previous time tracking interval");
         clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
 
-      // Start tracking time
+      // Reset current time
+      setCurrentTimeMs(0);
+
+      // ✅ Start tracking time with proper error handling
       intervalRef.current = setInterval(() => {
-        if (!playerRef.current) return;
+        if (!playerRef.current || !isPlayerReadyRef.current) {
+          console.warn("⏸️ Player not ready, skipping time update");
+          return;
+        }
 
         try {
           const time = playerRef.current.getCurrentTime();
@@ -110,14 +142,17 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
           console.warn("Error getting current time:", error);
         }
       }, 300);
+
+      console.log("⏱️ Time tracking interval started");
     };
 
     /** ======================
      * SEEK FROM OUTSIDE
      ====================== */
     useEffect(() => {
-      if (seekTimeMs != null && playerRef.current) {
+      if (seekTimeMs != null && playerRef.current && isPlayerReadyRef.current) {
         try {
+          console.log("⏩ Seeking to", seekTimeMs, "ms");
           playerRef.current.seekTo(seekTimeMs / 1000, true);
           playerRef.current.playVideo();
           onSeekHandled?.();
@@ -128,32 +163,43 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
     }, [seekTimeMs, onSeekHandled]);
 
     /** ======================
-     * CLEANUP
+     * CLEANUP ON VIDEO CHANGE
      ====================== */
     useEffect(() => {
+      // ✅ Reset ready state when videoId changes
+      isPlayerReadyRef.current = false;
+      setCurrentTimeMs(0);
+
       return () => {
+        console.log("🧹 Cleaning up for videoId:", videoId);
+        isPlayerReadyRef.current = false;
+
+        // ✅ Clear interval
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
+          intervalRef.current = null;
         }
       };
-    }, []);
+    }, [videoId]);
 
     return (
       <>
-        {/* VIDEO */}
+        {/* ✅ VIDEO - Force re-mount with key */}
         <YoutubePlayer
+          key={`youtube-${videoId}`}
           ref={playerRef}
           videoId={videoId}
           onPlayerReady={handlePlayerReady}
         />
 
-        {/* WORD BAR - Chỉ hiện khi hideWordBar = false */}
+        {/* WORD BAR - Only show when hideWordBar = false */}
         {!hideWordBar && (
           <TranscriptWordBar
+            key={`wordbar-${videoId}`}
             transcripts={transcripts}
             currentTimeMs={currentTimeMs}
             videoId={videoId}
-            onVocabSaved={onVocabSaved} // ADDED: Truyền callback xuống
+            onVocabSaved={onVocabSaved}
           />
         )}
       </>

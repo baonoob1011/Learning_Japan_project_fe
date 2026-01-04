@@ -3,6 +3,7 @@ import { ApiResponse } from "@/services/api-types";
 import { API_ENDPOINTS } from "@/config/api";
 import { useAuthStore } from "@/stores/authStore";
 import axios from "axios";
+import { http } from "@/lib/http";
 
 /* ===================== TYPES ===================== */
 
@@ -68,5 +69,16 @@ export const youtubeService = {
   async getById(id: string): Promise<void> {
     await fetchAPI<void>(`${API_ENDPOINTS.VIDEO.VIEW}/${id}`);
     console.log(`[API CALLED] Video detail: ${id}`);
+  },
+
+  saveVideo(videoId: string): Promise<void> {
+    return http.post<void>(API_ENDPOINTS.VIDEO.SAVE(videoId));
+  },
+
+  /**
+   * Remove video đã save
+   */
+  removeSavedVideo(videoId: string): Promise<void> {
+    return http.delete<void>(API_ENDPOINTS.VIDEO.SAVE(videoId));
   },
 };

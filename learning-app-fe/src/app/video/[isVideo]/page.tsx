@@ -1,7 +1,7 @@
 "use client";
 import UserDropdown from "@/components/UserDropdown";
 import { useDarkMode } from "@/hooks/useDarkMode";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import VideoPlayerSection from "@/components/VideoPlayerSection";
 import DictationPractice from "@/components/Dictation";
@@ -20,15 +20,13 @@ import {
 
 type ViewMode = "video" | "dictation" | "pronunciation";
 
-export default function VideoLearningPage() {
+function VideoLearningContent({ videoId }: { videoId: string }) {
   const router = useRouter();
-  const pathname = usePathname();
-  const videoId = pathname.split("/").pop() || "";
   const [seekTimeMs, setSeekTimeMs] = useState<number | null>(null);
   const [currentTimeMs, setCurrentTimeMs] = useState<number>(0);
 
   const [showSidebar, setShowSidebar] = useState(true);
-  const [showVocabSidebar, setShowVocabSidebar] = useState(true);
+  const [showVocabSidebar, setShowVocabSidebar] = useState(false); // Changed to false
   const [viewMode, setViewMode] = useState<ViewMode>("video");
   const [transcripts, setTranscripts] = useState<TranscriptDTO[]>([]);
   const [videoTitle, setVideoTitle] = useState<string>("");
@@ -61,11 +59,16 @@ export default function VideoLearningPage() {
 
   const handleVocabSaved = () => {
     setVocabRefreshTrigger((prev) => prev + 1);
+    // Auto-open vocab sidebar when a word is saved
     setShowVocabSidebar(true);
   };
 
-  const activeTranscript = transcripts.find(
-    (t) => currentTimeMs >= t.startOffset && currentTimeMs < t.endOffset
+  const activeTranscript = useMemo(
+    () =>
+      transcripts.find(
+        (t) => currentTimeMs >= t.startOffset && currentTimeMs < t.endOffset
+      ),
+    [transcripts, currentTimeMs]
   );
 
   useEffect(() => {
@@ -99,15 +102,17 @@ export default function VideoLearningPage() {
 
     async function fetchTranscript() {
       try {
+        console.log("🔄 Fetching transcripts for videoId:", videoId);
         const data: YoutubeTranscriptResponse =
           await transcriptService.getTranscripts(videoId);
 
         if (isMounted) {
+          console.log("✅ Transcripts loaded:", data.transcriptsDTOS.length);
           setTranscripts(data.transcriptsDTOS);
           setVideoTitle(data.title);
         }
       } catch (err) {
-        console.error("Failed to fetch transcripts", err);
+        console.error("❌ Failed to fetch transcripts", err);
         if (isMounted) {
           setTranscripts([]);
           setVideoTitle("Không tải được video");
@@ -119,6 +124,7 @@ export default function VideoLearningPage() {
 
     return () => {
       isMounted = false;
+      console.log("🧹 Cleanup VideoLearningContent for videoId:", videoId);
     };
   }, [videoId]);
 
@@ -149,11 +155,14 @@ export default function VideoLearningPage() {
     };
   }, []);
 
+  // Enhanced text selection handler
   useEffect(() => {
     const handleSelection = () => {
       const selection = window.getSelection();
       const text = selection?.toString().trim();
-      if (text && text.length > 0 && text.length < 50) {
+
+      // Only show vocab sidebar if text is selected and valid
+      if (text && text.length > 0 && text.length < 100) {
         setSelectedText(text);
         setShowVocabSidebar(true);
       }
@@ -268,7 +277,6 @@ export default function VideoLearningPage() {
             </button>
           </div>
 
-          {/* ✅ FIXED: Added z-[10000] to wrapper */}
           <div className="absolute right-4 top-1/2 -translate-y-1/2 z-[10000]">
             <UserDropdown
               isDark={isDarkMode}
@@ -278,23 +286,29 @@ export default function VideoLearningPage() {
         </div>
 
         <div className="flex-1 flex overflow-hidden relative">
+          {/* Show vocab sidebar only when it's open */}
           {showVocabSidebar && (
             <VocabularySidebar
+              key={`vocab-${videoId}`}
               videoId={videoId}
               isVisible={showVocabSidebar}
-              onToggle={() => setShowVocabSidebar(false)}
+              onToggle={() => {
+                setShowVocabSidebar(false);
+                setSelectedText(""); // Clear selection when closing
+              }}
               onAddFromSelection={setSelectedText}
               refreshTrigger={vocabRefreshTrigger}
               isDarkMode={isDarkMode}
             />
           )}
 
+          {/* Show open button only when vocab sidebar is closed */}
           {!showVocabSidebar && (
             <button
               onClick={() => setShowVocabSidebar(true)}
               className={`fixed ${
                 showSidebar ? "left-72" : "left-24"
-              } top-1/2 -translate-y-1/2 z-40 w-6 h-12 border-2 rounded-r-lg flex items-center justify-center transition-all shadow-md ${
+              } top-1/2 -translate-y-1/2 z-40 w-8 h-16 border-2 rounded-r-lg flex flex-col items-center justify-center gap-1 transition-all shadow-lg hover:w-10 group ${
                 isDarkMode
                   ? "bg-gray-800 border-gray-600 hover:bg-gray-700"
                   : "bg-white border-cyan-200 hover:bg-cyan-50"
@@ -302,10 +316,17 @@ export default function VideoLearningPage() {
               title="Mở từ vựng"
             >
               <BookOpen
-                className={`w-4 h-4 ${
+                className={`w-4 h-4 transition-transform group-hover:scale-110 ${
                   isDarkMode ? "text-cyan-400" : "text-cyan-500"
                 }`}
               />
+              <span
+                className={`text-[10px] font-medium ${
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                }`}
+              >
+                📖
+              </span>
             </button>
           )}
 
@@ -313,6 +334,7 @@ export default function VideoLearningPage() {
             viewMode === "dictation" ||
             viewMode === "pronunciation") && (
             <VideoPlayerSection
+              key={`player-${videoId}`}
               playerRef={playerRef}
               videoId={videoId}
               videoTitle={videoTitle}
@@ -477,6 +499,7 @@ export default function VideoLearningPage() {
 
           {viewMode === "dictation" && (
             <DictationPractice
+              key={`dictation-${videoId}`}
               transcripts={transcripts}
               videoId={videoId}
               playerRef={playerRef}
@@ -486,6 +509,7 @@ export default function VideoLearningPage() {
 
           {viewMode === "pronunciation" && (
             <PronunciationPractice
+              key={`pronunciation-${videoId}`}
               transcripts={transcripts}
               videoId={videoId}
               playerRef={playerRef}
@@ -515,4 +539,13 @@ export default function VideoLearningPage() {
       `}</style>
     </div>
   );
+}
+
+export default function VideoLearningPage() {
+  const pathname = usePathname();
+  const videoId = pathname.split("/").pop() || "";
+
+  console.log("🔄 VideoLearningPage render with videoId:", videoId);
+
+  return <VideoLearningContent key={videoId} videoId={videoId} />;
 }

@@ -13,6 +13,12 @@ type YTPlayer = {
   seekTo: (seconds: number, allowSeekAhead: boolean) => void;
   playVideo: () => void;
   pauseVideo: () => void;
+  destroy: () => void;
+};
+
+type YTPlayerStateChangeEvent = {
+  data: number;
+  target: YTPlayer;
 };
 
 declare global {
@@ -25,20 +31,25 @@ declare global {
           playerVars?: Record<string, unknown>;
           events?: {
             onReady?: () => void;
+            onStateChange?: (event: YTPlayerStateChangeEvent) => void;
           };
         }
       ) => YTPlayer;
+      PlayerState?: {
+        PLAYING: number;
+        PAUSED: number;
+        ENDED: number;
+      };
     };
     onYouTubeIframeAPIReady?: () => void;
   }
 }
 
-// Extended interface with segment playback methods
 export interface YoutubePlayerHandle extends YTPlayer {
   playSegment: (startMs: number, endMs: number) => void;
   stopSegment: () => void;
-  onDictationSegmentEnd?: () => void; // ✅ Callback cho Dictation
-  onPronunciationSegmentEnd?: () => void; // ✅ Callback cho Pronunciation
+  onDictationSegmentEnd?: () => void;
+  onPronunciationSegmentEnd?: () => void;
 }
 
 interface YoutubePlayerProps {
@@ -52,6 +63,7 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
     const playerRef = useRef<YTPlayer | null>(null);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const handleRef = useRef<YoutubePlayerHandle | null>(null);
+    const isInitializedRef = useRef(false); // ✅ Track initialization
 
     /** ======================
      * STOP SEGMENT PLAYBACK
@@ -83,11 +95,9 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
       const startSec = startMs / 1000;
       const endSec = endMs / 1000;
 
-      // ✅ Hard reset trước mỗi lần play
       stopSegment();
 
       try {
-        // ✅ Seek + play NGAY, không setTimeout
         playerRef.current.seekTo(startSec, true);
         playerRef.current.playVideo();
         console.log(
@@ -112,16 +122,13 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
             );
             stopSegment();
 
-            // ✅ Gọi callback từ props
             onSegmentEnd?.();
 
-            // ✅ Gọi callback từ Dictation nếu có
             if (handleRef.current?.onDictationSegmentEnd) {
               console.log("📞 Calling onDictationSegmentEnd");
               handleRef.current.onDictationSegmentEnd();
             }
 
-            // ✅ Gọi callback từ Pronunciation nếu có
             if (handleRef.current?.onPronunciationSegmentEnd) {
               console.log("📞 Calling onPronunciationSegmentEnd");
               handleRef.current.onPronunciationSegmentEnd();
@@ -144,6 +151,7 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
             playerRef.current?.seekTo(seconds, allowSeekAhead),
           playVideo: () => playerRef.current?.playVideo(),
           pauseVideo: () => playerRef.current?.pauseVideo(),
+          destroy: () => playerRef.current?.destroy(),
           playSegment,
           stopSegment,
         };
@@ -158,44 +166,128 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
      * INIT YOUTUBE PLAYER
      ====================== */
     const initPlayer = () => {
-      if (!window.YT) return;
-
-      console.log("🚀 YoutubePlayer: Initializing player for video", videoId);
-
-      playerRef.current = new window.YT.Player("youtube-player", {
-        videoId,
-        playerVars: {
-          rel: 0,
-          modestbranding: 1,
-        },
-        events: {
-          onReady: () => {
-            console.log("✅ YoutubePlayer: Player ready!");
-            if (playerRef.current) {
-              onPlayerReady?.(playerRef.current);
-            }
-          },
-        },
-      });
-    };
-
-    useEffect(() => {
-      if (window.YT) {
-        initPlayer();
+      if (!window.YT || isInitializedRef.current) {
+        console.log(
+          "⏳ YoutubePlayer: Waiting for YT API or already initialized"
+        );
         return;
       }
 
-      const tag = document.createElement("script");
-      tag.src = "https://www.youtube.com/iframe_api";
-      document.body.appendChild(tag);
+      console.log("🚀 YoutubePlayer: Initializing player for video", videoId);
 
-      window.onYouTubeIframeAPIReady = initPlayer;
+      try {
+        // ✅ Destroy existing player first
+        if (playerRef.current) {
+          console.log("🧹 YoutubePlayer: Destroying existing player");
+          try {
+            playerRef.current.destroy();
+          } catch (e) {
+            console.warn("Error destroying player:", e);
+          }
+          playerRef.current = null;
+        }
+
+        playerRef.current = new window.YT.Player("youtube-player", {
+          videoId,
+          playerVars: {
+            rel: 0,
+            modestbranding: 1,
+            autoplay: 0, // ✅ Don't autoplay
+          },
+          events: {
+            onReady: () => {
+              console.log("✅ YoutubePlayer: Player ready for", videoId);
+              isInitializedRef.current = true;
+              if (playerRef.current) {
+                onPlayerReady?.(playerRef.current);
+              }
+            },
+            onStateChange: (event) => {
+              console.log("🎬 Player state changed:", event.data);
+            },
+          },
+        });
+      } catch (error) {
+        console.error("❌ Error initializing player:", error);
+        isInitializedRef.current = false;
+      }
+    };
+
+    /** ======================
+     * LOAD YOUTUBE API & INIT
+     ====================== */
+    useEffect(() => {
+      console.log("🔄 YoutubePlayer: Effect triggered for videoId", videoId);
+
+      // ✅ Reset initialization flag when videoId changes
+      isInitializedRef.current = false;
+
+      const initializePlayer = () => {
+        if (window.YT && window.YT.Player) {
+          console.log("✅ YT API available, initializing player");
+          initPlayer();
+        }
+      };
+
+      if (window.YT && window.YT.Player) {
+        // API already loaded
+        console.log("✅ YT API already loaded, initializing immediately");
+        // ✅ Small delay to ensure DOM is ready
+        setTimeout(initializePlayer, 100);
+      } else {
+        // Load API
+        if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+          console.log("📥 Loading YouTube IFrame API");
+          const tag = document.createElement("script");
+          tag.src = "https://www.youtube.com/iframe_api";
+          document.body.appendChild(tag);
+        }
+
+        // ✅ Set up callback that will be called when API loads
+        const originalCallback = window.onYouTubeIframeAPIReady;
+        window.onYouTubeIframeAPIReady = () => {
+          console.log("✅ YouTube IFrame API Ready");
+          if (originalCallback) originalCallback();
+          initializePlayer();
+        };
+
+        // ✅ Polling fallback
+        const checkInterval = setInterval(() => {
+          if (window.YT && window.YT.Player) {
+            console.log("✅ YT API detected via polling");
+            clearInterval(checkInterval);
+            initializePlayer();
+          }
+        }, 100);
+
+        // ✅ Cleanup check interval after 5 seconds
+        const timeoutId = setTimeout(() => {
+          clearInterval(checkInterval);
+          console.warn("⏰ YT API loading timeout");
+        }, 5000);
+
+        return () => {
+          clearInterval(checkInterval);
+          clearTimeout(timeoutId);
+        };
+      }
 
       return () => {
-        console.log("🧹 YoutubePlayer: Cleaning up");
+        console.log("🧹 YoutubePlayer: Cleaning up for videoId", videoId);
         stopSegment();
+        isInitializedRef.current = false;
+
+        // ✅ Destroy player on unmount
+        if (playerRef.current) {
+          try {
+            playerRef.current.destroy();
+          } catch (e) {
+            console.warn("Error destroying player on cleanup:", e);
+          }
+          playerRef.current = null;
+        }
       };
-    }, [videoId]);
+    }, [videoId]); // ✅ Re-run when videoId changes
 
     return (
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-2">
