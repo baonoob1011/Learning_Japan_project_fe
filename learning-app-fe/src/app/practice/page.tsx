@@ -180,11 +180,13 @@ export default function PracticePage() {
           </h1>
           <div className="flex items-center gap-4">
             <ThemeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
-            <div className="relative">
-              <div className="absolute inset-0 bg-cyan-400 rounded-full blur-md opacity-40"></div>
-              <div className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold shadow-md relative z-10">
-                B
-              </div>
+            {/* Clean Logo - No shadow, like sidebar */}
+            <div className="cursor-pointer group">
+              <img
+                src="/logo-cat.png"
+                alt="NIBO Academy"
+                className="w-10 h-10 object-contain transform group-hover:scale-110 transition-transform"
+              />
             </div>
           </div>
         </header>
