@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
     SAVE: (videoId: string) => `/youtube/${videoId}`,
     VIEW: "/youtube",
     VIEW_BY_ID: "/transcripts",
+    MY_SAVED: "/youtube/me",
   },
   LEARNING_PROGRESS: {
     PROGRESS_VIEW: "/learning-progress",

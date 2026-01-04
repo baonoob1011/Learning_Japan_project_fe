@@ -81,4 +81,9 @@ export const youtubeService = {
   removeSavedVideo(videoId: string): Promise<void> {
     return http.delete<void>(API_ENDPOINTS.VIDEO.SAVE(videoId));
   },
+  /**
+   * ✅ NEW — Get video đã save của user hiện tại
+   */ getMySavedVideos(): Promise<YoutubeVideoSummary[]> {
+    return http.get(API_ENDPOINTS.VIDEO.MY_SAVED);
+  },
 };

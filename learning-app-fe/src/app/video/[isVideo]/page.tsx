@@ -6,11 +6,21 @@ import { usePathname, useRouter } from "next/navigation";
 import VideoPlayerSection from "@/components/VideoPlayerSection";
 import DictationPractice from "@/components/Dictation";
 import Sidebar from "@/components/Sidebar";
+import { youtubeService } from "@/services/videoService";
 import { YoutubePlayerHandle } from "@/components/YoutubePlayer";
 import AutoScrollToggle from "@/components/AutoScrollToggle";
 import PronunciationPractice from "@/components/PronunciationPractice";
 import VocabularySidebar from "@/components/VocabularySidebar";
-import { Video, Menu, Play, Volume2, BookOpen, X } from "lucide-react";
+import {
+  Video,
+  Menu,
+  Play,
+  Volume2,
+  BookOpen,
+  X,
+  Bookmark,
+  BookmarkCheck,
+} from "lucide-react";
 
 import {
   transcriptService,
@@ -26,7 +36,7 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
   const [currentTimeMs, setCurrentTimeMs] = useState<number>(0);
 
   const [showSidebar, setShowSidebar] = useState(true);
-  const [showVocabSidebar, setShowVocabSidebar] = useState(false); // Changed to false
+  const [showVocabSidebar, setShowVocabSidebar] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("video");
   const [transcripts, setTranscripts] = useState<TranscriptDTO[]>([]);
   const [videoTitle, setVideoTitle] = useState<string>("");
@@ -35,6 +45,8 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
   const [currentStreak] = useState(4);
 
   const [vocabRefreshTrigger, setVocabRefreshTrigger] = useState(0);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const transcriptRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -59,8 +71,25 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
 
   const handleVocabSaved = () => {
     setVocabRefreshTrigger((prev) => prev + 1);
-    // Auto-open vocab sidebar when a word is saved
     setShowVocabSidebar(true);
+  };
+
+  const handleSaveVideo = async () => {
+    if (isSaving || isSaved) return;
+
+    try {
+      setIsSaving(true);
+
+      await youtubeService.saveVideo(videoId);
+
+      setIsSaved(true);
+      console.log("✅ Video saved successfully");
+    } catch (error) {
+      console.error("❌ Failed to save video:", error);
+      // TODO: show toast error
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const activeTranscript = useMemo(
@@ -155,13 +184,11 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
     };
   }, []);
 
-  // Enhanced text selection handler
   useEffect(() => {
     const handleSelection = () => {
       const selection = window.getSelection();
       const text = selection?.toString().trim();
 
-      // Only show vocab sidebar if text is selected and valid
       if (text && text.length > 0 && text.length < 100) {
         setSelectedText(text);
         setShowVocabSidebar(true);
@@ -286,7 +313,6 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
         </div>
 
         <div className="flex-1 flex overflow-hidden relative">
-          {/* Show vocab sidebar only when it's open */}
           {showVocabSidebar && (
             <VocabularySidebar
               key={`vocab-${videoId}`}
@@ -294,7 +320,7 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
               isVisible={showVocabSidebar}
               onToggle={() => {
                 setShowVocabSidebar(false);
-                setSelectedText(""); // Clear selection when closing
+                setSelectedText("");
               }}
               onAddFromSelection={setSelectedText}
               refreshTrigger={vocabRefreshTrigger}
@@ -302,7 +328,6 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
             />
           )}
 
-          {/* Show open button only when vocab sidebar is closed */}
           {!showVocabSidebar && (
             <button
               onClick={() => setShowVocabSidebar(true)}
@@ -363,7 +388,7 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
                   isDarkMode ? "border-gray-700" : "border-cyan-100"
                 }`}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-3">
                   <h2
                     className={`text-lg font-bold bg-gradient-to-r bg-clip-text text-transparent ${
                       isDarkMode
@@ -389,6 +414,42 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
                     </button>
                   </div>
                 </div>
+
+                {/* Save Video Button */}
+                <button
+                  onClick={handleSaveVideo}
+                  disabled={isSaving || isSaved}
+                  className={`w-full py-2.5 px-4 rounded-lg font-medium 
+                    flex items-center justify-center gap-2 transition-all
+                    ${
+                      isSaved
+                        ? isDarkMode
+                          ? "bg-cyan-500/20 text-cyan-400 border-2 border-cyan-500/50 cursor-not-allowed"
+                          : "bg-cyan-100 text-cyan-700 border-2 border-cyan-300 cursor-not-allowed"
+                        : isDarkMode
+                        ? "bg-gray-700 text-gray-300 border-2 border-gray-600 hover:bg-gray-600"
+                        : "bg-white text-gray-700 border-2 border-gray-300 hover:bg-gray-50"
+                    }
+                    ${isSaving ? "opacity-60 cursor-wait" : ""}
+                  `}
+                >
+                  {isSaving ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      <span>Đang lưu...</span>
+                    </>
+                  ) : isSaved ? (
+                    <>
+                      <BookmarkCheck className="w-5 h-5" />
+                      <span>Đã lưu</span>
+                    </>
+                  ) : (
+                    <>
+                      <Bookmark className="w-5 h-5" />
+                      <span>Lưu video</span>
+                    </>
+                  )}
+                </button>
               </div>
 
               <div
