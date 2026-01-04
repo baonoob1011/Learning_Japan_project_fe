@@ -39,9 +39,33 @@ export default function DictationPractice({
     new Array(transcripts.length).fill(false)
   );
   const [isPlaying, setIsPlaying] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const currentTranscript = transcripts[currentIndex];
   const totalQuestions = transcripts.length;
+
+  /** ======================
+   * AUTO SCROLL TO CURRENT QUESTION
+   ====================== */
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const buttons = container.children;
+      const currentButton = buttons[currentIndex] as HTMLElement;
+
+      if (currentButton) {
+        const containerWidth = container.offsetWidth;
+        const buttonLeft = currentButton.offsetLeft;
+        const buttonWidth = currentButton.offsetWidth;
+        const scrollLeft = buttonLeft - containerWidth / 2 + buttonWidth / 2;
+
+        container.scrollTo({
+          left: scrollLeft,
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [currentIndex]);
 
   /** ======================
    * HANDLE SEGMENT END - Tự động chuyển về nút "Phát lại"
@@ -298,7 +322,19 @@ export default function DictationPractice({
           />
         </button>
 
-        <div className="flex-1 flex gap-2 overflow-x-auto">
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 flex gap-2 overflow-x-auto"
+          style={{
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          }}
+        >
+          <style jsx>{`
+            div::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
           {transcripts.map((_, idx) => (
             <button
               key={idx}
@@ -346,7 +382,16 @@ export default function DictationPractice({
             ? "bg-gradient-to-b from-gray-800 via-gray-800 to-gray-900"
             : "bg-gradient-to-b from-white via-cyan-50/20 to-blue-50/30"
         }`}
+        style={{
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+        }}
       >
+        <style jsx>{`
+          div::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
         <p
           className={`text-sm mb-3 ${
             isDarkMode ? "text-cyan-400" : "text-cyan-700"

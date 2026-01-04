@@ -17,6 +17,7 @@ interface SidebarProps {
   setSidebarOpen: (open: boolean) => void;
   isDarkMode: boolean;
   currentStreak: number;
+  onStreakUpdate?: (newStreak: number) => void;
 }
 
 export default function Sidebar({
@@ -24,8 +25,70 @@ export default function Sidebar({
   setSidebarOpen,
   isDarkMode,
   currentStreak,
+  onStreakUpdate,
 }: SidebarProps) {
   const router = useRouter();
+  const [streakDays, setStreakDays] = React.useState<number[]>([]);
+  const [currentDayIndex, setCurrentDayIndex] = React.useState(0);
+  const [isClient, setIsClient] = React.useState(false);
+  const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+
+  // Set isClient flag first
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Load and calculate streak on mount
+  React.useEffect(() => {
+    if (!isClient) return; // Only run on client
+
+    const loadStreak = () => {
+      const lastStudyDate = localStorage.getItem("lastStudyDate");
+      const storedStreak = localStorage.getItem("currentStreak");
+      const today = new Date();
+      const todayStr = today.toDateString();
+      const todayIndex = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+      setCurrentDayIndex(todayIndex);
+
+      if (!lastStudyDate) {
+        // First time user
+        localStorage.setItem("lastStudyDate", todayStr);
+        localStorage.setItem("currentStreak", "1");
+        setStreakDays([todayIndex]);
+        if (onStreakUpdate) onStreakUpdate(1);
+        return;
+      }
+
+      const lastDate = new Date(lastStudyDate);
+      const todayDate = new Date(todayStr);
+      const diffTime = todayDate.getTime() - lastDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      let newStreak = parseInt(storedStreak || "0");
+
+      if (diffDays === 0) {
+        // Same day - keep current streak
+        setStreakDays([todayIndex]);
+      } else if (diffDays === 1) {
+        // Next day - increment streak
+        newStreak += 1;
+        localStorage.setItem("lastStudyDate", todayStr);
+        localStorage.setItem("currentStreak", newStreak.toString());
+        setStreakDays([todayIndex]);
+        if (onStreakUpdate) onStreakUpdate(newStreak);
+      } else {
+        // Missed days - reset streak
+        newStreak = 1;
+        localStorage.setItem("lastStudyDate", todayStr);
+        localStorage.setItem("currentStreak", "1");
+        setStreakDays([todayIndex]);
+        if (onStreakUpdate) onStreakUpdate(1);
+      }
+    };
+
+    loadStreak();
+  }, [isClient, onStreakUpdate]);
 
   return (
     <div
@@ -129,7 +192,7 @@ export default function Sidebar({
                 <div
                   key={i}
                   className={`flex-1 h-8 rounded ${
-                    i < currentStreak
+                    isClient && i === currentDayIndex
                       ? "bg-gradient-to-t from-cyan-400 to-cyan-300 shadow-md"
                       : isDarkMode
                       ? "bg-gray-700"
@@ -138,13 +201,17 @@ export default function Sidebar({
                 >
                   <Star
                     className={`w-3 h-3 ${
-                      i < currentStreak
+                      isClient && i === currentDayIndex
                         ? "text-white drop-shadow"
                         : isDarkMode
                         ? "text-gray-600"
                         : "text-gray-400"
                     }`}
-                    fill={i < currentStreak ? "currentColor" : "none"}
+                    fill={
+                      isClient && i === currentDayIndex
+                        ? "currentColor"
+                        : "none"
+                    }
                   />
                 </div>
               ))}
@@ -154,13 +221,18 @@ export default function Sidebar({
                 isDarkMode ? "text-gray-400" : "text-cyan-600"
               }`}
             >
-              <span>Th2</span>
-              <span>Th3</span>
-              <span>Th4</span>
-              <span>Th5</span>
-              <span>Th6</span>
-              <span>Th7</span>
-              <span>CN</span>
+              {days.map((day, i) => (
+                <span
+                  key={i}
+                  className={
+                    isClient && i === currentDayIndex
+                      ? "font-bold text-cyan-500"
+                      : ""
+                  }
+                >
+                  {day}
+                </span>
+              ))}
             </div>
           </div>
         </div>

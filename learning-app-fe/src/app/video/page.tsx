@@ -1,26 +1,22 @@
 "use client";
 import { youtubeService } from "@/services/videoService";
 import { useRouter } from "next/navigation";
-import ThemeToggle from "@/components/ThemeToggle";
 import Sidebar from "@/components/Sidebar";
 import { useDarkMode } from "@/hooks/useDarkMode";
+import UserDropdown from "@/components/UserDropdown";
 
 import React, { useState, useEffect } from "react";
 import {
-  Search,
+  Bell,
+  Settings,
   Video,
   Play,
+  Search,
   Clock,
-  Bell,
-  Gift,
-  Settings,
-  Globe,
-  ChevronDown,
-  AlertCircle,
   X,
+  AlertCircle,
 } from "lucide-react";
-
-// Types matching backend response
+// Types
 interface YoutubeVideoSummary {
   id: string;
   title: string;
@@ -35,7 +31,7 @@ interface VideoCardProps {
   onClick: () => void;
 }
 
-// Video Modal Component
+// Video Modal
 interface VideoModalProps {
   video: YoutubeVideoSummary;
   isDark: boolean;
@@ -89,7 +85,6 @@ const VideoModal: React.FC<VideoModalProps> = ({ video, isDark, onClose }) => {
             />
           </button>
         </div>
-
         <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
           <iframe
             src={getYouTubeEmbedUrl(video.urlVideo)}
@@ -98,7 +93,6 @@ const VideoModal: React.FC<VideoModalProps> = ({ video, isDark, onClose }) => {
             allowFullScreen
           />
         </div>
-
         <div className="p-4">
           <div
             className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}
@@ -117,7 +111,7 @@ const VideoModal: React.FC<VideoModalProps> = ({ video, isDark, onClose }) => {
   );
 };
 
-// Video Card Component
+// Video Card
 const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
   const getYouTubeThumbnail = (url: string) => {
     const videoIdMatch = url.match(
@@ -224,14 +218,11 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
 const formatDuration = (duration?: string): string => {
   if (!duration) return "00:00";
   if (duration.includes(":")) return duration;
-
   const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
   if (!match) return "00:00";
-
   const hours = parseInt(match[1] || "0");
   const minutes = parseInt(match[2] || "0");
   const seconds = parseInt(match[3] || "0");
-
   if (hours > 0) {
     return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
       .toString()
@@ -246,7 +237,6 @@ const formatDate = (dateString?: string): string => {
   const now = new Date();
   const diffTime = Math.abs(now.getTime() - date.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
   if (diffDays === 0) return "Hôm nay";
   if (diffDays === 1) return "Hôm qua";
   if (diffDays < 7) return `${diffDays} ngày trước`;
@@ -268,7 +258,7 @@ export default function VideoListPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedVideo, setSelectedVideo] =
     useState<YoutubeVideoSummary | null>(null);
-
+  const [mounted, setMounted] = useState(false);
   const tabs = [
     { icon: "✨", label: "Toàn bộ" },
     { icon: "⏰", label: "Tin tức" },
@@ -285,12 +275,76 @@ export default function VideoListPage() {
     { icon: "🎵", label: "Văn hóa" },
     { icon: "🍱", label: "Ẩm thực" },
     { icon: "😊", label: "Kids" },
+
+    // Thêm các thể loại mới
+    { icon: "📚", label: "Giáo dục" },
+    { icon: "🎮", label: "Game" },
+    { icon: "⚽", label: "Thể thao" },
+    { icon: "💪", label: "Sức khỏe" },
+    { icon: "🎨", label: "Nghệ thuật" },
+    { icon: "🔬", label: "Khoa học" },
+    { icon: "🌍", label: "Thiên nhiên" },
+    { icon: "🎸", label: "Âm nhạc" },
+    { icon: "🏠", label: "Lifestyle" },
+    { icon: "🚗", label: "Xe cộ" },
+    { icon: "💄", label: "Làm đẹp" },
+    { icon: "👶", label: "Gia đình" },
+    { icon: "🐾", label: "Thú cưng" },
+    { icon: "📱", label: "Review" },
+    { icon: "🎓", label: "Học thuật" },
+    { icon: "💰", label: "Tài chính" },
+    { icon: "🏋️", label: "Fitness" },
+    { icon: "🍿", label: "Giải trí" },
+    { icon: "📺", label: "TV Shows" },
+    { icon: "🎤", label: "Talk Show" },
+    { icon: "🌟", label: "Động lực" },
+    { icon: "🧘", label: "Thiền" },
+    { icon: "📖", label: "Sách" },
+    { icon: "🎪", label: "Hài kịch" },
+    { icon: "🔮", label: "Bí ẩn" },
+    { icon: "⚡", label: "Trending" },
+    { icon: "🌈", label: "LGBTQ+" },
+    { icon: "🎂", label: "Cooking" },
+    { icon: "🏆", label: "Thi đấu" },
+    { icon: "🚀", label: "Khám phá" },
+    { icon: "📷", label: "Photography" },
+    { icon: "🎹", label: "Nhạc cụ" },
+    { icon: "🛠️", label: "DIY" },
+    { icon: "🏛️", label: "Lịch sử" },
+    { icon: "🗺️", label: "Địa lý" },
+    { icon: "🎯", label: "Kỹ năng" },
+    { icon: "🌸", label: "Làm vườn" },
+    { icon: "✈️", label: "Phượt" },
+    { icon: "🎊", label: "Lễ hội" },
+    { icon: "🔊", label: "ASMR" },
+    { icon: "🤖", label: "AI & Tech" },
+    { icon: "🎥", label: "Vlog" },
+    { icon: "📊", label: "Analytics" },
+    { icon: "🏀", label: "NBA" },
+    { icon: "⚾", label: "Baseball" },
+    { icon: "🎾", label: "Tennis" },
+    { icon: "🏐", label: "Volleyball" },
+    { icon: "🥋", label: "Võ thuật" },
+    { icon: "🎿", label: "Thể thao mạo hiểm" },
+    { icon: "🧩", label: "Giải đố" },
+    { icon: "🎲", label: "Board game" },
+    { icon: "🌙", label: "Ngủ ngon" },
+    { icon: "☕", label: "Cafe & Tea" },
+    { icon: "🍕", label: "Fast food" },
+    { icon: "🥗", label: "Healthy food" },
+    { icon: "🍜", label: "Món Á" },
+    { icon: "🥐", label: "Món Âu" },
+    { icon: "🌮", label: "Street food" },
+    { icon: "🧁", label: "Bánh ngọt" },
+    { icon: "🍹", label: "Cocktail" },
   ];
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const fetchVideos = async () => {
     setLoading(true);
     setError(null);
-
     try {
       const videosData = await youtubeService.getAll();
       setVideos(videosData);
@@ -335,22 +389,21 @@ export default function VideoListPage() {
         />
       )}
 
-      {/* Sidebar Component */}
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         isDarkMode={isDarkMode}
         currentStreak={currentStreak}
+        onStreakUpdate={setCurrentStreak}
       />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden relative z-0">
         <div
           className={`${
             isDarkMode
               ? "bg-gray-800 border-gray-700"
               : "bg-white/80 backdrop-blur-sm border-cyan-100"
-          } border-b px-6 py-4 shadow-lg`}
+          } border-b px-6 py-4 shadow-lg relative z-10`}
         >
           <div className="flex items-center justify-between mb-4">
             <h1
@@ -362,8 +415,7 @@ export default function VideoListPage() {
             >
               Luyện Shadowing để dàng thông qua bất kỳ video nào bạn yêu thích
             </h1>
-            <div className="flex items-center gap-3">
-              <ThemeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
+            <div className="flex items-center gap-3 relative z-[10000]">
               <button
                 className={`p-2 ${
                   isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-50"
@@ -386,19 +438,10 @@ export default function VideoListPage() {
                   }`}
                 />
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-lg hover:from-cyan-500 hover:to-cyan-600 transition shadow-md">
-                <Globe className="w-4 h-4" />
-                VN
-                <ChevronDown className="w-4 h-4" />
-              </button>
-              {/* Fixed Logo - No shadow, clean like sidebar */}
-              <div className="cursor-pointer group">
-                <img
-                  src="/logo-cat.png"
-                  alt="NIBO Academy"
-                  className="w-10 h-10 object-contain transform group-hover:scale-110 transition-transform"
-                />
-              </div>
+              <UserDropdown
+                isDark={isDarkMode}
+                onToggleDarkMode={toggleDarkMode}
+              />
             </div>
           </div>
 
@@ -414,64 +457,55 @@ export default function VideoListPage() {
               </button>
             </div>
 
-            <div className="flex-1 flex gap-3">
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm video..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full px-4 py-3 ${
-                    isDarkMode
-                      ? "bg-gray-700 border-gray-600 text-gray-100"
-                      : "bg-white border-cyan-200 text-gray-700"
-                  } border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400 transition`}
-                />
-                <Search
-                  className={`absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 ${
-                    isDarkMode ? "text-gray-400" : "text-cyan-400"
-                  }`}
-                />
-              </div>
-
-              <button
-                onClick={fetchVideos}
-                className="px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-xl font-medium hover:shadow-xl transition transform hover:scale-105 flex items-center gap-2"
-              >
-                <Video className="w-4 h-4" />
-                Tải lại
-              </button>
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                placeholder="Tìm kiếm video..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`w-full px-4 py-3 ${
+                  isDarkMode
+                    ? "bg-gray-700 border-gray-600 text-gray-100"
+                    : "bg-white border-cyan-200 text-gray-700"
+                } border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400 transition`}
+              />
+              <Search
+                className={`absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                  isDarkMode ? "text-gray-400" : "text-cyan-400"
+                }`}
+              />
             </div>
           </div>
         </div>
-
+        {/* Categories/Tabs Section */}
         <div
           className={`${
-            isDarkMode
-              ? "bg-gray-800 border-gray-700"
-              : "bg-white/80 backdrop-blur-sm border-cyan-100"
-          } border-b px-6 py-3 overflow-x-auto shadow-md`}
+            isDarkMode ? "bg-gray-800" : "bg-white/60 backdrop-blur-sm"
+          } px-6 py-3 border-b ${
+            isDarkMode ? "border-gray-700" : "border-cyan-100"
+          }`}
         >
-          <div className="flex gap-2 min-w-max">
-            {tabs.map((tab) => (
+          <div className="flex flex-wrap gap-2">
+            {tabs.slice(0, 15).map((tab) => (
               <button
                 key={tab.label}
                 onClick={() => setActiveTab(tab.label)}
-                className={`px-4 py-2 rounded-lg font-medium transition whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${
                   activeTab === tab.label
-                    ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg"
+                    ? isDarkMode
+                      ? "bg-cyan-500 text-white shadow-md"
+                      : "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-md"
                     : isDarkMode
-                    ? "text-gray-300 hover:bg-gray-700"
-                    : "text-gray-600 hover:bg-cyan-50"
+                    ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    : "bg-white/80 text-gray-700 hover:bg-white hover:shadow-sm"
                 }`}
               >
-                <span className="mr-2">{tab.icon}</span>
-                {tab.label}
+                <span className="text-sm">{tab.icon}</span>
+                <span>{tab.label}</span>
               </button>
             ))}
           </div>
         </div>
-
         <div className="flex-1 overflow-y-auto p-6">
           {loading ? (
             <div className="flex items-center justify-center h-64">

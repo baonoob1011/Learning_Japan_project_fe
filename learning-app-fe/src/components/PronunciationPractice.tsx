@@ -55,9 +55,33 @@ export default function PronunciationPractice({
   const [results, setResults] = useState<
     Array<{ score: number; accuracy: number; completion: number } | null>
   >(new Array(transcripts.length).fill(null));
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const currentTranscript = transcripts[currentIndex];
   const totalQuestions = transcripts.length;
+
+  /** ======================
+   * AUTO SCROLL TO CURRENT QUESTION
+   ====================== */
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const buttons = container.children;
+      const currentButton = buttons[currentIndex] as HTMLElement;
+
+      if (currentButton) {
+        const containerWidth = container.offsetWidth;
+        const buttonLeft = currentButton.offsetLeft;
+        const buttonWidth = currentButton.offsetWidth;
+        const scrollLeft = buttonLeft - containerWidth / 2 + buttonWidth / 2;
+
+        container.scrollTo({
+          left: scrollLeft,
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [currentIndex]);
 
   const handleSegmentEnd = () => {
     console.log("🎉 Pronunciation: SEGMENT ENDED - Switching to Play button");
@@ -390,7 +414,19 @@ export default function PronunciationPractice({
           />
         </button>
 
-        <div className="flex-1 flex gap-2 overflow-x-auto">
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 flex gap-2 overflow-x-auto"
+          style={{
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          }}
+        >
+          <style jsx>{`
+            div::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
           {transcripts.map((_, idx) => (
             <button
               key={idx}
@@ -438,7 +474,16 @@ export default function PronunciationPractice({
             ? "bg-gradient-to-b from-gray-800 via-gray-800 to-gray-900"
             : "bg-gradient-to-b from-white via-cyan-50/20 to-blue-50/30"
         }`}
+        style={{
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+        }}
       >
+        <style jsx>{`
+          div::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
         {/* Current Sentence Display */}
         <div
           className={`mb-4 p-5 rounded-2xl border shadow-sm transition-colors duration-300 ${

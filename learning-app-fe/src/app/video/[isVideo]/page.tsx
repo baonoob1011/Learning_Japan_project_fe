@@ -1,4 +1,5 @@
 "use client";
+import UserDropdown from "@/components/UserDropdown";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -9,16 +10,7 @@ import { YoutubePlayerHandle } from "@/components/YoutubePlayer";
 import AutoScrollToggle from "@/components/AutoScrollToggle";
 import PronunciationPractice from "@/components/PronunciationPractice";
 import VocabularySidebar from "@/components/VocabularySidebar";
-import ThemeToggle from "@/components/ThemeToggle";
-import {
-  Video,
-  X,
-  FileText,
-  Menu,
-  Play,
-  Volume2,
-  BookOpen,
-} from "lucide-react";
+import { Video, Menu, Play, Volume2, BookOpen, X } from "lucide-react";
 
 import {
   transcriptService,
@@ -193,7 +185,7 @@ export default function VideoLearningPage() {
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <div
-          className={`backdrop-blur-sm border-b px-6 py-4 flex items-center justify-center flex-shrink-0 relative shadow-lg transition-colors duration-300 ${
+          className={`backdrop-blur-sm border-b px-6 py-4 flex items-center justify-center flex-shrink-0 relative shadow-lg transition-colors duration-300 z-50 ${
             isDarkMode
               ? "bg-gray-800/90 border-gray-700"
               : "bg-white/80 border-cyan-100"
@@ -276,31 +268,16 @@ export default function VideoLearningPage() {
             </button>
           </div>
 
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-3">
-            <ThemeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
-            <button
-              className={`p-2 rounded-lg transition-colors ${
-                isDarkMode
-                  ? "text-cyan-400 hover:bg-gray-700"
-                  : "text-cyan-500 hover:bg-cyan-50"
-              }`}
-            >
-              <FileText className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => router.push("/video")}
-              className={`p-2 rounded-lg transition-colors ${
-                isDarkMode
-                  ? "text-cyan-400 hover:bg-gray-700"
-                  : "text-cyan-500 hover:bg-cyan-50"
-              }`}
-            >
-              <X className="w-5 h-5" />
-            </button>
+          {/* ✅ FIXED: Added z-[10000] to wrapper */}
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 z-[10000]">
+            <UserDropdown
+              isDark={isDarkMode}
+              onToggleDarkMode={toggleDarkMode}
+            />
           </div>
         </div>
 
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden relative">
           {showVocabSidebar && (
             <VocabularySidebar
               videoId={videoId}
@@ -353,7 +330,7 @@ export default function VideoLearningPage() {
 
           {viewMode === "video" && (
             <div
-              className={`w-96 backdrop-blur-sm border-l flex flex-col flex-shrink-0 shadow-xl transition-colors duration-300 ${
+              className={`w-96 backdrop-blur-sm border-l flex flex-col flex-shrink-0 shadow-xl transition-colors duration-300 relative z-10 ${
                 isDarkMode
                   ? "bg-gray-800/90 border-gray-700"
                   : "bg-white/90 border-cyan-100"

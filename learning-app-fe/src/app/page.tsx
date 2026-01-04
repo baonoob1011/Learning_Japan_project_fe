@@ -80,23 +80,6 @@ export default function HomePage() {
             gradient="from-cyan-400 to-blue-500"
           />
         </div>
-
-        {/* Actions */}
-        <div className="flex gap-4 justify-center">
-          <Link
-            href="/courses"
-            className="px-8 py-4 bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white rounded-2xl font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
-          >
-            Bắt đầu học
-          </Link>
-
-          <Link
-            href="/exams"
-            className="px-8 py-4 border-2 border-cyan-400 bg-white text-cyan-600 hover:bg-cyan-50 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
-          >
-            Làm bài kiểm tra
-          </Link>
-        </div>
       </main>
     </div>
   );

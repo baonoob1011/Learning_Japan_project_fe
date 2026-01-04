@@ -85,29 +85,6 @@ export default function VideoPlayerSection({
               {videoTitle || "Đang tải..."}
             </h1>
 
-            {/* Additional Info Section */}
-            <div
-              className={`border-t pt-4 mt-4 transition-colors duration-300 ${
-                isDarkMode ? "border-gray-700" : "border-gray-200"
-              }`}
-            >
-              <h3
-                className={`text-lg font-semibold mb-3 transition-colors duration-300 ${
-                  isDarkMode ? "text-gray-100" : "text-gray-900"
-                }`}
-              >
-                Mô tả
-              </h3>
-              <p
-                className={`text-sm leading-relaxed transition-colors duration-300 ${
-                  isDarkMode ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
-                Video học tiếng Nhật với phụ đề tiếng Việt. Click vào từng từ để
-                xem nghĩa chi tiết và lưu vào bộ từ vựng của bạn.
-              </p>
-            </div>
-
             <div
               className={`border-t pt-4 mt-4 transition-colors duration-300 ${
                 isDarkMode ? "border-gray-700" : "border-gray-200"
@@ -132,10 +109,6 @@ export default function VideoPlayerSection({
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Thể loại:</span>
                   <span>Podcast</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">Số câu:</span>
-                  <span>{transcripts.length} câu</span>
                 </div>
               </div>
             </div>
