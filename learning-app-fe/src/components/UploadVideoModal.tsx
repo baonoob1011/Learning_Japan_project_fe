@@ -3,32 +3,13 @@ import React, { useState, useEffect } from "react";
 import { X, Video, Star, Tag, Sparkles, Loader2 } from "lucide-react";
 import { youtubeService } from "@/services/videoService";
 import LoadingCat from "@/components/LoadingCat";
+import { JLPTLevel, VideoTag } from "@/types/video";
 
 export interface VideoUploadData {
   youtubeUrl: string;
   level: JLPTLevel;
   tag: VideoTag;
 }
-
-/* ===================== ENUM ===================== */
-
-export type JLPTLevel = "N5" | "N4" | "N3" | "N2" | "N1";
-
-export type VideoTag =
-  | "NEWS"
-  | "BEGINNER"
-  | "PODCAST"
-  | "TECHNOLOGY"
-  | "BUSINESS"
-  | "TED"
-  | "GRAMMAR"
-  | "ANIME"
-  | "SHORT_VIDEO"
-  | "MOVIE"
-  | "TRAVEL"
-  | "CULTURE"
-  | "FOOD"
-  | "KIDS";
 
 export interface UploadVideoModalProps {
   isOpen: boolean;
@@ -150,8 +131,8 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
             <LoadingCat
               size="md"
               isDark={true}
-              message="Đang xử lý"
-              subMessage="Vui lòng đợi trong giây lát"
+              message="Đang xử lý video"
+              subMessage="Video sẽ được xử lý trong khoảng 5 phút ⏱️"
             />
           </div>
         )}
@@ -306,6 +287,25 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Info Message */}
+          <div
+            className={`${
+              isDark
+                ? "bg-blue-900/30 border-blue-700"
+                : "bg-blue-50 border-blue-200"
+            } border px-4 py-3 rounded-xl flex items-start gap-2`}
+          >
+            <span className="text-blue-600 font-bold">ℹ️</span>
+            <p
+              className={`text-sm ${
+                isDark ? "text-blue-300" : "text-blue-800"
+              }`}
+            >
+              Video sẽ được xử lý trong khoảng <strong>5 phút</strong> sau khi
+              upload ⏱️
+            </p>
           </div>
 
           {/* Submit Button */}

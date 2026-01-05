@@ -4,6 +4,7 @@ import { API_ENDPOINTS } from "@/config/api";
 import { useAuthStore } from "@/stores/authStore";
 import axios from "axios";
 import { http } from "@/lib/http";
+import { JLPTLevel, VideoTag } from "@/types/video";
 
 /* ===================== TYPES ===================== */
 
@@ -13,29 +14,13 @@ export interface UploadYoutubeVideoRequest {
   level: JLPTLevel;
 } /* ===================== ENUM ===================== */
 
-export type JLPTLevel = "N5" | "N4" | "N3" | "N2" | "N1";
-
-export type VideoTag =
-  | "NEWS"
-  | "BEGINNER"
-  | "PODCAST"
-  | "TECHNOLOGY"
-  | "BUSINESS"
-  | "TED"
-  | "GRAMMAR"
-  | "ANIME"
-  | "SHORT_VIDEO"
-  | "MOVIE"
-  | "TRAVEL"
-  | "CULTURE"
-  | "FOOD"
-  | "KIDS";
-
 export interface YoutubeVideoSummary {
   id: string;
   title: string;
   urlVideo: string;
   duration: string;
+  videoTag: VideoTag;
+  level: JLPTLevel;
   createdAt: string;
 }
 

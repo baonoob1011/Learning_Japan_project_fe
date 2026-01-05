@@ -11,6 +11,8 @@ import { YoutubePlayerHandle } from "@/components/YoutubePlayer";
 import AutoScrollToggle from "@/components/AutoScrollToggle";
 import PronunciationPractice from "@/components/PronunciationPractice";
 import VocabularySidebar from "@/components/VocabularySidebar";
+import { JLPTLevel, VideoTag } from "@/types/video";
+
 import {
   Video,
   Menu,
@@ -40,6 +42,8 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
   const [viewMode, setViewMode] = useState<ViewMode>("video");
   const [transcripts, setTranscripts] = useState<TranscriptDTO[]>([]);
   const [videoTitle, setVideoTitle] = useState<string>("");
+  const [videoLevel, setVideoLevel] = useState<JLPTLevel>("N5");
+  const [videoTag, setVideoTag] = useState<VideoTag>("BEGINNER");
   const [selectedText, setSelectedText] = useState<string>("");
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [currentStreak] = useState(4);
@@ -129,19 +133,39 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
 
     let isMounted = true;
 
-    async function fetchTranscript() {
+    async function fetchVideoData() {
       try {
-        console.log("🔄 Fetching transcripts for videoId:", videoId);
-        const data: YoutubeTranscriptResponse =
+        console.log("🔄 Fetching video data for videoId:", videoId);
+
+        // Fetch transcripts
+        const transcriptData: YoutubeTranscriptResponse =
           await transcriptService.getTranscripts(videoId);
 
         if (isMounted) {
-          console.log("✅ Transcripts loaded:", data.transcriptsDTOS.length);
-          setTranscripts(data.transcriptsDTOS);
-          setVideoTitle(data.title);
+          console.log(
+            "✅ Transcripts loaded:",
+            transcriptData.transcriptsDTOS.length
+          );
+          setTranscripts(transcriptData.transcriptsDTOS);
+          setVideoTitle(transcriptData.title);
+        }
+
+        // Fetch video metadata (level and tag)
+        try {
+          const videos = await youtubeService.getAll();
+          const currentVideo = videos.find((v) => v.id === videoId);
+
+          if (currentVideo && isMounted) {
+            console.log("✅ Video metadata loaded:", currentVideo);
+            setVideoLevel(currentVideo.level);
+            setVideoTag(currentVideo.videoTag);
+          }
+        } catch (metaError) {
+          console.warn("⚠️ Failed to fetch video metadata:", metaError);
+          // Use defaults if metadata fetch fails
         }
       } catch (err) {
-        console.error("❌ Failed to fetch transcripts", err);
+        console.error("❌ Failed to fetch video data", err);
         if (isMounted) {
           setTranscripts([]);
           setVideoTitle("Không tải được video");
@@ -149,7 +173,7 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
       }
     }
 
-    fetchTranscript();
+    fetchVideoData();
 
     return () => {
       isMounted = false;
@@ -372,6 +396,8 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
               }
               onVocabSaved={handleVocabSaved}
               isDarkMode={isDarkMode}
+              level={videoLevel}
+              videoTag={videoTag}
             />
           )}
 

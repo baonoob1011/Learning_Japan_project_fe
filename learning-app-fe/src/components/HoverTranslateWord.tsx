@@ -10,6 +10,7 @@ interface HoverTranslateWordProps {
   targetLang?: string;
   videoId?: string;
   onVocabSaved?: () => void;
+  isDarkMode?: boolean;
 }
 
 const translateCache = new Map<string, TranslateResult>();
@@ -20,6 +21,7 @@ export default function HoverTranslateWord({
   targetLang = "vi",
   videoId,
   onVocabSaved,
+  isDarkMode = false,
 }: HoverTranslateWordProps) {
   const [loading, setLoading] = useState(false);
   const [translateData, setTranslateData] = useState<TranslateResult | null>(
@@ -200,7 +202,11 @@ export default function HoverTranslateWord({
             setOpen(false);
           }
         }}
-        className="cursor-pointer hover:bg-cyan-300/40 active:bg-cyan-400/50 px-1 py-0.5 rounded-md transition-all duration-200 select-none hover:shadow-sm active:scale-95 inline-block"
+        className={`cursor-pointer px-1 py-0.5 rounded-md transition-all duration-200 select-none hover:shadow-sm active:scale-95 inline-block ${
+          isDarkMode
+            ? "hover:bg-cyan-500/30 active:bg-cyan-500/40"
+            : "hover:bg-cyan-300/40 active:bg-cyan-400/50"
+        }`}
       >
         {word}
       </span>
@@ -217,11 +223,27 @@ export default function HoverTranslateWord({
             pointerEvents: "auto",
           }}
         >
-          <div className="absolute left-1/2 -translate-x-1/2 -top-2 w-0 h-0 border-l-8 border-r-8 border-l-transparent border-r-transparent border-b-8 border-b-cyan-400 drop-shadow-xl"></div>
+          <div
+            className={`absolute left-1/2 -translate-x-1/2 -top-2 w-0 h-0 border-l-8 border-r-8 border-l-transparent border-r-transparent border-b-8 drop-shadow-xl ${
+              isDarkMode ? "border-b-gray-700" : "border-b-cyan-400"
+            }`}
+          ></div>
 
-          <div className="bg-white rounded-xl shadow-2xl border border-cyan-200 overflow-hidden w-[280px] max-h-[400px] overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
+          <div
+            className={`rounded-xl shadow-2xl border overflow-hidden w-[280px] max-h-[400px] overflow-y-auto animate-in fade-in zoom-in-95 duration-150 ${
+              isDarkMode
+                ? "bg-gray-800 border-gray-600"
+                : "bg-white border-cyan-200"
+            }`}
+          >
             {/* Header - Always visible */}
-            <div className="bg-gradient-to-r from-cyan-400 to-cyan-500 px-3 py-2 flex items-center justify-between">
+            <div
+              className={`px-3 py-2 flex items-center justify-between ${
+                isDarkMode
+                  ? "bg-gradient-to-r from-gray-700 to-gray-600"
+                  : "bg-gradient-to-r from-cyan-400 to-cyan-500"
+              }`}
+            >
               <div className="flex items-center gap-1.5">
                 {translateData?.audioUrl && (
                   <button
@@ -353,9 +375,15 @@ export default function HoverTranslateWord({
             {/* Body */}
             <div className="p-3">
               {loading ? (
-                <div className="flex flex-col items-center justify-center gap-2 text-gray-400 py-6">
+                <div
+                  className={`flex flex-col items-center justify-center gap-2 py-6 ${
+                    isDarkMode ? "text-gray-400" : "text-gray-400"
+                  }`}
+                >
                   <svg
-                    className="animate-spin h-5 w-5 text-cyan-500"
+                    className={`animate-spin h-5 w-5 ${
+                      isDarkMode ? "text-cyan-400" : "text-cyan-500"
+                    }`}
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -379,26 +407,60 @@ export default function HoverTranslateWord({
               ) : translateData ? (
                 <div className="space-y-2">
                   {translateData.surface && (
-                    <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-lg p-2 border border-cyan-200">
-                      <div className="text-lg font-bold text-cyan-700">
+                    <div
+                      className={`rounded-lg p-2 border ${
+                        isDarkMode
+                          ? "bg-gradient-to-br from-gray-700 to-gray-600 border-cyan-500/30"
+                          : "bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-200"
+                      }`}
+                    >
+                      <div
+                        className={`text-lg font-bold ${
+                          isDarkMode ? "text-cyan-300" : "text-cyan-700"
+                        }`}
+                      >
                         {translateData.surface}
                       </div>
                     </div>
                   )}
 
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-2 border border-blue-200">
-                    <div className="text-base font-bold text-blue-700">
+                  <div
+                    className={`rounded-lg p-2 border ${
+                      isDarkMode
+                        ? "bg-gradient-to-br from-gray-700 to-slate-700 border-blue-500/30"
+                        : "bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200"
+                    }`}
+                  >
+                    <div
+                      className={`text-base font-bold ${
+                        isDarkMode ? "text-blue-300" : "text-blue-700"
+                      }`}
+                    >
                       {translateData.translated}
                     </div>
                   </div>
 
                   {translateData.reading && (
-                    <div className="bg-cyan-50 rounded-lg px-2 py-1.5 border border-cyan-200">
+                    <div
+                      className={`rounded-lg px-2 py-1.5 border ${
+                        isDarkMode
+                          ? "bg-gray-700 border-cyan-500/30"
+                          : "bg-cyan-50 border-cyan-200"
+                      }`}
+                    >
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-semibold text-cyan-700 uppercase">
+                        <span
+                          className={`text-[10px] font-semibold uppercase ${
+                            isDarkMode ? "text-cyan-400" : "text-cyan-700"
+                          }`}
+                        >
                           KANJI
                         </span>
-                        <span className="text-xs font-bold text-cyan-600">
+                        <span
+                          className={`text-xs font-bold ${
+                            isDarkMode ? "text-cyan-300" : "text-cyan-600"
+                          }`}
+                        >
                           {translateData.reading}
                         </span>
                       </div>
@@ -406,12 +468,26 @@ export default function HoverTranslateWord({
                   )}
 
                   {translateData.romaji && (
-                    <div className="bg-indigo-50 rounded-lg px-2 py-1.5 border border-indigo-200">
+                    <div
+                      className={`rounded-lg px-2 py-1.5 border ${
+                        isDarkMode
+                          ? "bg-gray-700 border-indigo-500/30"
+                          : "bg-indigo-50 border-indigo-200"
+                      }`}
+                    >
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-semibold text-indigo-700 uppercase">
+                        <span
+                          className={`text-[10px] font-semibold uppercase ${
+                            isDarkMode ? "text-indigo-400" : "text-indigo-700"
+                          }`}
+                        >
                           ROMAJI
                         </span>
-                        <span className="text-xs font-medium text-indigo-600">
+                        <span
+                          className={`text-xs font-medium ${
+                            isDarkMode ? "text-indigo-300" : "text-indigo-600"
+                          }`}
+                        >
                           {translateData.romaji}
                         </span>
                       </div>
@@ -420,10 +496,20 @@ export default function HoverTranslateWord({
 
                   {translateData.partOfSpeech && (
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-semibold text-gray-500 uppercase">
+                      <span
+                        className={`text-[10px] font-semibold uppercase ${
+                          isDarkMode ? "text-gray-400" : "text-gray-500"
+                        }`}
+                      >
                         LOẠI:
                       </span>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold text-cyan-700 bg-cyan-100 border border-cyan-300">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                          isDarkMode
+                            ? "text-cyan-300 bg-cyan-900/30 border-cyan-500/30"
+                            : "text-cyan-700 bg-cyan-100 border-cyan-300"
+                        }`}
+                      >
                         {translateData.partOfSpeech}
                       </span>
                     </div>
@@ -436,7 +522,11 @@ export default function HoverTranslateWord({
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="flex items-center justify-center gap-2 w-full text-xs font-semibold text-cyan-600 hover:text-cyan-700 py-2 px-2 bg-cyan-50 hover:bg-cyan-100 rounded-lg transition-all duration-200 border border-cyan-200"
+                    className={`flex items-center justify-center gap-2 w-full text-xs font-semibold py-2 px-2 rounded-lg transition-all duration-200 border ${
+                      isDarkMode
+                        ? "text-cyan-300 bg-gray-700 hover:bg-gray-600 border-cyan-500/30"
+                        : "text-cyan-600 hover:text-cyan-700 bg-cyan-50 hover:bg-cyan-100 border-cyan-200"
+                    }`}
                   >
                     <img
                       src="https://mazii.net/favicon.ico"

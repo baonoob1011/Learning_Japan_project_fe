@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Gift,
   BookOpen,
+  BookMarked,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -317,6 +318,17 @@ export default function Sidebar({
                 <span>Xem gần đây</span>
               </button>
               <button
+                onClick={() => router.push("/vocabulary")}
+                className={`w-full flex items-center gap-3 px-4 py-3 ${
+                  isDarkMode
+                    ? "text-gray-300 hover:bg-gray-700"
+                    : "text-gray-600 hover:bg-cyan-50"
+                } rounded-xl transition transform hover:scale-105`}
+              >
+                <BookMarked className="w-5 h-5" />
+                <span>Từ vựng của tôi</span>
+              </button>
+              <button
                 onClick={() => router.push("/practice")}
                 className="w-full flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-600 rounded-xl font-medium hover:from-cyan-100 hover:to-blue-100 transition shadow-sm hover:shadow-md transform hover:scale-105"
               >
@@ -338,6 +350,7 @@ export default function Sidebar({
                 <Video className="w-5 h-5" />
               </button>
               <button
+                onClick={() => router.push("/video/myVideo")}
                 className={`w-full flex items-center justify-center p-3.5 rounded-xl transition-all ${
                   isDarkMode
                     ? "text-gray-400 hover:bg-gray-700 hover:text-gray-300"
@@ -357,6 +370,17 @@ export default function Sidebar({
                 title="Xem gần đây"
               >
                 <Clock className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => router.push("/vocabulary")}
+                className={`w-full flex items-center justify-center p-3.5 rounded-xl transition-all ${
+                  isDarkMode
+                    ? "text-gray-400 hover:bg-gray-700 hover:text-gray-300"
+                    : "text-gray-600 hover:bg-cyan-50 hover:text-cyan-600"
+                }`}
+                title="Từ vựng của tôi"
+              >
+                <BookMarked className="w-5 h-5" />
               </button>
               <button
                 onClick={() => router.push("/practice")}

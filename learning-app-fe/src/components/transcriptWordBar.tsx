@@ -8,14 +8,16 @@ interface TranscriptWordBarProps {
   transcripts: TranscriptDTO[];
   currentTimeMs: number;
   videoId?: string;
-  onVocabSaved?: () => void; // ADDED: Callback khi save vocab thành công
+  onVocabSaved?: () => void;
+  isDarkMode?: boolean;
 }
 
 export default function TranscriptWordBar({
   transcripts,
   currentTimeMs,
   videoId,
-  onVocabSaved, // ADDED
+  onVocabSaved,
+  isDarkMode = false,
 }: TranscriptWordBarProps) {
   // Tìm transcript hiện tại
   const currentTranscript = transcripts.find(
@@ -45,7 +47,13 @@ export default function TranscriptWordBar({
   const highlightedIndex = getHighlightedWordIndex();
 
   return (
-    <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl shadow-lg p-6 min-h-[120px] flex items-center justify-center">
+    <div
+      className={`rounded-2xl shadow-lg p-6 min-h-[120px] flex items-center justify-center ${
+        isDarkMode
+          ? "bg-gradient-to-r from-gray-800 to-gray-900"
+          : "bg-gradient-to-r from-slate-800 to-slate-900"
+      }`}
+    >
       {currentTranscript ? (
         /* Text with word-by-word highlight - Large size with cyan/blue theme */
         <div className="text-2xl leading-relaxed font-medium w-full">
@@ -57,7 +65,9 @@ export default function TranscriptWordBar({
                 <span
                   className={`inline-block transition-all duration-300 ${
                     isHighlighted
-                      ? "text-cyan-400 font-bold scale-110 underline decoration-cyan-400 decoration-2 underline-offset-4"
+                      ? isDarkMode
+                        ? "text-cyan-300 font-bold scale-110 underline decoration-cyan-300 decoration-2 underline-offset-4"
+                        : "text-cyan-400 font-bold scale-110 underline decoration-cyan-400 decoration-2 underline-offset-4"
                       : "text-white"
                   }`}
                 >
@@ -66,7 +76,8 @@ export default function TranscriptWordBar({
                     sourceLang="ja"
                     targetLang="vi"
                     videoId={videoId}
-                    onVocabSaved={onVocabSaved} // ADDED: Truyền callback xuống
+                    onVocabSaved={onVocabSaved}
+                    isDarkMode={isDarkMode}
                   />
                 </span>
                 {idx < tokenizeText(currentTranscript.text).length - 1 && " "}

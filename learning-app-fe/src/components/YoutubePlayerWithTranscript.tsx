@@ -19,6 +19,7 @@ interface Props {
   onTimeUpdate?: (timeMs: number) => void;
   hideWordBar?: boolean;
   onVocabSaved?: () => void;
+  isDarkMode?: boolean;
 }
 
 const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
@@ -31,6 +32,7 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
       onTimeUpdate,
       hideWordBar = false,
       onVocabSaved,
+      isDarkMode = false,
     },
     ref
   ) => {
@@ -200,6 +202,7 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
             currentTimeMs={currentTimeMs}
             videoId={videoId}
             onVocabSaved={onVocabSaved}
+            isDarkMode={isDarkMode}
           />
         )}
       </>

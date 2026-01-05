@@ -4,6 +4,7 @@ import React from "react";
 import YoutubePlayerWithTranscript from "./YoutubePlayerWithTranscript";
 import { TranscriptDTO } from "@/services/transcriptService";
 import { YoutubePlayerHandle } from "./YoutubePlayer";
+import { JLPTLevel, VideoTag } from "@/types/video";
 
 interface VideoPlayerSectionProps {
   playerRef: React.RefObject<YoutubePlayerHandle | null>;
@@ -16,7 +17,36 @@ interface VideoPlayerSectionProps {
   hideWordBar?: boolean;
   onVocabSaved?: () => void;
   isDarkMode?: boolean;
+  level: JLPTLevel;
+  videoTag: VideoTag;
 }
+
+// Mapping cho JLPT Level
+const levelDisplay: Record<JLPTLevel, string> = {
+  N5: "N5 - Cơ bản",
+  N4: "N4 - Sơ cấp",
+  N3: "N3 - Trung cấp",
+  N2: "N2 - Trung cao cấp",
+  N1: "N1 - Nâng cao",
+};
+
+// Mapping cho Video Tag
+const tagDisplay: Record<VideoTag, string> = {
+  NEWS: "Tin tức",
+  BEGINNER: "Mới bắt đầu",
+  PODCAST: "Podcast",
+  TECHNOLOGY: "Công nghệ",
+  BUSINESS: "Kinh doanh",
+  TED: "TED",
+  GRAMMAR: "Ngữ pháp",
+  ANIME: "Hoạt hình",
+  SHORT_VIDEO: "Video ngắn",
+  MOVIE: "Phim",
+  TRAVEL: "Du lịch",
+  CULTURE: "Văn hóa",
+  FOOD: "Ẩm thực",
+  KIDS: "Kids",
+};
 
 export default function VideoPlayerSection({
   playerRef,
@@ -29,6 +59,8 @@ export default function VideoPlayerSection({
   hideWordBar = false,
   onVocabSaved,
   isDarkMode = false,
+  level,
+  videoTag,
 }: VideoPlayerSectionProps) {
   return (
     <div
@@ -49,6 +81,7 @@ export default function VideoPlayerSection({
             onTimeUpdate={onTimeUpdate}
             hideWordBar={hideWordBar}
             onVocabSaved={onVocabSaved}
+            isDarkMode={isDarkMode}
           />
 
           {/* Video Info */}
@@ -65,7 +98,7 @@ export default function VideoPlayerSection({
                     : "bg-cyan-100 text-cyan-700"
                 }`}
               >
-                N5
+                {level}
               </span>
               <span
                 className={`px-3 py-1 text-xs font-medium rounded-full transition-colors duration-300 ${
@@ -74,7 +107,7 @@ export default function VideoPlayerSection({
                     : "bg-purple-100 text-purple-700"
                 }`}
               >
-                Podcast
+                {tagDisplay[videoTag]}
               </span>
             </div>
             <h1
@@ -104,11 +137,11 @@ export default function VideoPlayerSection({
               >
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Độ khó:</span>
-                  <span>N5 - Cơ bản</span>
+                  <span>{levelDisplay[level]}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Thể loại:</span>
-                  <span>Podcast</span>
+                  <span>{tagDisplay[videoTag]}</span>
                 </div>
               </div>
             </div>
