@@ -17,6 +17,7 @@ export const API_ENDPOINTS = {
     VIEW: "/youtube",
     VIEW_BY_ID: "/transcripts",
     MY_SAVED: "/youtube/me",
+    VIEW_BY_VOCAB: "/youtube/vocab",
   },
   LEARNING_PROGRESS: {
     PROGRESS_VIEW: "/learning-progress",
@@ -39,6 +40,7 @@ export const API_ENDPOINTS = {
   VOCAB: {
     CREATE: "/vocab",
     GET_MY: "/vocab",
+    GET_MY_VIDEO: (videoId: string) => `/vocab/my/video/${videoId}`,
     UPDATE_MEANING: "/vocab",
     DELETE: (surface: string) => `/vocab/${encodeURIComponent(surface)}`,
   },

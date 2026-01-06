@@ -94,6 +94,10 @@ export const youtubeService = {
     return fetchAPI<YoutubeVideoSummary[]>(API_ENDPOINTS.VIDEO.VIEW);
   },
 
+  async getVideoByVocab(): Promise<YoutubeVideoSummary[]> {
+    return fetchAPI<YoutubeVideoSummary[]>(API_ENDPOINTS.VIDEO.VIEW_BY_VOCAB);
+  },
+
   /**
    * Trigger API lấy chi tiết video
    * (Backend xử lý async, FE không cần data)

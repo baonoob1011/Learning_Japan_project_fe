@@ -202,10 +202,10 @@ export default function HoverTranslateWord({
             setOpen(false);
           }
         }}
-        className={`cursor-pointer px-1 py-0.5 rounded-md transition-all duration-200 select-none hover:shadow-sm active:scale-95 inline-block ${
+        className={`cursor-pointer px-1 py-0.5 rounded-md transition-all duration-200 select-none active:scale-95 inline-block ${
           isDarkMode
-            ? "hover:bg-cyan-500/30 active:bg-cyan-500/40"
-            : "hover:bg-cyan-300/40 active:bg-cyan-400/50"
+            ? "hover:bg-cyan-400/30 active:bg-cyan-400/40 hover:text-cyan-200"
+            : "hover:bg-cyan-100/60 active:bg-cyan-200/60 hover:text-cyan-700"
         }`}
       >
         {word}
@@ -224,15 +224,17 @@ export default function HoverTranslateWord({
           }}
         >
           <div
-            className={`absolute left-1/2 -translate-x-1/2 -top-2 w-0 h-0 border-l-8 border-r-8 border-l-transparent border-r-transparent border-b-8 drop-shadow-xl ${
-              isDarkMode ? "border-b-gray-700" : "border-b-cyan-400"
+            className={`absolute left-1/2 -translate-x-1/2 -top-2 w-0 h-0 border-l-8 border-r-8 border-l-transparent border-r-transparent border-b-8 drop-shadow-2xl ${
+              isDarkMode
+                ? "border-b-cyan-400 shadow-cyan-400/50"
+                : "border-b-cyan-400"
             }`}
           ></div>
 
           <div
-            className={`rounded-xl shadow-2xl border overflow-hidden w-[280px] max-h-[400px] overflow-y-auto animate-in fade-in zoom-in-95 duration-150 ${
+            className={`rounded-xl border overflow-hidden w-[280px] max-h-[400px] overflow-y-auto animate-in fade-in zoom-in-95 duration-150 ${
               isDarkMode
-                ? "bg-gray-800 border-gray-600"
+                ? "bg-[#1e293b] border-cyan-500/30"
                 : "bg-white border-cyan-200"
             }`}
           >
@@ -240,7 +242,7 @@ export default function HoverTranslateWord({
             <div
               className={`px-3 py-2 flex items-center justify-between ${
                 isDarkMode
-                  ? "bg-gradient-to-r from-gray-700 to-gray-600"
+                  ? "bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-500"
                   : "bg-gradient-to-r from-cyan-400 to-cyan-500"
               }`}
             >
@@ -410,13 +412,13 @@ export default function HoverTranslateWord({
                     <div
                       className={`rounded-lg p-2 border ${
                         isDarkMode
-                          ? "bg-gradient-to-br from-gray-700 to-gray-600 border-cyan-500/30"
+                          ? "bg-gradient-to-br from-slate-700 to-slate-800 border-cyan-600/40"
                           : "bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-200"
                       }`}
                     >
                       <div
                         className={`text-lg font-bold ${
-                          isDarkMode ? "text-cyan-300" : "text-cyan-700"
+                          isDarkMode ? "text-cyan-200" : "text-cyan-700"
                         }`}
                       >
                         {translateData.surface}
@@ -427,13 +429,13 @@ export default function HoverTranslateWord({
                   <div
                     className={`rounded-lg p-2 border ${
                       isDarkMode
-                        ? "bg-gradient-to-br from-gray-700 to-slate-700 border-blue-500/30"
+                        ? "bg-gradient-to-br from-blue-900/40 to-indigo-900/40 border-blue-600/40"
                         : "bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200"
                     }`}
                   >
                     <div
                       className={`text-base font-bold ${
-                        isDarkMode ? "text-blue-300" : "text-blue-700"
+                        isDarkMode ? "text-blue-200" : "text-blue-700"
                       }`}
                     >
                       {translateData.translated}
@@ -444,21 +446,21 @@ export default function HoverTranslateWord({
                     <div
                       className={`rounded-lg px-2 py-1.5 border ${
                         isDarkMode
-                          ? "bg-gray-700 border-cyan-500/30"
+                          ? "bg-slate-700/70 border-cyan-600/40"
                           : "bg-cyan-50 border-cyan-200"
                       }`}
                     >
                       <div className="flex items-center gap-2">
                         <span
                           className={`text-[10px] font-semibold uppercase ${
-                            isDarkMode ? "text-cyan-400" : "text-cyan-700"
+                            isDarkMode ? "text-cyan-300" : "text-cyan-700"
                           }`}
                         >
                           KANJI
                         </span>
                         <span
                           className={`text-xs font-bold ${
-                            isDarkMode ? "text-cyan-300" : "text-cyan-600"
+                            isDarkMode ? "text-cyan-200" : "text-cyan-600"
                           }`}
                         >
                           {translateData.reading}
@@ -471,21 +473,21 @@ export default function HoverTranslateWord({
                     <div
                       className={`rounded-lg px-2 py-1.5 border ${
                         isDarkMode
-                          ? "bg-gray-700 border-indigo-500/30"
+                          ? "bg-slate-700/70 border-indigo-600/40"
                           : "bg-indigo-50 border-indigo-200"
                       }`}
                     >
                       <div className="flex items-center gap-2">
                         <span
                           className={`text-[10px] font-semibold uppercase ${
-                            isDarkMode ? "text-indigo-400" : "text-indigo-700"
+                            isDarkMode ? "text-indigo-300" : "text-indigo-700"
                           }`}
                         >
                           ROMAJI
                         </span>
                         <span
                           className={`text-xs font-medium ${
-                            isDarkMode ? "text-indigo-300" : "text-indigo-600"
+                            isDarkMode ? "text-indigo-200" : "text-indigo-600"
                           }`}
                         >
                           {translateData.romaji}
@@ -506,7 +508,7 @@ export default function HoverTranslateWord({
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                           isDarkMode
-                            ? "text-cyan-300 bg-cyan-900/30 border-cyan-500/30"
+                            ? "text-cyan-200 bg-cyan-900/50 border-cyan-600/40"
                             : "text-cyan-700 bg-cyan-100 border-cyan-300"
                         }`}
                       >
@@ -524,7 +526,7 @@ export default function HoverTranslateWord({
                     onClick={(e) => e.stopPropagation()}
                     className={`flex items-center justify-center gap-2 w-full text-xs font-semibold py-2 px-2 rounded-lg transition-all duration-200 border ${
                       isDarkMode
-                        ? "text-cyan-300 bg-gray-700 hover:bg-gray-600 border-cyan-500/30"
+                        ? "text-cyan-200 bg-slate-700/70 hover:bg-slate-600/70 border-cyan-600/40"
                         : "text-cyan-600 hover:text-cyan-700 bg-cyan-50 hover:bg-cyan-100 border-cyan-200"
                     }`}
                   >

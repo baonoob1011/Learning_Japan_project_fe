@@ -48,7 +48,7 @@ export default function VocabularySidebar({
   const fetchVocabs = async () => {
     try {
       setLoading(true);
-      const res = await vocabService.getMyVocabs();
+      const res = await vocabService.getMyVocabsByVideo(videoId);
       setVocabularyList(res.map(mapApiToUI));
     } catch (err) {
       console.error("Fetch vocab failed", err);

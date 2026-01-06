@@ -29,10 +29,12 @@ export const vocabService = {
     return http.post<void>(API_ENDPOINTS.VOCAB.CREATE, { surface });
   },
 
+  getMyVocabsByVideo(videoId: string): Promise<VocabResponse[]> {
+    return http.get<VocabResponse[]>(API_ENDPOINTS.VOCAB.GET_MY_VIDEO(videoId));
+  },
   /**
    * Lấy danh sách vocab đã lưu
-   */
-  getMyVocabs(): Promise<VocabResponse[]> {
+   */ getMyVocabs(): Promise<VocabResponse[]> {
     return http.get<VocabResponse[]>(API_ENDPOINTS.VOCAB.GET_MY);
   },
 

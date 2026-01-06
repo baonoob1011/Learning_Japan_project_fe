@@ -32,14 +32,26 @@ export default function Sidebar({
   const [currentDayIndex, setCurrentDayIndex] = React.useState(0);
   const [mounted, setMounted] = React.useState(false);
   const [displayStreak, setDisplayStreak] = React.useState(0);
-  const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+  // Đổi thứ tự: T2 -> CN (Monday first, Sunday last)
+  const days = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
   React.useEffect(() => {
     setMounted(true);
 
     const today = new Date();
-    const todayIndex = today.getDay();
-    setCurrentDayIndex(todayIndex);
+    const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+
+    // Convert to Monday-first index (0 = Monday, 6 = Sunday)
+    // If Sunday (0) -> 6, else subtract 1
+    const mondayFirstIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    setCurrentDayIndex(mondayFirstIndex);
+
+    // Debug: Log current day
+    console.log("=== DEBUG STREAK ===");
+    console.log("Raw dayOfWeek:", dayOfWeek);
+    console.log("Calculated index:", mondayFirstIndex);
+    console.log("Should show:", days[mondayFirstIndex]);
+    console.log("Days array:", days);
 
     const loadStreak = () => {
       if (typeof window === "undefined") return;
