@@ -3,21 +3,14 @@ import { youtubeService } from "@/services/videoService";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import { useDarkMode } from "@/hooks/useDarkMode";
-import UserDropdown from "@/components/UserDropdown";
+import Header from "@/components/Header";
+import VideoBanner from "@/components/VideoBanner";
 import LoadingCat from "@/components/LoadingCat";
 import UploadVideoModal from "@/components/UploadVideoModal";
 import React, { useState, useEffect } from "react";
 
-import {
-  Bell,
-  Settings,
-  Video,
-  Play,
-  Search,
-  Clock,
-  X,
-  AlertCircle,
-} from "lucide-react";
+import { Play, Clock, X, AlertCircle, Video } from "lucide-react";
+import { JLPTLevel, VideoTag } from "@/types/video";
 
 // Types
 interface YoutubeVideoSummary {
@@ -25,6 +18,8 @@ interface YoutubeVideoSummary {
   title: string;
   urlVideo: string;
   duration: string;
+  videoTag: VideoTag;
+  level: JLPTLevel;
   createdAt: string;
 }
 
@@ -39,6 +34,25 @@ interface VideoModalProps {
   isDark: boolean;
   onClose: () => void;
 }
+
+// Mapping tabs to VideoTag
+const TAB_TO_TAG_MAP: Record<string, VideoTag | "ALL"> = {
+  "Toàn bộ": "ALL",
+  "Tin tức": "NEWS",
+  "Mới bắt đầu": "BEGINNER",
+  Podcast: "PODCAST",
+  "Công nghệ": "TECHNOLOGY",
+  "Kinh doanh": "BUSINESS",
+  TED: "TED",
+  "Ngữ pháp": "GRAMMAR",
+  "Hoạt hình": "ANIME",
+  "Video ngắn": "SHORT_VIDEO",
+  Phim: "MOVIE",
+  "Du lịch": "TRAVEL",
+  "Văn hóa": "CULTURE",
+  "Ẩm thực": "FOOD",
+  Kids: "KIDS",
+};
 
 // Video Modal
 const VideoModal: React.FC<VideoModalProps> = ({ video, isDark, onClose }) => {
@@ -66,7 +80,7 @@ const VideoModal: React.FC<VideoModalProps> = ({ video, isDark, onClose }) => {
       >
         <div
           className={`flex items-center justify-between p-4 border-b ${
-            isDark ? "border-gray-700" : "border-cyan-100"
+            isDark ? "border-gray-700" : "border-gray-200"
           }`}
         >
           <h2
@@ -79,12 +93,12 @@ const VideoModal: React.FC<VideoModalProps> = ({ video, isDark, onClose }) => {
           <button
             onClick={onClose}
             className={`p-2 rounded-lg transition ${
-              isDark ? "hover:bg-gray-700" : "hover:bg-cyan-50"
+              isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"
             }`}
           >
             <X
               className={`w-5 h-5 ${
-                isDark ? "text-gray-300" : "text-cyan-500"
+                isDark ? "text-gray-300" : "text-gray-600"
               }`}
             />
           </button>
@@ -107,6 +121,9 @@ const VideoModal: React.FC<VideoModalProps> = ({ video, isDark, onClose }) => {
                 {formatDuration(video.duration)}
               </span>
               <span>{formatDate(video.createdAt)}</span>
+              <span className="px-3 py-1 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white text-xs font-bold rounded-full">
+                {video.level}
+              </span>
             </div>
           </div>
         </div>
@@ -150,9 +167,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
     <div
       onClick={onClick}
       className={`${
-        isDark
-          ? "bg-gray-800 border-gray-700"
-          : "bg-white/90 backdrop-blur-sm border-cyan-100"
+        isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
       } rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer group border`}
     >
       <div className="relative">
@@ -181,6 +196,12 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
           </div>
         )}
 
+        {/* Level Badge - Top Left */}
+        <div className="absolute top-2 left-2 px-2 py-1 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white text-xs font-bold rounded shadow-lg">
+          {video.level}
+        </div>
+
+        {/* Duration Badge - Bottom Right */}
         {video.duration && (
           <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
             <Clock className="w-3 h-3" />
@@ -255,6 +276,7 @@ export default function VideoListPage() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("Toàn bộ");
+  const [activeLevel, setActiveLevel] = useState<JLPTLevel | "ALL">("ALL");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentStreak, setCurrentStreak] = useState(4);
   const { isDarkMode, toggleDarkMode, mounted } = useDarkMode();
@@ -263,24 +285,6 @@ export default function VideoListPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedVideo, setSelectedVideo] =
     useState<YoutubeVideoSummary | null>(null);
-
-  const tabs = [
-    { icon: "✨", label: "Toàn bộ" },
-    { icon: "⏰", label: "Tin tức" },
-    { icon: "🔥", label: "Mới bắt đầu" },
-    { icon: "🎙️", label: "Podcast" },
-    { icon: "💻", label: "Công nghệ" },
-    { icon: "💼", label: "Kinh doanh" },
-    { icon: "🎯", label: "TED" },
-    { icon: "⚖️", label: "Ngữ pháp" },
-    { icon: "🎬", label: "Hoạt hình" },
-    { icon: "🧠", label: "Video ngắn" },
-    { icon: "🎭", label: "Phim" },
-    { icon: "🏫", label: "Du lịch" },
-    { icon: "🎵", label: "Văn hóa" },
-    { icon: "🍱", label: "Ẩm thực" },
-    { icon: "😊", label: "Kids" },
-  ];
 
   const fetchVideos = async () => {
     setLoading(true);
@@ -309,11 +313,19 @@ export default function VideoListPage() {
     router.push(`/video/${video.id}`);
   };
 
-  const filteredVideos = videos.filter((video) =>
-    video.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Get active tag from tab
+  const activeTag = TAB_TO_TAG_MAP[activeTab] || "ALL";
 
-  // Prevent hydration mismatch by waiting for client-side mount
+  // Filter videos by search query, level, and tag
+  const filteredVideos = videos.filter((video) => {
+    const matchesSearch = video.title
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesLevel = activeLevel === "ALL" || video.level === activeLevel;
+    const matchesTag = activeTag === "ALL" || video.videoTag === activeTag;
+    return matchesSearch && matchesLevel && matchesTag;
+  });
+
   if (!mounted) {
     return (
       <div className="flex h-screen bg-gray-900">
@@ -331,6 +343,47 @@ export default function VideoListPage() {
 
   return (
     <>
+      <style jsx>{`
+        /* Custom Scrollbar Styles */
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f3f4f6;
+          border-radius: 5px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #d1d5db;
+          border-radius: 5px;
+          transition: background 0.2s;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #9ca3af;
+        }
+
+        .custom-scrollbar-dark::-webkit-scrollbar {
+          width: 10px;
+        }
+
+        .custom-scrollbar-dark::-webkit-scrollbar-track {
+          background: #1f2937;
+          border-radius: 5px;
+        }
+
+        .custom-scrollbar-dark::-webkit-scrollbar-thumb {
+          background: #4b5563;
+          border-radius: 5px;
+          transition: background 0.2s;
+        }
+
+        .custom-scrollbar-dark::-webkit-scrollbar-thumb:hover {
+          background: #6b7280;
+        }
+      `}</style>
+
       <div
         className={`flex h-screen ${
           isDarkMode
@@ -355,120 +408,25 @@ export default function VideoListPage() {
         />
 
         <div className="flex-1 flex flex-col overflow-hidden relative z-0">
+          <Header isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
+
+          <VideoBanner
+            isDarkMode={isDarkMode}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onUploadClick={() => setIsUploadModalOpen(true)}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            activeLevel={activeLevel}
+            onLevelChange={setActiveLevel}
+          />
+
+          {/* Video Content */}
           <div
-            className={`${
-              isDarkMode
-                ? "bg-gray-800 border-gray-700"
-                : "bg-white/80 backdrop-blur-sm border-cyan-100"
-            } border-b px-6 py-4 shadow-lg relative z-10`}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h1
-                className={`text-2xl font-bold ${
-                  isDarkMode
-                    ? "text-gray-100"
-                    : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
-                }`}
-              >
-                Luyện Shadowing để dàng thông qua bất kỳ video nào bạn yêu thích
-              </h1>
-              <div className="flex items-center gap-3">
-                <button
-                  className={`p-2 ${
-                    isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-50"
-                  } rounded-lg transition`}
-                >
-                  <Bell
-                    className={`w-5 h-5 ${
-                      isDarkMode ? "text-gray-300" : "text-cyan-500"
-                    }`}
-                  />
-                </button>
-                <button
-                  className={`p-2 ${
-                    isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-50"
-                  } rounded-lg transition`}
-                >
-                  <Settings
-                    className={`w-5 h-5 ${
-                      isDarkMode ? "text-gray-300" : "text-cyan-500"
-                    }`}
-                  />
-                </button>
-                <UserDropdown
-                  isDark={isDarkMode}
-                  onToggleDarkMode={toggleDarkMode}
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="flex gap-3 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white px-4 py-3 rounded-xl shadow-lg">
-                <button className="flex items-center gap-2 px-4 py-2 bg-white text-cyan-500 rounded-lg font-medium shadow-md hover:shadow-lg transition transform hover:scale-105">
-                  <Video className="w-4 h-4" />
-                  Youtube
-                </button>
-                <button
-                  onClick={() => setIsUploadModalOpen(true)}
-                  className="flex items-center gap-2 px-4 py-2 text-white hover:bg-white/20 rounded-lg font-medium transition"
-                >
-                  <Play className="w-4 h-4" />
-                  Tải lên
-                </button>
-              </div>
-
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm video..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full px-4 py-3 ${
-                    isDarkMode
-                      ? "bg-gray-700 border-gray-600 text-gray-100"
-                      : "bg-white border-cyan-200 text-gray-700"
-                  } border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-400 transition`}
-                />
-                <Search
-                  className={`absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 ${
-                    isDarkMode ? "text-gray-400" : "text-cyan-400"
-                  }`}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Categories/Tabs Section */}
-          <div
-            className={`${
-              isDarkMode ? "bg-gray-800" : "bg-white/60 backdrop-blur-sm"
-            } px-6 py-3 border-b ${
-              isDarkMode ? "border-gray-700" : "border-cyan-100"
+            className={`flex-1 overflow-y-auto p-6 ${
+              isDarkMode ? "custom-scrollbar-dark" : "custom-scrollbar"
             }`}
           >
-            <div className="flex flex-wrap gap-2">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.label}
-                  onClick={() => setActiveTab(tab.label)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${
-                    activeTab === tab.label
-                      ? isDarkMode
-                        ? "bg-cyan-500 text-white shadow-md"
-                        : "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-md"
-                      : isDarkMode
-                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      : "bg-white/80 text-gray-700 hover:bg-white hover:shadow-sm"
-                  }`}
-                >
-                  <span className="text-sm">{tab.icon}</span>
-                  <span>{tab.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-6">
             {loading ? (
               <div className="flex items-center justify-center h-64">
                 <LoadingCat
@@ -521,7 +479,9 @@ export default function VideoListPage() {
                       isDarkMode ? "text-gray-400" : "text-gray-600"
                     }`}
                   >
-                    {searchQuery
+                    {searchQuery ||
+                    activeLevel !== "ALL" ||
+                    activeTab !== "Toàn bộ"
                       ? "Không tìm thấy video nào"
                       : "Chưa có video nào"}
                   </p>
@@ -543,7 +503,6 @@ export default function VideoListPage() {
         </div>
       </div>
 
-      {/* Upload Modal - Rendered outside main container */}
       <UploadVideoModal
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}

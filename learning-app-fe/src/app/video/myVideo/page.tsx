@@ -3,10 +3,9 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Sidebar from "@/components/Sidebar";
-import UserDropdown from "@/components/UserDropdown";
+import Header from "@/components/Header";
 import { youtubeService, YoutubeVideoSummary } from "@/services/videoService";
 import {
-  Menu,
   BookmarkCheck,
   Play,
   Clock,
@@ -106,33 +105,25 @@ export default function SavedVideosPage() {
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
+        {/* Header Component */}
+        <Header isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
+
+        {/* Page Title Bar */}
         <div
-          className={`backdrop-blur-sm border-b px-6 py-4 flex items-center justify-between flex-shrink-0 shadow-lg transition-colors duration-300 z-50 ${
+          className={`backdrop-blur-sm border-b px-6 py-3 flex items-center justify-between flex-shrink-0 transition-colors duration-300 ${
             isDarkMode
               ? "bg-gray-800/90 border-gray-700"
               : "bg-white/80 border-cyan-100"
           }`}
         >
-          <button
-            className={`lg:hidden p-2 rounded-lg transition-colors ${
-              isDarkMode
-                ? "text-cyan-400 hover:bg-gray-700"
-                : "text-cyan-500 hover:bg-cyan-50"
-            }`}
-            onClick={() => setShowSidebar(!showSidebar)}
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-
           <div className="flex items-center gap-3">
             <BookmarkCheck
-              className={`w-7 h-7 ${
+              className={`w-6 h-6 ${
                 isDarkMode ? "text-cyan-400" : "text-cyan-600"
               }`}
             />
             <h1
-              className={`text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent ${
+              className={`text-xl font-bold bg-gradient-to-r bg-clip-text text-transparent ${
                 isDarkMode
                   ? "from-cyan-400 to-cyan-500"
                   : "from-cyan-500 to-cyan-600"
@@ -141,7 +132,7 @@ export default function SavedVideosPage() {
               Video đã lưu
             </h1>
             <span
-              className={`px-3 py-1 rounded-full text-sm font-medium ${
+              className={`px-3 py-1 rounded-full text-xs font-medium ${
                 isDarkMode
                   ? "bg-gray-700 text-gray-300"
                   : "bg-cyan-100 text-cyan-700"
@@ -149,13 +140,6 @@ export default function SavedVideosPage() {
             >
               {videos.length} video
             </span>
-          </div>
-
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 z-[10000]">
-            <UserDropdown
-              isDark={isDarkMode}
-              onToggleDarkMode={toggleDarkMode}
-            />
           </div>
         </div>
 

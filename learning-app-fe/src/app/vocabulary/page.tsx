@@ -1,9 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import { Bell, Settings } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 import { useDarkMode } from "@/hooks/useDarkMode";
-import UserDropdown from "@/components/UserDropdown";
 import LoadingCat from "@/components/LoadingCat";
 import Flashcard from "@/components/Flashcard";
 
@@ -11,7 +10,7 @@ import Flashcard from "@/components/Flashcard";
 export default function VocabularyPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentStreak, setCurrentStreak] = useState(4);
-  const [activeTab, setActiveTab] = useState("flashcard"); // Thêm state cho tab
+  const [activeTab, setActiveTab] = useState("flashcard");
   const { isDarkMode, toggleDarkMode, mounted } = useDarkMode();
 
   if (!mounted) {
@@ -45,54 +44,27 @@ export default function VocabularyPage() {
         onStreakUpdate={setCurrentStreak}
       />
 
-      <div className="flex-1 flex flex-col">
-        {/* Fixed Header */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header Component */}
+        <Header isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
+
+        {/* Page Title Bar */}
         <div
-          className={`sticky top-0 z-10 ${
+          className={`${
             isDarkMode
               ? "bg-gray-800 border-gray-700"
               : "bg-white/80 backdrop-blur-sm border-cyan-100"
-          } border-b px-6 py-4 shadow-lg`}
+          } border-b px-6 py-3 shadow-sm`}
         >
-          <div className="flex items-center justify-between">
-            <h1
-              className={`text-2xl font-bold ${
-                isDarkMode
-                  ? "text-gray-100"
-                  : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
-              }`}
-            >
-              Từ vựng của tôi
-            </h1>
-            <div className="flex items-center gap-3">
-              <button
-                className={`p-2 ${
-                  isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-50"
-                } rounded-lg transition`}
-              >
-                <Bell
-                  className={`w-5 h-5 ${
-                    isDarkMode ? "text-gray-300" : "text-cyan-500"
-                  }`}
-                />
-              </button>
-              <button
-                className={`p-2 ${
-                  isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-50"
-                } rounded-lg transition`}
-              >
-                <Settings
-                  className={`w-5 h-5 ${
-                    isDarkMode ? "text-gray-300" : "text-cyan-500"
-                  }`}
-                />
-              </button>
-              <UserDropdown
-                isDark={isDarkMode}
-                onToggleDarkMode={toggleDarkMode}
-              />
-            </div>
-          </div>
+          <h1
+            className={`text-xl font-bold ${
+              isDarkMode
+                ? "text-gray-100"
+                : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
+            }`}
+          >
+            Từ vựng của tôi
+          </h1>
         </div>
 
         {/* Scrollable Content */}
