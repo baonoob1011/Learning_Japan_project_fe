@@ -17,6 +17,7 @@ export default function Header({
   const [searchKeyword, setSearchKeyword] = useState("");
   const [results, setResults] = useState<YoutubeVideoSummary[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
 
   // debounce search 300ms
   useEffect(() => {
