@@ -17,6 +17,7 @@ export const API_ENDPOINTS = {
     VIEW: "/youtube",
     VIEW_BY_ID: "/transcripts",
     MY_SAVED: "/youtube/me",
+    SEARCH: "/videos/search",
     VIEW_BY_VOCAB: "/youtube/vocab",
   },
   LEARNING_PROGRESS: {

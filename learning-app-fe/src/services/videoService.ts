@@ -7,6 +7,11 @@ import { http } from "@/lib/http";
 import { JLPTLevel, VideoTag } from "@/types/video";
 
 /* ===================== TYPES ===================== */
+export interface SearchYoutubeVideoRequest {
+  key?: string; // trùng tên backend
+  level?: JLPTLevel;
+  videoTag?: VideoTag;
+}
 
 export interface UploadYoutubeVideoRequest {
   url: string;
@@ -121,5 +126,22 @@ export const youtubeService = {
    * ✅ NEW — Get video đã save của user hiện tại
    */ getMySavedVideos(): Promise<YoutubeVideoSummary[]> {
     return http.get(API_ENDPOINTS.VIDEO.MY_SAVED);
+  },
+
+  async search(
+    params: SearchYoutubeVideoRequest
+  ): Promise<YoutubeVideoSummary[]> {
+    const query = new URLSearchParams(
+      Object.entries(params)
+        .filter(([_, v]) => v !== undefined && v !== "")
+        .map(([k, v]) => {
+          if (k === "keyword") return ["key", String(v)]; // map keyword → key
+          return [k, String(v)];
+        })
+    ).toString();
+
+    return fetchAPI<YoutubeVideoSummary[]>(
+      `${API_ENDPOINTS.VIDEO.SEARCH}?${query}`
+    );
   },
 };
