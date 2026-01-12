@@ -2,6 +2,10 @@ import axios from "axios";
 import { axiosClient, HttpClientError } from "@/lib/axios";
 import { getEndpoint } from "@/config/api";
 import { ApiResponse } from "./api-types"; // <-- dùng từ file api-types
+import { API_ENDPOINTS } from "@/config/api";
+import { http } from "@/lib/http";
+import { Upload } from "lucide-react";
+
 
 export interface RegisterRequest {
   fullName: string;
@@ -15,6 +19,32 @@ export interface RegisterResult {
   email: string;
   createdAt: string;
 }
+
+
+export interface UserProfileResponse {
+  fullName: string;
+  email: string;
+  createdAt: string;
+}
+
+export const userService = {
+  getProfile(): Promise<UserProfileResponse> {
+    return http.get(API_ENDPOINTS.USER.PROFILE); // token đi kèm trong header
+  },
+
+  uploadAvatar(file: File): Promise<void> {
+    const formData = new FormData();
+    formData.append("file", file);
+    return http.put(API_ENDPOINTS.USER.UPLOAD_AVATAR, formData);
+  },
+
+  changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    return http.post(API_ENDPOINTS.USER.CHANGE_PASSWORD, {
+      currentPassword,
+      newPassword,
+    });
+  }
+};
 
 export const register = async (
   data: RegisterRequest

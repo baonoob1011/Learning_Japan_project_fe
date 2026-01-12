@@ -19,6 +19,12 @@ export interface RefreshTokenRequest {
   refreshToken: string;
 }
 
+export interface ConfirmForgotPasswordRequest {
+  email: string;
+  otp: string;
+  newPassword: string;
+}
+
 // ----- Login API -----
 export const login = async (data: LoginRequest): Promise<UserLoginResponse> => {
   try {
@@ -62,6 +68,8 @@ export const login = async (data: LoginRequest): Promise<UserLoginResponse> => {
     throw new Error("Có lỗi xảy ra");
   }
 };
+
+
 
 // ----- Refresh Token API -----
 export const refreshToken = async (
@@ -128,5 +136,75 @@ export const logout = async (): Promise<void> => {
     }
     if (error instanceof Error) throw new Error(error.message);
     throw new Error("Có lỗi xảy ra khi đăng xuất");
+  }
+};
+
+export const forgotPassword = async (email: string): Promise<string> => {
+  try {
+    // Lưu ý: Cần thêm key FORGOT_PASSWORD vào file config/api.ts
+    const endpoint = getEndpoint("FORGOT_PASSWORD"); 
+
+    // Backend dùng @RequestParam String email, nên ta truyền qua params
+    const response = await axiosClient.post<ApiResponse<string>>(
+      endpoint,
+      null, // Body là null vì dùng @RequestParam
+      {
+        params: { email },
+        headers: { Authorization: undefined }, // API public
+      }
+    );
+
+    const resData = response.data;
+    if (!resData.success) {
+      throw new Error(resData.message || "Gửi yêu cầu thất bại");
+    }
+
+    return resData.message || "OTP đã được gửi";
+  } catch (error: unknown) {
+    if (error instanceof HttpClientError)
+      throw new Error(error.message || "Gửi yêu cầu thất bại");
+    if (axios.isAxiosError(error)) {
+      const msg =
+        (error.response?.data as { message?: string })?.message ||
+        error.message;
+      throw new Error(msg);
+    }
+    if (error instanceof Error) throw new Error(error.message);
+    throw new Error("Có lỗi xảy ra");
+  }
+};
+
+// ----- Confirm Forgot Password API (Xác nhận OTP & Đổi pass) -----
+export const confirmForgotPassword = async (
+  data: ConfirmForgotPasswordRequest
+): Promise<string> => {
+  try {
+    // Lưu ý: Cần thêm key CONFIRM_FORGOT_PASSWORD vào file config/api.ts
+    const endpoint = getEndpoint("CONFIRM_FORGOT_PASSWORD");
+
+    // Backend dùng @RequestBody ForgotPasswordRequest
+    const response = await axiosClient.post<ApiResponse<string>>(
+      endpoint,
+      data,
+      { headers: { Authorization: undefined } } // API public
+    );
+
+    const resData = response.data;
+    if (!resData.success) {
+      throw new Error(resData.message || "Đổi mật khẩu thất bại");
+    }
+
+    return resData.message || "Đổi mật khẩu thành công";
+  } catch (error: unknown) {
+    if (error instanceof HttpClientError)
+      throw new Error(error.message || "Đổi mật khẩu thất bại");
+    if (axios.isAxiosError(error)) {
+      const msg =
+        (error.response?.data as { message?: string })?.message ||
+        error.message;
+      throw new Error(msg);
+    }
+    if (error instanceof Error) throw new Error(error.message);
+    throw new Error("Có lỗi xảy ra");
   }
 };

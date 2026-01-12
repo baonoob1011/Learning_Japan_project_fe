@@ -7,6 +7,13 @@ export const API_CONFIG = {
 
 // API Endpoints (flat)
 export const API_ENDPOINTS = {
+  USER: {
+    PROFILE: "/users/me",
+    UPLOAD_AVATAR: "/users/upload-avatar",
+    CHANGE_PASSWORD: "/users/change-password",
+  },
+  FORGOT_PASSWORD: "/users/forgot-password",
+  CONFIRM_FORGOT_PASSWORD: "/users/confirm-forgot-password",
   REGISTER: "/users/register",
   LOGIN: "/auth/login",
   REFRESH_TOKEN: "/auth/refresh-token",
