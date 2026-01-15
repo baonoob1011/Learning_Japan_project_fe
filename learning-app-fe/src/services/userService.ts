@@ -6,7 +6,6 @@ import { API_ENDPOINTS } from "@/config/api";
 import { http } from "@/lib/http";
 import { Upload } from "lucide-react";
 
-
 export interface RegisterRequest {
   fullName: string;
   email: string;
@@ -20,11 +19,11 @@ export interface RegisterResult {
   createdAt: string;
 }
 
-
 export interface UserProfileResponse {
   fullName: string;
   email: string;
   createdAt: string;
+  avatarUrl: string;
 }
 
 export const userService = {
@@ -43,7 +42,7 @@ export const userService = {
       currentPassword,
       newPassword,
     });
-  }
+  },
 };
 
 export const register = async (
