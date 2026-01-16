@@ -104,7 +104,7 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl text-gray-700 focus:ring-2 focus:ring-cyan-400 focus:border-transparent outline-none transition"
-                  placeholder="name@example.com"
+                  placeholder="name@gmail.com"
                 />
               </div>
             </div>

@@ -27,6 +27,30 @@ export interface UserProfileResponse {
   createdAt: string;
 }
 
+export interface UserResponse {
+  id: string;
+  email: string;
+  fullName: string;      // Backend là fullName, không phải name
+  avatarUrl?: string;
+  enabled: boolean;
+  
+  // Các field học tập mới thêm
+  level: string;         // "N5"
+  stage: string;         // "Junbi"
+  processPercent: number;// 60
+  isPremium: boolean;    // true/false
+  
+  createdAt: string;
+}
+
+export interface PageResponse<T> {
+  page: number;
+  totalPages: number;
+  size: number;
+  totalElements: number;
+  data: T[];             // Danh sách user nằm ở đây
+}
+
 export const userService = {
   getProfile(): Promise<UserProfileResponse> {
     return http.get(API_ENDPOINTS.USER.PROFILE); // token đi kèm trong header
@@ -43,8 +67,22 @@ export const userService = {
       currentPassword,
       newPassword,
     });
-  }
+  },
+
+  // lấy tất cả user cho admin
+  getAllUsers(
+    page: number,
+    size: number,
+    search?: string
+  ): Promise<PageResponse<UserResponse>> {
+    const params: Record<string, string | number> = { page, size };
+    if (search) {
+      params.search = search;
+    }
+    return http.get(API_ENDPOINTS.USER.ALL_USERS, { params });
+  },
 };
+
 
 export const register = async (
   data: RegisterRequest

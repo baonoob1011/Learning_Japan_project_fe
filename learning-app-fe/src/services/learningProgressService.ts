@@ -23,6 +23,15 @@ export interface DailyProgressDto {
   accuracy: number;
 }
 
+export interface UserResponse { // Interface phụ cho User
+    id: string;
+    email: string;
+    fullName: string;
+    enabled: boolean;
+    createdAt: string;
+    avatarUrl?: string; // Dấu ? vì có thể null
+}
+
 export interface UserLearningDashboardResponse {
   userId: string;
   totalExamsTaken: number;
@@ -32,6 +41,7 @@ export interface UserLearningDashboardResponse {
   lastLevel?: string;
   lastExamAt?: string;
   levels: LevelProgressDto[];
+  user: UserResponse; // <--- Quan trọng: Phải khớp tên biến
 }
 
 /* ==================== HELPERS ==================== */
@@ -65,6 +75,23 @@ export const learningProgressService = {
   async view(): Promise<UserLearningDashboardResponse> {
     return fetchAPI<UserLearningDashboardResponse>(
       API_ENDPOINTS.LEARNING_PROGRESS.PROGRESS_VIEW
+    );
+  },
+
+  //LAY DASHBOARD HOC TAP CHO ADMIN
+  async getAdminUserProgress(userId: string): Promise<UserLearningDashboardResponse> {
+     return fetchAPI<UserLearningDashboardResponse>(
+      API_ENDPOINTS.ADMIN.PROGRESS_VIEW.replace(':userId', userId)
+    );
+  },
+
+  /**
+   * ADMIN: Lấy biểu đồ hàng ngày của 1 user cụ thể
+   * (Cần thêm hàm này nếu muốn biểu đồ 7 ngày chạy đúng data user đó)
+   */
+  async getAdminDailyProgress(userId: string, days: number = 7): Promise<DailyProgressDto[]> {
+     return fetchAPI<DailyProgressDto[]>(
+      `${API_ENDPOINTS.ADMIN.PROGRESS_RESULT_DAILY.replace(':userId', userId)}?days=${days}`
     );
   },
 

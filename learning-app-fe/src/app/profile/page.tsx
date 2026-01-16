@@ -100,7 +100,6 @@ export default function ProfilePage() {
     }
 
     try {
-      // 2. Gọi API 👇 (BỎ COMMENT VÀ DÙNG HÀM NÀY)
       await userService.changePassword(
           passwordForm.currentPassword, 
           passwordForm.newPassword
