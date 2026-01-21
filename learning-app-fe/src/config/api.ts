@@ -12,10 +12,15 @@ export const API_ENDPOINTS = {
     UPLOAD_AVATAR: "/users/upload-avatar",
     CHANGE_PASSWORD: "/users/change-password",
     ALL_USERS: "/admin/users",
+    
   },
   ADMIN: {
     PROGRESS_VIEW: "/admin/learning-progress/:userId",
     PROGRESS_RESULT_DAILY: "/admin/learning-progress/:userId/daily",
+    ALL_USERS_MANAGER: "/admin/users/manager",
+    BAN_USER: (email: string) => `/admin/users/ban/${email}`,
+    UNBAN_USER: (email: string) => `/admin/users/unban/${email}`,
+    DELETE_USER: `/admin/users/delete-account`,
   },
   FORGOT_PASSWORD: "/users/forgot-password",
   CONFIRM_FORGOT_PASSWORD: "/users/confirm-forgot-password",

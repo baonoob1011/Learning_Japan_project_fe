@@ -33,13 +33,30 @@ export interface UserResponse {
   fullName: string;      // Backend là fullName, không phải name
   avatarUrl?: string;
   enabled: boolean;
-  
+
   // Các field học tập mới thêm
   level: string;         // "N5"
   stage: string;         // "Junbi"
   processPercent: number;// 60
   isPremium: boolean;    // true/false
-  
+
+  createdAt: string;
+}
+
+export interface UserResponseManager {
+  id: string;
+  email: string;
+  fullName: string;      // Backend là fullName, không phải name
+  avatarUrl?: string;
+  enabled: boolean;
+  role: string[];    // Ví dụ: ["USER"], ["ADMIN"]
+
+  // Các field học tập mới thêm
+  level: string;         // "N5"
+  stage: string;         // "Junbi"
+  processPercent: number;// 60
+  isPremium: boolean;    // true/false
+
   createdAt: string;
 }
 
@@ -81,6 +98,44 @@ export const userService = {
     }
     return http.get(API_ENDPOINTS.USER.ALL_USERS, { params });
   },
+
+  // lấy chi tiết user cho admin
+  getAllUsersManager(
+    page: number,
+    size: number,
+    search?: string
+  ): Promise<PageResponse<UserResponseManager>> {
+    const params: Record<string, string | number> = { page, size };
+    if (search) {
+      params.search = search;
+    }
+    return http.get(API_ENDPOINTS.ADMIN.ALL_USERS_MANAGER, { params });
+  },
+
+  /**
+   * Ban (Khóa) tài khoản user dựa trên email
+   * Endpoint: POST /api/admin/users/{email}/ban
+   */
+  banUser(email: string): Promise<void> {
+    // Lưu ý: Đảm bảo đường dẫn khớp với Controller Backend bạn vừa viết
+    // Nếu bạn chưa cấu hình trong API_ENDPOINTS, hãy viết trực tiếp string như dưới:
+    return http.post(API_ENDPOINTS.ADMIN.BAN_USER(email));
+  },
+
+  /**
+   * Unban (Mở khóa) tài khoản user dựa trên email
+   * Endpoint: POST /api/admin/users/{email}/unban
+   */
+  unbanUser(email: string): Promise<void> {
+    return http.post(API_ENDPOINTS.ADMIN.UNBAN_USER(email));
+  },
+
+  deleteUserAccount(email: string): Promise<void> {
+    return http.delete(API_ENDPOINTS.ADMIN.DELETE_USER, {
+      params: { email }
+    });
+  }
+
 };
 
 
