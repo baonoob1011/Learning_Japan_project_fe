@@ -56,14 +56,15 @@ interface YoutubePlayerProps {
   videoId: string;
   onPlayerReady?: (player: YTPlayer) => void;
   onSegmentEnd?: () => void;
+  onStateChange?: (event: YTPlayerStateChangeEvent) => void; // ✅ NEW
 }
 
 const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
-  ({ videoId, onPlayerReady, onSegmentEnd }, ref) => {
+  ({ videoId, onPlayerReady, onSegmentEnd, onStateChange }, ref) => {
     const playerRef = useRef<YTPlayer | null>(null);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const handleRef = useRef<YoutubePlayerHandle | null>(null);
-    const isInitializedRef = useRef(false); // ✅ Track initialization
+    const isInitializedRef = useRef(false);
 
     /** ======================
      * STOP SEGMENT PLAYBACK
@@ -192,7 +193,7 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
           playerVars: {
             rel: 0,
             modestbranding: 1,
-            autoplay: 0, // ✅ Don't autoplay
+            autoplay: 0,
           },
           events: {
             onReady: () => {
@@ -204,6 +205,7 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
             },
             onStateChange: (event) => {
               console.log("🎬 Player state changed:", event.data);
+              onStateChange?.(event); // ✅ NEW: Forward state change to parent
             },
           },
         });
@@ -287,7 +289,7 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
           playerRef.current = null;
         }
       };
-    }, [videoId]); // ✅ Re-run when videoId changes
+    }, [videoId]);
 
     return (
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-2">

@@ -12,6 +12,19 @@ export interface SearchYoutubeVideoRequest {
   level?: JLPTLevel;
   videoTag?: VideoTag;
 }
+export interface VideoProgressResponse {
+  videoId: string;
+  lastPositionSeconds: number;
+  totalWatchedSeconds: number;
+  completed: boolean;
+  lastWatchedAt: string;
+}
+
+export interface VideoProgressRequest {
+  videoId: string;
+  lastPositionSeconds: number;
+  watchedSecondsDelta: number;
+}
 
 export interface UploadYoutubeVideoRequest {
   url: string;
@@ -111,7 +124,11 @@ export const youtubeService = {
     await fetchAPI<void>(`${API_ENDPOINTS.VIDEO.VIEW}/${id}`);
     console.log(`[API CALLED] Video detail: ${id}`);
   },
-
+  getAllVideoProgress(): Promise<VideoProgressResponse[]> {
+    return http.get<VideoProgressResponse[]>(
+      API_ENDPOINTS.VIDEO.GET_ALL_PROGRESS
+    );
+  },
   saveVideo(videoId: string): Promise<void> {
     return http.post<void>(API_ENDPOINTS.VIDEO.SAVE(videoId));
   },
@@ -127,7 +144,9 @@ export const youtubeService = {
    */ getMySavedVideos(): Promise<YoutubeVideoSummary[]> {
     return http.get(API_ENDPOINTS.VIDEO.MY_SAVED);
   },
-
+  trackingProgess(request: VideoProgressRequest): Promise<void> {
+    return http.post<void>(API_ENDPOINTS.VIDEO.TRACK_PROGRESS, request);
+  },
   async search(
     params: SearchYoutubeVideoRequest
   ): Promise<YoutubeVideoSummary[]> {

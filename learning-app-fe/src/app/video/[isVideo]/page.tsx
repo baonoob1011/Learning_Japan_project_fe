@@ -52,6 +52,10 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Tracking states
+  const [isPlaying, setIsPlaying] = useState(false);
+  const lastUpdateTimeRef = useRef<number>(Date.now());
+
   const transcriptRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YoutubePlayerHandle | null>(null);
@@ -59,6 +63,8 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastVideoTimeRef = useRef<number | null>(null);
+  const accumulatedWatchTimeRef = useRef<number>(0);
 
   const handleSeekToTime = (timeMs: number) => {
     setSeekTimeMs(timeMs);
@@ -90,7 +96,6 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
       console.log("✅ Video saved successfully");
     } catch (error) {
       console.error("❌ Failed to save video:", error);
-      // TODO: show toast error
     } finally {
       setIsSaving(false);
     }
@@ -103,6 +108,46 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
       ),
     [transcripts, currentTimeMs]
   );
+
+  // ✅ NEW: Tracking progress chỉ khi đang phát thật sự
+  useEffect(() => {
+    if (!videoId) return;
+
+    if (!isPlaying) {
+      lastVideoTimeRef.current = null;
+      return;
+    }
+
+    if (lastVideoTimeRef.current === null) {
+      lastVideoTimeRef.current = currentTimeMs;
+      return;
+    }
+
+    const deltaVideoMs = currentTimeMs - lastVideoTimeRef.current;
+
+    // ❌ bỏ qua seek, tua, lag
+    if (deltaVideoMs <= 0 || deltaVideoMs > 1500) {
+      lastVideoTimeRef.current = currentTimeMs;
+      return;
+    }
+
+    accumulatedWatchTimeRef.current += deltaVideoMs;
+    lastVideoTimeRef.current = currentTimeMs;
+
+    if (accumulatedWatchTimeRef.current >= 5000) {
+      const watchedSeconds = Math.floor(accumulatedWatchTimeRef.current / 1000);
+
+      const currentSecond = Math.floor(currentTimeMs / 1000);
+
+      youtubeService.trackingProgess({
+        videoId,
+        lastPositionSeconds: currentSecond,
+        watchedSecondsDelta: watchedSeconds,
+      });
+
+      accumulatedWatchTimeRef.current = 0;
+    }
+  }, [currentTimeMs, isPlaying, videoId]);
 
   useEffect(() => {
     if (
@@ -137,7 +182,6 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
       try {
         console.log("🔄 Fetching video data for videoId:", videoId);
 
-        // Fetch transcripts
         const transcriptData: YoutubeTranscriptResponse =
           await transcriptService.getTranscripts(videoId);
 
@@ -150,7 +194,6 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
           setVideoTitle(transcriptData.title);
         }
 
-        // Fetch video metadata (level and tag)
         try {
           const videos = await youtubeService.getAll();
           const currentVideo = videos.find((v) => v.id === videoId);
@@ -162,7 +205,6 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
           }
         } catch (metaError) {
           console.warn("⚠️ Failed to fetch video metadata:", metaError);
-          // Use defaults if metadata fetch fails
         }
       } catch (err) {
         console.error("❌ Failed to fetch video data", err);
@@ -391,6 +433,7 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
               seekTimeMs={seekTimeMs}
               onSeekHandled={() => setSeekTimeMs(null)}
               onTimeUpdate={setCurrentTimeMs}
+              onPlayingChange={setIsPlaying}
               hideWordBar={
                 viewMode === "dictation" || viewMode === "pronunciation"
               }
@@ -441,7 +484,6 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
                   </div>
                 </div>
 
-                {/* Save Video Button */}
                 <button
                   onClick={handleSaveVideo}
                   disabled={isSaving || isSaved}

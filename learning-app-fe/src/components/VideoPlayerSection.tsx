@@ -14,6 +14,7 @@ interface VideoPlayerSectionProps {
   seekTimeMs: number | null;
   onSeekHandled: () => void;
   onTimeUpdate: (timeMs: number) => void;
+  onPlayingChange?: (isPlaying: boolean) => void; // ✅ NEW
   hideWordBar?: boolean;
   onVocabSaved?: () => void;
   isDarkMode?: boolean;
@@ -56,6 +57,7 @@ export default function VideoPlayerSection({
   seekTimeMs,
   onSeekHandled,
   onTimeUpdate,
+  onPlayingChange, // ✅ NEW
   hideWordBar = false,
   onVocabSaved,
   isDarkMode = false,
@@ -79,6 +81,7 @@ export default function VideoPlayerSection({
             seekTimeMs={seekTimeMs}
             onSeekHandled={onSeekHandled}
             onTimeUpdate={onTimeUpdate}
+            onPlayingChange={onPlayingChange} // ✅ NEW - Pass down
             hideWordBar={hideWordBar}
             onVocabSaved={onVocabSaved}
             isDarkMode={isDarkMode}
