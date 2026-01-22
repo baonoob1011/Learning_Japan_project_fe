@@ -5,6 +5,7 @@ import { ApiResponse } from "./api-types"; // <-- dùng từ file api-types
 import { API_ENDPOINTS } from "@/config/api";
 import { http } from "@/lib/http";
 import { Upload } from "lucide-react";
+import { get } from "node_modules/axios/index.cjs";
 
 
 export interface RegisterRequest {
@@ -66,6 +67,12 @@ export interface PageResponse<T> {
   size: number;
   totalElements: number;
   data: T[];             // Danh sách user nằm ở đây
+}
+
+export interface UserStatsResponse {
+  total: number;
+  active: number;
+  banned: number;
 }
 
 export const userService = {
@@ -134,6 +141,16 @@ export const userService = {
     return http.delete(API_ENDPOINTS.ADMIN.DELETE_USER, {
       params: { email }
     });
+  },
+
+  deleteMultipleUserAccounts(emails: string[]): Promise<void> {
+    return http.delete(API_ENDPOINTS.ADMIN.DELETE_USERS, {
+      data: { emails } // Gửi mảng email trong body của yêu cầu DELETE
+    });
+  },
+
+  getUserStatistics(): Promise<UserStatsResponse> {
+    return http.get(API_ENDPOINTS.ADMIN.USER_STATISTICS);
   }
 
 };

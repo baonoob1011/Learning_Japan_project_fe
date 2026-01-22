@@ -190,7 +190,7 @@ export default function AdminDashboard() {
               {/* Footer Phân trang */}
               <div className="p-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
                 <span className="text-xs text-gray-500">
-                  Hiển thị trang <span className="font-semibold text-gray-700">{currentPage}</span> /iển thị trang 2 trên tổng số 2 {totalPages}
+                  Hiển thị trang <span className="font-semibold text-gray-700">{currentPage}</span> / {totalPages}
                 </span>
 
                 <div className="flex gap-2">

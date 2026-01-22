@@ -19,6 +19,7 @@ import {
 // Assuming these are imported from your actual file structure
 // If they are in the same file, keep them here.
 import { userService, UserResponseManager } from "@/services/userService";
+import BackButton from "../../components/backButton";
 
 // --- Types ---
 interface User {
@@ -38,6 +39,7 @@ export default function UserManager() {
   // --- State ---
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [stats, setStats] = useState({ total: 0, active: 0, banned: 0 });
 
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState("");
@@ -119,9 +121,26 @@ export default function UserManager() {
     }
   }, [pagination.page, pagination.size, debouncedSearch]);
 
+
+  const fetchStats = async () => {
+    try {
+      const statsData = await userService.getUserStatistics();
+      console.log("Thống kê người dùng:", statsData);
+      // Cập nhật state với dữ liệu thật từ DB
+      setStats({
+        total: statsData.total,
+        active: statsData.active,
+        banned: statsData.banned // Mapping từ inactive_users của DB
+      });
+    } catch (error) {
+      console.error("Lỗi lấy thống kê:", error);
+    }
+  };
+
   // --- 3. Trigger Fetch ---
   useEffect(() => {
     fetchUsers();
+    fetchStats();
   }, [fetchUsers]);
 
   // --- 4. Client-Side Filtering (Visual Only) ---
@@ -140,47 +159,152 @@ export default function UserManager() {
     }
   };
 
-  const handleBanUser = (email: string) => {
-    if (confirm("Bạn có chắc muốn chặn người dùng này?")) {
-      // TODO: Call API endpoint to ban (e.g., userService.banUser(id))
-      userService.banUser(email);
-      // Optimistic update:
-      setUsers(users.map(u => u.email === email ? { ...u, status: "BANNED" } : u));
+  const handleBanUser = async (email: string) => {
+    // 1. Cập nhật Giao diện NGAY (Optimistic UI)
+    // Sửa danh sách User
+    setUsers((prev) =>
+      prev.map((u) => (u.email === email ? { ...u, status: "BANNED" } : u))
+    );
+
+    // Sửa số liệu thống kê (Thủ công)
+    setStats((prev) => ({
+      ...prev,
+      active: Math.max(0, prev.active - 1), // Giảm Active
+      banned: prev.banned + 1,              // Tăng Banned
+    }));
+
+    // 2. Gọi API ngầm (Không await chặn giao diện, hoặc await nhưng không reload lại list)
+    try {
+      await userService.banUser(email);
+      // Thành công thì thôi, không cần làm gì thêm vì giao diện đã đúng rồi
+    } catch (error) {
+      console.error("Lỗi ban user:", error);
+      alert("Lỗi kết nối! Hoàn tác lại.");
+      // Nếu lỗi thì revert (đảo ngược) lại trạng thái cũ (Active lại)
+      fetchUsers();
+      fetchStats();
     }
   };
 
-  const handleUnbanUser = (email: string) => {
-    // TODO: Call API endpoint to unban
-    userService.unbanUser(email);
-    setUsers(users.map(u => u.email === email ? { ...u, status: "ACTIVE" } : u));
+  const handleUnbanUser = async (email: string) => {
+    // 1. Cập nhật Giao diện NGAY
+    setUsers((prev) =>
+      prev.map((u) => (u.email === email ? { ...u, status: "ACTIVE" } : u))
+    );
+
+    setStats((prev) => ({
+      ...prev,
+      active: prev.active + 1,              // Tăng Active
+      banned: Math.max(0, prev.banned - 1), // Giảm Banned
+    }));
+
+    // 2. Gọi API ngầm
+    try {
+      await userService.unbanUser(email);
+    } catch (error) {
+      console.error("Lỗi unban:", error);
+      fetchUsers(); // Lỗi thì load lại cho chắc
+      fetchStats();
+    }
   };
 
   const handleDeleteUser = async (userToDelete: User) => {
-    // 1. Hỏi xác nhận trước
-    if (!confirm("Hành động này không thể hoàn tác. Xóa user?")) return;
+    if (!confirm("Xóa user này?")) return;
+
+    // Lưu lại trạng thái cũ để revert nếu cần
+    const previousUsers = [...users];
+
+    // 1. Xóa khỏi danh sách hiển thị ngay lập tức
+    setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
+
+    // 2. Cập nhật thống kê ngay lập tức
+    setStats((prev) => ({
+      ...prev,
+      total: Math.max(0, prev.total - 1),
+      // Kiểm tra user bị xóa đang ở trạng thái nào để trừ tương ứng
+      active: userToDelete.status === "ACTIVE" ? Math.max(0, prev.active - 1) : prev.active,
+      banned: userToDelete.status === "BANNED" ? Math.max(0, prev.banned - 1) : prev.banned,
+    }));
+
+    // 3. Cập nhật Pagination count
+    setPagination((prev) => ({
+      ...prev,
+      totalElements: Math.max(0, prev.totalElements - 1),
+    }));
 
     try {
-      // 2. Gọi API Xóa (Dùng ID thay vì email để chuẩn xác với Backend)
-      await userService.deleteUserAccount(userToDelete.email); 
-      
-      // 3. Cập nhật danh sách hiển thị (Local State) -> Xóa dòng khỏi bảng
-      setUsers((prevUsers) => prevUsers.filter((u) => u.id !== userToDelete.id));
+      // 4. Giờ mới gọi API
+      await userService.deleteUserAccount(userToDelete.email);
 
-      // 4. QUAN TRỌNG: Cập nhật biến đếm tổng (Pagination State) -> Giảm đi 1
-      setPagination((prev) => ({
-        ...prev,
-        totalElements: Math.max(0, prev.totalElements - 1), // Trừ 1, không để âm
-      }));
-
-      // (Tùy chọn) 5. Nếu trang hiện tại bị xóa hết user, reload lại danh sách để lấy data trang trước
+      // Nếu xóa hết user ở trang hiện tại thì lùi trang (Logic này vẫn giữ)
       if (users.length === 1 && pagination.page > 0) {
-          setPagination(prev => ({ ...prev, page: prev.page - 1 }));
-          // Việc setPage sẽ kích hoạt useEffect gọi fetchUsers()
+        setPagination(prev => ({ ...prev, page: prev.page - 1 }));
       }
 
     } catch (error) {
-      console.error(error);
-      alert("Xóa thất bại. Vui lòng thử lại.");
+      console.error("Xóa thất bại:", error);
+      alert("Xóa thất bại!");
+      // Hoàn tác lại dữ liệu cũ nếu lỗi
+      setUsers(previousUsers);
+      fetchStats(); // Load lại stats chuẩn từ server
+    }
+  };
+
+  // Xử lý xóa nhiều người dùng cùng lúc
+  const handleBulkDelete = async () => {
+    if (selectedUserIds.length === 0) return;
+    if (!confirm(`Bạn có chắc chắn muốn xóa ${selectedUserIds.length} người dùng này không?`)) return;
+
+    // --- (Phần 1, 2, 3 giữ nguyên y hệt code cũ) ---
+    // 1. Lưu state cũ
+    const previousUsers = [...users];
+    const previousStats = { ...stats };
+    const previousPagination = { ...pagination };
+
+    // 2. Lấy user để tính toán
+    const usersToDelete = users.filter((u) => selectedUserIds.includes(u.id));
+    const countActive = usersToDelete.filter(u => u.status === "ACTIVE").length;
+    const countBanned = usersToDelete.filter(u => u.status === "BANNED").length;
+
+    // 3. Optimistic Update (Cập nhật giao diện trước)
+    setUsers((prev) => prev.filter((u) => !selectedUserIds.includes(u.id)));
+    
+    setStats((prev) => ({
+      ...prev,
+      total: Math.max(0, prev.total - usersToDelete.length),
+      active: Math.max(0, prev.active - countActive),
+      banned: Math.max(0, prev.banned - countBanned),
+    }));
+
+    setPagination((prev) => ({
+      ...prev,
+      totalElements: Math.max(0, prev.totalElements - usersToDelete.length),
+    }));
+
+    setSelectedUserIds([]);
+
+    // --- 4. SỬA Ở ĐÂY (Gọi API Bulk) ---
+    try {
+      // Lấy danh sách email từ các user đã chọn
+      const emailsToDelete = usersToDelete.map(u => u.email);
+      
+      // Gọi API xóa 1 lần duy nhất
+      await userService.deleteMultipleUserAccounts(emailsToDelete);
+      
+      // Logic lùi trang nếu trang hiện tại bị xóa hết
+      if (users.length === usersToDelete.length && pagination.page > 0) {
+         setPagination(prev => ({ ...prev, page: prev.page - 1 }));
+      }
+
+    } catch (error) {
+      console.error("Lỗi xóa hàng loạt:", error);
+      alert("Có lỗi xảy ra. Đang hoàn tác...");
+      
+      // Revert lại dữ liệu cũ
+      setUsers(previousUsers);
+      setStats(previousStats);
+      setPagination(previousPagination);
+      setSelectedUserIds(selectedUserIds);
     }
   };
 
@@ -237,23 +361,30 @@ export default function UserManager() {
 
       {/* 1. Header & Stats */}
       <div className="mb-8 max-w-7xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Quản lý người dùng</h1>
-        <p className="text-gray-500 text-sm">Quản lý danh sách, phân quyền và trạng thái hoạt động.</p>
-
+        <div className="flex items-center gap-4 mb-6">
+            <div className="shrink-0"> {/* Giữ nút không bị co lại */}
+                <BackButton to="/admin" label="home" />
+            </div>
+            
+            <div>
+                <h1 className="text-2xl font-bold text-gray-900">Quản lý người dùng</h1>
+                <p className="text-gray-500 text-sm">Quản lý danh sách, phân quyền và trạng thái hoạt động.</p>
+            </div>
+        </div>
         {/* Stats based on current view/fetch */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
             <div className="p-3 bg-blue-50 rounded-lg text-blue-600 border border-blue-100"><Users className="w-6 h-6" /></div>
-            <div><p className="text-sm text-gray-500 font-medium">Tổng User</p><p className="text-2xl font-bold text-gray-900">{pagination.totalElements}</p></div>
+            <div><p className="text-sm text-gray-500 font-medium">Tổng User</p><p className="text-2xl font-bold text-gray-900">{stats.total}</p></div>
           </div>
           {/* Note: Specific status counts require a separate API call typically, here we just count visible or keep placeholders */}
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
             <div className="p-3 bg-green-50 rounded-lg text-green-600 border border-green-100"><UserCheck className="w-6 h-6" /></div>
-            <div><p className="text-sm text-gray-500 font-medium">Đang hoạt động</p><p className="text-2xl font-bold text-gray-900">--</p></div>
+            <div><p className="text-sm text-gray-500 font-medium">Đang hoạt động</p><p className="text-2xl font-bold text-gray-900">{stats.active}</p></div>
           </div>
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
             <div className="p-3 bg-red-50 rounded-lg text-red-600 border border-red-100"><UserX className="w-6 h-6" /></div>
-            <div><p className="text-sm text-gray-500 font-medium">Bị chặn</p><p className="text-2xl font-bold text-gray-900">--</p></div>
+            <div><p className="text-sm text-gray-500 font-medium">Bị chặn</p><p className="text-2xl font-bold text-gray-900">{stats.banned}</p></div>
           </div>
         </div>
       </div>
@@ -283,7 +414,7 @@ export default function UserManager() {
               >
                 <option value="ALL">Tất cả vai trò</option>
                 <option value="ADMIN">Admin</option>
-                <option value="TEACHER">Teacher</option>
+                <option value="USER_VIP">User_vip</option>
                 <option value="USER">User</option>
               </select>
 
@@ -303,7 +434,10 @@ export default function UserManager() {
           {/* Right: Actions */}
           <div className="flex items-center gap-2">
             {selectedUserIds.length > 0 && (
-              <button className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 border border-red-100 transition-colors text-sm font-medium animate-in fade-in">
+              <button 
+                onClick={handleBulkDelete}
+                className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 border border-red-100 transition-colors text-sm font-medium animate-in fade-in"
+              >
                 <Trash2 className="w-4 h-4" /> Xóa ({selectedUserIds.length})
               </button>
             )}

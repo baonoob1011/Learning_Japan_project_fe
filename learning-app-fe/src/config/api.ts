@@ -21,6 +21,8 @@ export const API_ENDPOINTS = {
     BAN_USER: (email: string) => `/admin/users/ban/${email}`,
     UNBAN_USER: (email: string) => `/admin/users/unban/${email}`,
     DELETE_USER: `/admin/users/delete-account`,
+    DELETE_USERS: `/admin/users/delete-accounts`,
+    USER_STATISTICS: "/admin/users/stats",
   },
   FORGOT_PASSWORD: "/users/forgot-password",
   CONFIRM_FORGOT_PASSWORD: "/users/confirm-forgot-password",
