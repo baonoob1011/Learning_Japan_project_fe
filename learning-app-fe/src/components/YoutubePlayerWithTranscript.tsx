@@ -17,9 +17,14 @@ interface Props {
   seekTimeMs?: number | null;
   onSeekHandled?: () => void;
   onTimeUpdate?: (timeMs: number) => void;
+  onPlayingChange?: (isPlaying: boolean) => void;
   hideWordBar?: boolean;
   onVocabSaved?: () => void;
   isDarkMode?: boolean;
+}
+
+interface YouTubePlayerStateChangeEvent {
+  data: number;
 }
 
 const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
@@ -30,6 +35,7 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
       seekTimeMs,
       onSeekHandled,
       onTimeUpdate,
+      onPlayingChange,
       hideWordBar = false,
       onVocabSaved,
       isDarkMode = false,
@@ -39,7 +45,7 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
     const playerRef = useRef<YoutubePlayerHandle | null>(null);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const [currentTimeMs, setCurrentTimeMs] = useState(0);
-    const isPlayerReadyRef = useRef(false); // ✅ Track player ready state
+    const isPlayerReadyRef = useRef(false);
 
     // ✅ Log mount/unmount
     useEffect(() => {
@@ -103,6 +109,30 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
       },
       []
     );
+
+    /** ======================
+     * ✅ HANDLE PLAYER STATE CHANGE
+     ====================== */
+    const handlePlayerStateChange = (event: YouTubePlayerStateChangeEvent) => {
+      // YouTube Player States:
+      // -1 (unstarted)
+      // 0 (ended)
+      // 1 (playing)
+      // 2 (paused)
+      // 3 (buffering)
+      // 5 (video cued)
+
+      const state = event.data;
+      const isPlaying = state === 1;
+
+      console.log(
+        `🎵 Player state changed: ${state} (${
+          isPlaying ? "PLAYING" : "NOT PLAYING"
+        })`
+      );
+
+      onPlayingChange?.(isPlaying);
+    };
 
     /** ======================
      * HANDLE PLAYER READY
@@ -192,6 +222,7 @@ const YoutubePlayerWithTranscript = forwardRef<YoutubePlayerHandle, Props>(
           ref={playerRef}
           videoId={videoId}
           onPlayerReady={handlePlayerReady}
+          onStateChange={handlePlayerStateChange}
         />
 
         {/* WORD BAR - Only show when hideWordBar = false */}

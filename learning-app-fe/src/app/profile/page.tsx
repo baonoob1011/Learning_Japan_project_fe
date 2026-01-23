@@ -3,17 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import { userService, UserProfileResponse } from "@/services/userService";
 import { useRouter } from "next/navigation";
-import { X } from "lucide-react"; // Cần cài lucide-react hoặc dùng text "X"
+import { X } from "lucide-react";
 
 export default function ProfilePage() {
   // --- STATE CHÍNH ---
   const [user, setUser] = useState<UserProfileResponse | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   // State form thông tin
   const [formData, setFormData] = useState({
     fullName: "",
-    email: "" 
+    email: "",
   });
 
   // State cho Modal Đổi mật khẩu
@@ -21,7 +21,7 @@ export default function ProfilePage() {
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
 
   const router = useRouter();
@@ -31,15 +31,13 @@ export default function ProfilePage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await userService.getProfile();
-        // Xử lý dữ liệu trả về (hỗ trợ cả dạng bọc .result hoặc không)
-        const userData = (res as any).result || res; 
-        
+        const userData = await userService.getProfile();
+
         if (userData) {
           setUser(userData);
           setFormData({
             fullName: userData.fullName || "",
-            email: userData.email || ""
+            email: userData.email || "",
           });
         }
       } catch (error) {
@@ -56,8 +54,8 @@ export default function ProfilePage() {
     try {
       await userService.uploadAvatar(file);
       const updated = await userService.getProfile();
-      setUser((updated as any).result || updated);
-    } catch (e) {
+      setUser(updated);
+    } catch (error) {
       alert("Lỗi upload ảnh");
     }
   };
@@ -69,11 +67,11 @@ export default function ProfilePage() {
 
   const handleSaveInfo = async () => {
     try {
-      // await userService.updateProfile(formData); 
+      // await userService.updateProfile(formData);
       console.log("Saving info:", formData);
       alert("Đã cập nhật thông tin thành công!");
-      
-      setUser((prev) => prev ? { ...prev, ...formData } : null);
+
+      setUser((prev) => (prev ? { ...prev, ...formData } : null));
       setIsEditing(false);
     } catch (error) {
       alert("Lỗi khi lưu thông tin");
@@ -83,14 +81,16 @@ export default function ProfilePage() {
   // --- HANDLERS ĐỔI MẬT KHẨU ---
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setPasswordForm(prev => ({ ...prev, [name]: value }));
+    setPasswordForm((prev) => ({ ...prev, [name]: value }));
   };
-
-  // Trong ProfilePage.tsx
 
   const handleSubmitPassword = async () => {
     // 1. Validate (Giữ nguyên như cũ)
-    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+    if (
+      !passwordForm.currentPassword ||
+      !passwordForm.newPassword ||
+      !passwordForm.confirmPassword
+    ) {
       alert("Vui lòng nhập đầy đủ thông tin");
       return;
     }
@@ -101,26 +101,35 @@ export default function ProfilePage() {
 
     try {
       await userService.changePassword(
-          passwordForm.currentPassword, 
-          passwordForm.newPassword
+        passwordForm.currentPassword,
+        passwordForm.newPassword
       );
-      
+
       alert("Đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
-      
+
       // Reset form và đóng modal
       setShowPasswordModal(false);
-      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-      
-      // Tùy chọn: Logout luôn để người dùng đăng nhập lại
-      // router.push("/login"); 
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
 
-    } catch (error: any) {
+      // Tùy chọn: Logout luôn để người dùng đăng nhập lại
+      // router.push("/login");
+    } catch (error: unknown) {
       // Xử lý lỗi từ Backend trả về
       console.error(error);
-      if (error.response?.status === 400) {
-          alert("Mật khẩu hiện tại không đúng!");
+      const isAxiosError = (
+        err: unknown
+      ): err is { response?: { status?: number } } => {
+        return typeof err === "object" && err !== null && "response" in err;
+      };
+
+      if (isAxiosError(error) && error.response?.status === 400) {
+        alert("Mật khẩu hiện tại không đúng!");
       } else {
-          alert("Đổi mật khẩu thất bại. Vui lòng thử lại sau.");
+        alert("Đổi mật khẩu thất bại. Vui lòng thử lại sau.");
       }
     }
   };
@@ -130,7 +139,6 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-blue-50 relative">
       <div className="max-w-4xl mx-auto px-6 py-10">
-
         <button
           onClick={() => router.push("/video")}
           className="mb-4 px-4 py-2 rounded-xl border bg-white hover:bg-gray-100 shadow text-gray-800 font-semibold"
@@ -143,15 +151,16 @@ export default function ProfilePage() {
         </h1>
 
         <div className="mt-6 bg-white border rounded-2xl shadow-xl p-6">
-
           <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-            
             {/* Avatar Section */}
             <div className="flex flex-col items-center">
-              <img
-                src={user.avatarUrl || "/default-avatar.png"}
-                className="w-32 h-32 rounded-full object-cover border-4 border-cyan-300 shadow-lg"
-              />
+              <div className="relative w-32 h-32">
+                <img
+                  src={user.avatarUrl || "/default-avatar.png"}
+                  alt={user.fullName || "Avatar người dùng"}
+                  className="w-full h-full rounded-full object-cover border-4 border-cyan-300 shadow-lg"
+                />
+              </div>
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="mt-4 text-sm text-cyan-600 font-semibold hover:underline"
@@ -162,10 +171,11 @@ export default function ProfilePage() {
 
             {/* Info Form Section */}
             <div className="flex-1 w-full space-y-4">
-              
               {/* Full Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Họ và tên</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Họ và tên
+                </label>
                 {isEditing ? (
                   <input
                     type="text"
@@ -183,34 +193,43 @@ export default function ProfilePage() {
 
               {/* Email (READ ONLY) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
                 {isEditing ? (
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
-                    disabled // 🔒 KHÓA KHÔNG CHO SỬA
+                    disabled
                     className="w-full px-4 py-2 border border-gray-200 bg-gray-100 text-gray-500 rounded-xl cursor-not-allowed outline-none"
                   />
                 ) : (
-                  <div className="text-gray-800 py-2">
-                    {user.email}
-                  </div>
+                  <div className="text-gray-800 py-2">{user.email}</div>
                 )}
-                {isEditing && <p className="text-xs text-gray-400 mt-1">Email không thể thay đổi.</p>}
+                {isEditing && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    Email không thể thay đổi.
+                  </p>
+                )}
               </div>
 
               {/* Account Type */}
               <div>
-                 <span className="inline-block text-xs px-3 py-1 rounded-full bg-gradient-to-r from-cyan-400 to-indigo-400 text-white shadow">
+                <span className="inline-block text-xs px-3 py-1 rounded-full bg-gradient-to-r from-cyan-400 to-indigo-400 text-white shadow">
                   Tài khoản miễn phí
                 </span>
               </div>
-
             </div>
           </div>
 
-          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleUploadAvatar} />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleUploadAvatar}
+          />
 
           <div className="border-t my-6"></div>
 
@@ -218,13 +237,13 @@ export default function ProfilePage() {
           <div className="flex flex-wrap gap-3 justify-end">
             {!isEditing ? (
               <>
-                 <button 
+                <button
                   onClick={() => setShowPasswordModal(true)}
                   className="px-4 py-2 rounded-xl shadow text-white font-medium bg-gradient-to-r from-pink-400 to-purple-500 hover:opacity-90 transition"
-                 >
+                >
                   🔑 Đổi mật khẩu
                 </button>
-                <button 
+                <button
                   onClick={() => setIsEditing(true)}
                   className="px-6 py-2 rounded-xl shadow text-white font-medium bg-gradient-to-r from-cyan-500 to-blue-600 hover:opacity-90 transition"
                 >
@@ -236,7 +255,10 @@ export default function ProfilePage() {
                 <button
                   onClick={() => {
                     setIsEditing(false);
-                    setFormData({ fullName: user.fullName || "", email: user.email || "" });
+                    setFormData({
+                      fullName: user.fullName || "",
+                      email: user.email || "",
+                    });
                   }}
                   className="px-6 py-2 rounded-xl font-medium border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition"
                 >
@@ -258,11 +280,10 @@ export default function ProfilePage() {
       {showPasswordModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-            
             {/* Header Modal */}
             <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
               <h3 className="text-lg font-bold text-gray-800">Đổi mật khẩu</h3>
-              <button 
+              <button
                 onClick={() => setShowPasswordModal(false)}
                 className="text-gray-400 hover:text-gray-600 transition"
               >
@@ -273,7 +294,9 @@ export default function ProfilePage() {
             {/* Body Modal */}
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu hiện tại</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mật khẩu hiện tại
+                </label>
                 <input
                   type="password"
                   name="currentPassword"
@@ -283,9 +306,11 @@ export default function ProfilePage() {
                   placeholder="••••••"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu mới</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mật khẩu mới
+                </label>
                 <input
                   type="password"
                   name="newPassword"
@@ -297,7 +322,9 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nhập lại mật khẩu mới</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nhập lại mật khẩu mới
+                </label>
                 <input
                   type="password"
                   name="confirmPassword"
@@ -324,11 +351,9 @@ export default function ProfilePage() {
                 Xác nhận đổi
               </button>
             </div>
-
           </div>
         </div>
       )}
-
     </div>
   );
 }

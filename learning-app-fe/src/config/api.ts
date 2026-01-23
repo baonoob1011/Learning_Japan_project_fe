@@ -31,7 +31,9 @@ export const API_ENDPOINTS = {
   REFRESH_TOKEN: "/auth/refresh-token",
   LOG_OUT: "/auth/logout",
   VIDEO: {
+    GET_ALL_PROGRESS: "/video-tracking",
     UPLOAD: "/youtube/upload",
+    TRACK_PROGRESS: "/video-tracking",
     SAVE: (videoId: string) => `/youtube/${videoId}`,
     VIEW: "/youtube",
     VIEW_BY_ID: "/transcripts",

@@ -7,7 +7,6 @@ import { http } from "@/lib/http";
 import { Upload } from "lucide-react";
 import { get } from "node_modules/axios/index.cjs";
 
-
 export interface RegisterRequest {
   fullName: string;
   email: string;
@@ -21,11 +20,11 @@ export interface RegisterResult {
   createdAt: string;
 }
 
-
 export interface UserProfileResponse {
   fullName: string;
   email: string;
   createdAt: string;
+  avatarUrl: string;
 }
 
 export interface UserResponse {
@@ -145,7 +144,7 @@ export const userService = {
 
   deleteMultipleUserAccounts(emails: string[]): Promise<void> {
     return http.delete(API_ENDPOINTS.ADMIN.DELETE_USERS, {
-      data: { emails } // Gửi mảng email trong body của yêu cầu DELETE
+      data: { emails }
     });
   },
 
