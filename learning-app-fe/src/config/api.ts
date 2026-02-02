@@ -12,7 +12,6 @@ export const API_ENDPOINTS = {
     UPLOAD_AVATAR: "/users/upload-avatar",
     CHANGE_PASSWORD: "/users/change-password",
     ALL_USERS: "/admin/users",
-    
   },
   ADMIN: {
     PROGRESS_VIEW: "/admin/learning-progress/:userId",
@@ -44,7 +43,6 @@ export const API_ENDPOINTS = {
   LEARNING_PROGRESS: {
     PROGRESS_VIEW: "/learning-progress",
     PROGRESS_RESULT_DAILY: "/learning-progress",
-    
   },
   EXAM: {
     EXAM_VIEW_ALL: "/exams",
@@ -61,6 +59,7 @@ export const API_ENDPOINTS = {
     RESULT: "/pronunciation/result",
   },
   VOCAB: {
+    MARK_VOCAB: "/learning/vocab/mark",
     CREATE: "/vocab",
     GET_MY: "/vocab",
     GET_MY_VIDEO: (videoId: string) => `/vocab/my/video/${videoId}`,

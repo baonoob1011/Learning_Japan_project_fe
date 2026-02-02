@@ -16,14 +16,41 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
   const [vocabs, setVocabs] = useState<VocabResponse[]>([]);
   const [currentCard, setCurrentCard] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [markedVocabs, setMarkedVocabs] = useState<Record<string, boolean>>({});
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const markVocab = async (remembered: boolean) => {
+    const card = vocabs[currentCard];
+    if (!card) return;
+
+    try {
+      await vocabService.markVocab({
+        vocabId: card.id,
+        remembered,
+      });
+
+      // Lưu trạng thái vào state
+      setMarkedVocabs((prev) => ({
+        ...prev,
+        [card.id]: remembered,
+      }));
+    } catch (err) {
+      console.error("Mark vocab failed:", err);
+    }
+  };
+
   // Load vocabs từ API khi component mount
   useEffect(() => {
     loadVocabs();
+  }, []);
+
+  // Cleanup: Xóa trạng thái khi component unmount (tắt app)
+  useEffect(() => {
+    return () => {
+      setMarkedVocabs({});
+    };
   }, []);
 
   const loadVocabs = async () => {
@@ -73,7 +100,6 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
     if (currentCard < vocabs.length - 1) {
       setCurrentCard(currentCard + 1);
       setIsFlipped(false);
-      setIsCorrect(null);
     }
   };
 
@@ -81,7 +107,6 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
     if (currentCard > 0) {
       setCurrentCard(currentCard - 1);
       setIsFlipped(false);
-      setIsCorrect(null);
     }
   };
 
@@ -89,16 +114,18 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
     setIsFlipped(!isFlipped);
   };
 
-  const handleCorrect = () => {
-    setIsCorrect(true);
-  };
-
   const handleShuffle = () => {
     const shuffled = [...vocabs].sort(() => Math.random() - 0.5);
     setVocabs(shuffled);
     setCurrentCard(0);
     setIsFlipped(false);
-    setIsCorrect(null);
+  };
+
+  // Lấy trạng thái đã đánh dấu của vocab hiện tại
+  const getCurrentVocabStatus = (): boolean | null => {
+    const card = vocabs[currentCard];
+    if (!card) return null;
+    return markedVocabs[card.id] ?? null;
   };
 
   const playSound = () => {
@@ -184,6 +211,7 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
   }
 
   const card = vocabs[currentCard];
+  const isMarked = getCurrentVocabStatus();
 
   return (
     <div className="w-full max-w-4xl mx-auto pt-1 pb-8 px-4">
@@ -206,7 +234,7 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
             />
           </button>
 
-          <div className="w-10 h-10 rounded-full bg-cyan-500 text-white flex items-center justify-center font-semibold shadow-md">
+          <div className="w-10 h-10 rounded-full bg-cyan-400/20 text-cyan-400 flex items-center justify-center font-semibold shadow-md">
             {currentCard + 1}
           </div>
 
@@ -255,23 +283,19 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
               <div className="flex items-center justify-between mb-4">
                 <div
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
-                    isCorrect === true
-                      ? "bg-green-100 text-green-700"
-                      : isCorrect === false
-                      ? "bg-red-100 text-red-700"
+                    isMarked === true
+                      ? "bg-cyan-400/20 text-cyan-400"
                       : isDark
                       ? "bg-gray-700 text-gray-300"
                       : "bg-white/80 text-gray-700"
                   }`}
                 >
                   <span className="text-lg">
-                    {isCorrect === true ? "✓" : isCorrect === false ? "✗" : "◯"}
+                    {isMarked === true ? "✓" : "◯"}
                   </span>
                   <span>
-                    {isCorrect === true
+                    {isMarked === true
                       ? "Đã thuộc"
-                      : isCorrect === false
-                      ? "Chưa thuộc"
                       : card.partOfSpeech || "Từ vựng"}
                   </span>
                 </div>
@@ -371,23 +395,19 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
               <div className="flex items-center justify-between mb-4">
                 <div
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
-                    isCorrect === true
-                      ? "bg-green-100 text-green-700"
-                      : isCorrect === false
-                      ? "bg-red-100 text-red-700"
+                    isMarked === true
+                      ? "bg-cyan-400/20 text-cyan-400"
                       : isDark
                       ? "bg-gray-700 text-gray-300"
                       : "bg-white/80 text-gray-700"
                   }`}
                 >
                   <span className="text-lg">
-                    {isCorrect === true ? "✓" : isCorrect === false ? "✗" : "◯"}
+                    {isMarked === true ? "✓" : "◯"}
                   </span>
                   <span>
-                    {isCorrect === true
+                    {isMarked === true
                       ? "Đã thuộc"
-                      : isCorrect === false
-                      ? "Chưa thuộc"
                       : card.partOfSpeech || "Từ vựng"}
                   </span>
                 </div>
@@ -467,7 +487,44 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
           </div>
         </div>
 
-        {/* Bottom controls */}
+        {/* Navigation hint */}
+        <div className="mt-6 flex justify-center gap-4">
+          <button
+            onClick={handlePrev}
+            disabled={currentCard === 0}
+            className={`flex items-center gap-1 px-4 py-2 rounded-lg transition text-sm font-medium ${
+              currentCard === 0
+                ? isDark
+                  ? "text-gray-600"
+                  : "text-gray-300"
+                : isDark
+                ? "text-cyan-400 hover:bg-gray-700"
+                : "text-cyan-600 hover:bg-cyan-50"
+            }`}
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Previous</span>
+          </button>
+
+          <button
+            onClick={handleNext}
+            disabled={currentCard === vocabs.length - 1}
+            className={`flex items-center gap-1 px-4 py-2 rounded-lg transition text-sm font-medium ${
+              currentCard === vocabs.length - 1
+                ? isDark
+                  ? "text-gray-600"
+                  : "text-gray-300"
+                : isDark
+                ? "text-cyan-400 hover:bg-gray-700"
+                : "text-cyan-600 hover:bg-cyan-50"
+            }`}
+          >
+            <span>Next</span>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Additional controls */}
         <div className="flex items-center justify-between mt-6 px-4">
           <button
             onClick={handleShuffle}
@@ -481,28 +538,19 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
             <span>Xáo trộn</span>
           </button>
 
-          <div
-            className={`text-sm font-medium ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
-            {currentCard + 1} / {vocabs.length}
-          </div>
-
+          {/* Nút "Đánh dấu đã thuộc" - tối màu khi đã bấm */}
           <button
-            onClick={handleCorrect}
-            className={`px-4 py-2 rounded-full shadow-md transition text-sm font-medium ${
-              isCorrect
-                ? "bg-green-500 text-white"
-                : isDark
-                ? "bg-gray-700 hover:bg-gray-600 text-gray-300"
-                : "bg-white text-gray-700 hover:bg-gray-50"
+            onClick={() => markVocab(true)}
+            className={`flex items-center gap-2 px-6 py-2 rounded-full shadow-md transition text-sm font-bold ${
+              isMarked === true
+                ? isDark
+                  ? "bg-gray-700 text-gray-400 opacity-60"
+                  : "bg-gray-300 text-gray-500 opacity-60"
+                : "bg-emerald-500 hover:bg-emerald-600 text-white"
             }`}
           >
-            <span className="flex items-center gap-2">
-              <span>{isCorrect ? "✓" : "✗"}</span>
-              <span>Chưa thuộc</span>
-            </span>
+            <span className="text-lg">✓</span>
+            <span>Đánh dấu đã thuộc</span>
           </button>
 
           <button
@@ -518,39 +566,6 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
                 soundEnabled ? "bg-cyan-500" : "bg-gray-300"
               }`}
             />
-          </button>
-        </div>
-
-        {/* Navigation hint */}
-        <div className="mt-6 flex justify-center gap-4">
-          <button
-            onClick={handlePrev}
-            disabled={currentCard === 0}
-            className={`flex items-center gap-1 px-4 py-2 rounded-lg transition text-sm font-medium ${
-              currentCard === 0
-                ? "text-gray-300"
-                : isDark
-                ? "text-cyan-400 hover:bg-gray-700"
-                : "text-cyan-600 hover:bg-cyan-50"
-            }`}
-          >
-            <ChevronLeft className="w-4 h-4" />
-            <span>Previous</span>
-          </button>
-
-          <button
-            onClick={handleNext}
-            disabled={currentCard === vocabs.length - 1}
-            className={`flex items-center gap-1 px-4 py-2 rounded-lg transition text-sm font-medium ${
-              currentCard === vocabs.length - 1
-                ? "text-gray-300"
-                : isDark
-                ? "text-cyan-400 hover:bg-gray-700"
-                : "text-cyan-600 hover:bg-cyan-50"
-            }`}
-          >
-            <span>Next</span>
-            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>

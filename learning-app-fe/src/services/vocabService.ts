@@ -8,6 +8,10 @@ export interface UpdateVocabRequest {
   surface: string;
   translated: string;
 }
+export interface MarkVocabRequest {
+  remembered: boolean;
+  vocabId: string;
+}
 
 export interface VocabResponse {
   id: string;
@@ -50,5 +54,9 @@ export const vocabService = {
    */
   remove(surface: string): Promise<void> {
     return http.delete<void>(API_ENDPOINTS.VOCAB.DELETE(surface));
+  },
+
+  markVocab(request: MarkVocabRequest): Promise<void> {
+    return http.post<void>(API_ENDPOINTS.VOCAB.MARK_VOCAB, request);
   },
 };
