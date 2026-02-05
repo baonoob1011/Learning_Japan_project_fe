@@ -46,13 +46,6 @@ export default function Sidebar({
     const mondayFirstIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
     setCurrentDayIndex(mondayFirstIndex);
 
-    // Debug: Log current day
-    console.log("=== DEBUG STREAK ===");
-    console.log("Raw dayOfWeek:", dayOfWeek);
-    console.log("Calculated index:", mondayFirstIndex);
-    console.log("Should show:", days[mondayFirstIndex]);
-    console.log("Days array:", days);
-
     const loadStreak = () => {
       if (typeof window === "undefined") return;
 

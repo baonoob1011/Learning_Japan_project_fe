@@ -65,6 +65,7 @@ export const API_ENDPOINTS = {
     GET_MY_VIDEO: (videoId: string) => `/vocab/my/video/${videoId}`,
     UPDATE_MEANING: "/vocab",
     DELETE: (surface: string) => `/vocab/${encodeURIComponent(surface)}`,
+    GET_STATUS: (vocabId: string) => `/vocab/${vocabId}/status`,
   },
 } as const;
 

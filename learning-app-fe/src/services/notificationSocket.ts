@@ -1,0 +1,53 @@
+import SockJS from "sockjs-client";
+import { Client, IMessage } from "@stomp/stompjs";
+
+export type NotificationSocketDTO = {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: string;
+};
+
+export const connectNotificationSocket = (
+  userId: string,
+  onMessage: (data: NotificationSocketDTO) => void
+) => {
+  const socket = new SockJS("http://localhost:8080/ws");
+
+  const client = new Client({
+    webSocketFactory: () => socket,
+    reconnectDelay: 5000,
+    debug: (str) => console.log("STOMP:", str),
+
+    onConnect: () => {
+      console.log("🔔 WS connected");
+
+      client.subscribe(
+        `/topic/notifications/${userId}`,
+        (message: IMessage) => {
+          try {
+            const data: NotificationSocketDTO = JSON.parse(message.body);
+            onMessage(data);
+          } catch (err) {
+            console.error("❌ Parse notification error", err, message.body);
+          }
+        }
+      );
+    },
+
+    onStompError: (frame) => {
+      console.error("❌ Broker error:", frame.headers["message"]);
+      console.error("Details:", frame.body);
+    },
+
+    onWebSocketClose: () => {
+      console.warn("⚠️ WS disconnected");
+    },
+  });
+
+  client.activate();
+
+  return {
+    disconnect: () => client.deactivate(),
+  };
+};

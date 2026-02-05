@@ -1,8 +1,11 @@
+// components/Header.tsx
 import React, { useState, useEffect } from "react";
-import { Search, Bell, Settings } from "lucide-react";
+import { Search, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import UserDropdown from "@/components/UserDropdown";
+import NotificationBell from "@/components/notificationBell";
 import { youtubeService, YoutubeVideoSummary } from "@/services/videoService";
+import { getUserIdFromToken } from "@/utils/jwt";
 
 interface SimpleHeaderProps {
   isDarkMode: boolean;
@@ -17,7 +20,14 @@ export default function Header({
   const [searchKeyword, setSearchKeyword] = useState("");
   const [results, setResults] = useState<YoutubeVideoSummary[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Lấy userId từ JWT token
+  useEffect(() => {
+    const id = getUserIdFromToken();
+    console.log("🔍 Retrieved userId from token:", id);
+    setUserId(id);
+  }, []);
 
   // debounce search 300ms
   useEffect(() => {
@@ -40,7 +50,6 @@ export default function Header({
     return () => clearTimeout(handler);
   }, [searchKeyword]);
 
-  // Helper để format duration từ ISO 8601 (PT1H2M10S) sang "1:02:10"
   const formatDuration = (duration: string): string => {
     const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
     if (!match) return "0:00";
@@ -56,7 +65,6 @@ export default function Header({
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  // Helper để lấy thumbnail từ YouTube video ID
   const getThumbnailUrl = (urlVideo: string): string => {
     const videoIdMatch = urlVideo.match(
       /(?:youtu\.be\/|youtube\.com\/watch\?v=)([^&]+)/
@@ -67,7 +75,6 @@ export default function Header({
     return "/placeholder-video.jpg";
   };
 
-  // Helper để map videoTag sang màu badge (vibrant colors)
   const getTagColor = (tag: string): string => {
     const tagColors: Record<string, string> = {
       Podcast: "bg-gradient-to-r from-blue-500 to-blue-600 text-white",
@@ -90,7 +97,6 @@ export default function Header({
     );
   };
 
-  // Helper để map level sang màu (gradient tùy level)
   const getLevelColor = (level: string): string => {
     const levelColors: Record<string, string> = {
       N5: "bg-gradient-to-r from-green-500 to-teal-500 text-white",
@@ -105,7 +111,6 @@ export default function Header({
     );
   };
 
-  // Helper để format ngày
   const formatDate = (dateString: string): string => {
     if (!dateString) return "Gần đây";
     const date = new Date(dateString);
@@ -121,12 +126,8 @@ export default function Header({
     return `${Math.floor(diffDays / 365)} năm trước`;
   };
 
-  // Handle video click - trigger API và navigate
   const handleVideoClick = (video: YoutubeVideoSummary) => {
-    // Trigger API call để backend xử lý
     youtubeService.getById(video.id).catch((err) => console.error(err));
-
-    // Clear search và navigate
     setSearchKeyword("");
     setResults([]);
     router.push(`/video/${video.id}`);
@@ -158,7 +159,7 @@ export default function Header({
             }`}
           />
 
-          {/* Search Results Dropdown - Rich Format */}
+          {/* Search Results Dropdown */}
           {searchKeyword && results.length > 0 && (
             <div
               className={`absolute z-50 mt-2 w-full rounded-lg shadow-xl max-h-96 overflow-y-auto border ${
@@ -177,7 +178,6 @@ export default function Header({
                       : "hover:bg-cyan-50 border-gray-100"
                   }`}
                 >
-                  {/* Thumbnail */}
                   <div className="relative flex-shrink-0">
                     <img
                       src={getThumbnailUrl(video.urlVideo)}
@@ -189,7 +189,6 @@ export default function Header({
                     </span>
                   </div>
 
-                  {/* Video Info */}
                   <div className="flex-1 min-w-0">
                     <h4
                       className={`text-sm font-medium line-clamp-2 mb-1 ${
@@ -207,7 +206,6 @@ export default function Header({
                       Corodomo • {formatDate(video.createdAt)}
                     </p>
 
-                    {/* Tags */}
                     <div className="flex gap-2 flex-wrap">
                       <span
                         className={`${getTagColor(
@@ -259,16 +257,9 @@ export default function Header({
 
         {/* Actions - Right */}
         <div className="flex items-center gap-2">
-          <button
-            className={`p-1.5 rounded-lg transition-all ${
-              isDarkMode
-                ? "hover:bg-gray-700 text-gray-300"
-                : "hover:bg-gray-100 text-gray-600"
-            }`}
-            title="Thông báo"
-          >
-            <Bell className="w-4 h-4" />
-          </button>
+          {/* Notification Bell */}
+          <NotificationBell userId={userId} isDarkMode={isDarkMode} />
+
           <button
             className={`p-1.5 rounded-lg transition-all ${
               isDarkMode

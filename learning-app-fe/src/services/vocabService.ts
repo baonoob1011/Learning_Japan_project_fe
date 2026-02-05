@@ -1,6 +1,7 @@
 // src/services/vocabService.ts
 import { http } from "@/lib/http";
 import { API_ENDPOINTS } from "@/config/api";
+import { LearningStatus } from "@/enums/LearningStatus";
 
 /* ===================== TYPES ===================== */
 
@@ -12,7 +13,10 @@ export interface MarkVocabRequest {
   remembered: boolean;
   vocabId: string;
 }
-
+export interface VocabStatusResponse {
+  vocabId: string;
+  status: LearningStatus;
+}
 export interface VocabResponse {
   id: string;
   surface: string;
@@ -58,5 +62,10 @@ export const vocabService = {
 
   markVocab(request: MarkVocabRequest): Promise<void> {
     return http.post<void>(API_ENDPOINTS.VOCAB.MARK_VOCAB, request);
+  }, // ✅ GET vocab status
+  getStatus(vocabId: string): Promise<VocabStatusResponse> {
+    return http.get<VocabStatusResponse>(
+      API_ENDPOINTS.VOCAB.GET_STATUS(vocabId)
+    );
   },
 };
