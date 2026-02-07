@@ -23,6 +23,12 @@ export const API_ENDPOINTS = {
     DELETE_USERS: `/admin/users/delete-accounts`,
     USER_STATISTICS: "/admin/users/stats",
   },
+  NOTIFICATION: {
+    GET_MY: "/notifications",
+    MARK_AS_READ: (id: string) => `/notifications/${id}/read`,
+    MARK_ALL_AS_READ: "/notifications/read-all",
+    DELETE: (id: string) => `/notifications/${id}`,
+  },
   FORGOT_PASSWORD: "/users/forgot-password",
   CONFIRM_FORGOT_PASSWORD: "/users/confirm-forgot-password",
   REGISTER: "/users/register",
