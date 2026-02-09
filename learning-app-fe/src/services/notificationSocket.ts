@@ -25,8 +25,14 @@ export const connectNotificationSocket = (
       client.subscribe(
         `/topic/notifications/${userId}`,
         (message: IMessage) => {
+          console.log("🔥 RAW WS MESSAGE:", message);
+
           try {
+            console.log("🔥 BODY:", message.body);
+
             const data: NotificationSocketDTO = JSON.parse(message.body);
+            console.log("🔥 PARSED DATA:", data);
+
             onMessage(data);
           } catch (err) {
             console.error("❌ Parse notification error", err, message.body);
