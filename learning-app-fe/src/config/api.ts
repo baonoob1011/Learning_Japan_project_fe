@@ -58,6 +58,10 @@ export const API_ENDPOINTS = {
     SUBMIT: "/pronunciation/submit",
     RESULT: "/pronunciation/result",
   },
+  AI: {
+    CHAT: "/ai/chat",
+    REALTIME_TOKEN: "/ai/realtime-token",
+  },
   VOCAB: {
     MARK_VOCAB: "/learning/vocab/mark",
     CREATE: "/vocab",
