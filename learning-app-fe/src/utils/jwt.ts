@@ -3,7 +3,34 @@ import { jwtDecode } from "jwt-decode";
 type JwtPayload = {
   sub?: string;
 };
+/**
+ * ✅ Lấy accessToken từ auth-storage
+ * Dùng cho: WebSocket, axios interceptor, fetch
+ */
+export const getAccessTokenFromStorage = (): string | null => {
+  if (typeof window === "undefined") return null;
 
+  const raw = localStorage.getItem("auth-storage");
+  if (!raw) {
+    console.debug("❌ auth-storage not found");
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    const token: string | undefined = parsed?.state?.accessToken;
+
+    if (!token) {
+      console.debug("❌ accessToken not found inside auth-storage");
+      return null;
+    }
+
+    return token;
+  } catch (e) {
+    console.error("❌ Failed to read accessToken from auth-storage", e);
+    return null;
+  }
+};
 export const getUserIdFromToken = (): string | null => {
   if (typeof window === "undefined") return null;
 

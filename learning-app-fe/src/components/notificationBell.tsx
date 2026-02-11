@@ -1,28 +1,32 @@
-// components/NotificationBell.tsx
+"use client";
+
 import { Bell } from "lucide-react";
-import { useNotification } from "@/hooks/useNotification";
 import { useState, useRef, useEffect } from "react";
 import NotificationDropdown from "./NotificationDropdown";
+import { useNotificationStore } from "@/stores/notificationStore";
+import { useNotificationSync } from "@/hooks/useNotificationSync";
 
 type Props = {
-  userId: string | null;
   isDarkMode?: boolean;
 };
 
-export default function NotificationBell({
-  userId,
-  isDarkMode = false,
-}: Props) {
+export default function NotificationBell({ isDarkMode = false }: Props) {
+  // ✅ Tự động sync DB + WebSocket
+  useNotificationSync();
+
+  // ✅ Lấy state từ store
   const {
     notifications,
-    unreadCount,
+    getUnreadCount,
     markAsRead,
     markAllAsRead,
     deleteNotification,
-  } = useNotification();
+  } = useNotificationStore();
 
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const unreadCount = getUnreadCount();
 
   // Đóng dropdown khi click bên ngoài
   useEffect(() => {

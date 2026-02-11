@@ -3,9 +3,8 @@ import React, { useState, useEffect } from "react";
 import { Search, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import UserDropdown from "@/components/UserDropdown";
-import NotificationBell from "@/components/notificationBell";
+import NotificationBell from "@/components/notificationBell"; // ← Giữ nguyên import
 import { youtubeService, YoutubeVideoSummary } from "@/services/videoService";
-import { getUserIdFromToken } from "@/utils/jwt";
 
 interface SimpleHeaderProps {
   isDarkMode: boolean;
@@ -20,14 +19,14 @@ export default function Header({
   const [searchKeyword, setSearchKeyword] = useState("");
   const [results, setResults] = useState<YoutubeVideoSummary[]>([]);
   const [loading, setLoading] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
 
-  // Lấy userId từ JWT token
-  useEffect(() => {
-    const id = getUserIdFromToken();
-    console.log("🔍 Retrieved userId from token:", id);
-    setUserId(id);
-  }, []);
+  // ❌ XÓA phần này - không cần userId state nữa
+  // const [userId, setUserId] = useState<string | null>(null);
+  // useEffect(() => {
+  //   const id = getUserIdFromToken();
+  //   console.log("🔍 Retrieved userId from token:", id);
+  //   setUserId(id);
+  // }, []);
 
   // debounce search 300ms
   useEffect(() => {
@@ -257,8 +256,8 @@ export default function Header({
 
         {/* Actions - Right */}
         <div className="flex items-center gap-2">
-          {/* Notification Bell */}
-          <NotificationBell userId={userId} isDarkMode={isDarkMode} />
+          {/* ✅ Notification Bell - KHÔNG CẦN TRUYỀN userId */}
+          <NotificationBell isDarkMode={isDarkMode} />
 
           <button
             className={`p-1.5 rounded-lg transition-all ${
