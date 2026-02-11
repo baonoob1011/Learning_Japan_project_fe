@@ -306,12 +306,12 @@ export default function Sidebar({
             <>
               <button
                 onClick={() => router.push("/video")}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition shadow-sm hover:shadow-md transform hover:scale-105 ${
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition transform hover:scale-105 ${
                   isActive("/video")
-                    ? "bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-600"
+                    ? "bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-600 font-medium shadow-sm"
                     : isDarkMode
                     ? "text-gray-300 hover:bg-gray-700"
-                    : "text-gray-600 hover:bg-cyan-50"
+                    : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 <Video className="w-5 h-5" />
@@ -324,7 +324,7 @@ export default function Sidebar({
                     ? "bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-600 font-medium shadow-sm"
                     : isDarkMode
                     ? "text-gray-300 hover:bg-gray-700"
-                    : "text-gray-600 hover:bg-cyan-50"
+                    : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 <Play className="w-5 h-5" />
@@ -337,7 +337,7 @@ export default function Sidebar({
                     ? "bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-600 font-medium shadow-sm"
                     : isDarkMode
                     ? "text-gray-300 hover:bg-gray-700"
-                    : "text-gray-600 hover:bg-cyan-50"
+                    : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 <GraduationCap className="w-5 h-5" />
@@ -350,7 +350,7 @@ export default function Sidebar({
                     ? "bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-600 font-medium shadow-sm"
                     : isDarkMode
                     ? "text-gray-300 hover:bg-gray-700"
-                    : "text-gray-600 hover:bg-cyan-50"
+                    : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 <Clock className="w-5 h-5" />
@@ -363,7 +363,7 @@ export default function Sidebar({
                     ? "bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-600 font-medium shadow-sm"
                     : isDarkMode
                     ? "text-gray-300 hover:bg-gray-700"
-                    : "text-gray-600 hover:bg-cyan-50"
+                    : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 <BookMarked className="w-5 h-5" />
@@ -371,12 +371,12 @@ export default function Sidebar({
               </button>
               <button
                 onClick={() => router.push("/practice")}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition shadow-sm hover:shadow-md transform hover:scale-105 ${
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition transform hover:scale-105 ${
                   isActive("/practice")
-                    ? "bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-600"
+                    ? "bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-600 font-medium shadow-sm"
                     : isDarkMode
                     ? "text-gray-300 hover:bg-gray-700"
-                    : "text-gray-600 hover:bg-cyan-50"
+                    : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 <BookOpen className="w-5 h-5" />
@@ -384,12 +384,12 @@ export default function Sidebar({
               </button>
               <button
                 onClick={() => router.push("/videoCall")}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition shadow-sm hover:shadow-md transform hover:scale-105 ${
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition transform hover:scale-105 ${
                   isActive("/videoCall")
-                    ? "bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-600"
+                    ? "bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-600 font-medium shadow-sm"
                     : isDarkMode
                     ? "text-gray-300 hover:bg-gray-700"
-                    : "text-gray-600 hover:bg-cyan-50"
+                    : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 <Radio className="w-5 h-5" />
