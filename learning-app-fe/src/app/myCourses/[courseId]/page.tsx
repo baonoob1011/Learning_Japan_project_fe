@@ -8,6 +8,8 @@ import LoadingCat from "@/components/LoadingCat";
 import { courseService } from "@/services/courseService";
 import { sectionService } from "@/services/sectionService";
 import { lessonService, LessonResponse } from "@/services/lessonService";
+import { formatYoutubeDuration } from "@/utils/formatYoutubeDuration";
+
 import {
   lessonPartService,
   LessonPartResponse,
@@ -149,7 +151,10 @@ export default function CourseDetailPage() {
                     id: part.id,
                     title: part.title,
                     videoUrl: part.videoUrl || "",
-                    duration: part.duration || "10:00",
+                    duration: part.duration
+                      ? formatYoutubeDuration(part.duration)
+                      : "00:00",
+
                     partOrder: part.partOrder,
                     isCompleted: false,
                   }));
