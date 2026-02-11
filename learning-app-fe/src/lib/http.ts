@@ -3,11 +3,13 @@ import { ApiResponse } from "@/services/api-types";
 import { AxiosRequestConfig, AxiosResponse } from "axios"; // Import thêm types từ axios
 
 // Helper unwrap response
-async function unwrapResponse<T>(promise: Promise<AxiosResponse<ApiResponse<T>>>) {
+async function unwrapResponse<T>(
+  promise: Promise<AxiosResponse<ApiResponse<T>>>
+) {
   const res = await promise;
   // Giả sử API trả về { success: true, result: ... }
   // Nếu API của bạn không có field success, bạn có thể bỏ check này hoặc sửa logic tùy backend
-  if (res.data.success === false) { 
+  if (res.data.success === false) {
     throw new Error(res.data.message || "API request failed");
   }
   return res.data.result;

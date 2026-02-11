@@ -17,7 +17,7 @@ export const axiosPublic = axios.create({
 export const axiosClient = axios.create({
   baseURL:
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1",
-  timeout: 10000,
+  timeout: 60000, // 👈 tăng lên 60s cho AI
 });
 
 // ----- Axios client cho upload (timeout 10 phút) -----
