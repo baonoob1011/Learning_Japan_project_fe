@@ -13,6 +13,7 @@ import {
   Eye,
   Clock,
   Calendar,
+  CheckCircle2,
 } from "lucide-react";
 
 type RecentlyViewedVideo = YoutubeVideoSummary & {
@@ -253,6 +254,18 @@ export default function RecentlyViewedPage() {
     return viewed.toLocaleDateString("vi-VN");
   };
 
+  /* ===================== CALCULATE STATS ===================== */
+  const stats = {
+    total: videos.length,
+    completed: videos.filter((v) => v.completionPercentage === 100).length,
+    inProgress: videos.filter(
+      (v) =>
+        v.completionPercentage !== undefined &&
+        v.completionPercentage > 0 &&
+        v.completionPercentage < 100
+    ).length,
+  };
+
   /* ===================== HYDRATION FIX ===================== */
   if (!isMounted) {
     return (
@@ -264,184 +277,307 @@ export default function RecentlyViewedPage() {
 
   /* ===================== UI ===================== */
   return (
-    <div
-      className={`fixed inset-0 flex transition-colors duration-300 ${
-        isDarkMode
-          ? "bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800"
-          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
-      }`}
-    >
-      <Sidebar
-        sidebarOpen={showSidebar}
-        setSidebarOpen={setShowSidebar}
-        isDarkMode={isDarkMode}
-        currentStreak={currentStreak}
-      />
+    <>
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f3f4f6;
+          border-radius: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #d1d5db;
+          border-radius: 5px;
+        }
+        .custom-scrollbar-dark::-webkit-scrollbar {
+          width: 10px;
+        }
+        .custom-scrollbar-dark::-webkit-scrollbar-track {
+          background: #1f2937;
+          border-radius: 5px;
+        }
+        .custom-scrollbar-dark::-webkit-scrollbar-thumb {
+          background: #4b5563;
+          border-radius: 5px;
+        }
+      `}</style>
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
+      <div
+        className={`flex h-screen ${
+          isDarkMode
+            ? "bg-gray-900"
+            : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
+        }`}
+      >
+        <Sidebar
+          sidebarOpen={showSidebar}
+          setSidebarOpen={setShowSidebar}
+          isDarkMode={isDarkMode}
+          currentStreak={currentStreak}
+        />
 
-        <div
-          className={`backdrop-blur-sm border-b px-6 py-3 flex items-center justify-between ${
-            isDarkMode
-              ? "bg-gray-800/90 border-gray-700"
-              : "bg-white/80 border-cyan-100"
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <History
-              className={`w-6 h-6 ${
-                isDarkMode ? "text-cyan-400" : "text-cyan-600"
-              }`}
-            />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
+
+          {/* Page Header with Stats */}
+          <div
+            className={`p-6 border-b ${
+              isDarkMode ? "border-gray-700" : "border-gray-200"
+            }`}
+          >
             <h1
-              className={`text-xl font-bold bg-gradient-to-r bg-clip-text text-transparent ${
-                isDarkMode
-                  ? "from-cyan-400 to-cyan-500"
-                  : "from-cyan-500 to-cyan-600"
+              className={`text-3xl font-bold mb-6 ${
+                isDarkMode ? "text-gray-100" : "text-gray-800"
               }`}
             >
               Xem gần đây
             </h1>
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-medium ${
-                isDarkMode
-                  ? "bg-gray-700 text-gray-300"
-                  : "bg-cyan-100 text-cyan-700"
-              }`}
-            >
-              {videos.length} video
-            </span>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Total Videos Watched */}
+              <div
+                className={`${
+                  isDarkMode ? "bg-gray-800" : "bg-white"
+                } rounded-xl p-4 shadow-sm`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg">
+                    <Eye className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+                  </div>
+                  <div>
+                    <p
+                      className={`text-sm ${
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      Tổng số video đã xem
+                    </p>
+                    <p
+                      className={`text-2xl font-bold ${
+                        isDarkMode ? "text-gray-100" : "text-gray-800"
+                      }`}
+                    >
+                      {stats.total}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Completed Videos */}
+              <div
+                className={`${
+                  isDarkMode ? "bg-gray-800" : "bg-white"
+                } rounded-xl p-4 shadow-sm`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p
+                      className={`text-sm ${
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      Video đã hoàn thành
+                    </p>
+                    <p
+                      className={`text-2xl font-bold ${
+                        isDarkMode ? "text-gray-100" : "text-gray-800"
+                      }`}
+                    >
+                      {stats.completed}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* In Progress Videos */}
+              <div
+                className={`${
+                  isDarkMode ? "bg-gray-800" : "bg-white"
+                } rounded-xl p-4 shadow-sm`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                    <Clock className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div>
+                    <p
+                      className={`text-sm ${
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      Đang xem dở
+                    </p>
+                    <p
+                      className={`text-2xl font-bold ${
+                        isDarkMode ? "text-gray-100" : "text-gray-800"
+                      }`}
+                    >
+                      {stats.inProgress}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center h-full">
-              <Loader2
-                className={`w-12 h-12 animate-spin ${
-                  isDarkMode ? "text-cyan-400" : "text-cyan-600"
-                }`}
-              />
-              <p className="mt-4 text-lg">Đang tải video...</p>
-            </div>
-          ) : error ? (
-            <div className="flex flex-col items-center justify-center h-full">
-              <p className="text-lg">{error}</p>
-              <button
-                onClick={loadRecentlyViewedVideos}
-                className="mt-4 px-6 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-lg"
-              >
-                Thử lại
-              </button>
-            </div>
-          ) : videos.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full">
-              <div className="text-6xl mb-4 opacity-50">👀</div>
-              <p className="text-xl font-medium mb-2">Chưa xem video nào</p>
-              <button
-                onClick={() => router.push("/video")}
-                className="px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-full flex items-center gap-2"
-              >
-                <Video className="w-5 h-5" />
-                Khám phá video
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-3 max-w-5xl mx-auto">
-              {videos.map((video) => (
-                <div
-                  key={video.id}
-                  className={`group rounded-xl overflow-hidden transition-all hover:scale-[1.02] cursor-pointer border ${
-                    isDarkMode
-                      ? "bg-gray-800/50 border-gray-700 hover:bg-gray-800 hover:border-cyan-500"
-                      : "bg-white border-gray-200 hover:border-cyan-400 hover:shadow-lg"
+          {/* Video List */}
+          <div
+            className={`flex-1 overflow-y-auto p-6 ${
+              isDarkMode ? "custom-scrollbar-dark" : "custom-scrollbar"
+            }`}
+          >
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center h-full">
+                <Loader2
+                  className={`w-12 h-12 animate-spin ${
+                    isDarkMode ? "text-cyan-400" : "text-cyan-600"
                   }`}
-                  onClick={() => handleVideoClick(video.id)}
+                />
+                <p
+                  className={`mt-4 text-lg ${
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
                 >
-                  <div className="flex gap-4 p-4">
-                    {/* Thumbnail */}
-                    <div className="relative flex-shrink-0 w-48 h-28 rounded-lg overflow-hidden">
-                      <img
-                        src={getYoutubeThumbnail(video.id)}
-                        alt={video.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform"
-                      />
+                  Đang tải video...
+                </p>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center h-full">
+                <p
+                  className={`text-lg ${
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  {error}
+                </p>
+                <button
+                  onClick={loadRecentlyViewedVideos}
+                  className="mt-4 px-6 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-lg hover:shadow-lg transition"
+                >
+                  Thử lại
+                </button>
+              </div>
+            ) : videos.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full">
+                <div className="text-6xl mb-4 opacity-50">👀</div>
+                <p
+                  className={`text-xl font-medium mb-2 ${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Chưa xem video nào
+                </p>
+                <button
+                  onClick={() => router.push("/video")}
+                  className="mt-4 px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-full flex items-center gap-2 hover:shadow-lg transition transform hover:scale-105"
+                >
+                  <Video className="w-5 h-5" />
+                  Khám phá video
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3 max-w-5xl mx-auto">
+                {videos.map((video) => (
+                  <div
+                    key={video.id}
+                    className={`group rounded-xl overflow-hidden transition-all hover:scale-[1.02] cursor-pointer border ${
+                      isDarkMode
+                        ? "bg-gray-800/50 border-gray-700 hover:bg-gray-800 hover:border-cyan-500"
+                        : "bg-white border-gray-200 hover:border-cyan-400 hover:shadow-lg"
+                    }`}
+                    onClick={() => handleVideoClick(video.id)}
+                  >
+                    <div className="flex gap-4 p-4">
+                      {/* Thumbnail */}
+                      <div className="relative flex-shrink-0 w-48 h-28 rounded-lg overflow-hidden">
+                        <img
+                          src={getYoutubeThumbnail(video.id)}
+                          alt={video.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                        />
 
-                      {/* Duration Badge */}
-                      <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
-                        {formatDuration(video.duration)}
-                      </div>
-
-                      {/* Progress Bar */}
-                      {video.completionPercentage !== undefined && (
-                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700/50">
-                          <div
-                            className="h-full bg-cyan-500 transition-all duration-300"
-                            style={{
-                              width: `${video.completionPercentage}%`,
-                            }}
-                          />
+                        {/* Duration Badge */}
+                        <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+                          {formatDuration(video.duration)}
                         </div>
-                      )}
-                    </div>
 
-                    {/* Content */}
-                    <div className="flex-1 flex flex-col justify-between min-w-0">
-                      <div>
-                        <h3
-                          className={`font-semibold text-base line-clamp-2 mb-2 ${
-                            isDarkMode ? "text-gray-100" : "text-gray-900"
-                          }`}
-                        >
-                          {video.title}
-                        </h3>
-                      </div>
-
-                      <div className="flex items-center gap-4 text-sm">
-                        <div
-                          className={`flex items-center gap-2 ${
-                            isDarkMode ? "text-gray-400" : "text-gray-600"
-                          }`}
-                        >
-                          <Clock className="w-4 h-4" />
-                          <span>{formatDuration(video.duration)}</span>
-                        </div>
-
-                        <div
-                          className={`flex items-center gap-2 ${
-                            isDarkMode ? "text-gray-400" : "text-gray-600"
-                          }`}
-                        >
-                          <Calendar className="w-4 h-4" />
-                          <span>
-                            {getTimeAgo(video.lastViewedAt || video.createdAt)}
-                          </span>
-                        </div>
-
+                        {/* Progress Bar */}
                         {video.completionPercentage !== undefined && (
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`text-xs font-medium px-2 py-1 rounded transition-colors ${
-                                video.completionPercentage === 100
-                                  ? "bg-green-500/20 text-green-500"
-                                  : "bg-cyan-500/20 text-cyan-500"
-                              }`}
-                            >
-                              {video.completionPercentage}%
-                            </span>
+                          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700/50">
+                            <div
+                              className="h-full bg-cyan-500 transition-all duration-300"
+                              style={{
+                                width: `${video.completionPercentage}%`,
+                              }}
+                            />
                           </div>
                         )}
                       </div>
+
+                      {/* Content */}
+                      <div className="flex-1 flex flex-col justify-between min-w-0">
+                        <div>
+                          <h3
+                            className={`font-semibold text-base line-clamp-2 mb-2 ${
+                              isDarkMode ? "text-gray-100" : "text-gray-900"
+                            }`}
+                          >
+                            {video.title}
+                          </h3>
+                        </div>
+
+                        <div className="flex items-center gap-4 text-sm">
+                          <div
+                            className={`flex items-center gap-2 ${
+                              isDarkMode ? "text-gray-400" : "text-gray-600"
+                            }`}
+                          >
+                            <Clock className="w-4 h-4" />
+                            <span>{formatDuration(video.duration)}</span>
+                          </div>
+
+                          <div
+                            className={`flex items-center gap-2 ${
+                              isDarkMode ? "text-gray-400" : "text-gray-600"
+                            }`}
+                          >
+                            <Calendar className="w-4 h-4" />
+                            <span>
+                              {getTimeAgo(
+                                video.lastViewedAt || video.createdAt
+                              )}
+                            </span>
+                          </div>
+
+                          {video.completionPercentage !== undefined && (
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`text-xs font-medium px-2 py-1 rounded transition-colors ${
+                                  video.completionPercentage === 100
+                                    ? "bg-green-500/20 text-green-500"
+                                    : "bg-cyan-500/20 text-cyan-500"
+                                }`}
+                              >
+                                {video.completionPercentage}%
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
