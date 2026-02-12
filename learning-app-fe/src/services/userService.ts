@@ -30,15 +30,15 @@ export interface UserProfileResponse {
 export interface UserResponse {
   id: string;
   email: string;
-  fullName: string;      // Backend là fullName, không phải name
+  fullName: string; // Backend là fullName, không phải name
   avatarUrl?: string;
   enabled: boolean;
 
   // Các field học tập mới thêm
-  level: string;         // "N5"
-  stage: string;         // "Junbi"
-  processPercent: number;// 60
-  isPremium: boolean;    // true/false
+  level: string; // "N5"
+  stage: string; // "Junbi"
+  processPercent: number; // 60
+  isPremium: boolean; // true/false
 
   createdAt: string;
 }
@@ -46,18 +46,24 @@ export interface UserResponse {
 export interface UserResponseManager {
   id: string;
   email: string;
-  fullName: string;      // Backend là fullName, không phải name
+  fullName: string; // Backend là fullName, không phải name
   avatarUrl?: string;
   enabled: boolean;
-  role: string[];    // Ví dụ: ["USER"], ["ADMIN"]
+  role: string[]; // Ví dụ: ["USER"], ["ADMIN"]
 
   // Các field học tập mới thêm
-  level: string;         // "N5"
-  stage: string;         // "Junbi"
-  processPercent: number;// 60
-  isPremium: boolean;    // true/false
+  level: string; // "N5"
+  stage: string; // "Junbi"
+  processPercent: number; // 60
+  isPremium: boolean; // true/false
 
   createdAt: string;
+}
+export interface UserChatResponse {
+  id: string;
+  fullName: string;
+  email: string;
+  avatarUrl?: string;
 }
 
 export interface PageResponse<T> {
@@ -65,7 +71,7 @@ export interface PageResponse<T> {
   totalPages: number;
   size: number;
   totalElements: number;
-  data: T[];             // Danh sách user nằm ở đây
+  data: T[]; // Danh sách user nằm ở đây
 }
 
 export interface UserStatsResponse {
@@ -138,22 +144,25 @@ export const userService = {
 
   deleteUserAccount(email: string): Promise<void> {
     return http.delete(API_ENDPOINTS.ADMIN.DELETE_USER, {
-      params: { email }
+      params: { email },
     });
   },
 
   deleteMultipleUserAccounts(emails: string[]): Promise<void> {
     return http.delete(API_ENDPOINTS.ADMIN.DELETE_USERS, {
-      data: { emails }
+      data: { emails },
+    });
+  },
+  searchUsers(keyword: string): Promise<UserChatResponse[]> {
+    return http.get(API_ENDPOINTS.USER.SEARCH, {
+      params: { keyword },
     });
   },
 
   getUserStatistics(): Promise<UserStatsResponse> {
     return http.get(API_ENDPOINTS.ADMIN.USER_STATISTICS);
-  }
-
+  },
 };
-
 
 export const register = async (
   data: RegisterRequest
