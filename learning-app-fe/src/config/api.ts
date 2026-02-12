@@ -13,8 +13,15 @@ export const API_ENDPOINTS = {
     UPLOAD_AVATAR: "/users/upload-avatar",
     CHANGE_PASSWORD: "/users/change-password",
     ALL_USERS: "/admin/users",
+    SEARCH: "/users/search", // ✅ thêm dòng này
   },
-
+  CHAT_ROOM: {
+    MY_ROOMS: "/chat-room/my-rooms",
+    CREATE_PRIVATE: "/chat-room/private",
+    GET_BY_ID: (roomId: string) => `/chat-room/${roomId}`,
+    MESSAGES: (roomId: string, page: number, size: number) =>
+      `/chat-room/${roomId}/messages?page=${page}&size=${size}`,
+  },
   /* ===================== COURSE ===================== */
   COURSE: {
     CREATE: "/course",

@@ -13,6 +13,7 @@ import {
   BookMarked,
   GraduationCap,
   Radio,
+  MessageCircle,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -383,6 +384,19 @@ export default function Sidebar({
                 <span>Luyện đề</span>
               </button>
               <button
+                onClick={() => router.push("/chat")}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition transform hover:scale-105 ${
+                  isActive("/chat")
+                    ? "bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-600 font-medium shadow-sm"
+                    : isDarkMode
+                    ? "text-gray-300 hover:bg-gray-700"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <MessageCircle className="w-5 h-5" />
+                <span>Chat Room</span>
+              </button>
+              <button
                 onClick={() => router.push("/videoCall")}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition transform hover:scale-105 ${
                   isActive("/videoCall")
@@ -489,9 +503,24 @@ export default function Sidebar({
                 <BookOpen className="w-5 h-5" />
               </button>
               <button
-                onClick={() => router.push("/webrtc")}
+                onClick={() => router.push("/chat")}
                 className={`w-full flex items-center justify-center p-3.5 rounded-xl transition-all shadow-sm ${
-                  isActive("/webrtc")
+                  isActive("/chat")
+                    ? isDarkMode
+                      ? "bg-cyan-900/40 text-cyan-400"
+                      : "bg-gradient-to-br from-cyan-100 to-blue-100 text-cyan-600"
+                    : isDarkMode
+                    ? "text-gray-400 hover:bg-gray-700 hover:text-gray-300"
+                    : "text-gray-600 hover:bg-cyan-50 hover:text-cyan-600"
+                }`}
+                title="Chat Room"
+              >
+                <MessageCircle className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => router.push("/videoCall")}
+                className={`w-full flex items-center justify-center p-3.5 rounded-xl transition-all shadow-sm ${
+                  isActive("/videoCall")
                     ? isDarkMode
                       ? "bg-cyan-900/40 text-cyan-400"
                       : "bg-gradient-to-br from-cyan-100 to-blue-100 text-cyan-600"
