@@ -15,6 +15,12 @@ export const API_ENDPOINTS = {
     ALL_USERS: "/admin/users",
     SEARCH: "/users/search", // ✅ thêm dòng này
   },
+
+  LESSON_PART_PROGRESS: {
+    UPDATE: "/lesson-part-progress",
+    GET: (lessonPartId: string) => `/lesson-part-progress/${lessonPartId}`,
+  },
+
   CHAT_ROOM: {
     MY_ROOMS: "/chat-room/my-rooms",
     CREATE_PRIVATE: "/chat-room/private",
