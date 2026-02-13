@@ -1,23 +1,22 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import LoadingCat from "@/components/LoadingCat";
-import { courseService, CourseResponse } from "@/services/courseService";
+import { courseService } from "@/services/courseService";
 import { sectionService } from "@/services/sectionService";
 import {
   BookOpen,
-  Clock,
   TrendingUp,
   CheckCircle2,
-  PlayCircle,
-  Award,
   AlertCircle,
-  ChevronDown,
-  ChevronUp,
+  Award,
 } from "lucide-react";
+import ProgressCard from "@/components/Progresscard ";
+import CourseCard from "@/components/CourseCard";
 
 // Types
 interface Section {
@@ -41,244 +40,9 @@ interface Course {
   createdAt?: string;
   sections: Section[];
   expanded?: boolean;
+  currentLesson?: string;
+  totalSongs?: number;
 }
-
-interface CourseCardProps {
-  course: Course;
-  isDark: boolean;
-  onClick: () => void;
-  onToggleExpand: () => void;
-  isExpanded: boolean;
-}
-
-// Course Card Component
-const CourseCard: React.FC<CourseCardProps> = ({
-  course,
-  isDark,
-  onClick,
-  onToggleExpand,
-  isExpanded,
-}) => {
-  const [imageError, setImageError] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
-
-  const getGradientByLevel = (level: string) => {
-    const gradients: Record<string, string> = {
-      N5: "from-green-400 to-green-500",
-      N4: "from-blue-400 to-blue-500",
-      N3: "from-purple-400 to-purple-500",
-      N2: "from-orange-400 to-orange-500",
-      N1: "from-cyan-400 to-cyan-500",
-    };
-    return gradients[level] || "from-cyan-400 to-cyan-500";
-  };
-
-  const formatCreatedDate = (dateString?: string) => {
-    if (!dateString) return null;
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return "Hôm nay";
-    if (diffDays === 1) return "Hôm qua";
-    if (diffDays < 7) return `${diffDays} ngày trước`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} tuần trước`;
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)} tháng trước`;
-    return date.toLocaleDateString("vi-VN");
-  };
-
-  return (
-    <div
-      className={`${
-        isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-      } rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer group border`}
-    >
-      {/* Thumbnail */}
-      <div className="relative" onClick={onClick}>
-        <div
-          className={`w-full h-40 bg-gradient-to-br ${getGradientByLevel(
-            course.level
-          )} flex items-center justify-center relative overflow-hidden`}
-        >
-          {course.thumbnail && !imageError ? (
-            <>
-              <img
-                src={course.thumbnail}
-                alt={course.title}
-                className={`w-full h-full object-cover transition-opacity duration-300 ${
-                  imageLoaded ? "opacity-100" : "opacity-0"
-                }`}
-                onLoad={() => setImageLoaded(true)}
-                onError={() => {
-                  setImageError(true);
-                  setImageLoaded(false);
-                }}
-              />
-              {!imageLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <BookOpen className="w-16 h-16 text-white/80 animate-pulse" />
-                </div>
-              )}
-            </>
-          ) : (
-            <BookOpen className="w-16 h-16 text-white/80" />
-          )}
-
-          {/* Level Badge */}
-          <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 backdrop-blur-sm text-white text-xs font-bold rounded">
-            {course.level}
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-4">
-        <h3
-          onClick={onClick}
-          className={`font-semibold ${
-            isDark ? "text-gray-100" : "text-gray-800"
-          } text-sm line-clamp-2 mb-2 min-h-[40px]`}
-        >
-          {course.title}
-        </h3>
-
-        <p
-          onClick={onClick}
-          className={`text-xs ${
-            isDark ? "text-gray-400" : "text-gray-600"
-          } line-clamp-2 mb-3`}
-        >
-          {course.description}
-        </p>
-
-        {/* Instructor & Created Date */}
-        <div
-          onClick={onClick}
-          className={`flex items-center gap-2 mb-3 ${isDark ? "" : ""}`}
-        >
-          <div className="flex items-center gap-1.5 flex-1">
-            <div
-              className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                isDark ? "bg-cyan-900/30" : "bg-cyan-100"
-              }`}
-            >
-              <svg
-                className={`w-3.5 h-3.5 ${
-                  isDark ? "text-cyan-400" : "text-cyan-600"
-                }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-            </div>
-            <span
-              className={`text-xs font-medium ${
-                isDark ? "text-gray-300" : "text-gray-700"
-              }`}
-            >
-              {course.instructor}
-            </span>
-          </div>
-
-          {course.createdAt && (
-            <div
-              className={`text-xs ${
-                isDark ? "text-gray-500" : "text-gray-500"
-              }`}
-            >
-              {formatCreatedDate(course.createdAt)}
-            </div>
-          )}
-        </div>
-
-        {/* Sections List */}
-        {course.sections && course.sections.length > 0 && (
-          <div
-            className={`border-t pt-3 ${
-              isDark ? "border-gray-700" : "border-gray-200"
-            }`}
-          >
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleExpand();
-              }}
-              className={`w-full flex items-center justify-between text-xs font-medium mb-2 ${
-                isDark ? "text-gray-300" : "text-gray-700"
-              }`}
-            >
-              <span>Nội dung khóa học ({course.sections.length})</span>
-              {isExpanded ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
-            </button>
-
-            {isExpanded && (
-              <div className="space-y-2 animate-fadeIn">
-                {course.sections.map((section, index) => (
-                  <div
-                    key={section.id}
-                    className={`flex items-center justify-between p-2 rounded-lg ${
-                      isDark
-                        ? "bg-gray-700/50 hover:bg-gray-700"
-                        : "bg-gray-50 hover:bg-gray-100"
-                    } transition`}
-                  >
-                    <div className="flex items-center gap-2 flex-1">
-                      <span
-                        className={`text-xs font-bold ${
-                          isDark ? "text-cyan-400" : "text-cyan-600"
-                        }`}
-                      >
-                        {index + 1}
-                      </span>
-                      <span
-                        className={`text-xs ${
-                          isDark ? "text-gray-300" : "text-gray-700"
-                        } line-clamp-1`}
-                      >
-                        {section.title}
-                      </span>
-                    </div>
-                    <span
-                      className={`text-xs ${
-                        isDark ? "text-gray-500" : "text-gray-500"
-                      }`}
-                    >
-                      {section.lessonCount} bài
-                    </span>
-                  </div>
-                ))}
-
-                {/* View Details Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onClick();
-                  }}
-                  className="w-full mt-2 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-lg font-medium text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2 group"
-                >
-                  <PlayCircle className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  Xem chi tiết khóa học
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
 
 // Main Component
 export default function MyCoursesPage() {
@@ -293,7 +57,6 @@ export default function MyCoursesPage() {
     "all" | "inProgress" | "completed"
   >("all");
 
-  // Fetch courses from API
   useEffect(() => {
     const fetchCourses = async () => {
       setLoading(true);
@@ -305,7 +68,6 @@ export default function MyCoursesPage() {
           apiCourses
             .filter((course) => course.isActive)
             .map(async (course) => {
-              // Fetch sections for this course
               let sections: Section[] = [];
               try {
                 const sectionsData = await sectionService.getByCourse(
@@ -314,7 +76,7 @@ export default function MyCoursesPage() {
                 sections = sectionsData.map((section) => ({
                   id: section.id,
                   title: section.title,
-                  lessonCount: 0, // This will be updated when fetching lessons
+                  lessonCount: 0,
                 }));
               } catch (err) {
                 console.error(
@@ -337,14 +99,12 @@ export default function MyCoursesPage() {
                 level: course.level,
                 instructor: course.createdBy || "Sensei",
                 createdAt: course.createdAt,
-                totalLessons: totalLessons,
+                totalLessons: totalLessons || 20,
                 completedLessons: completedLessons,
-                progress:
-                  totalLessons > 0
-                    ? Math.round((completedLessons / totalLessons) * 100)
-                    : 0,
+                progress: Math.floor(Math.random() * 100), // Mock progress
                 lastAccessed: course.createdAt,
                 sections: sections,
+                totalSongs: Math.floor(Math.random() * 50),
               };
             })
         );
@@ -387,10 +147,13 @@ export default function MyCoursesPage() {
     return true;
   });
 
+  const inProgressCourses = courses.filter(
+    (c) => c.progress > 0 && c.progress < 100
+  );
+
   const stats = {
     total: courses.length,
-    inProgress: courses.filter((c) => c.progress > 0 && c.progress < 100)
-      .length,
+    inProgress: inProgressCourses.length,
     completed: courses.filter((c) => c.progress === 100).length,
   };
 
@@ -667,18 +430,41 @@ export default function MyCoursesPage() {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredCourses.map((course) => (
-                  <CourseCard
-                    key={course.id}
-                    course={course}
-                    isDark={isDarkMode}
-                    onClick={() => handleCourseClick(course.id)}
-                    onToggleExpand={() => toggleCourseExpand(course.id)}
-                    isExpanded={course.expanded || false}
-                  />
-                ))}
-              </div>
+              <>
+                {/* In Progress Section - Special Layout */}
+                {activeFilter === "inProgress" &&
+                  inProgressCourses.length > 0 && (
+                    <div className="mb-8">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {inProgressCourses.map((course, index) => (
+                          <ProgressCard
+                            key={course.id}
+                            courseId={course.id}
+                            isDark={isDarkMode}
+                            onClick={() => handleCourseClick(course.id)}
+                            index={index}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                {/* Standard Grid Layout for All/Completed */}
+                {activeFilter !== "inProgress" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {filteredCourses.map((course) => (
+                      <CourseCard
+                        key={course.id}
+                        course={course}
+                        isDark={isDarkMode}
+                        onClick={() => handleCourseClick(course.id)}
+                        onToggleExpand={() => toggleCourseExpand(course.id)}
+                        isExpanded={course.expanded || false}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

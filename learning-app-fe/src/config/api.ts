@@ -34,6 +34,7 @@ export const API_ENDPOINTS = {
     GET_ALL: "/course",
     GET_DETAIL: (courseId: string) => `/course/${courseId}`,
     TOGGLE_ACTIVE: (courseId: string) => `/course/${courseId}/active`,
+    GET_PROGRESS: (courseId: string) => `/courses/${courseId}/progress`,
   },
 
   /* ===================== SECTION ===================== */
