@@ -14,6 +14,7 @@ import {
   GraduationCap,
   Radio,
   MessageCircle,
+  PenTool,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -390,6 +391,19 @@ export default function Sidebar({
                   <span>Từ vựng của tôi</span>
                 </button>
                 <button
+                  onClick={() => router.push("/kanji")}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition transform hover:scale-105 ${
+                    isActive("/kanji")
+                      ? "bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-600 font-medium shadow-sm"
+                      : isDarkMode
+                      ? "text-gray-300 hover:bg-gray-700"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <PenTool className="w-5 h-5" />
+                  <span>Luyện viết Kanji</span>
+                </button>
+                <button
                   onClick={() => router.push("/practice")}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition transform hover:scale-105 ${
                     isActive("/practice")
@@ -505,6 +519,21 @@ export default function Sidebar({
                   title="Từ vựng của tôi"
                 >
                   <BookMarked className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => router.push("/kanji")}
+                  className={`w-full flex items-center justify-center p-3.5 rounded-xl transition-all ${
+                    isActive("/kanji")
+                      ? isDarkMode
+                        ? "bg-cyan-900/40 text-cyan-400 shadow-sm"
+                        : "bg-gradient-to-br from-cyan-100 to-blue-100 text-cyan-600 shadow-sm"
+                      : isDarkMode
+                      ? "text-gray-400 hover:bg-gray-700 hover:text-gray-300"
+                      : "text-gray-600 hover:bg-cyan-50 hover:text-cyan-600"
+                  }`}
+                  title="Luyện viết Kanji"
+                >
+                  <PenTool className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => router.push("/practice")}

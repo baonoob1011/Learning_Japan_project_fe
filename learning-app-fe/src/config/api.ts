@@ -36,6 +36,12 @@ export const API_ENDPOINTS = {
     TOGGLE_ACTIVE: (courseId: string) => `/course/${courseId}/active`,
     GET_PROGRESS: (courseId: string) => `/courses/${courseId}/progress`,
   },
+  KANJI: {
+    GET_ALL: "/kanji",
+    GET_BY_ID: (id: string) => `/kanji/${id}`,
+    CREATE: "/kanji",
+    CHECK: "/kanji/check",
+  },
 
   /* ===================== SECTION ===================== */
   SECTION: {
