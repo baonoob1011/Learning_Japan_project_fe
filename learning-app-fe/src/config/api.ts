@@ -15,6 +15,12 @@ export const API_ENDPOINTS = {
     ALL_USERS: "/admin/users",
     SEARCH: "/users/search", // ✅ thêm dòng này
   },
+  PAYMENT: {
+    VNPAY_CREATE: `/payments/vnpay/create`,
+
+    VNPAY_RETURN: (responseCode: string, txnRef: string) =>
+      `/payments/vnpay/return?vnp_ResponseCode=${responseCode}&vnp_TxnRef=${txnRef}`,
+  },
 
   LESSON_PART_PROGRESS: {
     UPDATE: "/lesson-part-progress",
@@ -154,6 +160,14 @@ export const API_ENDPOINTS = {
     UPDATE_MEANING: "/vocab",
     DELETE: (surface: string) => `/vocab/${encodeURIComponent(surface)}`,
     GET_STATUS: (vocabId: string) => `/vocab/${vocabId}/status`,
+  },
+  // src/config/api.ts
+
+  VIP: {
+    GET_ALL: "/vip-packages",
+    CREATE: "/vip-packages",
+    PURCHASE: "/vip-purchases",
+    GET_MY_VIP: "/vip/me",
   },
 } as const;
 

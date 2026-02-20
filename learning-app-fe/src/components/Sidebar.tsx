@@ -16,6 +16,7 @@ import {
   MessageCircle,
   PenTool,
 } from "lucide-react";
+import UpgradePlusModal from "./Upgradeplusmodal ";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -37,6 +38,8 @@ export default function Sidebar({
   const [currentDayIndex, setCurrentDayIndex] = React.useState(0);
   const [mounted, setMounted] = React.useState(false);
   const [displayStreak, setDisplayStreak] = React.useState(0);
+  const [showUpgradeModal, setShowUpgradeModal] = React.useState(false);
+
   // Đổi thứ tự: T2 -> CN (Monday first, Sunday last)
   const days = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
@@ -588,7 +591,10 @@ export default function Sidebar({
         {/* Upgrade Button */}
         {sidebarOpen ? (
           <div className="p-4">
-            <button className="w-full bg-gradient-to-r from-pink-400 via-rose-500 to-purple-500 text-white py-3 rounded-xl font-semibold hover:shadow-xl transition flex items-center justify-center gap-2 transform hover:scale-105">
+            <button
+              onClick={() => setShowUpgradeModal(true)}
+              className="w-full bg-gradient-to-r from-pink-400 via-rose-500 to-purple-500 text-white py-3 rounded-xl font-semibold hover:shadow-xl transition flex items-center justify-center gap-2 transform hover:scale-105"
+            >
               <Gift className="w-5 h-5" />
               Nâng cấp Plus
             </button>
@@ -596,6 +602,7 @@ export default function Sidebar({
         ) : (
           <div className="p-3">
             <button
+              onClick={() => setShowUpgradeModal(true)}
               className="w-full bg-gradient-to-br from-pink-400 via-rose-500 to-purple-500 text-white p-3.5 rounded-xl hover:shadow-xl transition transform hover:scale-105 flex items-center justify-center"
               title="Nâng cấp Plus"
             >
@@ -604,6 +611,13 @@ export default function Sidebar({
           </div>
         )}
       </div>
+
+      {/* Upgrade Plus Modal */}
+      <UpgradePlusModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        isDarkMode={isDarkMode}
+      />
     </>
   );
 }

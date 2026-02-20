@@ -7,7 +7,10 @@ import React, {
   forwardRef,
 } from "react";
 
-/* ===== TYPES ===== */
+// ─────────────────────────────────────────────────────────────────────────────
+// LOCAL TYPES — không dùng declare global, tránh xung đột TS2717
+// ─────────────────────────────────────────────────────────────────────────────
+
 type YTPlayer = {
   getCurrentTime: () => number | undefined;
   seekTo: (seconds: number, allowSeekAhead: boolean) => void;
@@ -21,29 +24,34 @@ type YTPlayerStateChangeEvent = {
   target: YTPlayer;
 };
 
-declare global {
-  interface Window {
-    YT?: {
-      Player: new (
-        elementId: string,
-        config: {
-          videoId: string;
-          playerVars?: Record<string, unknown>;
-          events?: {
-            onReady?: () => void;
-            onStateChange?: (event: YTPlayerStateChangeEvent) => void;
-          };
-        }
-      ) => YTPlayer;
-      PlayerState?: {
-        PLAYING: number;
-        PAUSED: number;
-        ENDED: number;
-      };
+// ✅ Constructor type tách riêng để tránh lỗi ts(7009)
+type YTPlayerConstructor = new (
+  elementId: string,
+  config: {
+    videoId: string;
+    playerVars?: Record<string, unknown>;
+    events?: {
+      onReady?: () => void;
+      onStateChange?: (event: YTPlayerStateChangeEvent) => void;
     };
-    onYouTubeIframeAPIReady?: () => void;
   }
-}
+) => YTPlayer;
+
+type YTWindowType = typeof window & {
+  YT?: {
+    Player: YTPlayerConstructor;
+    PlayerState?: {
+      PLAYING: number;
+      PAUSED: number;
+      ENDED: number;
+    };
+  };
+  onYouTubeIframeAPIReady?: () => void;
+};
+
+const w = (): YTWindowType => window as unknown as YTWindowType;
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export interface YoutubePlayerHandle extends YTPlayer {
   playSegment: (startMs: number, endMs: number) => void;
@@ -56,35 +64,30 @@ interface YoutubePlayerProps {
   videoId: string;
   onPlayerReady?: (player: YTPlayer) => void;
   onSegmentEnd?: () => void;
-  onStateChange?: (event: YTPlayerStateChangeEvent) => void; // ✅ NEW
+  onStateChange?: (event: YTPlayerStateChangeEvent) => void;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
   ({ videoId, onPlayerReady, onSegmentEnd, onStateChange }, ref) => {
     const playerRef = useRef<YTPlayer | null>(null);
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const handleRef = useRef<YoutubePlayerHandle | null>(null);
     const isInitializedRef = useRef(false);
 
-    /** ======================
-     * STOP SEGMENT PLAYBACK
-     ====================== */
+    /** ── STOP SEGMENT ── */
     const stopSegment = () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
-
-      if (playerRef.current) {
-        try {
-          playerRef.current.pauseVideo();
-        } catch {}
-      }
+      try {
+        playerRef.current?.pauseVideo();
+      } catch {}
     };
 
-    /** ======================
-     * PLAY SEGMENT (startMs to endMs)
-     ====================== */
+    /** ── PLAY SEGMENT (startMs → endMs) ── */
     const playSegment = (startMs: number, endMs: number) => {
       console.log("🎬 YoutubePlayer: playSegment called", { startMs, endMs });
 
@@ -101,39 +104,20 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
       try {
         playerRef.current.seekTo(startSec, true);
         playerRef.current.playVideo();
-        console.log(
-          "✅ YoutubePlayer: Video playing from",
-          startSec,
-          "to",
-          endSec
-        );
+        console.log("✅ YoutubePlayer: playing from", startSec, "to", endSec);
 
         intervalRef.current = setInterval(() => {
           if (!playerRef.current) {
             stopSegment();
             return;
           }
-
           const currentTime = playerRef.current.getCurrentTime();
-
           if (typeof currentTime === "number" && currentTime >= endSec) {
-            console.log(
-              "🎯 YoutubePlayer: Segment END reached at",
-              currentTime
-            );
+            console.log("🎯 YoutubePlayer: Segment END at", currentTime);
             stopSegment();
-
             onSegmentEnd?.();
-
-            if (handleRef.current?.onDictationSegmentEnd) {
-              console.log("📞 Calling onDictationSegmentEnd");
-              handleRef.current.onDictationSegmentEnd();
-            }
-
-            if (handleRef.current?.onPronunciationSegmentEnd) {
-              console.log("📞 Calling onPronunciationSegmentEnd");
-              handleRef.current.onPronunciationSegmentEnd();
-            }
+            handleRef.current?.onDictationSegmentEnd?.();
+            handleRef.current?.onPronunciationSegmentEnd?.();
           }
         }, 50);
       } catch (error) {
@@ -142,7 +126,7 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
       }
     };
 
-    // Expose all methods to parent component
+    /** ── IMPERATIVE HANDLE ── */
     useImperativeHandle(
       ref,
       () => {
@@ -157,17 +141,16 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
           stopSegment,
         };
         handleRef.current = handle;
-        console.log("🔗 YoutubePlayer: Handle created and stored");
+        console.log("🔗 YoutubePlayer: Handle created");
         return handle;
       },
       []
     );
 
-    /** ======================
-     * INIT YOUTUBE PLAYER
-     ====================== */
+    /** ── INIT YOUTUBE PLAYER ── */
     const initPlayer = () => {
-      if (!window.YT || isInitializedRef.current) {
+      const ytWindow = w();
+      if (!ytWindow.YT?.Player || isInitializedRef.current) {
         console.log(
           "⏳ YoutubePlayer: Waiting for YT API or already initialized"
         );
@@ -177,9 +160,7 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
       console.log("🚀 YoutubePlayer: Initializing player for video", videoId);
 
       try {
-        // ✅ Destroy existing player first
         if (playerRef.current) {
-          console.log("🧹 YoutubePlayer: Destroying existing player");
           try {
             playerRef.current.destroy();
           } catch (e) {
@@ -188,7 +169,10 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
           playerRef.current = null;
         }
 
-        playerRef.current = new window.YT.Player("youtube-player", {
+        // ✅ Lưu constructor vào biến có type rõ ràng → tránh lỗi ts(7009)
+        const YTPlayerClass: YTPlayerConstructor = ytWindow.YT.Player;
+
+        playerRef.current = new YTPlayerClass("youtube-player", {
           videoId,
           playerVars: {
             rel: 0,
@@ -199,13 +183,12 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
             onReady: () => {
               console.log("✅ YoutubePlayer: Player ready for", videoId);
               isInitializedRef.current = true;
-              if (playerRef.current) {
-                onPlayerReady?.(playerRef.current);
-              }
+              if (playerRef.current) onPlayerReady?.(playerRef.current);
             },
-            onStateChange: (event) => {
+            // ✅ Type rõ ràng cho event → tránh lỗi ts(7006)
+            onStateChange: (event: YTPlayerStateChangeEvent) => {
               console.log("🎬 Player state changed:", event.data);
-              onStateChange?.(event); // ✅ NEW: Forward state change to parent
+              onStateChange?.(event);
             },
           },
         });
@@ -215,79 +198,67 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
       }
     };
 
-    /** ======================
-     * LOAD YOUTUBE API & INIT
-     ====================== */
+    /** ── CLEANUP ── */
+    const cleanup = () => {
+      stopSegment();
+      isInitializedRef.current = false;
+      try {
+        playerRef.current?.destroy();
+      } catch {}
+      playerRef.current = null;
+    };
+
+    /** ── LOAD API & INIT ── */
     useEffect(() => {
       console.log("🔄 YoutubePlayer: Effect triggered for videoId", videoId);
-
-      // ✅ Reset initialization flag when videoId changes
       isInitializedRef.current = false;
 
+      const ytWindow = w();
+
       const initializePlayer = () => {
-        if (window.YT && window.YT.Player) {
-          console.log("✅ YT API available, initializing player");
-          initPlayer();
-        }
+        if (ytWindow.YT?.Player) initPlayer();
       };
 
-      if (window.YT && window.YT.Player) {
-        // API already loaded
+      if (ytWindow.YT?.Player) {
         console.log("✅ YT API already loaded, initializing immediately");
-        // ✅ Small delay to ensure DOM is ready
-        setTimeout(initializePlayer, 100);
-      } else {
-        // Load API
-        if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
-          console.log("📥 Loading YouTube IFrame API");
-          const tag = document.createElement("script");
-          tag.src = "https://www.youtube.com/iframe_api";
-          document.body.appendChild(tag);
-        }
-
-        // ✅ Set up callback that will be called when API loads
-        const originalCallback = window.onYouTubeIframeAPIReady;
-        window.onYouTubeIframeAPIReady = () => {
-          console.log("✅ YouTube IFrame API Ready");
-          if (originalCallback) originalCallback();
-          initializePlayer();
-        };
-
-        // ✅ Polling fallback
-        const checkInterval = setInterval(() => {
-          if (window.YT && window.YT.Player) {
-            console.log("✅ YT API detected via polling");
-            clearInterval(checkInterval);
-            initializePlayer();
-          }
-        }, 100);
-
-        // ✅ Cleanup check interval after 5 seconds
-        const timeoutId = setTimeout(() => {
-          clearInterval(checkInterval);
-          console.warn("⏰ YT API loading timeout");
-        }, 5000);
-
+        const t = setTimeout(initializePlayer, 100);
         return () => {
-          clearInterval(checkInterval);
-          clearTimeout(timeoutId);
+          clearTimeout(t);
+          cleanup();
         };
       }
 
-      return () => {
-        console.log("🧹 YoutubePlayer: Cleaning up for videoId", videoId);
-        stopSegment();
-        isInitializedRef.current = false;
+      if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+        console.log("📥 Loading YouTube IFrame API");
+        const tag = document.createElement("script");
+        tag.src = "https://www.youtube.com/iframe_api";
+        document.body.appendChild(tag);
+      }
 
-        // ✅ Destroy player on unmount
-        if (playerRef.current) {
-          try {
-            playerRef.current.destroy();
-          } catch (e) {
-            console.warn("Error destroying player on cleanup:", e);
-          }
-          playerRef.current = null;
+      const original = ytWindow.onYouTubeIframeAPIReady;
+      ytWindow.onYouTubeIframeAPIReady = () => {
+        console.log("✅ YouTube IFrame API Ready");
+        if (original) original();
+        initializePlayer();
+      };
+
+      const checkInterval = setInterval(() => {
+        if (w().YT?.Player) {
+          console.log("✅ YT API detected via polling");
+          clearInterval(checkInterval);
+          initializePlayer();
         }
+      }, 100);
+
+      const timeoutId = setTimeout(() => {
+        clearInterval(checkInterval);
+        console.warn("⏰ YT API loading timeout");
+      }, 10_000);
+
+      return () => {
+        clearInterval(checkInterval);
+        clearTimeout(timeoutId);
+        cleanup();
       };
     }, [videoId]);
 
@@ -305,5 +276,4 @@ const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>(
 );
 
 YoutubePlayer.displayName = "YoutubePlayer";
-
 export default YoutubePlayer;
