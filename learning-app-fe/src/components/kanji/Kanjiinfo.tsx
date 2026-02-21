@@ -1,3 +1,5 @@
+"use client";
+
 import { KanjiResponse } from "@/services/kanjiService";
 
 interface Props {
@@ -75,13 +77,14 @@ export default function KanjiInfo({ kanji, isDarkMode = false }: Props) {
         </div>
       </div>
 
-      {kanji.strokes && (
+      {/* ✅ đổi strokes → svgStrokes */}
+      {kanji.svgStrokes && (
         <div
           className={`mt-4 text-center text-sm ${
             isDarkMode ? "text-gray-400" : "text-gray-500"
           }`}
         >
-          Expected strokes: {kanji.strokes.length}
+          Expected strokes: {kanji.svgStrokes.length}
         </div>
       )}
     </div>

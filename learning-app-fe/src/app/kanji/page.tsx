@@ -73,7 +73,8 @@ const KanjiCard: React.FC<KanjiCardProps> = ({ kanji, isDark, onClick }) => {
         {/* Stroke Count Badge */}
         <div className="flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white text-xs font-bold rounded-full">
           <Layers className="w-3 h-3" />
-          <span>{kanji.strokes?.length || 0} nét</span>
+          <span>{kanji.svgStrokes?.length || 0} nét</span>
+          {/* ✅ đổi strokes → svgStrokes */}
         </div>
 
         {/* Readings (if available) */}

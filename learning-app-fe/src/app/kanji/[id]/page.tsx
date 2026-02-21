@@ -1,22 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import {
-  kanjiService,
-  KanjiResponse,
-  KanjiCheckResponse,
-  PointDTO,
-} from "@/services/kanjiService";
+import { kanjiService, KanjiResponse } from "@/services/kanjiService";
 import KanjiCanvas from "@/components/kanji/Kanjicanvas";
 import KanjiInfo from "@/components/kanji/Kanjiinfo";
-import KanjiResult from "@/components/kanji/Kanjiresult";
 import Sidebar from "@/components/Sidebar";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Header from "@/components/Header";
 import LoadingCat from "@/components/LoadingCat";
 import MaziAIChat from "@/components/NiboChatAI";
-import { ArrowLeft, AlertCircle, BookOpen, PenTool } from "lucide-react";
+import { ArrowLeft, AlertCircle, PenTool } from "lucide-react";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -26,27 +20,18 @@ export default function KanjiPractice({ params }: PageProps) {
   const router = useRouter();
   const [kanjiId, setKanjiId] = useState<string | null>(null);
   const [kanji, setKanji] = useState<KanjiResponse | null>(null);
-  const [result, setResult] = useState<KanjiCheckResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [checking, setChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentStreak, setCurrentStreak] = useState(4);
   const { isDarkMode, toggleDarkMode, mounted } = useDarkMode();
 
-  // Unwrap params
   useEffect(() => {
     params.then(({ id }) => setKanjiId(id));
   }, [params]);
 
-  useEffect(() => {
+  const loadKanji = useCallback(async () => {
     if (!kanjiId) return;
-    loadKanji();
-  }, [kanjiId]);
-
-  const loadKanji = async () => {
-    if (!kanjiId) return;
-
     try {
       setLoading(true);
       setError(null);
@@ -58,29 +43,18 @@ export default function KanjiPractice({ params }: PageProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [kanjiId]);
 
-  const handleCheck = async (strokes: PointDTO[][]) => {
-    if (!kanji) return;
+  useEffect(() => {
+    if (!kanjiId) return;
+    loadKanji();
+  }, [kanjiId, loadKanji]);
 
-    try {
-      setChecking(true);
-      const res = await kanjiService.check({
-        kanjiId: kanji.id,
-        strokes,
-      });
-      setResult(res);
-    } catch (err) {
-      console.error("Failed to check kanji:", err);
-      alert("Không thể kiểm tra chữ viết. Vui lòng thử lại.");
-    } finally {
-      setChecking(false);
-    }
-  };
-
-  const handleTryAgain = () => {
-    setResult(null);
-  };
+  // onCheck now receives user-drawn SVG path strings
+  const handleCheck = useCallback((userPaths: string[]) => {
+    console.log("User strokes submitted:", userPaths);
+    // TODO: send to API for comparison
+  }, []);
 
   if (!mounted) {
     return (
@@ -100,41 +74,31 @@ export default function KanjiPractice({ params }: PageProps) {
   return (
     <>
       <style jsx>{`
-        /* Custom Scrollbar Styles */
         .custom-scrollbar::-webkit-scrollbar {
           width: 10px;
         }
-
         .custom-scrollbar::-webkit-scrollbar-track {
           background: #f3f4f6;
           border-radius: 5px;
         }
-
         .custom-scrollbar::-webkit-scrollbar-thumb {
           background: #d1d5db;
           border-radius: 5px;
-          transition: background 0.2s;
         }
-
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: #9ca3af;
         }
-
         .custom-scrollbar-dark::-webkit-scrollbar {
           width: 10px;
         }
-
         .custom-scrollbar-dark::-webkit-scrollbar-track {
           background: #1f2937;
           border-radius: 5px;
         }
-
         .custom-scrollbar-dark::-webkit-scrollbar-thumb {
           background: #4b5563;
           border-radius: 5px;
-          transition: background 0.2s;
         }
-
         .custom-scrollbar-dark::-webkit-scrollbar-thumb:hover {
           background: #6b7280;
         }
@@ -158,7 +122,6 @@ export default function KanjiPractice({ params }: PageProps) {
         <div className="flex-1 flex flex-col overflow-hidden relative z-0">
           <Header isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
 
-          {/* Main Content */}
           <div
             className={`flex-1 overflow-y-auto ${
               isDarkMode ? "custom-scrollbar-dark" : "custom-scrollbar"
@@ -199,7 +162,6 @@ export default function KanjiPractice({ params }: PageProps) {
                 </div>
               ) : (
                 <>
-                  {/* Header Section */}
                   <div className="mb-8">
                     <button
                       onClick={() => router.push("/kanji")}
@@ -232,18 +194,16 @@ export default function KanjiPractice({ params }: PageProps) {
                             isDarkMode ? "text-gray-400" : "text-gray-600"
                           }`}
                         >
-                          Vẽ chữ Kanji trên canvas bên dưới
+                          Xem hướng dẫn từng nét, sau đó tự vẽ bên dưới
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Kanji Info */}
                   <div className="mb-6">
                     <KanjiInfo kanji={kanji} isDarkMode={isDarkMode} />
                   </div>
 
-                  {/* Canvas Section */}
                   <div
                     className={`${
                       isDarkMode
@@ -251,62 +211,34 @@ export default function KanjiPractice({ params }: PageProps) {
                         : "bg-white border-gray-200"
                     } rounded-2xl shadow-lg p-8 mb-6 border`}
                   >
-                    <div className="flex items-center justify-center gap-2 mb-6">
-                      <BookOpen
-                        className={`w-6 h-6 ${
-                          isDarkMode ? "text-cyan-400" : "text-cyan-500"
-                        }`}
-                      />
+                    <div className="mb-6 text-center">
                       <h2
-                        className={`text-2xl font-bold ${
+                        className={`text-2xl font-bold mb-1 ${
                           isDarkMode ? "text-gray-100" : "text-gray-800"
                         }`}
                       >
-                        Vẽ tại đây
+                        Hướng dẫn & Luyện viết
                       </h2>
+                      <p
+                        className={`text-sm ${
+                          isDarkMode ? "text-gray-400" : "text-gray-500"
+                        }`}
+                      >
+                        Nhấn{" "}
+                        <span className="font-semibold text-cyan-500">
+                          Xem hướng dẫn
+                        </span>{" "}
+                        để xem animation từng nét, rồi tự vẽ theo
+                      </p>
                     </div>
 
+                    {/* Pass svgStrokes (string[]) directly — no more PointDTO */}
                     <KanjiCanvas
-                      onCheck={handleCheck}
                       isDarkMode={isDarkMode}
+                      svgStrokes={kanji.svgStrokes}
+                      onCheck={handleCheck}
                     />
-
-                    {checking && (
-                      <div className="text-center mt-4">
-                        <LoadingCat
-                          size="sm"
-                          isDark={isDarkMode}
-                          message="Đang kiểm tra chữ viết của bạn..."
-                        />
-                      </div>
-                    )}
                   </div>
-
-                  {/* Result */}
-                  {result && (
-                    <>
-                      <KanjiResult result={result} isDarkMode={isDarkMode} />
-
-                      <div className="flex justify-center gap-4 mt-6">
-                        <button
-                          onClick={handleTryAgain}
-                          className="px-8 py-3 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-xl font-semibold hover:shadow-lg transition transform hover:scale-105"
-                        >
-                          Thử lại
-                        </button>
-                        <button
-                          onClick={() => router.push("/kanji")}
-                          className={`px-8 py-3 rounded-xl font-semibold transition transform hover:scale-105 ${
-                            isDarkMode
-                              ? "bg-gray-700 text-gray-200 hover:bg-gray-600"
-                              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                          }`}
-                        >
-                          Quay lại danh sách
-                        </button>
-                      </div>
-                    </>
-                  )}
                 </>
               )}
             </div>
@@ -314,7 +246,6 @@ export default function KanjiPractice({ params }: PageProps) {
         </div>
       </div>
 
-      {/* MAZI AI Chat Component */}
       <MaziAIChat isDarkMode={isDarkMode} />
     </>
   );

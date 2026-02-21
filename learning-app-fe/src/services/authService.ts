@@ -69,8 +69,6 @@ export const login = async (data: LoginRequest): Promise<UserLoginResponse> => {
   }
 };
 
-
-
 // ----- Refresh Token API -----
 export const refreshToken = async (
   data: RefreshTokenRequest
@@ -142,7 +140,7 @@ export const logout = async (): Promise<void> => {
 export const forgotPassword = async (email: string): Promise<string> => {
   try {
     // Lưu ý: Cần thêm key FORGOT_PASSWORD vào file config/api.ts
-    const endpoint = getEndpoint("FORGOT_PASSWORD"); 
+    const endpoint = getEndpoint("FORGOT_PASSWORD");
 
     // Backend dùng @RequestParam String email, nên ta truyền qua params
     const response = await axiosClient.post<ApiResponse<string>>(
