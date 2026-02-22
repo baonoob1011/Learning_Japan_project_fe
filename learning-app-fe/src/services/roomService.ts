@@ -83,9 +83,31 @@ export interface CreateGroupRoomRequest {
   avatar?: File; // 👈 file upload
   memberIds: string[];
 }
+export interface ChatGroupDetailResponse {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+  createdAt: string;
+  memberCount: number;
+  members: GroupMemberInfo[];
+}
+
+export interface GroupMemberInfo {
+  userId: string;
+  fullName: string;
+  avatarUrl?: string;
+}
 /* ===================== SERVICE ===================== */
 
 export const roomService = {
+  /**
+   * 👥 Lấy chi tiết group room theo roomId
+   */
+  getGroupDetail(roomId: string): Promise<ChatGroupDetailResponse> {
+    return http.get<ChatGroupDetailResponse>(
+      API_ENDPOINTS.CHAT_ROOM.GROUP_DETAIL(roomId)
+    );
+  },
   /**
    * Lấy danh sách phòng chat của user hiện tại
    */

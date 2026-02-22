@@ -1,10 +1,14 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Send } from "lucide-react";
 import ChatHeader from "./message/Chatheader";
 import MessagesArea from "./message/Messagesarea";
 import MessageInput from "./message/Messageinput";
-import { ChatMessageResponse } from "@/services/roomService";
+import {
+  ChatMessageResponse,
+  GroupMemberInfo,
+  roomService,
+} from "@/services/roomService";
 
 interface Contact {
   id: string;
@@ -14,6 +18,7 @@ interface Contact {
   online: boolean;
   unread?: number;
   timestamp: string;
+  roomType?: "PRIVATE" | "GROUP";
 }
 
 interface AttachmentPreview {
@@ -32,7 +37,6 @@ interface ChatAreaProps {
   attachmentPreview: AttachmentPreview | null;
   emojis: string[];
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
-  // Tin nhắn realtime từ socket
   incomingMessages?: ChatMessageResponse[];
   onMessageChange: (value: string) => void;
   onSendMessage: () => void;
@@ -62,6 +66,30 @@ export default function ChatArea({
   onFileSelect,
   onClearAttachment,
 }: ChatAreaProps) {
+  const [groupMembers, setGroupMembers] = useState<GroupMemberInfo[]>([]);
+
+  useEffect(() => {
+    if (!selectedContact || selectedContact.roomType !== "GROUP") return;
+
+    let cancelled = false;
+
+    async function fetchMembers() {
+      try {
+        const detail = await roomService.getGroupDetail(selectedContact!.id);
+        if (!cancelled) setGroupMembers(detail.members);
+      } catch {
+        if (!cancelled) setGroupMembers([]);
+      }
+    }
+
+    fetchMembers();
+
+    return () => {
+      cancelled = true;
+      setGroupMembers([]);
+    };
+  }, [selectedContact?.id, selectedContact?.roomType]);
+
   if (!selectedContact) {
     return (
       <div
@@ -110,13 +138,13 @@ export default function ChatArea({
     >
       <ChatHeader selectedContact={selectedContact} isDarkMode={isDarkMode} />
 
-      {/* ✅ MessagesArea tự fetch theo selectedContact.id */}
       <MessagesArea
         selectedContact={selectedContact}
         currentUserId={currentUserId}
         isDarkMode={isDarkMode}
         messagesEndRef={messagesEndRef}
         incomingMessages={incomingMessages}
+        groupMembers={selectedContact.roomType === "GROUP" ? groupMembers : []}
       />
 
       <MessageInput

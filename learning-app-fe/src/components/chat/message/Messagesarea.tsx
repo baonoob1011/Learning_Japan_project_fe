@@ -2,7 +2,11 @@
 import React, { useEffect, useReducer } from "react";
 import { useRouter } from "next/navigation";
 import { PlayCircle, File, Loader2 } from "lucide-react";
-import { roomService, ChatMessageResponse } from "@/services/roomService";
+import {
+  roomService,
+  ChatMessageResponse,
+  GroupMemberInfo,
+} from "@/services/roomService";
 
 // ── YouTube ───────────────────────────────────────────────────────────────
 const YT_REGEX =
@@ -100,6 +104,7 @@ interface Contact {
   online: boolean;
   unread?: number;
   timestamp: string;
+  roomType?: "PRIVATE" | "GROUP";
 }
 
 interface State {
@@ -147,6 +152,7 @@ interface MessagesAreaProps {
   isDarkMode: boolean;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
   incomingMessages?: ChatMessageResponse[];
+  groupMembers?: GroupMemberInfo[];
 }
 
 export default function MessagesArea({
@@ -155,11 +161,21 @@ export default function MessagesArea({
   isDarkMode,
   messagesEndRef,
   incomingMessages = [],
+  groupMembers = [],
 }: MessagesAreaProps) {
   const [{ messages, isLoading }, dispatch] = useReducer(reducer, {
     messages: [],
     isLoading: true,
   });
+
+  // Map senderId → GroupMemberInfo
+  const memberMap = React.useMemo(() => {
+    const map = new Map<string, GroupMemberInfo>();
+    groupMembers.forEach((m) => map.set(m.userId, m));
+    return map;
+  }, [groupMembers]);
+
+  const isGroup = selectedContact.roomType === "GROUP";
 
   // ── Fetch history khi đổi phòng ──────────────────────────────────────────
   useEffect(() => {
@@ -239,6 +255,12 @@ export default function MessagesArea({
       ) : (
         messages.map((msg, index) => {
           const isMe = normalizeId(msg.senderId) === normalizeId(currentUserId);
+
+          // Lấy info người gửi: ưu tiên groupMembers, fallback sang contact
+          const sender = memberMap.get(normalizeId(msg.senderId));
+          const senderAvatar = sender?.avatarUrl ?? selectedContact.avatar;
+          const senderShortName = sender?.fullName?.split(" ").pop() ?? "";
+
           return (
             <div
               key={`${msg.id}-${index}`}
@@ -252,13 +274,26 @@ export default function MessagesArea({
                   isMe ? "flex-row-reverse" : "flex-row"
                 }`}
               >
+                {/* Avatar + tên ngắn người gửi */}
                 {!isMe && (
-                  <img
-                    src={selectedContact.avatar}
-                    alt="avatar"
-                    className="w-8 h-8 rounded-full object-cover shadow-md"
-                  />
+                  <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+                    <img
+                      src={senderAvatar}
+                      alt={senderShortName || "avatar"}
+                      className="w-8 h-8 rounded-full object-cover shadow-md"
+                    />
+                    {isGroup && senderShortName && (
+                      <span
+                        className={`text-[10px] max-w-[48px] truncate text-center leading-tight ${
+                          isDarkMode ? "text-gray-500" : "text-cyan-400"
+                        }`}
+                      >
+                        {senderShortName}
+                      </span>
+                    )}
+                  </div>
                 )}
+
                 <div
                   className={`px-4 py-2.5 rounded-2xl shadow-md ${
                     isMe

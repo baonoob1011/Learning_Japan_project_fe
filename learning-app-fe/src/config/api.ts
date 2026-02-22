@@ -38,6 +38,7 @@ export const API_ENDPOINTS = {
     SEARCH: (keyword: string) =>
       `/chat-room/search?keyword=${encodeURIComponent(keyword)}`,
     MY_USERS: "/chat-room/my-users",
+    GROUP_DETAIL: (roomId: string) => `/chat-room/group/${roomId}`,
   },
   /* ===================== COURSE ===================== */
   COURSE: {
