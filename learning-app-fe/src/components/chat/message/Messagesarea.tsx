@@ -8,7 +8,6 @@ import {
   GroupMemberInfo,
 } from "@/services/roomService";
 
-// ── YouTube ───────────────────────────────────────────────────────────────
 const YT_REGEX =
   /https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([\w-]+)|https?:\/\/youtu\.be\/([\w-]+)/g;
 
@@ -87,7 +86,6 @@ function MessageContent({
   );
 }
 
-// ── Types ─────────────────────────────────────────────────────────────────
 interface Message {
   id: string;
   text: string;
@@ -168,7 +166,6 @@ export default function MessagesArea({
     isLoading: true,
   });
 
-  // Map senderId → GroupMemberInfo
   const memberMap = React.useMemo(() => {
     const map = new Map<string, GroupMemberInfo>();
     groupMembers.forEach((m) => map.set(m.userId, m));
@@ -177,10 +174,8 @@ export default function MessagesArea({
 
   const isGroup = selectedContact.roomType === "GROUP";
 
-  // ── Fetch history khi đổi phòng ──────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
-
     async function fetchMessages() {
       dispatch({ type: "FETCH_START" });
       try {
@@ -194,21 +189,18 @@ export default function MessagesArea({
         if (!cancelled) dispatch({ type: "FETCH_ERROR" });
       }
     }
-
     fetchMessages();
     return () => {
       cancelled = true;
     };
   }, [selectedContact.id]);
 
-  // ── Append tin nhắn realtime ──────────────────────────────────────────────
   useEffect(() => {
     if (incomingMessages.length === 0) return;
     const latest = incomingMessages[incomingMessages.length - 1];
     dispatch({ type: "APPEND", payload: mapApiMessage(latest) });
   }, [incomingMessages]);
 
-  // ── Auto scroll ───────────────────────────────────────────────────────────
   useEffect(() => {
     const t = setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -216,7 +208,6 @@ export default function MessagesArea({
     return () => clearTimeout(t);
   }, [messages, messagesEndRef]);
 
-  // ── Loading ───────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <div
@@ -233,7 +224,6 @@ export default function MessagesArea({
     );
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div
       className={`flex-1 overflow-y-auto p-6 space-y-4 ${
@@ -255,11 +245,11 @@ export default function MessagesArea({
       ) : (
         messages.map((msg, index) => {
           const isMe = normalizeId(msg.senderId) === normalizeId(currentUserId);
-
-          // Lấy info người gửi: ưu tiên groupMembers, fallback sang contact
           const sender = memberMap.get(normalizeId(msg.senderId));
           const senderAvatar = sender?.avatarUrl ?? selectedContact.avatar;
-          const senderShortName = sender?.fullName?.split(" ").pop() ?? "";
+          const senderDisplayName = sender?.fullName
+            ? sender.fullName.split(" ").slice(-2).join(" ")
+            : "";
 
           return (
             <div
@@ -270,78 +260,83 @@ export default function MessagesArea({
               }}
             >
               <div
-                className={`flex items-end gap-2 max-w-[70%] ${
+                className={`flex items-end gap-2 max-w-[65%] ${
                   isMe ? "flex-row-reverse" : "flex-row"
                 }`}
               >
-                {/* Avatar + tên ngắn người gửi */}
+                {/* Avatar người gửi */}
                 {!isMe && (
-                  <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
-                    <img
-                      src={senderAvatar}
-                      alt={senderShortName || "avatar"}
-                      className="w-8 h-8 rounded-full object-cover shadow-md"
-                    />
-                    {isGroup && senderShortName && (
-                      <span
-                        className={`text-[10px] max-w-[48px] truncate text-center leading-tight ${
-                          isDarkMode ? "text-gray-500" : "text-cyan-400"
-                        }`}
-                      >
-                        {senderShortName}
-                      </span>
-                    )}
-                  </div>
+                  <img
+                    src={senderAvatar}
+                    alt={senderDisplayName || "avatar"}
+                    className="w-9 h-9 rounded-full object-cover shadow-md flex-shrink-0 mb-5"
+                  />
                 )}
 
-                <div
-                  className={`px-4 py-2.5 rounded-2xl shadow-md ${
-                    isMe
-                      ? "bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-br-sm"
-                      : isDarkMode
-                      ? "bg-gray-800 text-gray-100 rounded-bl-sm border border-gray-700"
-                      : "bg-white text-cyan-900 rounded-bl-sm border border-cyan-200/60"
-                  }`}
-                >
-                  {msg.attachment && (
-                    <div className="mb-2">
-                      {msg.attachment.type === "image" ? (
-                        <img
-                          src={msg.attachment.url}
-                          alt="attachment"
-                          className="max-w-full rounded-lg"
-                        />
-                      ) : (
-                        <div
-                          className={`flex items-center gap-2 p-2 rounded ${
-                            isDarkMode ? "bg-gray-700" : "bg-cyan-50"
-                          }`}
-                        >
-                          <File className="w-4 h-4" />
-                          <span className="text-sm">{msg.attachment.name}</span>
-                        </div>
-                      )}
-                    </div>
+                {/* Tên + Bubble */}
+                <div className="flex flex-col gap-0.5">
+                  {/* Tên hiện trên bubble — kiểu Facebook */}
+                  {isGroup && !isMe && senderDisplayName && (
+                    <span
+                      className={`text-xs font-semibold px-1 ${
+                        isDarkMode ? "text-cyan-400" : "text-cyan-600"
+                      }`}
+                    >
+                      {senderDisplayName}
+                    </span>
                   )}
-                  <MessageContent
-                    text={msg.text}
-                    isDarkMode={isDarkMode}
-                    isMe={isMe}
-                  />
-                  <span
-                    className={`text-xs mt-1 block ${
+
+                  <div
+                    className={`px-4 py-2.5 rounded-2xl shadow-md ${
                       isMe
-                        ? "text-cyan-100"
+                        ? "bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-br-sm"
                         : isDarkMode
-                        ? "text-gray-400"
-                        : "text-cyan-600"
+                        ? "bg-gray-800 text-gray-100 rounded-bl-sm border border-gray-700"
+                        : "bg-white text-cyan-900 rounded-bl-sm border border-cyan-200/60"
                     }`}
                   >
-                    {msg.timestamp.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
+                    {msg.attachment && (
+                      <div className="mb-2">
+                        {msg.attachment.type === "image" ? (
+                          <img
+                            src={msg.attachment.url}
+                            alt="attachment"
+                            className="max-w-full rounded-lg"
+                          />
+                        ) : (
+                          <div
+                            className={`flex items-center gap-2 p-2 rounded ${
+                              isDarkMode ? "bg-gray-700" : "bg-cyan-50"
+                            }`}
+                          >
+                            <File className="w-4 h-4" />
+                            <span className="text-sm">
+                              {msg.attachment.name}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <MessageContent
+                      text={msg.text}
+                      isDarkMode={isDarkMode}
+                      isMe={isMe}
+                    />
+                    <span
+                      className={`text-xs mt-1 block ${
+                        isMe
+                          ? "text-cyan-100"
+                          : isDarkMode
+                          ? "text-gray-400"
+                          : "text-cyan-600"
+                      }`}
+                    >
+                      {msg.timestamp.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
