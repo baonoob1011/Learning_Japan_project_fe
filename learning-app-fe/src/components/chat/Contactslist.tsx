@@ -1,7 +1,12 @@
 "use client";
-import React from "react";
-import { MoreVertical, Search, MessageCircle } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { MoreVertical, Search, MessageCircle, Users } from "lucide-react";
 import LoadingCat from "@/components/LoadingCat";
+import { roomService } from "@/services/roomService";
+import { ChatRoomResponse } from "@/types/chat";
+
+// Tab type
+type ActiveTab = "INBOX" | "GROUP";
 
 interface Contact {
   id: string;
@@ -26,6 +31,25 @@ interface ContactsListProps {
   onSelectContact: (contact: Contact) => void;
 }
 
+// Helper: map ChatRoomResponse -> Contact
+function mapRoomToContact(room: ChatRoomResponse): Contact {
+  return {
+    id: room.id,
+    name:
+      room.roomType === "PRIVATE"
+        ? room.otherUserName ?? room.name ?? "Unknown"
+        : room.name ?? "Nhóm không tên",
+    lastMessage: room.lastMessage ?? "",
+    avatar:
+      room.roomType === "PRIVATE"
+        ? room.otherUserAvatar ?? "/default-avatar.png"
+        : "/group-avatar.png",
+    online: false,
+    unread: room.unreadCount,
+    timestamp: room.lastMessageTime ?? room.createdAt,
+  };
+}
+
 export default function ContactsList({
   displayedContacts,
   selectedContact,
@@ -37,6 +61,35 @@ export default function ContactsList({
   onSearchChange,
   onSelectContact,
 }: ContactsListProps) {
+  const [activeTab, setActiveTab] = useState<ActiveTab>("INBOX");
+  const [groupContacts, setGroupContacts] = useState<Contact[]>([]);
+  const [isLoadingGroups, setIsLoadingGroups] = useState(false);
+
+  // Fetch group rooms khi chuyển sang tab NHÓM
+  useEffect(() => {
+    if (activeTab !== "GROUP") return;
+
+    const fetchGroups = async () => {
+      setIsLoadingGroups(true);
+      try {
+        const rooms = await roomService.getMyGroupRooms();
+        setGroupContacts(rooms.map(mapRoomToContact));
+      } catch (err) {
+        console.error("Failed to load group rooms:", err);
+        setGroupContacts([]);
+      } finally {
+        setIsLoadingGroups(false);
+      }
+    };
+
+    fetchGroups();
+  }, [activeTab]);
+
+  // Contacts hiển thị theo tab
+  const contactsToShow =
+    activeTab === "INBOX" ? displayedContacts : groupContacts;
+  const isLoading = activeTab === "INBOX" ? isLoadingContacts : isLoadingGroups;
+
   return (
     <div
       className={`w-[380px] border-r flex flex-col shadow-xl transition-colors duration-300 ${
@@ -120,22 +173,36 @@ export default function ContactsList({
             : "border-cyan-200/60 bg-white/40"
         }`}
       >
+        {/* Tab HỘP THƯ — chỉ hiện PRIVATE rooms */}
         <button
+          onClick={() => setActiveTab("INBOX")}
           className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-colors ${
-            isDarkMode
-              ? "text-cyan-400 border-cyan-500"
-              : "text-cyan-700 border-cyan-500"
+            activeTab === "INBOX"
+              ? isDarkMode
+                ? "text-cyan-400 border-cyan-500"
+                : "text-cyan-700 border-cyan-500"
+              : isDarkMode
+              ? "text-gray-400 border-transparent hover:text-gray-300"
+              : "text-cyan-500 border-transparent hover:text-cyan-700"
           }`}
         >
           HỘP THƯ
         </button>
+
+        {/* Tab NHÓM — gọi getMyGroupRooms() */}
         <button
-          className={`flex-1 py-3 text-sm font-medium transition-colors ${
-            isDarkMode
-              ? "text-gray-400 hover:text-gray-300"
-              : "text-cyan-500 hover:text-cyan-700"
+          onClick={() => setActiveTab("GROUP")}
+          className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-colors flex items-center justify-center gap-1.5 ${
+            activeTab === "GROUP"
+              ? isDarkMode
+                ? "text-cyan-400 border-cyan-500"
+                : "text-cyan-700 border-cyan-500"
+              : isDarkMode
+              ? "text-gray-400 border-transparent hover:text-gray-300"
+              : "text-cyan-500 border-transparent hover:text-cyan-700"
           }`}
         >
+          <Users className="w-3.5 h-3.5" />
           NHÓM
         </button>
       </div>
@@ -146,15 +213,19 @@ export default function ContactsList({
           isDarkMode ? "custom-scrollbar-dark" : "custom-scrollbar"
         }`}
       >
-        {isLoadingContacts ? (
+        {isLoading ? (
           <div className="flex items-center justify-center h-32">
             <LoadingCat
               size="sm"
               isDark={isDarkMode}
-              message="Đang tải danh bạ..."
+              message={
+                activeTab === "GROUP"
+                  ? "Đang tải nhóm..."
+                  : "Đang tải danh bạ..."
+              }
             />
           </div>
-        ) : isSearching ? (
+        ) : isSearching && activeTab === "INBOX" ? (
           <div className="flex items-center justify-center h-32">
             <p
               className={`text-sm ${
@@ -164,20 +235,29 @@ export default function ContactsList({
               Đang tìm kiếm...
             </p>
           </div>
-        ) : displayedContacts.length === 0 ? (
-          <div className="flex items-center justify-center h-32">
+        ) : contactsToShow.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-40 gap-3">
+            {activeTab === "GROUP" && (
+              <Users
+                className={`w-8 h-8 ${
+                  isDarkMode ? "text-gray-600" : "text-cyan-200"
+                }`}
+              />
+            )}
             <p
               className={`text-sm ${
                 isDarkMode ? "text-gray-400" : "text-cyan-500"
               }`}
             >
-              {searchQuery.trim()
+              {activeTab === "GROUP"
+                ? "Bạn chưa có nhóm nào"
+                : searchQuery.trim()
                 ? "Không tìm thấy cuộc trò chuyện"
                 : "Chưa có liên hệ"}
             </p>
           </div>
         ) : (
-          displayedContacts.map((contact, index) => (
+          contactsToShow.map((contact, index) => (
             <div
               key={`${contact.id}-${index}`}
               onClick={() => onSelectContact(contact)}
@@ -203,6 +283,12 @@ export default function ContactsList({
                   />
                   {contact.online && (
                     <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full shadow-sm" />
+                  )}
+                  {/* Badge nhóm */}
+                  {activeTab === "GROUP" && (
+                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-cyan-500 rounded-full flex items-center justify-center shadow">
+                      <Users className="w-2.5 h-2.5 text-white" />
+                    </div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">

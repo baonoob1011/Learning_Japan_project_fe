@@ -21,6 +21,10 @@ export interface ChatUserResponse {
   fullName: string;
   avatarUrl?: string;
 }
+export interface CreateGroupRoomRequest {
+  name: string;
+  memberIds: string[];
+}
 /* ===================== SERVICE ===================== */
 
 export const roomService = {
@@ -29,6 +33,12 @@ export const roomService = {
    */
   getMyRooms(): Promise<ChatRoomResponse[]> {
     return http.get<ChatRoomResponse[]>(API_ENDPOINTS.CHAT_ROOM.MY_ROOMS);
+  },
+  /**
+   * 👥 Lấy tất cả GROUP room của user hiện tại
+   */
+  getMyGroupRooms(): Promise<ChatRoomResponse[]> {
+    return http.get<ChatRoomResponse[]>(API_ENDPOINTS.CHAT_ROOM.MY_GROUP_ROOMS);
   },
   /**
    * 👥 Lấy tất cả user khác mà mình đã từng chat chung room
@@ -47,7 +57,12 @@ export const roomService = {
       request
     );
   },
-
+  createGroupRoom(request: CreateGroupRoomRequest): Promise<ChatRoomResponse> {
+    return http.post<ChatRoomResponse>(
+      API_ENDPOINTS.CHAT_ROOM.CREATE_GROUP,
+      request
+    );
+  },
   /**
    * 🔍 Search phòng chat theo tên người đã chat
    */

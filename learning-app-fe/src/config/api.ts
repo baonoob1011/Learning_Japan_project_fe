@@ -28,7 +28,9 @@ export const API_ENDPOINTS = {
   },
 
   CHAT_ROOM: {
+    MY_GROUP_ROOMS: "/chat-room/my-group-rooms", // 👈 thêm dòng này
     MY_ROOMS: "/chat-room/my-rooms",
+    CREATE_GROUP: "/chat-room/group", // 👈 thêm dòng này
     CREATE_PRIVATE: "/chat-room/private",
     GET_BY_ID: (roomId: string) => `/chat-room/${roomId}`,
     MESSAGES: (roomId: string, page: number, size: number) =>

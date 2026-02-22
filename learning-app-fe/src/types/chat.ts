@@ -26,6 +26,7 @@ export interface ChatRoomResponse {
   roomType: RoomType; // PRIVATE | GROUP
   createdAt: string; // ISO string
   memberIds: string[];
+  name: string; // ISO string
 
   // display
   otherUserName?: string;
