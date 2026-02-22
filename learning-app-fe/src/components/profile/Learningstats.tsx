@@ -32,6 +32,7 @@ import {
   UserLearningDashboardResponse,
   DailyProgressDto,
 } from "@/services/learningProgressService";
+import JLPTPassPredictionCard from "@/components/profile/Jlptpasspredictioncard";
 
 interface LevelData {
   level: string;
@@ -396,7 +397,7 @@ export default function LearningStats({ isDark }: LearningStatsProps) {
           {[
             {
               icon: BookOpen,
-              label: "Tổng bài thi",
+              label: "Số lượt thi",
               value: dashboardData.totalExamsTaken,
               color: "#06b6d4",
             },
@@ -439,7 +440,7 @@ export default function LearningStats({ isDark }: LearningStatsProps) {
             style={{ borderColor: isDark ? "#374151" : "#f3f4f6" }}
           >
             <Award className="w-5 h-5 text-cyan-500" />
-            <h3 className={titleCls}>Chi tiết luyện đề theo cấp độ</h3>
+            <h3 className={titleCls}>Chi tiết theo cấp độ</h3>
           </div>
           <div className="px-6 py-4 flex flex-col gap-3">
             {dashboardData.levels.map((level) => (
@@ -460,7 +461,7 @@ export default function LearningStats({ isDark }: LearningStatsProps) {
                   isDark ? "text-gray-100" : "text-gray-800"
                 }`}
               >
-                Tiến độ luyện đề 7 ngày qua
+                Tiến độ 7 ngày qua
               </h3>
             </div>
             {hasProgressData ? (
@@ -632,7 +633,7 @@ export default function LearningStats({ isDark }: LearningStatsProps) {
         <div className="px-6 py-5">
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className="w-5 h-5 text-cyan-500" />
-            <h3 className={titleCls}>Thống kê luyện đề theo cấp độ</h3>
+            <h3 className={titleCls}>Thống kê theo cấp độ</h3>
           </div>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={levelComparison}>
@@ -658,6 +659,9 @@ export default function LearningStats({ isDark }: LearningStatsProps) {
           </ResponsiveContainer>
         </div>
       </div>
+
+      {/* ── 4.5. Dự đoán thi đậu ── */}
+      <JLPTPassPredictionCard isDark={isDark} />
 
       {/* ── 5. Mục tiêu + Lời khuyên ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
