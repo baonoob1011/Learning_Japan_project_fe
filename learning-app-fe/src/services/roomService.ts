@@ -1,11 +1,68 @@
 // src/services/roomService.ts
 import { http } from "@/lib/http";
 import { API_ENDPOINTS } from "@/config/api";
-import {
-  ChatRoomResponse,
-  ChatMessageResponse,
-  CreatePrivateRoomRequest,
-} from "@/types/chat";
+import { RoomType } from "@/enums/RoomType";
+
+export interface CreatePrivateRoomRequest {
+  targetUserId: string;
+}
+
+export interface CreateChatMessageRequest {
+  roomId: string;
+  content: string;
+}
+
+/* ================= RESPONSE ================= */
+
+export interface ChatMessageResponse {
+  id: string;
+  content: string;
+  senderId: string;
+  senderName: string;
+  sentAt: string;
+}
+export interface PrivateChatPreviewResponse {
+  userId: string;
+  roomId: string;
+
+  fullName: string;
+  avatarUrl?: string;
+
+  lastMessage?: string;
+  lastMessageTime?: string;
+}
+export interface ChatGroupBasicResponse {
+  id: string;
+  roomType: RoomType; // GROUP
+  createdAt: string;
+
+  name: string;
+  avatarUrl?: string;
+
+  lastMessage?: string;
+  lastMessageTime?: string;
+
+  unreadCount: number;
+  memberCount: number;
+}
+export interface ChatRoomResponse {
+  id: string;
+  roomType: RoomType; // PRIVATE | GROUP
+  createdAt: string; // ISO string
+  memberIds: string[];
+  name: string; // ISO string
+  avatarUrl: string; // ISO string
+
+  // display
+  otherUserName?: string;
+  otherUserAvatar?: string;
+
+  // last message
+  lastMessage?: string;
+  lastMessageTime?: string;
+
+  unreadCount?: number;
+}
 
 /* ===================== TYPES ===================== */
 
@@ -23,6 +80,7 @@ export interface ChatUserResponse {
 }
 export interface CreateGroupRoomRequest {
   name: string;
+  avatar?: File; // 👈 file upload
   memberIds: string[];
 }
 /* ===================== SERVICE ===================== */
@@ -37,14 +95,18 @@ export const roomService = {
   /**
    * 👥 Lấy tất cả GROUP room của user hiện tại
    */
-  getMyGroupRooms(): Promise<ChatRoomResponse[]> {
-    return http.get<ChatRoomResponse[]>(API_ENDPOINTS.CHAT_ROOM.MY_GROUP_ROOMS);
+  getMyGroupRooms(): Promise<ChatGroupBasicResponse[]> {
+    return http.get<ChatGroupBasicResponse[]>(
+      API_ENDPOINTS.CHAT_ROOM.MY_GROUP_ROOMS
+    );
   },
   /**
    * 👥 Lấy tất cả user khác mà mình đã từng chat chung room
    */
-  getMyChatUsers(): Promise<ChatUserResponse[]> {
-    return http.get<ChatUserResponse[]>(API_ENDPOINTS.CHAT_ROOM.MY_USERS);
+  getMyChatUsers(): Promise<PrivateChatPreviewResponse[]> {
+    return http.get<PrivateChatPreviewResponse[]>(
+      API_ENDPOINTS.CHAT_ROOM.MY_USERS
+    );
   },
   /**
    * Tạo phòng chat private
@@ -58,9 +120,26 @@ export const roomService = {
     );
   },
   createGroupRoom(request: CreateGroupRoomRequest): Promise<ChatRoomResponse> {
+    const formData = new FormData();
+
+    formData.append("name", request.name);
+
+    request.memberIds.forEach((id) => {
+      formData.append("memberIds", id);
+    });
+
+    if (request.avatar) {
+      formData.append("avatar", request.avatar);
+    }
+
     return http.post<ChatRoomResponse>(
       API_ENDPOINTS.CHAT_ROOM.CREATE_GROUP,
-      request
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
   },
   /**

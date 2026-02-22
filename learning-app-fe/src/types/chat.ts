@@ -27,6 +27,7 @@ export interface ChatRoomResponse {
   createdAt: string; // ISO string
   memberIds: string[];
   name: string; // ISO string
+  avatarUrl: string; // ISO string
 
   // display
   otherUserName?: string;

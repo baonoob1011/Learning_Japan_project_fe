@@ -4,20 +4,7 @@ import { Send } from "lucide-react";
 import ChatHeader from "./message/Chatheader";
 import MessagesArea from "./message/Messagesarea";
 import MessageInput from "./message/Messageinput";
-
-interface Message {
-  id: string;
-  text: string;
-  senderId: string;
-  timestamp: Date;
-  avatar?: string;
-  senderName?: string;
-  attachment?: {
-    type: "image" | "file";
-    url: string;
-    name?: string;
-  };
-}
+import { ChatMessageResponse } from "@/services/roomService";
 
 interface Contact {
   id: string;
@@ -37,7 +24,6 @@ interface AttachmentPreview {
 
 interface ChatAreaProps {
   selectedContact: Contact | null;
-  displayMessages: Message[];
   currentUserId: string | null;
   message: string;
   isConnected: boolean;
@@ -46,6 +32,8 @@ interface ChatAreaProps {
   attachmentPreview: AttachmentPreview | null;
   emojis: string[];
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
+  // Tin nhắn realtime từ socket
+  incomingMessages?: ChatMessageResponse[];
   onMessageChange: (value: string) => void;
   onSendMessage: () => void;
   onKeyPress: (e: React.KeyboardEvent) => void;
@@ -57,7 +45,6 @@ interface ChatAreaProps {
 
 export default function ChatArea({
   selectedContact,
-  displayMessages,
   currentUserId,
   message,
   isConnected,
@@ -66,6 +53,7 @@ export default function ChatArea({
   attachmentPreview,
   emojis,
   messagesEndRef,
+  incomingMessages = [],
   onMessageChange,
   onSendMessage,
   onKeyPress,
@@ -120,19 +108,17 @@ export default function ChatArea({
         isDarkMode ? "bg-gray-900/40" : "bg-white/40"
       }`}
     >
-      {/* Chat Header — component riêng */}
       <ChatHeader selectedContact={selectedContact} isDarkMode={isDarkMode} />
 
-      {/* Messages Area — component riêng */}
+      {/* ✅ MessagesArea tự fetch theo selectedContact.id */}
       <MessagesArea
         selectedContact={selectedContact}
-        displayMessages={displayMessages}
         currentUserId={currentUserId}
         isDarkMode={isDarkMode}
         messagesEndRef={messagesEndRef}
+        incomingMessages={incomingMessages}
       />
 
-      {/* Message Input — component riêng */}
       <MessageInput
         message={message}
         isConnected={isConnected}

@@ -1,9 +1,10 @@
 "use client";
-import React from "react";
+import React, { useEffect, useReducer } from "react";
 import { useRouter } from "next/navigation";
-import { PlayCircle, File } from "lucide-react";
+import { PlayCircle, File, Loader2 } from "lucide-react";
+import { roomService, ChatMessageResponse } from "@/services/roomService";
 
-// ── YouTube link detector & card renderer ──────────────────────────────────
+// ── YouTube ───────────────────────────────────────────────────────────────
 const YT_REGEX =
   /https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([\w-]+)|https?:\/\/youtu\.be\/([\w-]+)/g;
 
@@ -31,7 +32,6 @@ function MessageContent({
   }
 
   const plainText = text.replace(YT_REGEX, "").trim();
-
   return (
     <div className="space-y-2">
       {plainText && (
@@ -83,18 +83,13 @@ function MessageContent({
   );
 }
 
+// ── Types ─────────────────────────────────────────────────────────────────
 interface Message {
   id: string;
   text: string;
   senderId: string;
   timestamp: Date;
-  avatar?: string;
-  senderName?: string;
-  attachment?: {
-    type: "image" | "file";
-    url: string;
-    name?: string;
-  };
+  attachment?: { type: "image" | "file"; url: string; name?: string };
 }
 
 interface Contact {
@@ -107,24 +102,122 @@ interface Contact {
   timestamp: string;
 }
 
-interface MessagesAreaProps {
-  selectedContact: Contact;
-  displayMessages: Message[];
-  currentUserId: string | null;
-  isDarkMode: boolean;
-  messagesEndRef: React.RefObject<HTMLDivElement | null>;
+interface State {
+  messages: Message[];
+  isLoading: boolean;
+}
+
+type Action =
+  | { type: "FETCH_START" }
+  | { type: "FETCH_SUCCESS"; payload: Message[] }
+  | { type: "FETCH_ERROR" }
+  | { type: "APPEND"; payload: Message };
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "FETCH_START":
+      return { messages: [], isLoading: true };
+    case "FETCH_SUCCESS":
+      return { messages: action.payload, isLoading: false };
+    case "FETCH_ERROR":
+      return { messages: [], isLoading: false };
+    case "APPEND":
+      if (state.messages.some((m) => m.id === action.payload.id)) return state;
+      return { ...state, messages: [...state.messages, action.payload] };
+    default:
+      return state;
+  }
 }
 
 const normalizeId = (id: string | number | null | undefined): string =>
   String(id || "").trim();
 
+function mapApiMessage(m: ChatMessageResponse): Message {
+  return {
+    id: m.id,
+    text: m.content,
+    senderId: normalizeId(m.senderId),
+    timestamp: new Date(m.sentAt),
+  };
+}
+
+interface MessagesAreaProps {
+  selectedContact: Contact;
+  currentUserId: string | null;
+  isDarkMode: boolean;
+  messagesEndRef: React.RefObject<HTMLDivElement | null>;
+  incomingMessages?: ChatMessageResponse[];
+}
+
 export default function MessagesArea({
   selectedContact,
-  displayMessages,
   currentUserId,
   isDarkMode,
   messagesEndRef,
+  incomingMessages = [],
 }: MessagesAreaProps) {
+  const [{ messages, isLoading }, dispatch] = useReducer(reducer, {
+    messages: [],
+    isLoading: true,
+  });
+
+  // ── Fetch history khi đổi phòng ──────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchMessages() {
+      dispatch({ type: "FETCH_START" });
+      try {
+        const pageData = await roomService.getMessages(selectedContact.id);
+        if (cancelled) return;
+        const history = [...(pageData.content || [])]
+          .reverse()
+          .map(mapApiMessage);
+        dispatch({ type: "FETCH_SUCCESS", payload: history });
+      } catch {
+        if (!cancelled) dispatch({ type: "FETCH_ERROR" });
+      }
+    }
+
+    fetchMessages();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedContact.id]);
+
+  // ── Append tin nhắn realtime ──────────────────────────────────────────────
+  useEffect(() => {
+    if (incomingMessages.length === 0) return;
+    const latest = incomingMessages[incomingMessages.length - 1];
+    dispatch({ type: "APPEND", payload: mapApiMessage(latest) });
+  }, [incomingMessages]);
+
+  // ── Auto scroll ───────────────────────────────────────────────────────────
+  useEffect(() => {
+    const t = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 80);
+    return () => clearTimeout(t);
+  }, [messages, messagesEndRef]);
+
+  // ── Loading ───────────────────────────────────────────────────────────────
+  if (isLoading) {
+    return (
+      <div
+        className={`flex-1 flex items-center justify-center ${
+          isDarkMode ? "bg-gray-900/30" : "bg-cyan-50/30"
+        }`}
+      >
+        <Loader2
+          className={`w-6 h-6 animate-spin ${
+            isDarkMode ? "text-cyan-400" : "text-cyan-500"
+          }`}
+        />
+      </div>
+    );
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div
       className={`flex-1 overflow-y-auto p-6 space-y-4 ${
@@ -133,7 +226,7 @@ export default function MessagesArea({
           : "bg-gradient-to-b from-cyan-50/30 to-blue-50/30 custom-scrollbar"
       }`}
     >
-      {displayMessages.length === 0 ? (
+      {messages.length === 0 ? (
         <div className="flex items-center justify-center h-full">
           <p
             className={`text-sm ${
@@ -144,9 +237,8 @@ export default function MessagesArea({
           </p>
         </div>
       ) : (
-        displayMessages.map((msg, index) => {
+        messages.map((msg, index) => {
           const isMe = normalizeId(msg.senderId) === normalizeId(currentUserId);
-
           return (
             <div
               key={`${msg.id}-${index}`}

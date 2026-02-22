@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { MoreVertical, Phone, Video, Plus } from "lucide-react";
 import GroupRoomsPopup from "@/components/chat/Grouproomspopup";
-import { ChatRoomResponse } from "@/types/chat";
+import { ChatGroupBasicResponse } from "@/services/roomService"; // ✅ khớp với onSelectRoom của GroupRoomsPopup
 
 interface Contact {
   id: string;
@@ -17,7 +17,7 @@ interface Contact {
 interface ChatHeaderProps {
   selectedContact: Contact;
   isDarkMode: boolean;
-  onSelectRoom?: (room: ChatRoomResponse) => void;
+  onSelectRoom?: (room: ChatGroupBasicResponse) => void; // ✅ đổi sang ChatGroupBasicResponse
 }
 
 export default function ChatHeader({
@@ -64,7 +64,7 @@ export default function ChatHeader({
 
         {/* Right: action buttons */}
         <div className="flex items-center gap-2">
-          {/* + button with popup — popup mở sang TRÁI */}
+          {/* + button with popup */}
           <div className="relative">
             <button
               onClick={() => setShowGroupPopup((prev) => !prev)}

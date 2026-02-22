@@ -1,11 +1,9 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { MoreVertical, Search, MessageCircle, Users } from "lucide-react";
-import LoadingCat from "@/components/LoadingCat";
-import { roomService } from "@/services/roomService";
-import { ChatRoomResponse } from "@/types/chat";
+import InboxList from "@/components/chat/roomtype/Inboxlist";
+import GroupList from "@/components/chat/roomtype/Grouplist";
 
-// Tab type
 type ActiveTab = "INBOX" | "GROUP";
 
 interface Contact {
@@ -16,14 +14,12 @@ interface Contact {
   online: boolean;
   unread?: number;
   timestamp: string;
+  roomType?: "PRIVATE" | "GROUP";
+  memberCount?: number;
 }
 
 interface ContactsListProps {
-  contacts: Contact[];
-  displayedContacts: Contact[];
   selectedContact: Contact | null;
-  isLoadingContacts: boolean;
-  isSearching: boolean;
   isConnected: boolean;
   searchQuery: string;
   isDarkMode: boolean;
@@ -31,30 +27,8 @@ interface ContactsListProps {
   onSelectContact: (contact: Contact) => void;
 }
 
-// Helper: map ChatRoomResponse -> Contact
-function mapRoomToContact(room: ChatRoomResponse): Contact {
-  return {
-    id: room.id,
-    name:
-      room.roomType === "PRIVATE"
-        ? room.otherUserName ?? room.name ?? "Unknown"
-        : room.name ?? "Nhóm không tên",
-    lastMessage: room.lastMessage ?? "",
-    avatar:
-      room.roomType === "PRIVATE"
-        ? room.otherUserAvatar ?? "/default-avatar.png"
-        : "/group-avatar.png",
-    online: false,
-    unread: room.unreadCount,
-    timestamp: room.lastMessageTime ?? room.createdAt,
-  };
-}
-
 export default function ContactsList({
-  displayedContacts,
   selectedContact,
-  isLoadingContacts,
-  isSearching,
   isConnected,
   searchQuery,
   isDarkMode,
@@ -62,33 +36,6 @@ export default function ContactsList({
   onSelectContact,
 }: ContactsListProps) {
   const [activeTab, setActiveTab] = useState<ActiveTab>("INBOX");
-  const [groupContacts, setGroupContacts] = useState<Contact[]>([]);
-  const [isLoadingGroups, setIsLoadingGroups] = useState(false);
-
-  // Fetch group rooms khi chuyển sang tab NHÓM
-  useEffect(() => {
-    if (activeTab !== "GROUP") return;
-
-    const fetchGroups = async () => {
-      setIsLoadingGroups(true);
-      try {
-        const rooms = await roomService.getMyGroupRooms();
-        setGroupContacts(rooms.map(mapRoomToContact));
-      } catch (err) {
-        console.error("Failed to load group rooms:", err);
-        setGroupContacts([]);
-      } finally {
-        setIsLoadingGroups(false);
-      }
-    };
-
-    fetchGroups();
-  }, [activeTab]);
-
-  // Contacts hiển thị theo tab
-  const contactsToShow =
-    activeTab === "INBOX" ? displayedContacts : groupContacts;
-  const isLoading = activeTab === "INBOX" ? isLoadingContacts : isLoadingGroups;
 
   return (
     <div
@@ -173,7 +120,6 @@ export default function ContactsList({
             : "border-cyan-200/60 bg-white/40"
         }`}
       >
-        {/* Tab HỘP THƯ — chỉ hiện PRIVATE rooms */}
         <button
           onClick={() => setActiveTab("INBOX")}
           className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-colors ${
@@ -188,8 +134,6 @@ export default function ContactsList({
         >
           HỘP THƯ
         </button>
-
-        {/* Tab NHÓM — gọi getMyGroupRooms() */}
         <button
           onClick={() => setActiveTab("GROUP")}
           className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-colors flex items-center justify-center gap-1.5 ${
@@ -207,128 +151,24 @@ export default function ContactsList({
         </button>
       </div>
 
-      {/* Contact List */}
+      {/* List — render 1 trong 2, component nào active thì mount và tự fetch */}
       <div
         className={`flex-1 overflow-y-auto ${
           isDarkMode ? "custom-scrollbar-dark" : "custom-scrollbar"
         }`}
       >
-        {isLoading ? (
-          <div className="flex items-center justify-center h-32">
-            <LoadingCat
-              size="sm"
-              isDark={isDarkMode}
-              message={
-                activeTab === "GROUP"
-                  ? "Đang tải nhóm..."
-                  : "Đang tải danh bạ..."
-              }
-            />
-          </div>
-        ) : isSearching && activeTab === "INBOX" ? (
-          <div className="flex items-center justify-center h-32">
-            <p
-              className={`text-sm ${
-                isDarkMode ? "text-gray-400" : "text-cyan-500"
-              }`}
-            >
-              Đang tìm kiếm...
-            </p>
-          </div>
-        ) : contactsToShow.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 gap-3">
-            {activeTab === "GROUP" && (
-              <Users
-                className={`w-8 h-8 ${
-                  isDarkMode ? "text-gray-600" : "text-cyan-200"
-                }`}
-              />
-            )}
-            <p
-              className={`text-sm ${
-                isDarkMode ? "text-gray-400" : "text-cyan-500"
-              }`}
-            >
-              {activeTab === "GROUP"
-                ? "Bạn chưa có nhóm nào"
-                : searchQuery.trim()
-                ? "Không tìm thấy cuộc trò chuyện"
-                : "Chưa có liên hệ"}
-            </p>
-          </div>
+        {activeTab === "INBOX" ? (
+          <InboxList
+            selectedContact={selectedContact}
+            isDarkMode={isDarkMode}
+            onSelectContact={onSelectContact}
+          />
         ) : (
-          contactsToShow.map((contact, index) => (
-            <div
-              key={`${contact.id}-${index}`}
-              onClick={() => onSelectContact(contact)}
-              className={`p-4 border-l-4 cursor-pointer transition-all duration-300 ${
-                selectedContact?.id === contact.id
-                  ? isDarkMode
-                    ? "bg-gray-700 border-l-cyan-500"
-                    : "bg-gradient-to-r from-cyan-50 to-blue-50/40 border-l-cyan-500"
-                  : isDarkMode
-                  ? "border-l-transparent hover:bg-gray-700 hover:border-l-gray-600"
-                  : "border-l-transparent hover:bg-gradient-to-r hover:from-cyan-50/80 hover:to-blue-50/60 hover:border-l-cyan-300"
-              }`}
-              style={{
-                animation: `slideInLeft 0.3s ease-out ${index * 0.05}s both`,
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <img
-                    src={contact.avatar}
-                    alt={contact.name}
-                    className="w-12 h-12 rounded-full object-cover ring-2 ring-cyan-100 shadow-md"
-                  />
-                  {contact.online && (
-                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full shadow-sm" />
-                  )}
-                  {/* Badge nhóm */}
-                  {activeTab === "GROUP" && (
-                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-cyan-500 rounded-full flex items-center justify-center shadow">
-                      <Users className="w-2.5 h-2.5 text-white" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <h3
-                      className={`font-semibold truncate ${
-                        isDarkMode ? "text-gray-100" : "text-cyan-900"
-                      }`}
-                    >
-                      {contact.name}
-                    </h3>
-                    {contact.timestamp && (
-                      <span
-                        className={`text-xs ml-2 shrink-0 ${
-                          isDarkMode ? "text-gray-400" : "text-cyan-600"
-                        }`}
-                      >
-                        {new Date(contact.timestamp).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                    )}
-                  </div>
-                  <p
-                    className={`text-sm truncate ${
-                      isDarkMode ? "text-gray-400" : "text-cyan-700"
-                    }`}
-                  >
-                    {contact.lastMessage}
-                  </p>
-                </div>
-                {contact.unread && (
-                  <div className="shrink-0 w-6 h-6 bg-gradient-to-br from-cyan-500 to-blue-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg">
-                    {contact.unread}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))
+          <GroupList
+            selectedContact={selectedContact}
+            isDarkMode={isDarkMode}
+            onSelectContact={onSelectContact}
+          />
         )}
       </div>
     </div>
