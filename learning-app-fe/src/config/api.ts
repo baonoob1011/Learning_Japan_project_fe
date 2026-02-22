@@ -161,6 +161,7 @@ export const API_ENDPOINTS = {
     UPDATE_MEANING: "/vocab",
     DELETE: (surface: string) => `/vocab/${encodeURIComponent(surface)}`,
     GET_STATUS: (vocabId: string) => `/vocab/${vocabId}/status`,
+    GET_PROGRESS: "/learning/vocab/progress",
   },
   // src/config/api.ts
   SKILL_PROGRESS: {

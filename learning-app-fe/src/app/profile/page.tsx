@@ -7,12 +7,13 @@ import Header from "@/components/Header";
 import LoadingCat from "@/components/LoadingCat";
 import { useDarkMode } from "@/hooks/useDarkMode";
 
-// ── 4 components chính ──
+// ── Components chính ──
 import ProfileSideCard from "@/components/profile/Profilesidecard";
 import ProfileInfoCard from "@/components/profile/Profileinfocard";
 import LearningStats from "@/components/profile/Learningstats";
 import SkillAnalysisCard from "@/components/profile/Skillanalysiscard";
 import JLPTRoadmapCard from "@/components/profile/Jlptroadmapcard";
+import VocabProgressCard from "@/components/profile/Vocabprogresscard"; // ✅ thêm
 
 interface PasswordForm {
   currentPassword: string;
@@ -21,7 +22,6 @@ interface PasswordForm {
 }
 
 export default function ProfilePage() {
-  // --- STATE CHÍNH ---
   const [user, setUser] = useState<UserProfileResponse | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ fullName: "", email: "" });
@@ -37,7 +37,6 @@ export default function ProfilePage() {
   const [currentStreak, setCurrentStreak] = useState(4);
   const { isDarkMode, toggleDarkMode, mounted } = useDarkMode();
 
-  // --- LOAD DATA ---
   useEffect(() => {
     const load = async () => {
       try {
@@ -56,7 +55,6 @@ export default function ProfilePage() {
     load();
   }, []);
 
-  // --- HANDLERS AVATAR ---
   const handleUploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
@@ -69,7 +67,6 @@ export default function ProfilePage() {
     }
   };
 
-  // --- HANDLERS INFO ---
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -77,7 +74,6 @@ export default function ProfilePage() {
 
   const handleSaveInfo = async () => {
     try {
-      // await userService.updateProfile(formData);
       console.log("Saving info:", formData);
       alert("Đã cập nhật thông tin thành công!");
       setUser((prev) => (prev ? { ...prev, ...formData } : null));
@@ -87,7 +83,6 @@ export default function ProfilePage() {
     }
   };
 
-  // --- HANDLERS PASSWORD ---
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setPasswordForm((prev) => ({ ...prev, [name]: value }));
@@ -132,7 +127,6 @@ export default function ProfilePage() {
     }
   };
 
-  // --- LOADING ---
   if (!mounted)
     return (
       <div className="flex h-screen bg-gray-900">
@@ -207,7 +201,6 @@ export default function ProfilePage() {
             : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
         }`}
       >
-        {/* ── Sidebar ── */}
         <Sidebar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
@@ -217,18 +210,15 @@ export default function ProfilePage() {
         />
 
         <div className="flex-1 flex flex-col overflow-hidden relative z-0">
-          {/* ── Header ── */}
           <Header isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
 
-          {/* ── Scrollable content ── */}
           <div
             className={`flex-1 overflow-y-auto p-6 ${
               isDarkMode ? "custom-scrollbar-dark" : "custom-scrollbar"
             }`}
           >
-            {/* ── Grid layout ── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-5xl">
-              {/* KHUNG 1 — ProfileSideCard + SkillAnalysisCard + JLPTRoadmapCard (cột trái) */}
+              {/* Cột trái */}
               <div className="lg:col-span-1 flex flex-col gap-4">
                 <ProfileSideCard
                   user={user}
@@ -237,11 +227,12 @@ export default function ProfilePage() {
                 />
                 <SkillAnalysisCard isDark={isDarkMode} />
                 <JLPTRoadmapCard isDark={isDarkMode} />
+                <VocabProgressCard isDark={isDarkMode} />{" "}
+                {/* ✅ nằm dưới JLPTRoadmapCard */}
               </div>
 
-              {/* KHUNG 2 + 3 — Info + Learning Stats (cột phải) */}
+              {/* Cột phải */}
               <div className="lg:col-span-2 flex flex-col gap-4">
-                {/* KHUNG 2 — ProfileInfoCard (thông tin + đổi mật khẩu) */}
                 <ProfileInfoCard
                   user={user}
                   isDark={isDarkMode}
@@ -264,8 +255,6 @@ export default function ProfilePage() {
                   onPasswordChange={handlePasswordChange}
                   onSubmitPassword={handleSubmitPassword}
                 />
-
-                {/* KHUNG 3 — LearningStats (lộ trình, kỹ năng, khóa học) */}
                 <LearningStats isDark={isDarkMode} />
               </div>
             </div>
