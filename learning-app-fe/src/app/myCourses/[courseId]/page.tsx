@@ -9,7 +9,7 @@ import { courseService } from "@/services/courseService";
 import { sectionService } from "@/services/sectionService";
 import { lessonService } from "@/services/lessonService";
 import { formatYoutubeDuration } from "@/utils/formatYoutubeDuration";
-import VideoPlayerSection from "@/components/Videoplayersectioncourse";
+import VideoPlayerSection from "@/components/course/Videoplayersectioncourse";
 import LessonSidebar from "@/components/Lessonsidebar";
 import { lessonProgressService } from "@/services/lessonProgressService";
 

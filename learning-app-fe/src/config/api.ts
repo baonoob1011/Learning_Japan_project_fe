@@ -37,6 +37,7 @@ export const API_ENDPOINTS = {
   /* ===================== COURSE ===================== */
   COURSE: {
     CREATE: "/course",
+    GET_MY_PROGRESS: "/courses/my-progress",
     GET_ALL: "/course",
     GET_DETAIL: (courseId: string) => `/course/${courseId}`,
     TOGGLE_ACTIVE: (courseId: string) => `/course/${courseId}/active`,
@@ -162,7 +163,9 @@ export const API_ENDPOINTS = {
     GET_STATUS: (vocabId: string) => `/vocab/${vocabId}/status`,
   },
   // src/config/api.ts
-
+  SKILL_PROGRESS: {
+    GET_MY: "/skill-progress",
+  },
   VIP: {
     GET_ALL: "/vip-packages",
     CREATE: "/vip-packages",

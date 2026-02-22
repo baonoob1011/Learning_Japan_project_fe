@@ -3,14 +3,14 @@ import UserDropdown from "@/components/UserDropdown";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import VideoPlayerSection from "@/components/VideoPlayerSection";
+import VideoPlayerSection from "@/components/videoYTB/VideoPlayerSection";
 import DictationPractice from "@/components/Dictation";
 import Sidebar from "@/components/Sidebar";
 import { youtubeService } from "@/services/videoService";
-import { YoutubePlayerHandle } from "@/components/YoutubePlayer";
+import { YoutubePlayerHandle } from "@/components/videoYTB/YoutubePlayer";
 import AutoScrollToggle from "@/components/AutoScrollToggle";
 import PronunciationPractice from "@/components/PronunciationPractice";
-import VocabularySidebar from "@/components/VocabularySidebar";
+import VocabularySidebar from "@/components/videoYTB/VocabularySidebar";
 import MaziAIChat from "@/components/NiboChatAI"; // ✅ Import MaziAIChat
 import { JLPTLevel, VideoTag } from "@/types/video";
 

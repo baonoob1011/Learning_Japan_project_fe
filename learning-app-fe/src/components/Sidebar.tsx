@@ -16,7 +16,7 @@ import {
   MessageCircle,
   PenTool,
 } from "lucide-react";
-import UpgradePlusModal from "./Upgradeplusmodal ";
+import UpgradePlusModal from "./payment/Upgradeplusmodal ";
 
 interface SidebarProps {
   sidebarOpen: boolean;

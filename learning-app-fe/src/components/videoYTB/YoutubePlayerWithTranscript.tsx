@@ -7,7 +7,7 @@ import React, {
   useImperativeHandle,
   forwardRef,
 } from "react";
-import YoutubePlayer, { YoutubePlayerHandle } from "./YoutubePlayer";
+import YoutubePlayer, { YoutubePlayerHandle } from "./videoYTB/YoutubePlayer";
 import TranscriptWordBar from "./transcriptWordBar";
 import { TranscriptDTO } from "@/services/transcriptService";
 

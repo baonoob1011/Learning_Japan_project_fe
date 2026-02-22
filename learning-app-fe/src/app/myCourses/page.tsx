@@ -15,8 +15,8 @@ import {
   AlertCircle,
   Award,
 } from "lucide-react";
-import ProgressCard from "@/components/Progresscard ";
-import CourseCard from "@/components/CourseCard";
+import ProgressCard from "@/components/course/Progresscard ";
+import CourseCard from "@/components/course/CourseCard";
 
 // Types
 interface Section {

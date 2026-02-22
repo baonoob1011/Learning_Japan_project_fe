@@ -34,4 +34,9 @@ export const courseService = {
       API_ENDPOINTS.COURSE.GET_PROGRESS(courseId)
     );
   },
+  getMyProgress(): Promise<CourseProgressResponse[]> {
+    return http.get<CourseProgressResponse[]>(
+      API_ENDPOINTS.COURSE.GET_MY_PROGRESS
+    );
+  },
 };

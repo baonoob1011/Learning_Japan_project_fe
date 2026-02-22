@@ -1,0 +1,435 @@
+"use client";
+import React, { useState } from "react";
+import {
+  X,
+  Key,
+  Eye,
+  EyeOff,
+  User,
+  Mail,
+  Shield,
+  Edit3,
+  Save,
+  ChevronRight,
+} from "lucide-react";
+import { UserProfileResponse } from "@/services/userService";
+
+// ─── Password Modal ──────────────────────────────────────────────────────────
+
+interface PasswordForm {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+function PasswordModal({
+  isOpen,
+  isDark,
+  passwordForm,
+  onClose,
+  onPasswordChange,
+  onSubmit,
+}: {
+  isOpen: boolean;
+  isDark: boolean;
+  passwordForm: PasswordForm;
+  onClose: () => void;
+  onPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSubmit: () => void;
+}) {
+  const [show, setShow] = useState({
+    current: false,
+    newPwd: false,
+    confirm: false,
+  });
+  if (!isOpen) return null;
+
+  const baseInput = `w-full pl-4 pr-10 py-2.5 rounded-xl text-sm font-medium transition outline-none ${
+    isDark
+      ? "bg-gray-700 border border-gray-600 text-gray-100 focus:border-cyan-400 placeholder-gray-500"
+      : "bg-gray-50 border border-gray-200 text-gray-800 focus:border-cyan-400 placeholder-gray-300"
+  }`;
+
+  const fields = [
+    {
+      name: "currentPassword" as keyof PasswordForm,
+      label: "Mật khẩu hiện tại",
+      value: passwordForm.currentPassword,
+      shown: show.current,
+      toggle: () => setShow((s) => ({ ...s, current: !s.current })),
+    },
+    {
+      name: "newPassword" as keyof PasswordForm,
+      label: "Mật khẩu mới",
+      value: passwordForm.newPassword,
+      shown: show.newPwd,
+      toggle: () => setShow((s) => ({ ...s, newPwd: !s.newPwd })),
+    },
+    {
+      name: "confirmPassword" as keyof PasswordForm,
+      label: "Nhập lại mật khẩu mới",
+      value: passwordForm.confirmPassword,
+      shown: show.confirm,
+      toggle: () => setShow((s) => ({ ...s, confirm: !s.confirm })),
+    },
+  ];
+
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      style={{ background: "rgba(15,23,42,0.65)", backdropFilter: "blur(6px)" }}
+      onClick={onClose}
+    >
+      <div
+        className={`w-full max-w-md rounded-2xl shadow-2xl overflow-hidden ${
+          isDark ? "bg-gray-800" : "bg-white"
+        }`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div
+          className={`flex items-center justify-between px-6 py-4 border-b ${
+            isDark ? "border-gray-700" : "border-gray-100"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center shadow-sm">
+              <Key className="w-4 h-4 text-white" />
+            </div>
+            <h2
+              className={`text-base font-bold ${
+                isDark ? "text-gray-100" : "text-gray-800"
+              }`}
+            >
+              Đổi mật khẩu
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            className={`w-8 h-8 rounded-xl flex items-center justify-center transition ${
+              isDark
+                ? "hover:bg-gray-700 text-gray-400"
+                : "hover:bg-gray-100 text-gray-500"
+            }`}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-5 flex flex-col gap-4">
+          {fields.map((field) => (
+            <div key={field.name}>
+              <label
+                className={`block text-xs font-semibold uppercase tracking-wider mb-1.5 ${
+                  isDark ? "text-gray-400" : "text-gray-500"
+                }`}
+              >
+                {field.label}
+              </label>
+              <div className="relative">
+                <input
+                  type={field.shown ? "text" : "password"}
+                  name={field.name}
+                  value={field.value}
+                  onChange={onPasswordChange}
+                  className={baseInput}
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={field.toggle}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 ${
+                    isDark
+                      ? "text-gray-500 hover:text-gray-300"
+                      : "text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  {field.shown ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div
+          className={`px-6 py-4 flex justify-end gap-3 border-t ${
+            isDark
+              ? "border-gray-700 bg-gray-800/60"
+              : "border-gray-100 bg-gray-50"
+          }`}
+        >
+          <button
+            onClick={onClose}
+            className={`px-4 py-2.5 rounded-xl text-sm font-semibold border transition ${
+              isDark
+                ? "border-gray-600 bg-gray-700 text-gray-300 hover:bg-gray-600"
+                : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            Hủy
+          </button>
+          <button
+            onClick={onSubmit}
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-pink-400 to-purple-500 hover:opacity-90 shadow-sm transition-all hover:shadow-md"
+          >
+            Xác nhận đổi
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── ProfileInfoCard ─────────────────────────────────────────────────────────
+
+export interface ProfileInfoCardProps {
+  user: UserProfileResponse;
+  isDark: boolean;
+  formData: { fullName: string; email: string };
+  isEditing: boolean;
+  passwordForm: PasswordForm;
+  showPasswordModal: boolean;
+  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSave: () => void;
+  onCancelEdit: () => void;
+  onStartEdit: () => void;
+  onOpenPasswordModal: () => void;
+  onClosePasswordModal: () => void;
+  onPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSubmitPassword: () => void;
+}
+
+export default function ProfileInfoCard({
+  user,
+  isDark,
+  formData,
+  isEditing,
+  passwordForm,
+  showPasswordModal,
+  onInputChange,
+  onSave,
+  onCancelEdit,
+  onStartEdit,
+  onOpenPasswordModal,
+  onClosePasswordModal,
+  onPasswordChange,
+  onSubmitPassword,
+}: ProfileInfoCardProps) {
+  const inputBase = `w-full px-4 py-2.5 rounded-xl text-sm font-medium transition outline-none ${
+    isDark
+      ? "bg-gray-700 border border-cyan-500/50 text-gray-100 focus:border-cyan-400 placeholder-gray-500"
+      : "bg-white border border-cyan-400 text-gray-800 focus:border-cyan-500 placeholder-gray-300"
+  }`;
+  const disabledInput = `w-full px-4 py-2.5 rounded-xl text-sm font-medium cursor-not-allowed ${
+    isDark
+      ? "bg-gray-700/40 border border-gray-700 text-gray-500"
+      : "bg-gray-100 border border-gray-200 text-gray-400"
+  }`;
+  const iconBox = `w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+    isDark ? "bg-gray-700 text-cyan-400" : "bg-cyan-50 text-cyan-500"
+  }`;
+  const rowBorder = `border-b ${
+    isDark ? "border-gray-700" : "border-gray-100"
+  }`;
+  const labelSm = `text-xs font-semibold uppercase tracking-wide mb-0.5 ${
+    isDark ? "text-gray-500" : "text-gray-400"
+  }`;
+  const valText = `text-sm font-medium truncate ${
+    isDark ? "text-gray-200" : "text-gray-700"
+  }`;
+  const chevronCls = `w-4 h-4 flex-shrink-0 ${
+    isDark ? "text-gray-600" : "text-gray-300"
+  }`;
+
+  return (
+    <>
+      <div
+        className={`rounded-2xl border shadow-sm ${
+          isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+        }`}
+      >
+        {/* Card Header */}
+        <div
+          className={`px-6 py-4 border-b flex items-center justify-between ${
+            isDark ? "border-gray-700" : "border-gray-100"
+          }`}
+        >
+          <div>
+            <h3
+              className={`font-bold text-base ${
+                isDark ? "text-gray-100" : "text-gray-800"
+              }`}
+            >
+              Thông tin cá nhân
+            </h3>
+            <p
+              className={`text-xs mt-0.5 ${
+                isDark ? "text-gray-500" : "text-gray-400"
+              }`}
+            >
+              Cập nhật họ tên và thông tin tài khoản của bạn
+            </p>
+          </div>
+          {!isEditing && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onOpenPasswordModal}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-pink-400 to-purple-500 hover:opacity-90 shadow-sm transition"
+              >
+                <Key className="w-3.5 h-3.5" /> Đổi mật khẩu
+              </button>
+              <button
+                onClick={onStartEdit}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-cyan-400 to-cyan-500 hover:opacity-90 shadow-sm transition"
+              >
+                <Edit3 className="w-3.5 h-3.5" /> Chỉnh sửa
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Card Body */}
+        <div className="px-6">
+          {!isEditing ? (
+            // ── VIEW MODE ──
+            <>
+              <div className={`flex items-center gap-4 py-3.5 ${rowBorder}`}>
+                <div className={iconBox}>
+                  <User className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={labelSm}>Họ và tên</p>
+                  <p className={valText}>
+                    {user.fullName || "Chưa cập nhật tên"}
+                  </p>
+                </div>
+                <ChevronRight className={chevronCls} />
+              </div>
+              <div className={`flex items-center gap-4 py-3.5 ${rowBorder}`}>
+                <div className={iconBox}>
+                  <Mail className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={labelSm}>Email</p>
+                  <p className={valText}>{user.email}</p>
+                </div>
+                <ChevronRight className={chevronCls} />
+              </div>
+              <div className="flex items-center gap-4 py-3.5">
+                <div className={iconBox}>
+                  <Shield className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={labelSm}>Loại tài khoản</p>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                    Tài khoản miễn phí
+                  </span>
+                </div>
+                <ChevronRight className={chevronCls} />
+              </div>
+            </>
+          ) : (
+            // ── EDIT MODE ──
+            <div className="py-4 flex flex-col gap-4">
+              <div>
+                <label
+                  className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1.5 ${
+                    isDark ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
+                  <User className="w-3 h-3" /> Họ và tên
+                </label>
+                <input
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={onInputChange}
+                  className={inputBase}
+                  placeholder="Nhập họ và tên"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label
+                  className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1.5 ${
+                    isDark ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
+                  <Mail className="w-3 h-3" /> Email
+                </label>
+                <input
+                  name="email"
+                  value={formData.email}
+                  className={disabledInput}
+                  disabled
+                />
+                <p
+                  className={`text-xs mt-1.5 ${
+                    isDark ? "text-gray-500" : "text-gray-400"
+                  }`}
+                >
+                  Email không thể thay đổi.
+                </p>
+              </div>
+              <div>
+                <label
+                  className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1.5 ${
+                    isDark ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
+                  <Shield className="w-3 h-3" /> Loại tài khoản
+                </label>
+                <div
+                  className={`w-full px-4 py-2.5 rounded-xl ${
+                    isDark
+                      ? "bg-gray-700/40 border border-gray-700"
+                      : "bg-gray-50 border border-gray-200"
+                  }`}
+                >
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                    Tài khoản miễn phí
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 pt-1">
+                <button
+                  onClick={onCancelEdit}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border transition ${
+                    isDark
+                      ? "border-gray-600 bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <X className="w-4 h-4" /> Hủy bỏ
+                </button>
+                <button
+                  onClick={onSave}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold bg-gradient-to-r from-cyan-400 to-cyan-500 hover:opacity-90 shadow-sm transition hover:shadow-md"
+                >
+                  <Save className="w-4 h-4" /> Lưu thay đổi
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Password Modal — gắn ở đây để thuộc về component này */}
+      <PasswordModal
+        isOpen={showPasswordModal}
+        isDark={isDark}
+        passwordForm={passwordForm}
+        onClose={onClosePasswordModal}
+        onPasswordChange={onPasswordChange}
+        onSubmit={onSubmitPassword}
+      />
+    </>
+  );
+}

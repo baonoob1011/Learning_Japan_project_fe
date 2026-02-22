@@ -6,7 +6,7 @@ import Link from "next/link";
 import { login } from "@/services/authService";
 import { useRouter } from "next/navigation";
 import { getRolesFromToken } from "@/utils/jwt";
-import ForgotPasswordModal from "../../components/ForgotPasswordModal"; // Đảm bảo đường dẫn đúng
+import ForgotPasswordModal from "../../components/profile/ForgotPasswordModal"; // Đảm bảo đường dẫn đúng
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -56,9 +56,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 px-4">
-      <ForgotPasswordModal 
-        isOpen={isForgotPasswordOpen} 
-        onClose={() => setIsForgotPasswordOpen(false)} 
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordOpen}
+        onClose={() => setIsForgotPasswordOpen(false)}
       />
       <div className="w-full max-w-md bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 space-y-6 border border-cyan-100">
         {/* Logo */}
