@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import { Share2, Check } from "lucide-react";
 import YoutubePlayerWithTranscript from "./YoutubePlayerWithTranscript";
 import { TranscriptDTO } from "@/services/transcriptService";
 import { YoutubePlayerHandle } from "./YoutubePlayer";
@@ -14,7 +15,7 @@ interface VideoPlayerSectionProps {
   seekTimeMs: number | null;
   onSeekHandled: () => void;
   onTimeUpdate: (timeMs: number) => void;
-  onPlayingChange?: (isPlaying: boolean) => void; // ✅ NEW
+  onPlayingChange?: (isPlaying: boolean) => void;
   hideWordBar?: boolean;
   onVocabSaved?: () => void;
   isDarkMode?: boolean;
@@ -22,7 +23,6 @@ interface VideoPlayerSectionProps {
   videoTag: VideoTag;
 }
 
-// Mapping cho JLPT Level
 const levelDisplay: Record<JLPTLevel, string> = {
   N5: "N5 - Cơ bản",
   N4: "N4 - Sơ cấp",
@@ -31,7 +31,6 @@ const levelDisplay: Record<JLPTLevel, string> = {
   N1: "N1 - Nâng cao",
 };
 
-// Mapping cho Video Tag
 const tagDisplay: Record<VideoTag, string> = {
   NEWS: "Tin tức",
   BEGINNER: "Mới bắt đầu",
@@ -57,13 +56,31 @@ export default function VideoPlayerSection({
   seekTimeMs,
   onSeekHandled,
   onTimeUpdate,
-  onPlayingChange, // ✅ NEW
+  onPlayingChange,
   hideWordBar = false,
   onVocabSaved,
   isDarkMode = false,
   level,
   videoTag,
 }: VideoPlayerSectionProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    const url = `https://www.youtube.com/watch?v=${videoId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      const el = document.createElement("textarea");
+      el.value = url;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <div
       id="video-content-scroll-container"
@@ -81,7 +98,7 @@ export default function VideoPlayerSection({
             seekTimeMs={seekTimeMs}
             onSeekHandled={onSeekHandled}
             onTimeUpdate={onTimeUpdate}
-            onPlayingChange={onPlayingChange} // ✅ NEW - Pass down
+            onPlayingChange={onPlayingChange}
             hideWordBar={hideWordBar}
             onVocabSaved={onVocabSaved}
             isDarkMode={isDarkMode}
@@ -93,26 +110,56 @@ export default function VideoPlayerSection({
               isDarkMode ? "bg-gray-800 border border-gray-700" : "bg-white"
             }`}
           >
-            <div className="flex items-center gap-3 mb-4">
-              <span
-                className={`px-3 py-1 text-xs font-medium rounded-full transition-colors duration-300 ${
-                  isDarkMode
-                    ? "bg-cyan-900/50 text-cyan-300"
-                    : "bg-cyan-100 text-cyan-700"
+            {/* Tags + Share button */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <span
+                  className={`px-3 py-1 text-xs font-medium rounded-full transition-colors duration-300 ${
+                    isDarkMode
+                      ? "bg-cyan-900/50 text-cyan-300"
+                      : "bg-cyan-100 text-cyan-700"
+                  }`}
+                >
+                  {level}
+                </span>
+                <span
+                  className={`px-3 py-1 text-xs font-medium rounded-full transition-colors duration-300 ${
+                    isDarkMode
+                      ? "bg-purple-900/50 text-purple-300"
+                      : "bg-purple-100 text-purple-700"
+                  }`}
+                >
+                  {tagDisplay[videoTag]}
+                </span>
+              </div>
+
+              {/* Share Button */}
+              <button
+                onClick={handleShare}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                  copied
+                    ? isDarkMode
+                      ? "bg-emerald-900/50 text-emerald-400"
+                      : "bg-emerald-50 text-emerald-600"
+                    : isDarkMode
+                    ? "bg-gray-700 text-gray-300 hover:bg-cyan-900/40 hover:text-cyan-400"
+                    : "bg-gray-100 text-gray-600 hover:bg-cyan-50 hover:text-cyan-600"
                 }`}
               >
-                {level}
-              </span>
-              <span
-                className={`px-3 py-1 text-xs font-medium rounded-full transition-colors duration-300 ${
-                  isDarkMode
-                    ? "bg-purple-900/50 text-purple-300"
-                    : "bg-purple-100 text-purple-700"
-                }`}
-              >
-                {tagDisplay[videoTag]}
-              </span>
+                {copied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5" />
+                    Đã sao chép!
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="w-3.5 h-3.5" />
+                    Chia sẻ
+                  </>
+                )}
+              </button>
             </div>
+
             <h1
               className={`text-xl font-bold mb-2 transition-colors duration-300 ${
                 isDarkMode ? "text-gray-100" : "text-gray-900"
