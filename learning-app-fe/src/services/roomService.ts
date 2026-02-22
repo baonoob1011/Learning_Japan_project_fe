@@ -16,7 +16,11 @@ export interface PageResponse<T> {
   size: number;
   number: number;
 }
-
+export interface ChatUserResponse {
+  userId: string;
+  fullName: string;
+  avatarUrl?: string;
+}
 /* ===================== SERVICE ===================== */
 
 export const roomService = {
@@ -26,7 +30,12 @@ export const roomService = {
   getMyRooms(): Promise<ChatRoomResponse[]> {
     return http.get<ChatRoomResponse[]>(API_ENDPOINTS.CHAT_ROOM.MY_ROOMS);
   },
-
+  /**
+   * 👥 Lấy tất cả user khác mà mình đã từng chat chung room
+   */
+  getMyChatUsers(): Promise<ChatUserResponse[]> {
+    return http.get<ChatUserResponse[]>(API_ENDPOINTS.CHAT_ROOM.MY_USERS);
+  },
   /**
    * Tạo phòng chat private
    */

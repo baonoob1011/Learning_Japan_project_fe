@@ -1,5 +1,6 @@
 "use client";
 import React, { useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   Send,
   Smile,
@@ -10,7 +11,89 @@ import {
   Image as ImageIcon,
   File,
   X,
+  PlayCircle,
 } from "lucide-react";
+
+// ── YouTube link detector & card renderer ──────────────────────────────────
+const YT_REGEX =
+  /https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([\w-]+)|https?:\/\/youtu\.be\/([\w-]+)/g;
+
+function extractYoutubeId(url: string): string | null {
+  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+  return m ? m[1] : null;
+}
+
+function MessageContent({
+  text,
+  isDarkMode,
+  isMe,
+}: {
+  text: string;
+  isDarkMode: boolean;
+  isMe: boolean;
+}) {
+  const router = useRouter();
+  const ytMatches = Array.from(new Set(text.match(YT_REGEX) || []));
+
+  if (ytMatches.length === 0) {
+    return (
+      <p className="text-sm leading-relaxed whitespace-pre-wrap">{text}</p>
+    );
+  }
+
+  // Plain text = tất cả trừ các link YT
+  const plainText = text.replace(YT_REGEX, "").trim();
+
+  return (
+    <div className="space-y-2">
+      {plainText && (
+        <p className="text-sm leading-relaxed whitespace-pre-wrap">
+          {plainText}
+        </p>
+      )}
+      {ytMatches.map((url) => {
+        const videoId = extractYoutubeId(url);
+        if (!videoId) return null;
+        const thumb = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+        return (
+          <button
+            key={url}
+            onClick={() => router.push(`/video/${videoId}`)}
+            className={`w-full text-left rounded-xl overflow-hidden border transition-all hover:scale-[1.02] hover:shadow-lg ${
+              isMe
+                ? "border-white/20 bg-white/10"
+                : isDarkMode
+                ? "border-gray-600 bg-gray-700"
+                : "border-cyan-200 bg-cyan-50"
+            }`}
+          >
+            <div className="relative">
+              <img
+                src={thumb}
+                alt="video"
+                className="w-full h-28 object-cover"
+              />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                <PlayCircle className="w-10 h-10 text-white drop-shadow-lg" />
+              </div>
+            </div>
+            <div
+              className={`px-3 py-2 text-xs font-medium truncate ${
+                isMe
+                  ? "text-white/90"
+                  : isDarkMode
+                  ? "text-gray-200"
+                  : "text-cyan-800"
+              }`}
+            >
+              {url}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 interface Message {
   id: string;
@@ -52,7 +135,6 @@ interface ChatAreaProps {
   showEmojiPicker: boolean;
   attachmentPreview: AttachmentPreview | null;
   emojis: string[];
-  // ChatArea.tsx - sửa trong interface ChatAreaProps
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
   onMessageChange: (value: string) => void;
   onSendMessage: () => void;
@@ -294,7 +376,11 @@ export default function ChatArea({
                         )}
                       </div>
                     )}
-                    <p className="text-sm leading-relaxed">{msg.text}</p>
+                    <MessageContent
+                      text={msg.text}
+                      isDarkMode={isDarkMode}
+                      isMe={isMe}
+                    />
                     <span
                       className={`text-xs mt-1 block ${
                         isMe

@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useRef, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ChatMessageResponse, ChatRoomResponse } from "@/types/chat";
 import { useChatSocket } from "@/hooks/useChatSocket";
 import { getUserIdFromToken } from "@/utils/jwt";
@@ -113,8 +113,11 @@ const EMOJIS = [
   "🏆",
 ];
 
-export default function ChatPage() {
+// ── Inner component (cần Suspense vì dùng useSearchParams) ─────────────────
+function ChatPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [message, setMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -150,9 +153,12 @@ export default function ChatPage() {
     setMessages: setSocketMessages,
   } = useChatSocket(selectedContact?.id || null);
 
-  // ── Scroll to bottom ───────────────────────────────────────────────────────
+  // ── Scroll to bottom (delay để YouTube card render xong) ─────────────────
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const t = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 80);
+    return () => clearTimeout(t);
   }, [displayMessages]);
 
   // ── Load contacts ──────────────────────────────────────────────────────────
@@ -179,6 +185,21 @@ export default function ChatPage() {
     };
     loadContacts();
   }, []);
+
+  // ── Handle share redirect từ ShareVideoModal ───────────────────────────────
+  useEffect(() => {
+    const roomId = searchParams.get("roomId");
+    const shareMsg = searchParams.get("shareMsg");
+    if (!roomId || isLoadingContacts) return;
+
+    const target = contacts.find((c) => c.id === roomId);
+    if (target) {
+      setSelectedContact(target);
+      if (shareMsg) setMessage(decodeURIComponent(shareMsg));
+      // Xoá query params khỏi URL sau khi xử lý
+      router.replace("/chat");
+    }
+  }, [searchParams, contacts, isLoadingContacts, router]);
 
   // ── Search rooms ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -215,8 +236,10 @@ export default function ChatPage() {
         const pageData = await roomService.getMessages(selectedContact.id);
         const data: ChatMessageResponse[] = pageData.content || [];
         setSocketMessages(data);
+        // API trả về mới nhất trước → reverse để cũ trên, mới dưới
+        const reversed = [...data].reverse();
         setDisplayMessages(
-          data.map((msg) => ({
+          reversed.map((msg) => ({
             id: msg.id,
             text: msg.content,
             senderId: normalizeId(msg.senderId),
@@ -236,8 +259,10 @@ export default function ChatPage() {
   // ── Sync socket messages ───────────────────────────────────────────────────
   useEffect(() => {
     if (!selectedContact || !currentUserId) return;
+    // Socket cũng reverse để đồng bộ với load history
+    const reversedSocket = [...socketMessages].reverse();
     setDisplayMessages(
-      socketMessages.map((msg) => ({
+      reversedSocket.map((msg) => ({
         id: msg.id,
         text: msg.content,
         senderId: normalizeId(msg.senderId),
@@ -413,7 +438,6 @@ export default function ChatPage() {
           <Header isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
 
           <div className="flex-1 flex overflow-hidden">
-            {/* ── LEFT: Contacts ── */}
             <ContactsList
               contacts={contacts}
               displayedContacts={displayedContacts}
@@ -427,7 +451,6 @@ export default function ChatPage() {
               onSelectContact={handleSelectContact}
             />
 
-            {/* ── RIGHT: Chat ── */}
             <ChatArea
               selectedContact={selectedContact}
               displayMessages={displayMessages}
@@ -451,5 +474,25 @@ export default function ChatPage() {
         </div>
       </div>
     </>
+  );
+}
+
+// ── Export mặc định bọc Suspense (bắt buộc khi dùng useSearchParams) ─────────
+export default function ChatPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen bg-gray-900 items-center justify-center">
+          <LoadingCat
+            size="xl"
+            isDark={true}
+            message="Đang tải"
+            subMessage="Vui lòng đợi trong giây lát"
+          />
+        </div>
+      }
+    >
+      <ChatPageInner />
+    </Suspense>
   );
 }

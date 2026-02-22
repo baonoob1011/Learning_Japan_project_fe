@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { Share2, Check } from "lucide-react";
+import { Share2 } from "lucide-react";
 import YoutubePlayerWithTranscript from "./YoutubePlayerWithTranscript";
+import ShareVideoModal from "@/components/chat/Sharevideomodal";
 import { TranscriptDTO } from "@/services/transcriptService";
 import { YoutubePlayerHandle } from "./YoutubePlayer";
 import { JLPTLevel, VideoTag } from "@/types/video";
@@ -63,23 +64,7 @@ export default function VideoPlayerSection({
   level,
   videoTag,
 }: VideoPlayerSectionProps) {
-  const [copied, setCopied] = useState(false);
-
-  const handleShare = async () => {
-    const url = `https://www.youtube.com/watch?v=${videoId}`;
-    try {
-      await navigator.clipboard.writeText(url);
-    } catch {
-      const el = document.createElement("textarea");
-      el.value = url;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand("copy");
-      document.body.removeChild(el);
-    }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const [showShareModal, setShowShareModal] = useState(false);
 
   return (
     <div
@@ -90,7 +75,6 @@ export default function VideoPlayerSection({
     >
       <div className="p-6">
         <div className="max-w-4xl mx-auto">
-          {/* Video Player */}
           <YoutubePlayerWithTranscript
             ref={playerRef}
             videoId={videoId}
@@ -104,17 +88,15 @@ export default function VideoPlayerSection({
             isDarkMode={isDarkMode}
           />
 
-          {/* Video Info */}
           <div
             className={`rounded-2xl shadow-sm p-6 mt-6 transition-colors duration-300 ${
               isDarkMode ? "bg-gray-800 border border-gray-700" : "bg-white"
             }`}
           >
-            {/* Tags + Share button */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <span
-                  className={`px-3 py-1 text-xs font-medium rounded-full transition-colors duration-300 ${
+                  className={`px-3 py-1 text-xs font-medium rounded-full ${
                     isDarkMode
                       ? "bg-cyan-900/50 text-cyan-300"
                       : "bg-cyan-100 text-cyan-700"
@@ -123,7 +105,7 @@ export default function VideoPlayerSection({
                   {level}
                 </span>
                 <span
-                  className={`px-3 py-1 text-xs font-medium rounded-full transition-colors duration-300 ${
+                  className={`px-3 py-1 text-xs font-medium rounded-full ${
                     isDarkMode
                       ? "bg-purple-900/50 text-purple-300"
                       : "bg-purple-100 text-purple-700"
@@ -132,36 +114,21 @@ export default function VideoPlayerSection({
                   {tagDisplay[videoTag]}
                 </span>
               </div>
-
-              {/* Share Button */}
               <button
-                onClick={handleShare}
+                onClick={() => setShowShareModal(true)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-                  copied
-                    ? isDarkMode
-                      ? "bg-emerald-900/50 text-emerald-400"
-                      : "bg-emerald-50 text-emerald-600"
-                    : isDarkMode
+                  isDarkMode
                     ? "bg-gray-700 text-gray-300 hover:bg-cyan-900/40 hover:text-cyan-400"
                     : "bg-gray-100 text-gray-600 hover:bg-cyan-50 hover:text-cyan-600"
                 }`}
               >
-                {copied ? (
-                  <>
-                    <Check className="w-3.5 h-3.5" />
-                    Đã sao chép!
-                  </>
-                ) : (
-                  <>
-                    <Share2 className="w-3.5 h-3.5" />
-                    Chia sẻ
-                  </>
-                )}
+                <Share2 className="w-3.5 h-3.5" />
+                Chia sẻ
               </button>
             </div>
 
             <h1
-              className={`text-xl font-bold mb-2 transition-colors duration-300 ${
+              className={`text-xl font-bold mb-2 ${
                 isDarkMode ? "text-gray-100" : "text-gray-900"
               }`}
             >
@@ -169,19 +136,19 @@ export default function VideoPlayerSection({
             </h1>
 
             <div
-              className={`border-t pt-4 mt-4 transition-colors duration-300 ${
+              className={`border-t pt-4 mt-4 ${
                 isDarkMode ? "border-gray-700" : "border-gray-200"
               }`}
             >
               <h3
-                className={`text-lg font-semibold mb-3 transition-colors duration-300 ${
+                className={`text-lg font-semibold mb-3 ${
                   isDarkMode ? "text-gray-100" : "text-gray-900"
                 }`}
               >
                 Thông tin
               </h3>
               <div
-                className={`space-y-2 text-sm transition-colors duration-300 ${
+                className={`space-y-2 text-sm ${
                   isDarkMode ? "text-gray-300" : "text-gray-700"
                 }`}
               >
@@ -199,14 +166,23 @@ export default function VideoPlayerSection({
         </div>
       </div>
 
+      {showShareModal && (
+        <ShareVideoModal
+          videoId={videoId}
+          videoTitle={videoTitle}
+          isDarkMode={isDarkMode}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
+
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
           background: ${isDarkMode
-            ? "rgba(31, 41, 55, 0.5)"
-            : "rgba(243, 244, 246, 0.5)"};
+            ? "rgba(31,41,55,0.5)"
+            : "rgba(243,244,246,0.5)"};
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
