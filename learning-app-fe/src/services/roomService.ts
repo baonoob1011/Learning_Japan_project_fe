@@ -40,6 +40,14 @@ export const roomService = {
   },
 
   /**
+   * 🔍 Search phòng chat theo tên người đã chat
+   */
+  searchRooms(keyword: string): Promise<ChatRoomResponse[]> {
+    return http.get<ChatRoomResponse[]>(
+      API_ENDPOINTS.CHAT_ROOM.SEARCH(keyword)
+    );
+  },
+  /**
    * Lấy lịch sử tin nhắn của phòng chat
    */
   getMessages(

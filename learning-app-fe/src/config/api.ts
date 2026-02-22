@@ -33,6 +33,8 @@ export const API_ENDPOINTS = {
     GET_BY_ID: (roomId: string) => `/chat-room/${roomId}`,
     MESSAGES: (roomId: string, page: number, size: number) =>
       `/chat-room/${roomId}/messages?page=${page}&size=${size}`,
+    SEARCH: (keyword: string) =>
+      `/chat-room/search?keyword=${encodeURIComponent(keyword)}`,
   },
   /* ===================== COURSE ===================== */
   COURSE: {
