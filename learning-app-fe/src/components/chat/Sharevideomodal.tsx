@@ -2,14 +2,29 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, Send, Search, Check } from "lucide-react";
-import { roomService, ChatUserResponse } from "@/services/roomService";
+import { X, Send, Search, Check, Users, User } from "lucide-react";
+import {
+  roomService,
+  ChatUserResponse,
+  ChatGroupBasicResponse,
+  PrivateChatPreviewResponse,
+} from "@/services/roomService";
 
 interface ShareVideoModalProps {
   videoId: string;
   videoTitle: string;
   isDarkMode?: boolean;
   onClose: () => void;
+}
+
+type RecipientType = "user" | "group";
+
+interface Recipient {
+  id: string; // userId or groupId (roomId)
+  name: string;
+  avatarUrl?: string;
+  type: RecipientType;
+  roomId?: string; // for groups, roomId is already known
 }
 
 export default function ShareVideoModal({
@@ -19,29 +34,54 @@ export default function ShareVideoModal({
   onClose,
 }: ShareVideoModalProps) {
   const router = useRouter();
-  const [users, setUsers] = useState<ChatUserResponse[]>([]);
+  const [users, setUsers] = useState<PrivateChatPreviewResponse[]>([]);
+  const [groups, setGroups] = useState<ChatGroupBasicResponse[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState(false);
   const [sentTo, setSentTo] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"all" | "users" | "groups">("all");
   const modalRef = useRef<HTMLDivElement>(null);
 
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
+  // Build unified recipient list
+  const allRecipients = useMemo<Recipient[]>(() => {
+    const userRecipients: Recipient[] = users.map((u) => ({
+      id: u.userId,
+      name: u.fullName,
+      avatarUrl: u.avatarUrl,
+      type: "user",
+      roomId: u.roomId,
+    }));
+    const groupRecipients: Recipient[] = groups.map((g) => ({
+      id: g.id,
+      name: g.name,
+      avatarUrl: g.avatarUrl,
+      type: "group",
+      roomId: g.id,
+    }));
+    return [...userRecipients, ...groupRecipients];
+  }, [users, groups]);
+
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    return q
-      ? users.filter((u) => u.fullName.toLowerCase().includes(q))
-      : users;
-  }, [searchQuery, users]);
+    let list = allRecipients;
+    if (activeTab === "users") list = list.filter((r) => r.type === "user");
+    if (activeTab === "groups") list = list.filter((r) => r.type === "group");
+    return q ? list.filter((r) => r.name.toLowerCase().includes(q)) : list;
+  }, [searchQuery, allRecipients, activeTab]);
 
   useEffect(() => {
-    roomService
-      .getMyChatUsers()
-      .then((data) => setUsers(data))
-      .catch(() => setUsers([]))
-      .finally(() => setIsLoading(false));
+    Promise.allSettled([
+      roomService.getMyChatUsers(),
+      roomService.getMyGroupRooms(),
+    ]).then(([usersResult, groupsResult]) => {
+      if (usersResult.status === "fulfilled") setUsers(usersResult.value);
+      if (groupsResult.status === "fulfilled") setGroups(groupsResult.value);
+      setIsLoading(false);
+    });
   }, []);
 
   useEffect(() => {
@@ -54,10 +94,10 @@ export default function ShareVideoModal({
     return () => document.removeEventListener("mousedown", handler);
   }, [onClose]);
 
-  const toggleSelect = (userId: string) => {
+  const toggleSelect = (id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      next.has(userId) ? next.delete(userId) : next.add(userId);
+      next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
   };
@@ -69,34 +109,66 @@ export default function ShareVideoModal({
     const shareMsg = encodeURIComponent(`🎬 ${videoTitle}\n${videoUrl}`);
     const selectedIds = Array.from(selected);
 
-    try {
-      const firstRoom = await roomService.createPrivateRoom({
-        targetUserId: selectedIds[0],
-      });
+    // Separate users and groups
+    const selectedRecipients = allRecipients.filter((r) =>
+      selectedIds.includes(r.id)
+    );
+    const userRecipients = selectedRecipients.filter((r) => r.type === "user");
+    const groupRecipients = selectedRecipients.filter(
+      (r) => r.type === "group"
+    );
 
-      if (selectedIds.length > 1) {
-        await Promise.allSettled(
-          selectedIds
-            .slice(1)
-            .map((userId) =>
-              roomService
-                .createPrivateRoom({ targetUserId: userId })
-                .catch(() => {})
-            )
-        );
+    try {
+      let firstRoomId: string | undefined;
+
+      // Handle user private rooms
+      if (userRecipients.length > 0) {
+        const firstUserRoom = await roomService.createPrivateRoom({
+          targetUserId: userRecipients[0].id,
+        });
+        firstRoomId = firstUserRoom.id;
+
+        if (userRecipients.length > 1) {
+          await Promise.allSettled(
+            userRecipients
+              .slice(1)
+              .map((r) => roomService.createPrivateRoom({ targetUserId: r.id }))
+          );
+        }
+      }
+
+      // Handle group rooms (roomId is already known)
+      if (groupRecipients.length > 0) {
+        if (!firstRoomId) {
+          firstRoomId = groupRecipients[0].roomId;
+        }
+        // Groups already have roomIds; messages will be sent via chat navigation
       }
 
       setSentTo(new Set(selectedIds));
       setSending(false);
       onClose();
 
-      router.push(`/chat?roomId=${firstRoom.id}&shareMsg=${shareMsg}`);
+      if (firstRoomId) {
+        router.push(`/chat?roomId=${firstRoomId}&shareMsg=${shareMsg}`);
+      }
     } catch {
       setSending(false);
     }
   };
 
   const allSent = sentTo.size > 0 && sentTo.size === selected.size;
+
+  const tabClass = (tab: typeof activeTab) =>
+    `px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+      activeTab === tab
+        ? isDarkMode
+          ? "bg-cyan-600 text-white"
+          : "bg-cyan-500 text-white"
+        : isDarkMode
+        ? "text-gray-400 hover:bg-gray-700"
+        : "text-gray-500 hover:bg-gray-100"
+    }`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -169,7 +241,7 @@ export default function ShareVideoModal({
             />
             <input
               type="text"
-              placeholder="Tìm người..."
+              placeholder="Tìm người hoặc nhóm..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-transparent outline-none w-full placeholder-gray-400 text-sm"
@@ -177,8 +249,36 @@ export default function ShareVideoModal({
           </div>
         </div>
 
-        {/* User list */}
-        <div className="px-3 mt-3 max-h-72 overflow-y-auto">
+        {/* Tabs */}
+        <div className="px-5 mt-3 flex gap-1.5">
+          <button
+            className={tabClass("all")}
+            onClick={() => setActiveTab("all")}
+          >
+            Tất cả
+          </button>
+          <button
+            className={tabClass("users")}
+            onClick={() => setActiveTab("users")}
+          >
+            <span className="flex items-center gap-1">
+              <User className="w-3 h-3" />
+              Cá nhân
+            </span>
+          </button>
+          <button
+            className={tabClass("groups")}
+            onClick={() => setActiveTab("groups")}
+          >
+            <span className="flex items-center gap-1">
+              <Users className="w-3 h-3" />
+              Nhóm
+            </span>
+          </button>
+        </div>
+
+        {/* User/Group list */}
+        <div className="px-3 mt-3 max-h-64 overflow-y-auto">
           {isLoading ? (
             <div className="flex justify-center py-10">
               <div className="w-5 h-5 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
@@ -189,16 +289,16 @@ export default function ShareVideoModal({
                 isDarkMode ? "text-gray-500" : "text-gray-400"
               }`}
             >
-              Không tìm thấy người dùng
+              Không tìm thấy kết quả
             </p>
           ) : (
-            filtered.map((user) => {
-              const isSelected = selected.has(user.userId);
-              const isSent = sentTo.has(user.userId);
+            filtered.map((recipient) => {
+              const isSelected = selected.has(recipient.id);
+              const isSent = sentTo.has(recipient.id);
               return (
                 <button
-                  key={user.userId}
-                  onClick={() => toggleSelect(user.userId)}
+                  key={`${recipient.type}-${recipient.id}`}
+                  onClick={() => toggleSelect(recipient.id)}
                   className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors text-left ${
                     isSelected
                       ? isDarkMode
@@ -209,18 +309,50 @@ export default function ShareVideoModal({
                       : "hover:bg-gray-50"
                   }`}
                 >
-                  <img
-                    src={user.avatarUrl || "/default-avatar.png"}
-                    alt={user.fullName}
-                    className="w-10 h-10 rounded-full object-cover shrink-0"
-                  />
-                  <span
-                    className={`flex-1 text-sm font-medium truncate ${
-                      isDarkMode ? "text-gray-100" : "text-gray-800"
-                    }`}
-                  >
-                    {user.fullName}
-                  </span>
+                  {/* Avatar */}
+                  <div className="relative shrink-0">
+                    <img
+                      src={recipient.avatarUrl || "/default-avatar.png"}
+                      alt={recipient.name}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    {/* Group badge */}
+                    {recipient.type === "group" && (
+                      <span
+                        className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center ${
+                          isDarkMode ? "bg-gray-800" : "bg-white"
+                        }`}
+                      >
+                        <Users
+                          className={`w-2.5 h-2.5 ${
+                            isDarkMode ? "text-cyan-400" : "text-cyan-500"
+                          }`}
+                        />
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Name + type hint */}
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className={`text-sm font-medium truncate ${
+                        isDarkMode ? "text-gray-100" : "text-gray-800"
+                      }`}
+                    >
+                      {recipient.name}
+                    </p>
+                    {recipient.type === "group" && (
+                      <p
+                        className={`text-xs truncate ${
+                          isDarkMode ? "text-gray-500" : "text-gray-400"
+                        }`}
+                      >
+                        Nhóm
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Checkbox */}
                   <div
                     className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
                       isSent
