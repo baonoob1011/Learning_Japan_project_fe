@@ -135,22 +135,46 @@ function ChatPageInner() {
     // Tìm room info để set selectedContact
     async function resolveContact() {
       try {
-        // Thử lấy từ danh sách rooms hiện có
-        const rooms = await roomService.getMyRooms();
-        const room = rooms.find((r) => r.id === roomId);
+        // Thử lấy từ cả private rooms lẫn group rooms
+        const [roomsResult, groupsResult] = await Promise.allSettled([
+          roomService.getMyRooms(),
+          roomService.getMyGroupRooms(),
+        ]);
 
-        if (room) {
-          const contact: Contact = {
-            id: room.id,
-            name: room.otherUserName || room.name || "Unknown",
-            lastMessage: room.lastMessage || "",
-            avatar:
-              room.otherUserAvatar || room.avatarUrl || "/default-avatar.png",
-            online: false,
-            timestamp: room.lastMessageTime || "",
-            roomType: room.roomType as "PRIVATE" | "GROUP",
-          };
-          setSelectedContact(contact);
+        // Tìm trong group rooms trước để lấy đúng tên/avatar nhóm
+        if (groupsResult.status === "fulfilled") {
+          const group = groupsResult.value.find((g) => g.id === roomId);
+          if (group) {
+            setSelectedContact({
+              id: group.id,
+              name: group.name || "Unknown",
+              lastMessage: group.lastMessage || "",
+              avatar: group.avatarUrl || "/default-avatar.png",
+              online: false,
+              timestamp: group.lastMessageTime || "",
+              roomType: "GROUP",
+            });
+            return; // đã tìm thấy, dừng
+          }
+        }
+
+        // Fallback: tìm trong private rooms (chỉ lấy PRIVATE)
+        if (roomsResult.status === "fulfilled") {
+          const room = roomsResult.value.find(
+            (r) => r.id === roomId && (r.roomType as string) !== "GROUP"
+          );
+          if (room) {
+            setSelectedContact({
+              id: room.id,
+              name: room.otherUserName || room.name || "Unknown",
+              lastMessage: room.lastMessage || "",
+              avatar:
+                room.otherUserAvatar || room.avatarUrl || "/default-avatar.png",
+              online: false,
+              timestamp: room.lastMessageTime || "",
+              roomType: "PRIVATE",
+            });
+          }
         }
       } catch {
         // Nếu lỗi thì bỏ qua, user tự chọn contact
@@ -313,6 +337,9 @@ function ChatPageInner() {
               isDarkMode={isDarkMode}
               onSearchChange={() => {}}
               onSelectContact={handleSelectContact}
+              initialTab={
+                selectedContact?.roomType === "GROUP" ? "GROUP" : "INBOX"
+              }
             />
 
             <ChatArea

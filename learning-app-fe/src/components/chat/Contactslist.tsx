@@ -23,6 +23,7 @@ interface ContactsListProps {
   isConnected: boolean;
   searchQuery: string;
   isDarkMode: boolean;
+  initialTab?: ActiveTab; // ← prop mới để auto-switch tab khi share
   onSearchChange: (query: string) => void;
   onSelectContact: (contact: Contact) => void;
 }
@@ -32,10 +33,11 @@ export default function ContactsList({
   isConnected,
   searchQuery,
   isDarkMode,
+  initialTab,
   onSearchChange,
   onSelectContact,
 }: ContactsListProps) {
-  const [activeTab, setActiveTab] = useState<ActiveTab>("INBOX");
+  const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab ?? "INBOX");
 
   return (
     <div
@@ -151,7 +153,7 @@ export default function ContactsList({
         </button>
       </div>
 
-      {/* List — render 1 trong 2, component nào active thì mount và tự fetch */}
+      {/* List */}
       <div
         className={`flex-1 overflow-y-auto ${
           isDarkMode ? "custom-scrollbar-dark" : "custom-scrollbar"
