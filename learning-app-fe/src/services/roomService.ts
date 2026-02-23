@@ -92,6 +92,11 @@ export interface ChatGroupDetailResponse {
   members: GroupMemberInfo[];
 }
 
+export interface UserChatResponse {
+  id: string;
+  fullName: string;
+  avatarUrl?: string;
+}
 export interface GroupMemberInfo {
   userId: string;
   fullName: string;
@@ -108,6 +113,7 @@ export const roomService = {
       API_ENDPOINTS.CHAT_ROOM.GROUP_DETAIL(roomId)
     );
   },
+
   /**
    * Lấy danh sách phòng chat của user hiện tại
    */

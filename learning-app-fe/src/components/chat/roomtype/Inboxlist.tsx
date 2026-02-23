@@ -8,6 +8,8 @@ import {
 
 interface Contact {
   id: string;
+  otherUserId?: string; // 👈 thêm dòng này
+
   name: string;
   lastMessage: string;
   avatar: string;
@@ -20,6 +22,7 @@ interface Contact {
 function mapPreviewToContact(p: PrivateChatPreviewResponse): Contact {
   return {
     id: p.roomId, // ← đổi từ p.userId sang p.roomId
+    otherUserId: p.userId, // 👈 thêm dòng này
     name: p.fullName,
     lastMessage: p.lastMessage ?? "",
     avatar: p.avatarUrl ?? "/default-avatar.png",

@@ -1,8 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNotificationStore } from "@/stores/notificationStore";
 import {
   connectNotificationSocket,
   NotificationSocketDTO,
+  IncomingCallDTO,
 } from "@/services/notificationSocket";
 import { getUserIdFromToken } from "@/utils/jwt";
 import { Notification } from "@/types/notification";
@@ -22,9 +23,11 @@ export const useNotificationSync = () => {
     null
   );
   const hasInitializedRef = useRef(false);
+  const [incomingCall, setIncomingCall] = useState<IncomingCallDTO | null>(
+    null
+  );
 
   useEffect(() => {
-    // ✅ Prevent double initialization (React strict mode)
     if (hasInitializedRef.current) return;
 
     const userId = getUserIdFromToken();
@@ -35,12 +38,10 @@ export const useNotificationSync = () => {
 
     hasInitializedRef.current = true;
 
-    // 📥 Step 1: Load từ DB (chỉ 1 lần)
     if (!isInitialized) {
       loadNotifications();
     }
 
-    // 🔌 Step 2: Connect WebSocket
     console.log("🔔 Connecting notification socket for user:", userId);
 
     socketRef.current = connectNotificationSocket(
@@ -48,17 +49,24 @@ export const useNotificationSync = () => {
       (data: NotificationSocketDTO) => {
         console.log("📩 WebSocket notification received:", data);
         addNotification(convertToNotification(data));
+      },
+      (callData: IncomingCallDTO) => {
+        console.log("📞 Incoming call received:", callData);
+        setIncomingCall(callData);
       }
     );
 
-    // 🧹 Cleanup
     return () => {
       if (socketRef.current) {
         console.log("🔌 Disconnecting notification socket");
         socketRef.current.disconnect();
         socketRef.current = null;
       }
-      hasInitializedRef.current = false;
+      // ✅ Đã xóa: hasInitializedRef.current = false;
     };
-  }, []); // Empty deps - chỉ chạy 1 lần
+  }, []);
+
+  const dismissCall = () => setIncomingCall(null);
+
+  return { incomingCall, dismissCall };
 };

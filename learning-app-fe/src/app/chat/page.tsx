@@ -10,7 +10,11 @@ import LoadingCat from "@/components/LoadingCat";
 import ContactsList from "@/components/chat/Contactslist";
 import ChatArea from "@/components/chat/Chatarea";
 import { roomService } from "@/services/roomService";
+import { useNotificationSync } from "@/hooks/useNotificationSync";
+import { userService } from "@/services/userService";
 
+// hoặc path của bạn
+import { CallModal } from "@/components/chat/CallModal";
 interface Contact {
   id: string; // = roomId
   name: string;
@@ -99,10 +103,12 @@ function ChatPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-
+  const [currentUserName, setCurrentUserName] = useState<string>("");
+  const [currentUserAvatar, setCurrentUserAvatar] = useState<string>("");
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [contactsTabKey, setContactsTabKey] = useState<string>("INBOX");
   const [message, setMessage] = useState("");
+
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [attachmentPreview, setAttachmentPreview] = useState<{
     file: File;
@@ -114,6 +120,8 @@ function ChatPageInner() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentStreak, setCurrentStreak] = useState(4);
   const { isDarkMode, toggleDarkMode, mounted } = useDarkMode();
+  const { incomingCall, dismissCall } = useNotificationSync();
+  console.log("🔔 [ChatPage] incomingCall:", incomingCall);
 
   const {
     messages: socketMessages,
@@ -122,6 +130,18 @@ function ChatPageInner() {
   } = useChatSocket(selectedContact?.id || null);
 
   // ── Xử lý roomId + shareMsg từ URL khi navigate từ ShareVideoModal ─────────
+
+  useEffect(() => {
+    if (!currentUserId) return;
+    userService
+      .getUserById(currentUserId)
+      .then((profile) => {
+        setCurrentUserName(profile.fullName);
+        setCurrentUserAvatar(profile.avatarUrl ?? "");
+      })
+      .catch(console.error);
+  }, [currentUserId]);
+
   useEffect(() => {
     const roomId = searchParams.get("roomId");
     const shareMsg = searchParams.get("shareMsg");
@@ -342,12 +362,23 @@ function ChatPageInner() {
               onSelectContact={handleSelectContact}
               initialTab={contactsTabKey as "INBOX" | "GROUP"}
             />
-
+            {incomingCall && (
+              <CallModal
+                roomId={incomingCall.roomId}
+                isCaller={false}
+                currentUserId={currentUserId!}
+                contactName={incomingCall.callerName}
+                contactAvatar={incomingCall.callerAvatar}
+                onClose={dismissCall}
+              />
+            )}
             <ChatArea
               selectedContact={selectedContact}
               currentUserId={currentUserId}
               message={message}
               isConnected={isConnected}
+              currentUserName={currentUserName} // ✅ thêm
+              currentUserAvatar={currentUserAvatar} // ✅ thêm
               isDarkMode={isDarkMode}
               showEmojiPicker={showEmojiPicker}
               attachmentPreview={attachmentPreview}

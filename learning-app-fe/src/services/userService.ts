@@ -162,6 +162,9 @@ export const userService = {
   getUserStatistics(): Promise<UserStatsResponse> {
     return http.get(API_ENDPOINTS.ADMIN.USER_STATISTICS);
   },
+  getUserById(id: string): Promise<UserChatResponse> {
+    return http.get<UserChatResponse>(API_ENDPOINTS.USER.GET_USER_BY_ID(id));
+  },
 };
 
 export const register = async (

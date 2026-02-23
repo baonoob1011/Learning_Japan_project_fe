@@ -9,6 +9,7 @@ export const API_CONFIG = {
 // API Endpoints (flat)
 export const API_ENDPOINTS = {
   USER: {
+    GET_USER_BY_ID: (id: string) => `/users/chat/${id}`,
     PROFILE: "/users/me",
     UPLOAD_AVATAR: "/users/upload-avatar",
     CHANGE_PASSWORD: "/users/change-password",

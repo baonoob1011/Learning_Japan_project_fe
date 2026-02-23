@@ -29,6 +29,8 @@ interface AttachmentPreview {
 
 interface ChatAreaProps {
   selectedContact: Contact | null;
+  currentUserName?: string; // ✅ thêm
+  currentUserAvatar?: string; // ✅ thêm
   currentUserId: string | null;
   message: string;
   isConnected: boolean;
@@ -38,6 +40,7 @@ interface ChatAreaProps {
   emojis: string[];
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
   incomingMessages?: ChatMessageResponse[];
+
   onMessageChange: (value: string) => void;
   onSendMessage: () => void;
   onKeyPress: (e: React.KeyboardEvent) => void;
@@ -56,6 +59,8 @@ export default function ChatArea({
   showEmojiPicker,
   attachmentPreview,
   emojis,
+  currentUserName, // ✅ thêm
+  currentUserAvatar, // ✅ thêm
   messagesEndRef,
   incomingMessages = [],
   onMessageChange,
@@ -70,9 +75,7 @@ export default function ChatArea({
 
   useEffect(() => {
     if (!selectedContact || selectedContact.roomType !== "GROUP") return;
-
     let cancelled = false;
-
     async function fetchMembers() {
       try {
         const detail = await roomService.getGroupDetail(selectedContact!.id);
@@ -81,9 +84,7 @@ export default function ChatArea({
         if (!cancelled) setGroupMembers([]);
       }
     }
-
     fetchMembers();
-
     return () => {
       cancelled = true;
       setGroupMembers([]);
@@ -136,7 +137,13 @@ export default function ChatArea({
         isDarkMode ? "bg-gray-900/40" : "bg-white/40"
       }`}
     >
-      <ChatHeader selectedContact={selectedContact} isDarkMode={isDarkMode} />
+      <ChatHeader
+        currentUserName={currentUserName} // ✅ thêm
+        currentUserAvatar={currentUserAvatar} // ✅ thêm
+        selectedContact={selectedContact}
+        isDarkMode={isDarkMode}
+        currentUserId={currentUserId ?? undefined}
+      />
 
       <MessagesArea
         selectedContact={selectedContact}
