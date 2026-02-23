@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useChatSocket } from "@/hooks/useChatSocket";
 import { getUserIdFromToken } from "@/utils/jwt";
 import { useDarkMode } from "@/hooks/useDarkMode";
@@ -9,6 +9,7 @@ import Header from "@/components/Header";
 import LoadingCat from "@/components/LoadingCat";
 import ContactsList from "@/components/chat/Contactslist";
 import ChatArea from "@/components/chat/Chatarea";
+import { roomService } from "@/services/roomService";
 
 interface Contact {
   id: string; // = roomId
@@ -96,6 +97,8 @@ const EMOJIS = [
 
 function ChatPageInner() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [message, setMessage] = useState("");
@@ -106,13 +109,10 @@ function ChatPageInner() {
     type: "image" | "file";
   } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  // ✅ Lazy initializer — chạy 1 lần lúc mount, không cần effect
   const [currentUserId] = useState<string | null>(() => getUserIdFromToken());
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentStreak, setCurrentStreak] = useState(4);
   const { isDarkMode, toggleDarkMode, mounted } = useDarkMode();
-
-  // ── Init user ──────────────────────────────────────────────────────────────
 
   const {
     messages: socketMessages,
@@ -120,9 +120,58 @@ function ChatPageInner() {
     sendMessage: sendSocketMessage,
   } = useChatSocket(selectedContact?.id || null);
 
+  // ── Xử lý roomId + shareMsg từ URL khi navigate từ ShareVideoModal ─────────
+  useEffect(() => {
+    const roomId = searchParams.get("roomId");
+    const shareMsg = searchParams.get("shareMsg");
+
+    if (!roomId) return;
+
+    // Fill shareMsg vào input ngay
+    if (shareMsg) {
+      setMessage(decodeURIComponent(shareMsg));
+    }
+
+    // Tìm room info để set selectedContact
+    async function resolveContact() {
+      try {
+        // Thử lấy từ danh sách rooms hiện có
+        const rooms = await roomService.getMyRooms();
+        const room = rooms.find((r) => r.id === roomId);
+
+        if (room) {
+          const contact: Contact = {
+            id: room.id,
+            name: room.otherUserName || room.name || "Unknown",
+            lastMessage: room.lastMessage || "",
+            avatar:
+              room.otherUserAvatar || room.avatarUrl || "/default-avatar.png",
+            online: false,
+            timestamp: room.lastMessageTime || "",
+            roomType: room.roomType as "PRIVATE" | "GROUP",
+          };
+          setSelectedContact(contact);
+        }
+      } catch {
+        // Nếu lỗi thì bỏ qua, user tự chọn contact
+      }
+
+      // Xóa params khỏi URL sau khi xử lý xong
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("roomId");
+      params.delete("shareMsg");
+      const newUrl = params.toString()
+        ? `${pathname}?${params.toString()}`
+        : pathname;
+      router.replace(newUrl, { scroll: false });
+    }
+
+    resolveContact();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // chỉ chạy 1 lần khi mount
+
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleSelectContact = (contact: Contact) => {
-    // contact.id đã là roomId từ InboxList/GroupList
     setSelectedContact(contact);
   };
 
