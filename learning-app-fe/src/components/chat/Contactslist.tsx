@@ -134,7 +134,7 @@ export default function ContactsList({
               : "text-cyan-500 border-transparent hover:text-cyan-700"
           }`}
         >
-          HỘP THƯ
+          Bạn
         </button>
         <button
           onClick={() => setActiveTab("GROUP")}
@@ -149,7 +149,7 @@ export default function ContactsList({
           }`}
         >
           <Users className="w-3.5 h-3.5" />
-          NHÓM
+          Cộng đồng
         </button>
       </div>
 

@@ -12,7 +12,6 @@ import {
   BookOpen,
   BookMarked,
   GraduationCap,
-  MessageCircle,
   PenTool,
 } from "lucide-react";
 import UpgradePlusModal from "./payment/Upgradeplusmodal ";
@@ -161,11 +160,7 @@ export default function Sidebar({
       icon: <BookOpen className="w-5 h-5" />,
       label: "Luyện đề",
     },
-    {
-      path: "/chat",
-      icon: <MessageCircle className="w-5 h-5" />,
-      label: "Chat Room",
-    },
+    // ✅ Đã xóa Chat Room (dùng FloatingChatButton thay thế)
     // ✅ Đã xóa Video Call
   ];
 

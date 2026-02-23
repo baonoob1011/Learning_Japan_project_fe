@@ -8,6 +8,8 @@ import VideoBanner from "@/components/videoYTB/VideoBanner";
 import LoadingCat from "@/components/LoadingCat";
 import UploadVideoModal from "@/components/videoYTB/UploadVideoModal";
 import MaziAIChat from "@/components/NiboChatAI";
+import FloatingChatButton from "@/components/Floatingchatbutton ";
+
 import React, { useState, useEffect } from "react";
 
 import { Play, Clock, X, AlertCircle, Video } from "lucide-react";
@@ -513,6 +515,7 @@ export default function VideoListPage() {
 
       {/* MAZI AI Chat Component */}
       <MaziAIChat isDarkMode={isDarkMode} />
+      <FloatingChatButton isDarkMode={isDarkMode} />
     </>
   );
 }

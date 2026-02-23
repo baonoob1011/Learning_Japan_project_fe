@@ -225,125 +225,143 @@ export default function MessagesArea({
   }
 
   return (
-    <div
-      className={`flex-1 overflow-y-auto p-6 space-y-4 ${
-        isDarkMode
-          ? "bg-gradient-to-b from-gray-900/30 to-gray-800/30 custom-scrollbar-dark"
-          : "bg-gradient-to-b from-cyan-50/30 to-blue-50/30 custom-scrollbar"
-      }`}
-    >
-      {messages.length === 0 ? (
-        <div className="flex items-center justify-center h-full">
-          <p
-            className={`text-sm ${
-              isDarkMode ? "text-gray-400" : "text-cyan-500"
-            }`}
-          >
-            Chưa có tin nhắn
-          </p>
-        </div>
-      ) : (
-        messages.map((msg, index) => {
-          const isMe = normalizeId(msg.senderId) === normalizeId(currentUserId);
-          const sender = memberMap.get(normalizeId(msg.senderId));
-          const senderAvatar = sender?.avatarUrl ?? selectedContact.avatar;
-          const senderDisplayName = sender?.fullName
-            ? sender.fullName.split(" ").slice(-2).join(" ")
-            : "";
+    <>
+      {/* ✅ Scrollbar đổi màu theo dark mode */}
+      <style>{`
+        .msg-scroll::-webkit-scrollbar {
+          width: 6px;
+        }
+        .msg-scroll::-webkit-scrollbar-track {
+          background: ${isDarkMode ? "#1f2937" : "#f0f9ff"};
+          border-radius: 4px;
+        }
+        .msg-scroll::-webkit-scrollbar-thumb {
+          background: ${isDarkMode ? "#4b5563" : "#a5f3fc"};
+          border-radius: 4px;
+        }
+        .msg-scroll::-webkit-scrollbar-thumb:hover {
+          background: ${isDarkMode ? "#6b7280" : "#22d3ee"};
+        }
+      `}</style>
 
-          return (
-            <div
-              key={`${msg.id}-${index}`}
-              className={`flex ${isMe ? "justify-end" : "justify-start"}`}
-              style={{
-                animation: `messageSlide 0.3s ease-out ${index * 0.05}s both`,
-              }}
+      <div
+        className={`msg-scroll flex-1 overflow-y-auto p-6 space-y-4 ${
+          isDarkMode
+            ? "bg-gradient-to-b from-gray-900/30 to-gray-800/30"
+            : "bg-gradient-to-b from-cyan-50/30 to-blue-50/30"
+        }`}
+      >
+        {messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <p
+              className={`text-sm ${
+                isDarkMode ? "text-gray-400" : "text-cyan-500"
+              }`}
             >
-              <div
-                className={`flex items-end gap-2 max-w-[65%] ${
-                  isMe ? "flex-row-reverse" : "flex-row"
-                }`}
-              >
-                {/* Avatar người gửi */}
-                {!isMe && (
-                  <img
-                    src={senderAvatar}
-                    alt={senderDisplayName || "avatar"}
-                    className="w-9 h-9 rounded-full object-cover shadow-md flex-shrink-0 mb-5"
-                  />
-                )}
+              Chưa có tin nhắn
+            </p>
+          </div>
+        ) : (
+          messages.map((msg, index) => {
+            const isMe =
+              normalizeId(msg.senderId) === normalizeId(currentUserId);
+            const sender = memberMap.get(normalizeId(msg.senderId));
+            const senderAvatar = sender?.avatarUrl ?? selectedContact.avatar;
+            const senderDisplayName = sender?.fullName
+              ? sender.fullName.split(" ").slice(-2).join(" ")
+              : "";
 
-                {/* Tên + Bubble */}
-                <div className="flex flex-col gap-0.5">
-                  {/* Tên hiện trên bubble — kiểu Facebook */}
-                  {isGroup && !isMe && senderDisplayName && (
-                    <span
-                      className={`text-xs font-semibold px-1 ${
-                        isDarkMode ? "text-cyan-400" : "text-cyan-600"
-                      }`}
-                    >
-                      {senderDisplayName}
-                    </span>
+            return (
+              <div
+                key={`${msg.id}-${index}`}
+                className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+                style={{
+                  animation: `messageSlide 0.3s ease-out ${index * 0.05}s both`,
+                }}
+              >
+                <div
+                  className={`flex items-end gap-2 max-w-[65%] ${
+                    isMe ? "flex-row-reverse" : "flex-row"
+                  }`}
+                >
+                  {!isMe && (
+                    <img
+                      src={senderAvatar}
+                      alt={senderDisplayName || "avatar"}
+                      className="w-9 h-9 rounded-full object-cover shadow-md flex-shrink-0 mb-5"
+                    />
                   )}
 
-                  <div
-                    className={`px-4 py-2.5 rounded-2xl shadow-md ${
-                      isMe
-                        ? "bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-br-sm"
-                        : isDarkMode
-                        ? "bg-gray-800 text-gray-100 rounded-bl-sm border border-gray-700"
-                        : "bg-white text-cyan-900 rounded-bl-sm border border-cyan-200/60"
-                    }`}
-                  >
-                    {msg.attachment && (
-                      <div className="mb-2">
-                        {msg.attachment.type === "image" ? (
-                          <img
-                            src={msg.attachment.url}
-                            alt="attachment"
-                            className="max-w-full rounded-lg"
-                          />
-                        ) : (
-                          <div
-                            className={`flex items-center gap-2 p-2 rounded ${
-                              isDarkMode ? "bg-gray-700" : "bg-cyan-50"
-                            }`}
-                          >
-                            <File className="w-4 h-4" />
-                            <span className="text-sm">
-                              {msg.attachment.name}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                  <div className="flex flex-col gap-0.5">
+                    {isGroup && !isMe && senderDisplayName && (
+                      <span
+                        className={`text-xs font-semibold px-1 ${
+                          isDarkMode ? "text-cyan-400" : "text-cyan-600"
+                        }`}
+                      >
+                        {senderDisplayName}
+                      </span>
                     )}
-                    <MessageContent
-                      text={msg.text}
-                      isDarkMode={isDarkMode}
-                      isMe={isMe}
-                    />
-                    <span
-                      className={`text-xs mt-1 block ${
+
+                    <div
+                      className={`px-4 py-2.5 rounded-2xl shadow-md ${
                         isMe
-                          ? "text-cyan-100"
+                          ? "bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-br-sm"
                           : isDarkMode
-                          ? "text-gray-400"
-                          : "text-cyan-600"
+                          ? "bg-gray-800 text-gray-100 rounded-bl-sm border border-gray-700"
+                          : "bg-white text-cyan-900 rounded-bl-sm border border-cyan-200/60"
                       }`}
                     >
-                      {msg.timestamp.toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
+                      {msg.attachment && (
+                        <div className="mb-2">
+                          {msg.attachment.type === "image" ? (
+                            <img
+                              src={msg.attachment.url}
+                              alt="attachment"
+                              className="max-w-full rounded-lg"
+                            />
+                          ) : (
+                            <div
+                              className={`flex items-center gap-2 p-2 rounded ${
+                                isDarkMode ? "bg-gray-700" : "bg-cyan-50"
+                              }`}
+                            >
+                              <File className="w-4 h-4" />
+                              <span className="text-sm">
+                                {msg.attachment.name}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      <MessageContent
+                        text={msg.text}
+                        isDarkMode={isDarkMode}
+                        isMe={isMe}
+                      />
+                      <span
+                        className={`text-xs mt-1 block ${
+                          isMe
+                            ? "text-cyan-100"
+                            : isDarkMode
+                            ? "text-gray-400"
+                            : "text-cyan-600"
+                        }`}
+                      >
+                        {msg.timestamp.toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          );
-        })
-      )}
-      <div ref={messagesEndRef} />
-    </div>
+            );
+          })
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+    </>
   );
 }
