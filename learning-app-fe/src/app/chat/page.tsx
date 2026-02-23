@@ -101,6 +101,7 @@ function ChatPageInner() {
   const pathname = usePathname();
 
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [contactsTabKey, setContactsTabKey] = useState<string>("INBOX");
   const [message, setMessage] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [attachmentPreview, setAttachmentPreview] = useState<{
@@ -154,6 +155,7 @@ function ChatPageInner() {
               timestamp: group.lastMessageTime || "",
               roomType: "GROUP",
             });
+            setContactsTabKey("GROUP");
             return; // đã tìm thấy, dừng
           }
         }
@@ -331,15 +333,14 @@ function ChatPageInner() {
 
           <div className="flex-1 flex overflow-hidden">
             <ContactsList
+              key={contactsTabKey}
               selectedContact={selectedContact}
               isConnected={isConnected}
               searchQuery=""
               isDarkMode={isDarkMode}
               onSearchChange={() => {}}
               onSelectContact={handleSelectContact}
-              initialTab={
-                selectedContact?.roomType === "GROUP" ? "GROUP" : "INBOX"
-              }
+              initialTab={contactsTabKey as "INBOX" | "GROUP"}
             />
 
             <ChatArea
