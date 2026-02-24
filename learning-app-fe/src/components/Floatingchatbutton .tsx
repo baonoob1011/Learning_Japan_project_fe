@@ -123,6 +123,49 @@ function MessageContent({
   );
 }
 
+// Avatar component với fallback initials khi ảnh lỗi
+function SenderAvatar({
+  avatar,
+  name,
+  size = "sm",
+}: {
+  avatar: string;
+  name: string;
+  size?: "sm" | "md";
+}) {
+  const [imgError, setImgError] = useState(false);
+  const initials = name
+    .split(" ")
+    .slice(-2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  const sizeClass = size === "sm" ? "w-6 h-6 text-[9px]" : "w-8 h-8 text-xs";
+
+  if (imgError || !avatar || avatar === "/default-avatar.png") {
+    return (
+      <div
+        className={`${sizeClass} rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center font-bold text-white shrink-0`}
+        title={name}
+      >
+        {initials || "?"}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={avatar}
+      alt={name}
+      title={name}
+      className={`${sizeClass} rounded-full object-cover shrink-0`}
+      onError={() => setImgError(true)}
+    />
+  );
+}
+
 export default function FloatingChatButton({
   isDarkMode = false,
 }: FloatingChatButtonProps) {
@@ -140,9 +183,17 @@ export default function FloatingChatButton({
   const [showCall, setShowCall] = useState(false);
   const [currentUserName, setCurrentUserName] = useState("");
   const [currentUserAvatar, setCurrentUserAvatar] = useState("");
+
+  // senderId → name
   const [senderNameMap, setSenderNameMap] = useState<Record<string, string>>(
     {}
   );
+  // senderId → avatarUrl (fetch từ userService nếu cần)
+  const [senderAvatarMap, setSenderAvatarMap] = useState<
+    Record<string, string>
+  >({});
+  // Set các senderId đã được fetch hoặc đang fetch (tránh duplicate)
+  const fetchingAvatars = useRef<Set<string>>(new Set());
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -174,7 +225,50 @@ export default function FloatingChatButton({
     ...socketMapped.filter((m) => !historyIds.has(m.id)),
   ];
 
-  // ── Fetch inbox ────────────────────────────────────────────────────────
+  // ── Fetch avatar của sender nếu chưa có ──────────────────────────────
+  const fetchSenderAvatar = useCallback(
+    (senderId: string) => {
+      if (
+        !senderId ||
+        senderId === String(currentUserId) ||
+        senderAvatarMap[senderId] ||
+        fetchingAvatars.current.has(senderId)
+      )
+        return;
+      fetchingAvatars.current.add(senderId);
+      userService
+        .getUserById(senderId)
+        .then((profile) => {
+          setSenderAvatarMap((prev) => ({
+            ...prev,
+            [senderId]: profile.avatarUrl ?? "",
+          }));
+          // Cập nhật tên nếu chưa có
+          if (profile.fullName) {
+            setSenderNameMap((prev) =>
+              prev[senderId] ? prev : { ...prev, [senderId]: profile.fullName }
+            );
+          }
+        })
+        .catch(() => {
+          // giữ nguyên, SenderAvatar sẽ fallback initials
+        });
+    },
+    [currentUserId, senderAvatarMap]
+  );
+
+  // Fetch avatars cho tất cả sender chưa có khi messages thay đổi
+  useEffect(() => {
+    if (!selectedContact?.isGroup) return;
+    messages.forEach((msg) => {
+      if (String(msg.senderId) !== String(currentUserId)) {
+        fetchSenderAvatar(msg.senderId);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages.length, selectedContact?.id]);
+
+  // ── Fetch inbox ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!isOpen || hasFetchedInbox.current) return;
     hasFetchedInbox.current = true;
@@ -206,7 +300,7 @@ export default function FloatingChatButton({
     };
   }, [isOpen]);
 
-  // ── Fetch group ────────────────────────────────────────────────────────
+  // ── Fetch group ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!isOpen || hasFetchedGroup.current) return;
     hasFetchedGroup.current = true;
@@ -235,7 +329,7 @@ export default function FloatingChatButton({
     };
   }, [isOpen]);
 
-  // ── Fetch history ──────────────────────────────────────────────────────
+  // ── Fetch history + build name map ──────────────────────────────────
   useEffect(() => {
     if (!selectedContact?.id) {
       setHistoryMessages([]);
@@ -244,6 +338,9 @@ export default function FloatingChatButton({
     let cancelled = false;
     setHistoryMessages([]);
     setIsLoadingMessages(true);
+    // Reset avatar fetching khi đổi phòng
+    fetchingAvatars.current = new Set();
+    setSenderAvatarMap({});
     async function run() {
       try {
         const page = await roomService.getMessages(selectedContact!.id, 0, 50);
@@ -251,6 +348,7 @@ export default function FloatingChatButton({
         const history = [...(page.content ?? [])].reverse().map(mapApiMsg);
         setHistoryMessages(history);
 
+        // Build name map từ history
         const nameMap: Record<string, string> = {};
         (page.content ?? []).forEach((m: ChatMessageResponse) => {
           if (m.senderId && m.senderName) {
@@ -270,16 +368,18 @@ export default function FloatingChatButton({
     };
   }, [selectedContact?.id]);
 
-  // ── Reset khi đóng ─────────────────────────────────────────────────────
+  // ── Reset khi đóng ───────────────────────────────────────────────────
   useEffect(() => {
     if (!isOpen) {
       hasFetchedInbox.current = false;
       hasFetchedGroup.current = false;
+      fetchingAvatars.current = new Set();
       setSelectedContact(null);
       setHistoryMessages([]);
       setActiveTab("GROUP");
       setInputMessage("");
       setSenderNameMap({});
+      setSenderAvatarMap({});
     }
   }, [isOpen]);
 
@@ -326,7 +426,6 @@ export default function FloatingChatButton({
 
   const dark = isDarkMode;
   const currentContacts = activeTab === "INBOX" ? inboxContacts : groupContacts;
-
   const canSend = !!inputMessage.trim() && isConnected && !!selectedContact;
 
   return (
@@ -338,10 +437,9 @@ export default function FloatingChatButton({
           }`}
           style={{ height: "500px" }}
         >
-          {/* Header */}
+          {/* ── Header ─────────────────────────────────────────────── */}
           <div className="shrink-0 bg-gradient-to-r from-cyan-400 to-cyan-500">
             <div className="flex items-center gap-2 px-3 pt-3 pb-2">
-              {/* Dropdown selector */}
               <div className="flex-1 relative" ref={dropdownRef}>
                 <button
                   onClick={() => setShowContactDropdown((v) => !v)}
@@ -497,11 +595,10 @@ export default function FloatingChatButton({
                 <X size={16} className="text-white" />
               </button>
             </div>
-
-            <div className="px-3 pb-2 flex items-center gap-1.5"></div>
+            <div className="px-3 pb-2 flex items-center gap-1.5" />
           </div>
 
-          {/* Messages */}
+          {/* ── Messages ───────────────────────────────────────────── */}
           <div
             className={`flex-1 overflow-y-auto p-3 space-y-2 ${
               dark ? "bg-gray-900 scrollbar-dark" : "bg-gray-50 scrollbar-light"
@@ -551,34 +648,38 @@ export default function FloatingChatButton({
                 const showName =
                   selectedContact.isGroup && !isMe && displayName;
 
+                // ✅ Avatar riêng: fetch từ userService, fallback initials
+                const memberAvatar = senderAvatarMap[msg.senderId] ?? "";
+
                 return (
                   <div
                     key={`${msg.id}-${i}`}
                     className={`flex ${isMe ? "justify-end" : "justify-start"}`}
                   >
+                    {/* ✅ Avatar riêng của người gửi trong nhóm */}
                     {!isMe && (
-                      <img
-                        src={selectedContact.avatar}
-                        className="w-6 h-6 rounded-full object-cover mr-1 self-end shrink-0"
-                        alt=""
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            "/default-avatar.png";
-                        }}
-                      />
+                      <div className="mr-1.5 self-end shrink-0">
+                        <SenderAvatar
+                          avatar={memberAvatar}
+                          name={displayName || "?"}
+                          size="sm"
+                        />
+                      </div>
                     )}
+
                     <div
                       className={`flex flex-col gap-0.5 ${
                         isMe ? "items-end" : "items-start"
                       }`}
                     >
+                      {/* ✅ Tên + avatar cùng dòng cho group */}
                       {showName && (
                         <span className="text-[10px] font-semibold text-cyan-400 px-1">
                           {displayName}
                         </span>
                       )}
                       <div
-                        className={`w-fit max-w-[220px] px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm ${
+                        className={`w-fit max-w-[210px] px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm ${
                           isMe
                             ? "bg-gradient-to-br from-cyan-500 to-cyan-600 text-white rounded-br-sm"
                             : dark
@@ -613,38 +714,41 @@ export default function FloatingChatButton({
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
+          {/* ── Input ──────────────────────────────────────────────── */}
           <div
-            className={`px-3 py-2.5 border-t shrink-0 flex items-center gap-2 ${
+            className={`px-3 py-2.5 border-t shrink-0 ${
               dark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"
             }`}
           >
-            <input
-              type="text"
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={
-                selectedContact ? "Nhập tin nhắn..." : "Chọn cuộc trò chuyện..."
-              }
-              disabled={!isConnected || !selectedContact}
-              className={`flex-1 text-xs px-3 py-2 rounded-full border focus:outline-none focus:ring-2 focus:ring-cyan-400 transition disabled:opacity-50 ${
-                dark
-                  ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
-                  : "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
-              }`}
-            />
-
-            {/* ✅ Send button với bounce animation khi active */}
-            <button
-              onClick={handleSend}
-              disabled={!canSend}
-              className={`w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-500 flex items-center justify-center shrink-0 disabled:opacity-40 transition-all ${
-                canSend ? "animate-bounce-send hover:scale-110" : ""
-              }`}
-            >
-              <Send size={13} className="text-white" />
-            </button>
+            <div className="flex flex-row items-center gap-2">
+              <input
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder={
+                  selectedContact
+                    ? "Nhập tin nhắn..."
+                    : "Chọn cuộc trò chuyện..."
+                }
+                disabled={!isConnected || !selectedContact}
+                className={`flex-1 min-w-0 text-xs px-3 py-2 rounded-full border focus:outline-none focus:ring-2 focus:ring-cyan-400 transition disabled:opacity-50 ${
+                  dark
+                    ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
+                    : "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
+                }`}
+              />
+              {/* ✅ Nút gửi cố định kích thước, bounce khi canSend */}
+              <button
+                onClick={handleSend}
+                disabled={!canSend}
+                className={`flex-none w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-500 flex items-center justify-center disabled:opacity-40 transition-all ${
+                  canSend ? "animate-bounce-send hover:brightness-110" : ""
+                }`}
+              >
+                <Send size={13} className="text-white" />
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -665,7 +769,7 @@ export default function FloatingChatButton({
         />
       )}
 
-      {/* ✅ Floating Chat Button với bounce animation như NIBO AI */}
+      {/* ✅ Floating button bounce như NIBO AI */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
         className="group relative transition-all duration-300 hover:scale-110"
@@ -688,7 +792,6 @@ export default function FloatingChatButton({
       </button>
 
       <style jsx>{`
-        /* ── Slide up animation khi mở chat ── */
         @keyframes slide-up {
           from {
             opacity: 0;
@@ -703,7 +806,6 @@ export default function FloatingChatButton({
           animation: slide-up 0.22s ease-out;
         }
 
-        /* ── Bounce slow: nút chat icon nhảy lên xuống liên tục ── */
         @keyframes bounce-slow {
           0%,
           100% {
@@ -717,7 +819,6 @@ export default function FloatingChatButton({
           animation: bounce-slow 2s ease-in-out infinite;
         }
 
-        /* ── Bounce send: nút gửi tin nhắn nhảy khi có nội dung ── */
         @keyframes bounce-send {
           0%,
           100% {
@@ -737,7 +838,6 @@ export default function FloatingChatButton({
           animation: bounce-send 0.8s ease-in-out infinite;
         }
 
-        /* ── Scrollbar Dark Mode ── */
         .scrollbar-dark::-webkit-scrollbar {
           width: 4px;
         }
@@ -753,7 +853,6 @@ export default function FloatingChatButton({
           background: #4b5563;
         }
 
-        /* ── Scrollbar Light Mode ── */
         .scrollbar-light::-webkit-scrollbar {
           width: 4px;
         }
