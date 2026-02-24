@@ -497,18 +497,18 @@ export default function FloatingChatButton({
             </div>
 
             <div className="px-3 pb-2 flex items-center gap-1.5">
-              <div
+              {/* <div
                 className={`w-1.5 h-1.5 rounded-full transition-colors ${
                   isConnected ? "bg-emerald-300" : "bg-gray-300"
                 }`}
-              />
-              <span className="text-cyan-100 text-[10px]">
+              /> */}
+              {/* <span className="text-cyan-100 text-[10px]">
                 {selectedContact
                   ? isConnected
                     ? "Đang kết nối"
                     : "Đang kết nối..."
                   : "Chọn cuộc trò chuyện"}
-              </span>
+              </span> */}
             </div>
           </div>
 
