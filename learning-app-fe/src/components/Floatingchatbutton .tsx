@@ -34,11 +34,11 @@ interface Message {
   id: string;
   text: string;
   senderId: string;
-  senderName?: string; // ✅ tên người gửi cho group
+  senderName?: string;
   timestamp: Date;
 }
 
-type Tab = "GROUP" | "INBOX"; // ✅ GROUP first
+type Tab = "GROUP" | "INBOX";
 
 interface FloatingChatButtonProps {
   isDarkMode?: boolean;
@@ -49,7 +49,7 @@ function mapApiMsg(m: ChatMessageResponse): Message {
     id: m.id,
     text: m.content,
     senderId: String(m.senderId),
-    senderName: m.senderName ?? undefined, // ✅ nếu API trả về
+    senderName: m.senderName ?? undefined,
     timestamp: new Date(m.sentAt),
   };
 }
@@ -128,7 +128,7 @@ export default function FloatingChatButton({
 }: FloatingChatButtonProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<Tab>("GROUP"); // ✅ mặc định GROUP
+  const [activeTab, setActiveTab] = useState<Tab>("GROUP");
   const [inboxContacts, setInboxContacts] = useState<Contact[]>([]);
   const [groupContacts, setGroupContacts] = useState<Contact[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -140,8 +140,6 @@ export default function FloatingChatButton({
   const [showCall, setShowCall] = useState(false);
   const [currentUserName, setCurrentUserName] = useState("");
   const [currentUserAvatar, setCurrentUserAvatar] = useState("");
-
-  // ✅ Map senderId → tên: dùng cho hiển thị tên trong nhóm
   const [senderNameMap, setSenderNameMap] = useState<Record<string, string>>(
     {}
   );
@@ -196,7 +194,6 @@ export default function FloatingChatButton({
           isGroup: false,
         }));
         setInboxContacts(mapped);
-        // ✅ Khi mở, tab mặc định là GROUP nên không auto-select inbox
       } catch {
         if (!cancelled) setInboxContacts([]);
       } finally {
@@ -227,7 +224,6 @@ export default function FloatingChatButton({
           isGroup: true,
         }));
         setGroupContacts(mapped);
-        // ✅ Auto-select nhóm đầu tiên vì tab GROUP là mặc định
         if (mapped.length > 0) setSelectedContact(mapped[0]);
       } catch {
         if (!cancelled) setGroupContacts([]);
@@ -255,7 +251,6 @@ export default function FloatingChatButton({
         const history = [...(page.content ?? [])].reverse().map(mapApiMsg);
         setHistoryMessages(history);
 
-        // ✅ Build senderNameMap từ history nếu API trả về senderName
         const nameMap: Record<string, string> = {};
         (page.content ?? []).forEach((m: ChatMessageResponse) => {
           if (m.senderId && m.senderName) {
@@ -282,7 +277,7 @@ export default function FloatingChatButton({
       hasFetchedGroup.current = false;
       setSelectedContact(null);
       setHistoryMessages([]);
-      setActiveTab("GROUP"); // ✅ reset về GROUP
+      setActiveTab("GROUP");
       setInputMessage("");
       setSenderNameMap({});
     }
@@ -364,7 +359,6 @@ export default function FloatingChatButton({
                       <span className="text-white font-semibold text-sm truncate flex-1 text-left">
                         {selectedContact.name}
                       </span>
-                      {/* ✅ Badge nhóm */}
                       {selectedContact.isGroup && (
                         <span className="text-[9px] bg-white/25 text-white px-1.5 py-0.5 rounded-full shrink-0">
                           Nhóm
@@ -394,7 +388,6 @@ export default function FloatingChatButton({
                         : "bg-white border-cyan-100"
                     }`}
                   >
-                    {/* ✅ Tabs: GROUP trước INBOX */}
                     <div
                       className={`flex border-b ${
                         dark ? "border-gray-700" : "border-gray-100"
@@ -423,7 +416,11 @@ export default function FloatingChatButton({
                       ))}
                     </div>
 
-                    <div className="max-h-52 overflow-y-auto">
+                    <div
+                      className={`max-h-52 overflow-y-auto ${
+                        dark ? "scrollbar-dark" : "scrollbar-light"
+                      }`}
+                    >
                       {currentContacts.length === 0 ? (
                         <p className="text-xs text-center py-5 text-gray-400">
                           {isLoadingContacts
@@ -518,7 +515,7 @@ export default function FloatingChatButton({
           {/* Messages */}
           <div
             className={`flex-1 overflow-y-auto p-3 space-y-2 ${
-              dark ? "bg-gray-900" : "bg-gray-50"
+              dark ? "bg-gray-900 scrollbar-dark" : "bg-gray-50 scrollbar-light"
             }`}
           >
             {isLoadingContacts || isLoadingMessages ? (
@@ -560,7 +557,6 @@ export default function FloatingChatButton({
             ) : (
               messages.map((msg, i) => {
                 const isMe = String(msg.senderId) === String(currentUserId);
-                // ✅ Lấy tên người gửi từ map (cho nhóm)
                 const displayName =
                   senderNameMap[msg.senderId] ?? msg.senderName ?? "";
                 const showName =
@@ -582,15 +578,20 @@ export default function FloatingChatButton({
                         }}
                       />
                     )}
-                    <div className="flex flex-col gap-0.5">
-                      {/* ✅ Tên người gửi trong nhóm */}
+                    {/* ✅ FIX: items-end khi isMe để card YouTube căn phải */}
+                    <div
+                      className={`flex flex-col gap-0.5 ${
+                        isMe ? "items-end" : "items-start"
+                      }`}
+                    >
                       {showName && (
                         <span className="text-[10px] font-semibold text-cyan-400 px-1">
                           {displayName}
                         </span>
                       )}
+                      {/* ✅ FIX: w-fit để bubble không chiếm full width */}
                       <div
-                        className={`max-w-[72%] px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm ${
+                        className={`w-fit max-w-[220px] px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm ${
                           isMe
                             ? "bg-gradient-to-br from-cyan-500 to-cyan-600 text-white rounded-br-sm"
                             : dark
@@ -710,6 +711,38 @@ export default function FloatingChatButton({
         }
         .animate-slide-up {
           animation: slide-up 0.22s ease-out;
+        }
+
+        /* ✅ Scrollbar Dark Mode */
+        .scrollbar-dark::-webkit-scrollbar {
+          width: 4px;
+        }
+        .scrollbar-dark::-webkit-scrollbar-track {
+          background: #111827;
+          border-radius: 999px;
+        }
+        .scrollbar-dark::-webkit-scrollbar-thumb {
+          background: #374151;
+          border-radius: 999px;
+        }
+        .scrollbar-dark::-webkit-scrollbar-thumb:hover {
+          background: #4b5563;
+        }
+
+        /* ✅ Scrollbar Light Mode */
+        .scrollbar-light::-webkit-scrollbar {
+          width: 4px;
+        }
+        .scrollbar-light::-webkit-scrollbar-track {
+          background: #f0fdfe;
+          border-radius: 999px;
+        }
+        .scrollbar-light::-webkit-scrollbar-thumb {
+          background: #a5f3fc;
+          border-radius: 999px;
+        }
+        .scrollbar-light::-webkit-scrollbar-thumb:hover {
+          background: #06b6d4;
         }
       `}</style>
     </div>
