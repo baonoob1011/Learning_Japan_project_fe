@@ -11,8 +11,8 @@ import { YoutubePlayerHandle } from "@/components/videoYTB/YoutubePlayer";
 import AutoScrollToggle from "@/components/AutoScrollToggle";
 import PronunciationPractice from "@/components/PronunciationPractice";
 import VocabularySidebar from "@/components/videoYTB/VocabularySidebar";
-import MaziAIChat from "@/components/NiboChatAI"; // ✅ Import MaziAIChat
 import { JLPTLevel, VideoTag } from "@/types/video";
+import VideoExercise from "@/components/videoYTB/Videoexercise";
 
 import {
   Video,
@@ -31,7 +31,7 @@ import {
   TranscriptDTO,
 } from "@/services/transcriptService";
 
-type ViewMode = "video" | "dictation" | "pronunciation";
+type ViewMode = "video" | "dictation" | "pronunciation" | "exercise";
 
 function VideoLearningContent({ videoId }: { videoId: string }) {
   const router = useRouter();
@@ -108,7 +108,7 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
     [transcripts, currentTimeMs]
   );
 
-  // ✅ NEW: Tracking progress chỉ khi đang phát thật sự
+  // Tracking progress chỉ khi đang phát thật sự
   useEffect(() => {
     if (!videoId) return;
 
@@ -124,7 +124,6 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
 
     const deltaVideoMs = currentTimeMs - lastVideoTimeRef.current;
 
-    // ❌ bỏ qua seek, tua, lag
     if (deltaVideoMs <= 0 || deltaVideoMs > 1500) {
       lastVideoTimeRef.current = currentTimeMs;
       return;
@@ -285,6 +284,7 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
         />
 
         <div className="flex-1 flex flex-col overflow-hidden">
+          {/* ── Top Nav Bar ── */}
           <div
             className={`backdrop-blur-sm border-b px-6 py-4 flex items-center justify-center flex-shrink-0 relative shadow-lg transition-colors duration-300 z-50 ${
               isDarkMode
@@ -347,25 +347,17 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
               </button>
 
               <button
+                onClick={() => setViewMode("exercise")}
                 className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all border-2 ${
-                  isDarkMode
+                  viewMode === "exercise"
+                    ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg border-transparent"
+                    : isDarkMode
                     ? "text-gray-300 hover:bg-gray-700 bg-gray-800 border-gray-600"
                     : "text-gray-700 hover:bg-cyan-50 bg-white border-cyan-100"
                 }`}
               >
                 <span className="text-lg">❓</span>
                 <span>Bài tập</span>
-              </button>
-
-              <button
-                className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all border-2 ${
-                  isDarkMode
-                    ? "text-gray-300 hover:bg-gray-700 bg-gray-800 border-gray-600"
-                    : "text-gray-700 hover:bg-cyan-50 bg-white border-cyan-100"
-                }`}
-              >
-                <span className="text-lg">📊</span>
-                <span>So đồ</span>
               </button>
             </div>
 
@@ -377,6 +369,7 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
             </div>
           </div>
 
+          {/* ── Main Content Area ── */}
           <div className="flex-1 flex overflow-hidden relative">
             {showVocabSidebar && (
               <VocabularySidebar
@@ -420,9 +413,11 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
               </button>
             )}
 
+            {/* Video Player — hiện cho tất cả các mode */}
             {(viewMode === "video" ||
               viewMode === "dictation" ||
-              viewMode === "pronunciation") && (
+              viewMode === "pronunciation" ||
+              viewMode === "exercise") && (
               <VideoPlayerSection
                 key={`player-${videoId}`}
                 playerRef={playerRef}
@@ -434,7 +429,9 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
                 onTimeUpdate={setCurrentTimeMs}
                 onPlayingChange={setIsPlaying}
                 hideWordBar={
-                  viewMode === "dictation" || viewMode === "pronunciation"
+                  viewMode === "dictation" ||
+                  viewMode === "pronunciation" ||
+                  viewMode === "exercise"
                 }
                 onVocabSaved={handleVocabSaved}
                 isDarkMode={isDarkMode}
@@ -443,6 +440,7 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
               />
             )}
 
+            {/* ── Video Mode: Transcript Sidebar ── */}
             {viewMode === "video" && (
               <div
                 className={`w-96 backdrop-blur-sm border-l flex flex-col flex-shrink-0 shadow-xl transition-colors duration-300 relative z-10 ${
@@ -625,6 +623,7 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
               </div>
             )}
 
+            {/* ── Dictation Mode ── */}
             {viewMode === "dictation" && (
               <DictationPractice
                 key={`dictation-${videoId}`}
@@ -635,12 +634,22 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
               />
             )}
 
+            {/* ── Pronunciation Mode ── */}
             {viewMode === "pronunciation" && (
               <PronunciationPractice
                 key={`pronunciation-${videoId}`}
                 transcripts={transcripts}
                 videoId={videoId}
                 playerRef={playerRef}
+                isDarkMode={isDarkMode}
+              />
+            )}
+
+            {/* ── Exercise Mode ── */}
+            {viewMode === "exercise" && (
+              <VideoExercise
+                key={`exercise-${videoId}`}
+                videoId={videoId}
                 isDarkMode={isDarkMode}
               />
             )}
@@ -666,9 +675,6 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
           }
         `}</style>
       </div>
-
-      {/* ✅ MAZI AI Chat Component */}
-      <MaziAIChat isDarkMode={isDarkMode} />
     </>
   );
 }

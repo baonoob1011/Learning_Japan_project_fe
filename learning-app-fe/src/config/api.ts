@@ -16,6 +16,9 @@ export const API_ENDPOINTS = {
     ALL_USERS: "/admin/users",
     SEARCH: "/users/search", // ✅ thêm dòng này
   },
+  VIDEO_EXERCISE: {
+    GET_BY_VIDEO: (videoId: string) => `/video-exercises/video/${videoId}`,
+  },
   PAYMENT: {
     VNPAY_CREATE: `/payments/vnpay/create`,
 
