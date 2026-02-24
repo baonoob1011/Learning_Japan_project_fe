@@ -327,6 +327,8 @@ export default function FloatingChatButton({
   const dark = isDarkMode;
   const currentContacts = activeTab === "INBOX" ? inboxContacts : groupContacts;
 
+  const canSend = !!inputMessage.trim() && isConnected && !!selectedContact;
+
   return (
     <div className="fixed bottom-28 right-6 z-[9998]">
       {isOpen && (
@@ -496,20 +498,7 @@ export default function FloatingChatButton({
               </button>
             </div>
 
-            <div className="px-3 pb-2 flex items-center gap-1.5">
-              {/* <div
-                className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                  isConnected ? "bg-emerald-300" : "bg-gray-300"
-                }`}
-              /> */}
-              {/* <span className="text-cyan-100 text-[10px]">
-                {selectedContact
-                  ? isConnected
-                    ? "Đang kết nối"
-                    : "Đang kết nối..."
-                  : "Chọn cuộc trò chuyện"}
-              </span> */}
-            </div>
+            <div className="px-3 pb-2 flex items-center gap-1.5"></div>
           </div>
 
           {/* Messages */}
@@ -578,7 +567,6 @@ export default function FloatingChatButton({
                         }}
                       />
                     )}
-                    {/* ✅ FIX: items-end khi isMe để card YouTube căn phải */}
                     <div
                       className={`flex flex-col gap-0.5 ${
                         isMe ? "items-end" : "items-start"
@@ -589,7 +577,6 @@ export default function FloatingChatButton({
                           {displayName}
                         </span>
                       )}
-                      {/* ✅ FIX: w-fit để bubble không chiếm full width */}
                       <div
                         className={`w-fit max-w-[220px] px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm ${
                           isMe
@@ -647,12 +634,14 @@ export default function FloatingChatButton({
                   : "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
               }`}
             />
+
+            {/* ✅ Send button với bounce animation khi active */}
             <button
               onClick={handleSend}
-              disabled={
-                !inputMessage.trim() || !isConnected || !selectedContact
-              }
-              className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-500 flex items-center justify-center shrink-0 disabled:opacity-40 hover:scale-110 transition"
+              disabled={!canSend}
+              className={`w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-500 flex items-center justify-center shrink-0 disabled:opacity-40 transition-all ${
+                canSend ? "animate-bounce-send hover:scale-110" : ""
+              }`}
             >
               <Send size={13} className="text-white" />
             </button>
@@ -676,14 +665,14 @@ export default function FloatingChatButton({
         />
       )}
 
-      {/* Button */}
+      {/* ✅ Floating Chat Button với bounce animation như NIBO AI */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
         className="group relative transition-all duration-300 hover:scale-110"
         title="Chat Room"
       >
         <div className="absolute inset-0 rounded-full bg-purple-400 opacity-20 animate-ping" />
-        <div className="relative w-16 h-16 drop-shadow-2xl">
+        <div className="relative w-16 h-16 drop-shadow-2xl animate-bounce-slow">
           <img
             src="/message.png"
             alt="Chat Room"
@@ -699,6 +688,7 @@ export default function FloatingChatButton({
       </button>
 
       <style jsx>{`
+        /* ── Slide up animation khi mở chat ── */
         @keyframes slide-up {
           from {
             opacity: 0;
@@ -713,7 +703,41 @@ export default function FloatingChatButton({
           animation: slide-up 0.22s ease-out;
         }
 
-        /* ✅ Scrollbar Dark Mode */
+        /* ── Bounce slow: nút chat icon nhảy lên xuống liên tục ── */
+        @keyframes bounce-slow {
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
+        .animate-bounce-slow {
+          animation: bounce-slow 2s ease-in-out infinite;
+        }
+
+        /* ── Bounce send: nút gửi tin nhắn nhảy khi có nội dung ── */
+        @keyframes bounce-send {
+          0%,
+          100% {
+            transform: translateY(0) scale(1);
+          }
+          30% {
+            transform: translateY(-5px) scale(1.08);
+          }
+          60% {
+            transform: translateY(0) scale(0.96);
+          }
+          80% {
+            transform: translateY(-2px) scale(1.03);
+          }
+        }
+        .animate-bounce-send {
+          animation: bounce-send 0.8s ease-in-out infinite;
+        }
+
+        /* ── Scrollbar Dark Mode ── */
         .scrollbar-dark::-webkit-scrollbar {
           width: 4px;
         }
@@ -729,7 +753,7 @@ export default function FloatingChatButton({
           background: #4b5563;
         }
 
-        /* ✅ Scrollbar Light Mode */
+        /* ── Scrollbar Light Mode ── */
         .scrollbar-light::-webkit-scrollbar {
           width: 4px;
         }
