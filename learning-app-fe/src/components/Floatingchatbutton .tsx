@@ -1,16 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import {
-  X,
-  Send,
-  Loader2,
-  Users,
-  ChevronDown,
-  MessageCircle,
-  Phone,
-  PlayCircle,
-} from "lucide-react";
 import { useChatSocket } from "@/hooks/useChatSocket";
 import { getUserIdFromToken } from "@/utils/jwt";
 import {
@@ -22,9 +12,17 @@ import { userService } from "@/services/userService";
 import { CallModal } from "@/components/chat/CallModal";
 import { useIncomingCall } from "@/hooks/Useincomingcall";
 
+import {
+  ChatContactDropdown,
+  ChatMessageList,
+  ChatInputBar,
+} from "@/components/chat/floating";
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
 interface Contact {
-  id: string;        // roomId
-  userId?: string;   // actual userId (for private chat → needed for call notification)
+  id: string;
+  userId?: string;
   name: string;
   avatar: string;
   lastMessage: string;
@@ -46,6 +44,8 @@ interface FloatingChatButtonProps {
   isDarkMode?: boolean;
 }
 
+// ─── Helper ──────────────────────────────────────────────────────────────────
+
 function mapApiMsg(m: ChatMessageResponse): Message {
   return {
     id: m.id,
@@ -56,115 +56,7 @@ function mapApiMsg(m: ChatMessageResponse): Message {
   };
 }
 
-const YT_REGEX =
-  /https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([\w-]+)|https?:\/\/youtu\.be\/([\w-]+)/g;
-
-function extractYoutubeId(url: string): string | null {
-  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
-  return m ? m[1] : null;
-}
-
-function MessageContent({
-  text,
-  isMe,
-  onNavigate,
-}: {
-  text: string;
-  isMe: boolean;
-  onNavigate: (path: string) => void;
-}) {
-  const ytMatches = Array.from(new Set(text.match(YT_REGEX) || []));
-  if (ytMatches.length === 0) {
-    return (
-      <p className="text-xs leading-relaxed whitespace-pre-wrap">{text}</p>
-    );
-  }
-  const plainText = text.replace(YT_REGEX, "").trim();
-  return (
-    <div className="space-y-1.5">
-      {plainText && (
-        <p className="text-xs leading-relaxed whitespace-pre-wrap">
-          {plainText}
-        </p>
-      )}
-      {ytMatches.map((url) => {
-        const videoId = extractYoutubeId(url);
-        if (!videoId) return null;
-        const thumb = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-        return (
-          <button
-            key={url}
-            onClick={() => onNavigate(`/video/${videoId}`)}
-            className={`w-full text-left rounded-xl overflow-hidden border transition-all hover:scale-[1.02] hover:shadow-lg ${isMe
-              ? "border-white/20 bg-white/10"
-              : "border-gray-600 bg-gray-700"
-              }`}
-          >
-            <div className="relative">
-              <img
-                src={thumb}
-                alt="video"
-                className="w-full h-24 object-cover"
-              />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                <PlayCircle className="w-8 h-8 text-white drop-shadow-lg" />
-              </div>
-            </div>
-            <div
-              className={`px-2 py-1.5 text-[10px] font-medium truncate ${isMe ? "text-white/90" : "text-gray-200"
-                }`}
-            >
-              {url}
-            </div>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-// Avatar component với fallback initials khi ảnh lỗi
-function SenderAvatar({
-  avatar,
-  name,
-  size = "sm",
-}: {
-  avatar: string;
-  name: string;
-  size?: "sm" | "md";
-}) {
-  const [imgError, setImgError] = useState(false);
-  const initials = name
-    .split(" ")
-    .slice(-2)
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-
-  const sizeClass = size === "sm" ? "w-6 h-6 text-[9px]" : "w-8 h-8 text-xs";
-
-  if (imgError || !avatar || avatar === "/default-avatar.png") {
-    return (
-      <div
-        className={`${sizeClass} rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center font-bold text-white shrink-0`}
-        title={name}
-      >
-        {initials || "?"}
-      </div>
-    );
-  }
-
-  return (
-    <img
-      src={avatar}
-      alt={name}
-      title={name}
-      className={`${sizeClass} rounded-full object-cover shrink-0`}
-      onError={() => setImgError(true)}
-    />
-  );
-}
+// ─── Main Component ──────────────────────────────────────────────────────────
 
 export default function FloatingChatButton({
   isDarkMode = false,
@@ -183,29 +75,19 @@ export default function FloatingChatButton({
   const [showCall, setShowCall] = useState(false);
   const [currentUserName, setCurrentUserName] = useState("");
   const [currentUserAvatar, setCurrentUserAvatar] = useState("");
-
-  // senderId → name
-  const [senderNameMap, setSenderNameMap] = useState<Record<string, string>>(
-    {}
-  );
-  // senderId → avatarUrl (fetch từ userService nếu cần)
-  const [senderAvatarMap, setSenderAvatarMap] = useState<
-    Record<string, string>
-  >({});
-  // Set các senderId đã được fetch hoặc đang fetch (tránh duplicate)
+  const [senderNameMap, setSenderNameMap] = useState<Record<string, string>>({});
+  const [senderAvatarMap, setSenderAvatarMap] = useState<Record<string, string>>({});
   const fetchingAvatars = useRef<Set<string>>(new Set());
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const hasFetchedInbox = useRef(false);
   const hasFetchedGroup = useRef(false);
   const currentUserId = getUserIdFromToken();
 
-  // ── Incoming call (receiver side) ─────────────────────────────────
   const { incomingCall, dismissCall } = useIncomingCall(
     currentUserId ? String(currentUserId) : null
   );
 
+  // ── Load current user profile ────────────────────────────────────────────
   useEffect(() => {
     if (!currentUserId) return;
     userService
@@ -217,11 +99,10 @@ export default function FloatingChatButton({
       .catch(console.error);
   }, [currentUserId]);
 
-  const {
-    messages: socketMessages,
-    isConnected,
-    sendMessage,
-  } = useChatSocket(selectedContact?.id || null);
+  // ── Socket ───────────────────────────────────────────────────────────────
+  const { messages: socketMessages, isConnected, sendMessage } = useChatSocket(
+    selectedContact?.id || null
+  );
 
   const socketMapped: Message[] = socketMessages.map(mapApiMsg);
   const historyIds = new Set(historyMessages.map((m) => m.id));
@@ -230,7 +111,7 @@ export default function FloatingChatButton({
     ...socketMapped.filter((m) => !historyIds.has(m.id)),
   ];
 
-  // ── Fetch avatar của sender nếu chưa có ──────────────────────────────
+  // ── Fetch sender avatar (group only) ─────────────────────────────────────
   const fetchSenderAvatar = useCallback(
     (senderId: string) => {
       if (
@@ -248,23 +129,19 @@ export default function FloatingChatButton({
             ...prev,
             [senderId]: profile.avatarUrl ?? "",
           }));
-          // Cập nhật tên nếu chưa có
           if (profile.fullName) {
             setSenderNameMap((prev) =>
               prev[senderId] ? prev : { ...prev, [senderId]: profile.fullName }
             );
           }
         })
-        .catch(() => {
-          // giữ nguyên, SenderAvatar sẽ fallback initials
-        });
+        .catch(() => { });
     },
     [currentUserId, senderAvatarMap]
   );
 
-  // Fetch avatars cho tất cả sender chưa có khi messages thay đổi
   useEffect(() => {
-    if (!selectedContact?.isGroup) return; // chỉ cần fetch cho group (inbox dùng selectedContact.avatar)
+    if (!selectedContact?.isGroup) return;
     messages.forEach((msg) => {
       if (String(msg.senderId) !== String(currentUserId)) {
         fetchSenderAvatar(msg.senderId);
@@ -273,7 +150,7 @@ export default function FloatingChatButton({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages.length, selectedContact?.id]);
 
-  // ── Fetch inbox ──────────────────────────────────────────────────────
+  // ── Fetch inbox ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!isOpen || hasFetchedInbox.current) return;
     hasFetchedInbox.current = true;
@@ -286,7 +163,7 @@ export default function FloatingChatButton({
         if (cancelled) return;
         const mapped: Contact[] = data.map((p) => ({
           id: p.roomId,
-          userId: p.userId,   // ✅ lưu userId thật cho call notification
+          userId: p.userId,
           name: p.fullName,
           avatar: p.avatarUrl ?? "/default-avatar.png",
           lastMessage: p.lastMessage ?? "",
@@ -301,12 +178,10 @@ export default function FloatingChatButton({
       }
     }
     run();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [isOpen]);
 
-  // ── Fetch group ──────────────────────────────────────────────────────
+  // ── Fetch groups ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (!isOpen || hasFetchedGroup.current) return;
     hasFetchedGroup.current = true;
@@ -330,12 +205,10 @@ export default function FloatingChatButton({
       }
     }
     run();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [isOpen]);
 
-  // ── Fetch history + build name map ──────────────────────────────────
+  // ── Fetch message history ─────────────────────────────────────────────────
   useEffect(() => {
     if (!selectedContact?.id) {
       setHistoryMessages([]);
@@ -344,7 +217,6 @@ export default function FloatingChatButton({
     let cancelled = false;
     setHistoryMessages([]);
     setIsLoadingMessages(true);
-    // Reset avatar fetching khi đổi phòng
     fetchingAvatars.current = new Set();
     setSenderAvatarMap({});
     async function run() {
@@ -353,8 +225,6 @@ export default function FloatingChatButton({
         if (cancelled) return;
         const history = [...(page.content ?? [])].reverse().map(mapApiMsg);
         setHistoryMessages(history);
-
-        // Build name map từ history
         const nameMap: Record<string, string> = {};
         (page.content ?? []).forEach((m: ChatMessageResponse) => {
           if (m.senderId && m.senderName) {
@@ -369,12 +239,10 @@ export default function FloatingChatButton({
       }
     }
     run();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [selectedContact?.id]);
 
-  // ── Reset khi đóng ───────────────────────────────────────────────────
+  // ── Reset on close ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!isOpen) {
       hasFetchedInbox.current = false;
@@ -389,35 +257,12 @@ export default function FloatingChatButton({
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length]);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
-        setShowContactDropdown(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
+  // ── Handlers ──────────────────────────────────────────────────────────────
   const handleSend = useCallback(() => {
     if (!inputMessage.trim() || !isConnected || !selectedContact) return;
     sendMessage(inputMessage.trim());
     setInputMessage("");
   }, [inputMessage, isConnected, selectedContact, sendMessage]);
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
 
   const handleSelectContact = (c: Contact) => {
     setSelectedContact(c);
@@ -430,321 +275,66 @@ export default function FloatingChatButton({
     setSelectedContact(list.length > 0 ? list[0] : null);
   };
 
-  const dark = isDarkMode;
-  const currentContacts = activeTab === "INBOX" ? inboxContacts : groupContacts;
-  const canSend = !!inputMessage.trim() && isConnected && !!selectedContact;
+  const currentContacts =
+    activeTab === "INBOX" ? inboxContacts : groupContacts;
 
+  // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="fixed bottom-20 right-5 z-[9998]">
+      {/* ── Chat Panel ──────────────────────────────────────────────────── */}
       {isOpen && (
         <div
-          className={`absolute bottom-20 right-0 w-80 rounded-2xl shadow-2xl border flex flex-col overflow-hidden animate-slide-up ${dark ? "bg-gray-800 border-gray-700" : "bg-white border-cyan-100"
+          className={`absolute bottom-16 right-0 w-80 rounded-2xl shadow-2xl border flex flex-col overflow-hidden animate-slide-up ${isDarkMode
+              ? "bg-gray-800 border-gray-700"
+              : "bg-white border-cyan-100"
             }`}
           style={{ height: "500px" }}
         >
-          {/* ── Header ─────────────────────────────────────────────── */}
-          <div className="shrink-0 bg-gradient-to-r from-cyan-400 to-cyan-500">
-            <div className="flex items-center gap-2 px-3 pt-3 pb-2">
-              <div className="flex-1 relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setShowContactDropdown((v) => !v)}
-                  className="w-full flex items-center gap-2 bg-white/20 hover:bg-white/30 rounded-xl px-2.5 py-1.5 transition"
-                >
-                  {selectedContact ? (
-                    <>
-                      <img
-                        src={selectedContact.avatar}
-                        alt={selectedContact.name}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            "/default-avatar.png";
-                        }}
-                        className="w-6 h-6 rounded-full object-cover shrink-0"
-                      />
-                      <span className="text-white font-semibold text-sm truncate flex-1 text-left">
-                        {selectedContact.name}
-                      </span>
-                      {selectedContact.isGroup && (
-                        <span className="text-[9px] bg-white/25 text-white px-1.5 py-0.5 rounded-full shrink-0">
-                          Nhóm
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    <span className="text-cyan-100 text-sm flex-1 text-left">
-                      {isLoadingContacts
-                        ? "Đang tải..."
-                        : "Chọn cuộc trò chuyện"}
-                    </span>
-                  )}
-                  <ChevronDown
-                    size={14}
-                    className={`text-white shrink-0 transition-transform ${showContactDropdown ? "rotate-180" : ""
-                      }`}
-                  />
-                </button>
+          {/* Header / Contact Dropdown */}
+          <ChatContactDropdown
+            isDarkMode={isDarkMode}
+            selectedContact={selectedContact}
+            showContactDropdown={showContactDropdown}
+            setShowContactDropdown={setShowContactDropdown}
+            currentContacts={currentContacts}
+            activeTab={activeTab}
+            isLoadingContacts={isLoadingContacts}
+            onSelectContact={handleSelectContact}
+            onTabChange={handleTabChange}
+            onCall={() => setShowCall(true)}
+            onClose={() => setIsOpen(false)}
+            showCallButton={!!selectedContact && !!currentUserId}
+          />
 
-                {showContactDropdown && (
-                  <div
-                    className={`absolute top-full left-0 right-0 mt-1 rounded-xl shadow-2xl border overflow-hidden z-50 ${dark
-                      ? "bg-gray-800 border-gray-700"
-                      : "bg-white border-cyan-100"
-                      }`}
-                  >
-                    <div
-                      className={`flex border-b ${dark ? "border-gray-700" : "border-gray-100"
-                        }`}
-                    >
-                      {(["GROUP", "INBOX"] as Tab[]).map((tab) => (
-                        <button
-                          key={tab}
-                          onClick={() => handleTabChange(tab)}
-                          className={`flex-1 py-2 text-xs font-semibold flex items-center justify-center gap-1 border-b-2 transition ${activeTab === tab
-                            ? "text-cyan-500 border-cyan-500"
-                            : "border-transparent text-gray-400"
-                            }`}
-                        >
-                          {tab === "GROUP" ? (
-                            <>
-                              <Users size={11} /> Nhóm
-                            </>
-                          ) : (
-                            <>
-                              <MessageCircle size={11} /> Bạn bè
-                            </>
-                          )}
-                        </button>
-                      ))}
-                    </div>
+          {/* Messages */}
+          <ChatMessageList
+            isDarkMode={isDarkMode}
+            messages={messages}
+            currentUserId={currentUserId}
+            selectedContact={selectedContact}
+            isLoadingContacts={isLoadingContacts}
+            isLoadingMessages={isLoadingMessages}
+            senderNameMap={senderNameMap}
+            senderAvatarMap={senderAvatarMap}
+            onNavigate={(path) => {
+              setIsOpen(false);
+              router.push(path);
+            }}
+          />
 
-                    <div
-                      className={`max-h-52 overflow-y-auto ${dark ? "scrollbar-dark" : "scrollbar-light"
-                        }`}
-                    >
-                      {currentContacts.length === 0 ? (
-                        <p className="text-xs text-center py-5 text-gray-400">
-                          {isLoadingContacts
-                            ? "Đang tải..."
-                            : "Chưa có dữ liệu"}
-                        </p>
-                      ) : (
-                        currentContacts.map((c) => (
-                          <div
-                            key={c.id}
-                            onClick={() => handleSelectContact(c)}
-                            className={`flex items-center gap-2.5 px-3 py-2.5 cursor-pointer transition ${selectedContact?.id === c.id
-                              ? dark
-                                ? "bg-gray-700"
-                                : "bg-cyan-50"
-                              : dark
-                                ? "hover:bg-gray-700"
-                                : "hover:bg-gray-50"
-                              }`}
-                          >
-                            <div className="relative shrink-0">
-                              <img
-                                src={c.avatar}
-                                alt={c.name}
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src = c.isGroup
-                                    ? "/group-avatar.png"
-                                    : "/default-avatar.png";
-                                }}
-                                className="w-8 h-8 rounded-full object-cover"
-                              />
-                              {c.isGroup && (
-                                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-cyan-500 rounded-full flex items-center justify-center">
-                                  <Users size={8} className="text-white" />
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p
-                                className={`text-xs font-semibold truncate ${dark ? "text-gray-100" : "text-gray-800"
-                                  }`}
-                              >
-                                {c.name}
-                              </p>
-                              <p className="text-[10px] truncate text-gray-400">
-                                {c.lastMessage || "Chưa có tin nhắn"}
-                              </p>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {selectedContact && currentUserId && (
-                <button
-                  onClick={() => setShowCall(true)}
-                  title="Gọi thoại"
-                  className="hover:bg-white/20 rounded-full p-1.5 transition-colors shrink-0"
-                >
-                  <Phone size={15} className="text-white" />
-                </button>
-              )}
-              <button
-                onClick={() => setIsOpen(false)}
-                className="hover:bg-white/20 rounded-full p-1 transition-colors shrink-0"
-              >
-                <X size={16} className="text-white" />
-              </button>
-            </div>
-            <div className="px-3 pb-2 flex items-center gap-1.5" />
-          </div>
-
-          {/* ── Messages ───────────────────────────────────────────── */}
-          <div
-            className={`flex-1 overflow-y-auto p-3 space-y-2 ${dark ? "bg-gray-900 scrollbar-dark" : "bg-gray-50 scrollbar-light"
-              }`}
-          >
-            {isLoadingContacts || isLoadingMessages ? (
-              <div className="flex items-center justify-center h-full">
-                <Loader2 className="w-5 h-5 animate-spin text-cyan-500" />
-              </div>
-            ) : !selectedContact ? (
-              <div className="flex flex-col items-center justify-center h-full gap-2">
-                <MessageCircle
-                  className={`w-8 h-8 ${dark ? "text-gray-600" : "text-cyan-200"
-                    }`}
-                />
-                <p className="text-xs text-gray-400">
-                  Chọn cuộc trò chuyện để bắt đầu
-                </p>
-              </div>
-            ) : messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full gap-2">
-                <img
-                  src={selectedContact.avatar}
-                  alt={selectedContact.name}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/default-avatar.png";
-                  }}
-                  className="w-12 h-12 rounded-full object-cover ring-2 ring-cyan-200"
-                />
-                <p
-                  className={`text-xs font-semibold ${dark ? "text-gray-300" : "text-gray-600"
-                    }`}
-                >
-                  {selectedContact.name}
-                </p>
-                <p className="text-[11px] text-gray-400">
-                  Bắt đầu cuộc trò chuyện
-                </p>
-              </div>
-            ) : (
-              messages.map((msg, i) => {
-                const isMe = String(msg.senderId) === String(currentUserId);
-                const displayName =
-                  senderNameMap[msg.senderId] ?? msg.senderName ?? "";
-                const showName =
-                  selectedContact.isGroup && !isMe && displayName;
-
-                // Avatar: group → fetch từ userService; inbox → dùng avatar của contact
-                const memberAvatar = selectedContact.isGroup
-                  ? (senderAvatarMap[msg.senderId] ?? "")
-                  : selectedContact.avatar;
-
-                return (
-                  <div
-                    key={`${msg.id}-${i}`}
-                    className={`flex ${isMe ? "justify-end" : "justify-start"}`}
-                  >
-                    {/* Avatar người gửi (không phải mình) */}
-                    {!isMe && (
-                      <div className="mr-1.5 self-end shrink-0">
-                        <SenderAvatar
-                          avatar={memberAvatar}
-                          name={displayName || selectedContact.name}
-                          size="sm"
-                        />
-                      </div>
-                    )}
-
-                    <div
-                      className={`flex flex-col gap-0.5 ${isMe ? "items-end" : "items-start"
-                        }`}
-                    >
-                      {/* Tên sender (chỉ hiện trong group) */}
-                      {showName && (
-                        <span className="text-[10px] font-semibold text-cyan-400 px-1">
-                          {displayName}
-                        </span>
-                      )}
-                      <div
-                        className={`w-fit max-w-[210px] px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm ${isMe
-                          ? "bg-gradient-to-br from-cyan-500 to-cyan-600 text-white rounded-br-sm"
-                          : dark
-                            ? "bg-gray-700 text-gray-100 rounded-bl-sm"
-                            : "bg-white text-gray-800 rounded-bl-sm border border-gray-100"
-                          }`}
-                      >
-                        <MessageContent
-                          text={msg.text}
-                          isMe={isMe}
-                          onNavigate={(path) => {
-                            setIsOpen(false);
-                            router.push(path);
-                          }}
-                        />
-                        <div
-                          className={`text-[10px] mt-0.5 ${isMe ? "text-cyan-100" : "text-gray-400"
-                            }`}
-                        >
-                          {msg.timestamp.toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* ── Input ──────────────────────────────────────────────── */}
-          <div
-            className={`px-3 py-2.5 border-t shrink-0 ${dark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"
-              }`}
-          >
-            <div className="flex flex-row items-center gap-2">
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder={
-                  selectedContact
-                    ? "Nhập tin nhắn..."
-                    : "Chọn cuộc trò chuyện..."
-                }
-                disabled={!isConnected || !selectedContact}
-                className={`flex-1 min-w-0 text-xs px-3 py-2 rounded-full border focus:outline-none focus:ring-2 focus:ring-cyan-400 transition disabled:opacity-50 ${dark
-                  ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
-                  : "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
-                  }`}
-              />
-              {/* ✅ Nút gửi cố định kích thước, bounce khi canSend */}
-              <button
-                onClick={handleSend}
-                disabled={!canSend}
-                className={`flex-none w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-500 flex items-center justify-center disabled:opacity-40 transition-all ${canSend ? "animate-bounce-send hover:brightness-110" : ""
-                  }`}
-              >
-                <Send size={13} className="text-white" />
-              </button>
-            </div>
-          </div>
+          {/* Input */}
+          <ChatInputBar
+            isDarkMode={isDarkMode}
+            inputMessage={inputMessage}
+            isConnected={isConnected}
+            selectedContactId={selectedContact?.id ?? null}
+            onChange={setInputMessage}
+            onSend={handleSend}
+          />
         </div>
       )}
 
-      {/* CallModal – caller side */}
+      {/* ── CallModal (caller) ───────────────────────────────────────────── */}
       {showCall && selectedContact && currentUserId && (
         <CallModal
           roomId={`call-${currentUserId}-${selectedContact.userId ?? selectedContact.id}`}
@@ -760,7 +350,7 @@ export default function FloatingChatButton({
         />
       )}
 
-      {/* CallModal – receiver side (incoming call) */}
+      {/* ── CallModal (receiver / incoming) ─────────────────────────────── */}
       {incomingCall && currentUserId && (
         <CallModal
           roomId={incomingCall.roomId}
@@ -775,7 +365,7 @@ export default function FloatingChatButton({
         />
       )}
 
-      {/* ✅ Floating button bounce như NIBO AI */}
+      {/* ── Floating Button ──────────────────────────────────────────────── */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
         className="group relative transition-all duration-300 hover:scale-110"
@@ -789,6 +379,7 @@ export default function FloatingChatButton({
             className="w-full h-full object-contain"
           />
         </div>
+        {/* Tooltip */}
         <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none">
           <div className="bg-gray-800 text-white text-sm font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg">
             Chat Room
@@ -799,80 +390,34 @@ export default function FloatingChatButton({
 
       <style jsx>{`
         @keyframes slide-up {
-          from {
-            opacity: 0;
-            transform: translateY(16px) scale(0.97);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
+          from { opacity: 0; transform: translateY(16px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
         }
-        .animate-slide-up {
-          animation: slide-up 0.22s ease-out;
-        }
+        .animate-slide-up { animation: slide-up 0.22s ease-out; }
 
         @keyframes bounce-slow {
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
+          0%, 100% { transform: translateY(0); }
+          50%       { transform: translateY(-10px); }
         }
-        .animate-bounce-slow {
-          animation: bounce-slow 2s ease-in-out infinite;
-        }
+        .animate-bounce-slow { animation: bounce-slow 2s ease-in-out infinite; }
 
         @keyframes bounce-send {
-          0%,
-          100% {
-            transform: translateY(0) scale(1);
-          }
-          30% {
-            transform: translateY(-5px) scale(1.08);
-          }
-          60% {
-            transform: translateY(0) scale(0.96);
-          }
-          80% {
-            transform: translateY(-2px) scale(1.03);
-          }
+          0%, 100% { transform: translateY(0) scale(1); }
+          30%      { transform: translateY(-5px) scale(1.08); }
+          60%      { transform: translateY(0) scale(0.96); }
+          80%      { transform: translateY(-2px) scale(1.03); }
         }
-        .animate-bounce-send {
-          animation: bounce-send 0.8s ease-in-out infinite;
-        }
+        .animate-bounce-send { animation: bounce-send 0.8s ease-in-out infinite; }
 
-        .scrollbar-dark::-webkit-scrollbar {
-          width: 4px;
-        }
-        .scrollbar-dark::-webkit-scrollbar-track {
-          background: #111827;
-          border-radius: 999px;
-        }
-        .scrollbar-dark::-webkit-scrollbar-thumb {
-          background: #374151;
-          border-radius: 999px;
-        }
-        .scrollbar-dark::-webkit-scrollbar-thumb:hover {
-          background: #4b5563;
-        }
+        .scrollbar-dark::-webkit-scrollbar        { width: 4px; }
+        .scrollbar-dark::-webkit-scrollbar-track  { background: #111827; border-radius: 999px; }
+        .scrollbar-dark::-webkit-scrollbar-thumb  { background: #374151; border-radius: 999px; }
+        .scrollbar-dark::-webkit-scrollbar-thumb:hover { background: #4b5563; }
 
-        .scrollbar-light::-webkit-scrollbar {
-          width: 4px;
-        }
-        .scrollbar-light::-webkit-scrollbar-track {
-          background: #f0fdfe;
-          border-radius: 999px;
-        }
-        .scrollbar-light::-webkit-scrollbar-thumb {
-          background: #a5f3fc;
-          border-radius: 999px;
-        }
-        .scrollbar-light::-webkit-scrollbar-thumb:hover {
-          background: #06b6d4;
-        }
+        .scrollbar-light::-webkit-scrollbar        { width: 4px; }
+        .scrollbar-light::-webkit-scrollbar-track  { background: #f0fdfe; border-radius: 999px; }
+        .scrollbar-light::-webkit-scrollbar-thumb  { background: #a5f3fc; border-radius: 999px; }
+        .scrollbar-light::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
       `}</style>
     </div>
   );
