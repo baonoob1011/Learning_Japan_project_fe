@@ -20,9 +20,11 @@ import {
 } from "@/services/roomService";
 import { userService } from "@/services/userService";
 import { CallModal } from "@/components/chat/CallModal";
+import { useIncomingCall } from "@/hooks/Useincomingcall";
 
 interface Contact {
-  id: string;
+  id: string;        // roomId
+  userId?: string;   // actual userId (for private chat → needed for call notification)
   name: string;
   avatar: string;
   lastMessage: string;
@@ -94,8 +96,8 @@ function MessageContent({
             key={url}
             onClick={() => onNavigate(`/video/${videoId}`)}
             className={`w-full text-left rounded-xl overflow-hidden border transition-all hover:scale-[1.02] hover:shadow-lg ${isMe
-                ? "border-white/20 bg-white/10"
-                : "border-gray-600 bg-gray-700"
+              ? "border-white/20 bg-white/10"
+              : "border-gray-600 bg-gray-700"
               }`}
           >
             <div className="relative">
@@ -199,6 +201,11 @@ export default function FloatingChatButton({
   const hasFetchedGroup = useRef(false);
   const currentUserId = getUserIdFromToken();
 
+  // ── Incoming call (receiver side) ─────────────────────────────────
+  const { incomingCall, dismissCall } = useIncomingCall(
+    currentUserId ? String(currentUserId) : null
+  );
+
   useEffect(() => {
     if (!currentUserId) return;
     userService
@@ -279,6 +286,7 @@ export default function FloatingChatButton({
         if (cancelled) return;
         const mapped: Contact[] = data.map((p) => ({
           id: p.roomId,
+          userId: p.userId,   // ✅ lưu userId thật cho call notification
           name: p.fullName,
           avatar: p.avatarUrl ?? "/default-avatar.png",
           lastMessage: p.lastMessage ?? "",
@@ -479,8 +487,8 @@ export default function FloatingChatButton({
                 {showContactDropdown && (
                   <div
                     className={`absolute top-full left-0 right-0 mt-1 rounded-xl shadow-2xl border overflow-hidden z-50 ${dark
-                        ? "bg-gray-800 border-gray-700"
-                        : "bg-white border-cyan-100"
+                      ? "bg-gray-800 border-gray-700"
+                      : "bg-white border-cyan-100"
                       }`}
                   >
                     <div
@@ -492,8 +500,8 @@ export default function FloatingChatButton({
                           key={tab}
                           onClick={() => handleTabChange(tab)}
                           className={`flex-1 py-2 text-xs font-semibold flex items-center justify-center gap-1 border-b-2 transition ${activeTab === tab
-                              ? "text-cyan-500 border-cyan-500"
-                              : "border-transparent text-gray-400"
+                            ? "text-cyan-500 border-cyan-500"
+                            : "border-transparent text-gray-400"
                             }`}
                         >
                           {tab === "GROUP" ? (
@@ -525,12 +533,12 @@ export default function FloatingChatButton({
                             key={c.id}
                             onClick={() => handleSelectContact(c)}
                             className={`flex items-center gap-2.5 px-3 py-2.5 cursor-pointer transition ${selectedContact?.id === c.id
-                                ? dark
-                                  ? "bg-gray-700"
-                                  : "bg-cyan-50"
-                                : dark
-                                  ? "hover:bg-gray-700"
-                                  : "hover:bg-gray-50"
+                              ? dark
+                                ? "bg-gray-700"
+                                : "bg-cyan-50"
+                              : dark
+                                ? "hover:bg-gray-700"
+                                : "hover:bg-gray-50"
                               }`}
                           >
                             <div className="relative shrink-0">
@@ -668,10 +676,10 @@ export default function FloatingChatButton({
                       )}
                       <div
                         className={`w-fit max-w-[210px] px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm ${isMe
-                            ? "bg-gradient-to-br from-cyan-500 to-cyan-600 text-white rounded-br-sm"
-                            : dark
-                              ? "bg-gray-700 text-gray-100 rounded-bl-sm"
-                              : "bg-white text-gray-800 rounded-bl-sm border border-gray-100"
+                          ? "bg-gradient-to-br from-cyan-500 to-cyan-600 text-white rounded-br-sm"
+                          : dark
+                            ? "bg-gray-700 text-gray-100 rounded-bl-sm"
+                            : "bg-white text-gray-800 rounded-bl-sm border border-gray-100"
                           }`}
                       >
                         <MessageContent
@@ -718,8 +726,8 @@ export default function FloatingChatButton({
                 }
                 disabled={!isConnected || !selectedContact}
                 className={`flex-1 min-w-0 text-xs px-3 py-2 rounded-full border focus:outline-none focus:ring-2 focus:ring-cyan-400 transition disabled:opacity-50 ${dark
-                    ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
-                    : "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
+                  ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
+                  : "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
                   }`}
               />
               {/* ✅ Nút gửi cố định kích thước, bounce khi canSend */}
@@ -736,19 +744,34 @@ export default function FloatingChatButton({
         </div>
       )}
 
-      {/* CallModal */}
+      {/* CallModal – caller side */}
       {showCall && selectedContact && currentUserId && (
         <CallModal
-          roomId={`call-${currentUserId}-${selectedContact.id}`}
+          roomId={`call-${currentUserId}-${selectedContact.userId ?? selectedContact.id}`}
           isCaller={true}
-          currentUserId={currentUserId}
-          receiverId={selectedContact.id}
+          currentUserId={String(currentUserId)}
+          receiverId={selectedContact.userId ?? selectedContact.id}
           contactName={selectedContact.name}
           contactAvatar={selectedContact.avatar}
           callerName={currentUserName}
           callerAvatar={currentUserAvatar}
           isDarkMode={isDarkMode}
           onClose={() => setShowCall(false)}
+        />
+      )}
+
+      {/* CallModal – receiver side (incoming call) */}
+      {incomingCall && currentUserId && (
+        <CallModal
+          roomId={incomingCall.roomId}
+          isCaller={false}
+          currentUserId={String(currentUserId)}
+          contactName={incomingCall.callerName}
+          contactAvatar={incomingCall.callerAvatar}
+          callerName={incomingCall.callerName}
+          callerAvatar={incomingCall.callerAvatar}
+          isDarkMode={isDarkMode}
+          onClose={() => dismissCall()}
         />
       )}
 
