@@ -435,7 +435,7 @@ export default function FloatingChatButton({
   const canSend = !!inputMessage.trim() && isConnected && !!selectedContact;
 
   return (
-    <div className="fixed bottom-28 right-6 z-[9998]">
+    <div className="fixed bottom-20 right-5 z-[9998]">
       {isOpen && (
         <div
           className={`absolute bottom-20 right-0 w-80 rounded-2xl shadow-2xl border flex flex-col overflow-hidden animate-slide-up ${dark ? "bg-gray-800 border-gray-700" : "bg-white border-cyan-100"
@@ -782,7 +782,7 @@ export default function FloatingChatButton({
         title="Chat Room"
       >
         <div className="absolute inset-0 rounded-full bg-purple-400 opacity-20 animate-ping" />
-        <div className="relative w-16 h-16 drop-shadow-2xl animate-bounce-slow">
+        <div className="relative w-11 h-11 drop-shadow-2xl animate-bounce-slow">
           <img
             src="/message.png"
             alt="Chat Room"

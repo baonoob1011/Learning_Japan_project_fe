@@ -73,7 +73,7 @@ export default function MaziAIChat({ isDarkMode = false }: MaziAIChatProps) {
 
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-[9999]">
+      <div className="fixed bottom-5 right-5 z-[9999]">
         {/* Chat Button */}
         {!isOpen && (
           <button
@@ -81,7 +81,7 @@ export default function MaziAIChat({ isDarkMode = false }: MaziAIChatProps) {
             className="group relative transition-all duration-300 hover:scale-110"
           >
             {/* Cat Icon with Bounce Animation */}
-            <div className="relative w-16 h-16 drop-shadow-2xl animate-bounce-slow">
+            <div className="relative w-11 h-11 drop-shadow-2xl animate-bounce-slow">
               <img
                 src="/logo-cat.png"
                 alt="NIBO AI"
@@ -97,11 +97,9 @@ export default function MaziAIChat({ isDarkMode = false }: MaziAIChatProps) {
         {/* Chat Window */}
         {isOpen && (
           <div
-            className={`${
-              isDarkMode ? "bg-gray-800" : "bg-white"
-            } rounded-2xl shadow-2xl w-96 h-[600px] flex flex-col overflow-hidden ${
-              isDarkMode ? "border-gray-700" : "border-gray-200"
-            } border animate-slide-up`}
+            className={`${isDarkMode ? "bg-gray-800" : "bg-white"
+              } rounded-2xl shadow-2xl w-96 h-[600px] flex flex-col overflow-hidden ${isDarkMode ? "border-gray-700" : "border-gray-200"
+              } border animate-slide-up`}
           >
             {/* Header - Updated to cyan gradient */}
             <div className="bg-gradient-to-r from-cyan-400 to-cyan-500 text-white p-4 flex items-center justify-between">
@@ -128,27 +126,23 @@ export default function MaziAIChat({ isDarkMode = false }: MaziAIChatProps) {
 
             {/* Messages */}
             <div
-              className={`flex-1 overflow-y-auto p-4 space-y-4 ${
-                isDarkMode ? "bg-gray-900" : "bg-gray-50"
-              }`}
+              className={`flex-1 overflow-y-auto p-4 space-y-4 ${isDarkMode ? "bg-gray-900" : "bg-gray-50"
+                }`}
             >
               {messages.map((message, index) => (
                 <div
                   key={index}
-                  className={`flex ${
-                    message.role === "user" ? "justify-end" : "justify-start"
-                  } animate-fade-in`}
+                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"
+                    } animate-fade-in`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-2 ${
-                      message.role === "user"
-                        ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-br-none shadow-md"
-                        : `${
-                            isDarkMode
-                              ? "bg-gray-800 text-gray-100 border-gray-700"
-                              : "bg-white text-gray-800 border-gray-200"
-                          } shadow-sm rounded-bl-none border`
-                    }`}
+                    className={`max-w-[80%] rounded-2xl px-4 py-2 ${message.role === "user"
+                      ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-br-none shadow-md"
+                      : `${isDarkMode
+                        ? "bg-gray-800 text-gray-100 border-gray-700"
+                        : "bg-white text-gray-800 border-gray-200"
+                      } shadow-sm rounded-bl-none border`
+                      }`}
                   >
                     <p className="text-sm whitespace-pre-wrap">
                       {message.content}
@@ -160,11 +154,10 @@ export default function MaziAIChat({ isDarkMode = false }: MaziAIChatProps) {
               {isLoading && (
                 <div className="flex justify-start animate-fade-in">
                   <div
-                    className={`${
-                      isDarkMode
-                        ? "bg-gray-800 border-gray-700"
-                        : "bg-white border-gray-200"
-                    } text-gray-800 rounded-2xl rounded-bl-none px-4 py-3 shadow-sm border`}
+                    className={`${isDarkMode
+                      ? "bg-gray-800 border-gray-700"
+                      : "bg-white border-gray-200"
+                      } text-gray-800 rounded-2xl rounded-bl-none px-4 py-3 shadow-sm border`}
                   >
                     <Loader2 className="animate-spin text-cyan-500" size={20} />
                   </div>
@@ -176,11 +169,10 @@ export default function MaziAIChat({ isDarkMode = false }: MaziAIChatProps) {
 
             {/* Input */}
             <div
-              className={`p-4 ${
-                isDarkMode
-                  ? "bg-gray-800 border-gray-700"
-                  : "bg-white border-gray-200"
-              } border-t`}
+              className={`p-4 ${isDarkMode
+                ? "bg-gray-800 border-gray-700"
+                : "bg-white border-gray-200"
+                } border-t`}
             >
               <div className="flex gap-2">
                 <input
@@ -189,11 +181,10 @@ export default function MaziAIChat({ isDarkMode = false }: MaziAIChatProps) {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Nhập tin nhắn..."
-                  className={`flex-1 px-4 py-2 ${
-                    isDarkMode
-                      ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
-                      : "bg-white border-gray-300 text-gray-900"
-                  } border rounded-full focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 transition-all`}
+                  className={`flex-1 px-4 py-2 ${isDarkMode
+                    ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
+                    : "bg-white border-gray-300 text-gray-900"
+                    } border rounded-full focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 transition-all`}
                   disabled={isLoading}
                 />
                 <button
@@ -201,7 +192,7 @@ export default function MaziAIChat({ isDarkMode = false }: MaziAIChatProps) {
                   disabled={!input.trim() || isLoading}
                   className="bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 disabled:from-gray-300 disabled:to-gray-300 text-white rounded-full p-2 transition-all disabled:cursor-not-allowed flex-shrink-0 shadow-md hover:shadow-lg"
                 >
-                  <Send size={20} />
+                  <Send size={16} />
                 </button>
               </div>
             </div>
