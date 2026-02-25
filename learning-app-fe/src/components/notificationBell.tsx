@@ -8,6 +8,7 @@ import { useNotificationSync } from "@/hooks/useNotificationSync";
 import { useFriendRequest } from "@/hooks/useFriendRequest";
 import FriendRequestToast from "@/components/chat/FriendRequestToast";
 import { getUserIdFromToken } from "@/utils/jwt";
+import NotificationToast from "./notification";
 
 type Props = {
   isDarkMode?: boolean;
@@ -40,6 +41,24 @@ export default function NotificationBell({ isDarkMode = false }: Props) {
   const pendingRequest = pendingRequests[0]; // Show the most recent one as a toast
   const totalCount = unreadCount + pendingRequests.length;
 
+  // ── Vocab reminder toast logic ──────────────────────────────────────
+  const [vocabReminder, setVocabReminder] = useState<{ id: string; message: string } | null>(null);
+  const showedVocabIds = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    // Tìm notification mới nhất có title ôn từ vựng và chưa đọc
+    const latestVocab = notifications.find(n =>
+      !n.isRead &&
+      (n.title.includes("Nhắc ôn từ vựng") || n.title.includes("📚")) &&
+      !showedVocabIds.current.has(n.id)
+    );
+
+    if (latestVocab) {
+      setVocabReminder({ id: latestVocab.id, message: latestVocab.content });
+      showedVocabIds.current.add(latestVocab.id);
+    }
+  }, [notifications]);
+
   // Đóng dropdown khi click bên ngoài
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -71,6 +90,15 @@ export default function NotificationBell({ isDarkMode = false }: Props) {
             onDismiss={() => dismissRequest(pendingRequest.requestId)}
           />
         </div>
+      )}
+
+      {/* ── Vocabulary reminder toast (hiện góc trên phải) ─────────── */}
+      {vocabReminder && (
+        <NotificationToast
+          type="warning"
+          message={vocabReminder.message}
+          onClose={() => setVocabReminder(null)}
+        />
       )}
 
       {/* ── Notification bell button ─────────────────────────────────── */}
