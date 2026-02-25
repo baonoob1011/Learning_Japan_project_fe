@@ -5,6 +5,9 @@ import { useState, useRef, useEffect } from "react";
 import NotificationDropdown from "./NotificationDropdown";
 import { useNotificationStore } from "@/stores/notificationStore";
 import { useNotificationSync } from "@/hooks/useNotificationSync";
+import { useFriendRequest } from "@/hooks/useFriendRequest";
+import FriendRequestToast from "@/components/chat/FriendRequestToast";
+import { getUserIdFromToken } from "@/utils/jwt";
 
 type Props = {
   isDarkMode?: boolean;
@@ -28,6 +31,15 @@ export default function NotificationBell({ isDarkMode = false }: Props) {
 
   const unreadCount = getUnreadCount();
 
+  // ── Friend-request real-time ─────────────────────────────────────────
+  const currentUserId = getUserIdFromToken();
+  const { pendingRequests, dismissRequest } = useFriendRequest(
+    currentUserId ? String(currentUserId) : null
+  );
+
+  const pendingRequest = pendingRequests[0]; // Show the most recent one as a toast
+  const totalCount = unreadCount + pendingRequests.length;
+
   // Đóng dropdown khi click bên ngoài
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -49,23 +61,34 @@ export default function NotificationBell({ isDarkMode = false }: Props) {
   }, [isOpen]);
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative flex flex-col items-end gap-2" ref={dropdownRef}>
+      {/* ── Friend request toast (hiện phía trên chuông) ────────────── */}
+      {pendingRequest && (
+        <div className="absolute bottom-full mb-2 right-0 z-[9999]">
+          <FriendRequestToast
+            request={pendingRequest}
+            isDarkMode={isDarkMode}
+            onDismiss={() => dismissRequest(pendingRequest.requestId)}
+          />
+        </div>
+      )}
+
+      {/* ── Notification bell button ─────────────────────────────────── */}
       <button
-        className={`relative p-1.5 rounded-lg transition-all ${
-          isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
-        } ${isOpen ? (isDarkMode ? "bg-gray-700" : "bg-gray-100") : ""}`}
+        className={`relative p-1.5 rounded-lg transition-all ${isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+          } ${isOpen ? (isDarkMode ? "bg-gray-700" : "bg-gray-100") : ""}`}
         title="Thông báo"
         onClick={() => setIsOpen(!isOpen)}
       >
         <Bell
-          className={`w-5 h-5 transition-colors ${
-            isDarkMode
-              ? "text-gray-300 hover:text-white"
-              : "text-gray-600 hover:text-gray-900"
-          }`}
+          className={`w-5 h-5 transition-colors ${isDarkMode
+            ? "text-gray-300 hover:text-white"
+            : "text-gray-600 hover:text-gray-900"
+            }`}
         />
 
-        {unreadCount > 0 && (
+        {/* Unread badge */}
+        {totalCount > 0 && (
           <span
             className={`
               absolute -top-1 -right-1
@@ -77,7 +100,7 @@ export default function NotificationBell({ isDarkMode = false }: Props) {
               ${isDarkMode ? "border-gray-800" : "border-white"}
             `}
           >
-            {unreadCount > 99 ? "99+" : unreadCount}
+            {totalCount > 99 ? "99+" : totalCount}
           </span>
         )}
       </button>
@@ -86,11 +109,13 @@ export default function NotificationBell({ isDarkMode = false }: Props) {
       {isOpen && (
         <NotificationDropdown
           notifications={notifications}
+          pendingFriendRequests={pendingRequests}
           isDarkMode={isDarkMode}
           onClose={() => setIsOpen(false)}
           onMarkAsRead={markAsRead}
           onMarkAllAsRead={markAllAsRead}
           onDelete={deleteNotification}
+          onDismissFriendRequest={dismissRequest}
         />
       )}
     </div>

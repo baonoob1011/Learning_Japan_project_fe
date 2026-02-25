@@ -1,11 +1,10 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { UserPlus, UserCheck, X, Loader2, MessageCircle } from "lucide-react";
-import { http } from "@/lib/http";
-import { API_ENDPOINTS } from "@/config/api";
+import { friendService, FriendStatus as APIFriendStatus } from "@/services/friendService";
 import { userService, UserChatResponse } from "@/services/userService";
 
-type FriendStatus = "NONE" | "PENDING" | "FRIENDS" | "loading" | "error";
+type LocalFriendStatus = APIFriendStatus | "loading" | "error";
 
 interface UserProfileCardProps {
     userId: string;
@@ -26,7 +25,7 @@ export default function UserProfileCard({
     const cardRef = useRef<HTMLDivElement>(null);
     const [profile, setProfile] = useState<UserChatResponse | null>(null);
     const [profileLoading, setProfileLoading] = useState(true);
-    const [friendStatus, setFriendStatus] = useState<FriendStatus>("loading");
+    const [friendStatus, setFriendStatus] = useState<LocalFriendStatus>("loading");
     const [actionLoading, setActionLoading] = useState(false);
     const [actionDone, setActionDone] = useState(false);
 
@@ -42,11 +41,9 @@ export default function UserProfileCard({
                 setProfile(userInfo);
                 setProfileLoading(false);
 
-                // Try to get friend status (graceful fallback if endpoint missing)
+                // Try to get friend status
                 try {
-                    const res = await http.get<{ status: FriendStatus }>(
-                        API_ENDPOINTS.FRIEND.GET_STATUS(userId)
-                    );
+                    const res = await friendService.getStatus(userId);
                     if (!cancelled) setFriendStatus(res?.status ?? "NONE");
                 } catch {
                     if (!cancelled) setFriendStatus("NONE");
@@ -78,7 +75,7 @@ export default function UserProfileCard({
         if (actionLoading || actionDone) return;
         setActionLoading(true);
         try {
-            await http.post(API_ENDPOINTS.FRIEND.SEND_REQUEST(userId));
+            await friendService.sendRequest(userId);
             setFriendStatus("PENDING");
             setActionDone(true);
         } catch {
@@ -107,7 +104,7 @@ export default function UserProfileCard({
 
     // ── Friend button state ──────────────────────────────────────────────
     const renderFriendButton = () => {
-        if (friendStatus === "FRIENDS") {
+        if (friendStatus === "ACCEPTED") {
             return (
                 <button
                     disabled
@@ -150,8 +147,8 @@ export default function UserProfileCard({
             ref={cardRef}
             style={{ position: "fixed", left, top, zIndex: 99999, width: cardWidth }}
             className={`rounded-2xl shadow-2xl border overflow-hidden animate-profile-card ${dark
-                    ? "bg-gray-800 border-gray-700"
-                    : "bg-white border-cyan-100"
+                ? "bg-gray-800 border-gray-700"
+                : "bg-white border-cyan-100"
                 }`}
         >
             {/* ── Header gradient banner ────────────────────────────────── */}
@@ -170,7 +167,7 @@ export default function UserProfileCard({
                         <div className="w-16 h-16 rounded-full bg-cyan-200 animate-pulse ring-4 ring-white" />
                     ) : (
                         <img
-                            src={profile?.avatarUrl || "/default-avatar.png"}
+                            src={profile?.avatarUrl || profile?.avatar || "/default-avatar.png"}
                             alt={profile?.fullName || ""}
                             onError={(e) => {
                                 (e.target as HTMLImageElement).src = "/default-avatar.png";
@@ -205,8 +202,8 @@ export default function UserProfileCard({
                             <button
                                 title="Nhắn tin"
                                 className={`p-1.5 rounded-full border transition ${dark
-                                        ? "border-gray-600 hover:bg-gray-700 text-gray-300"
-                                        : "border-gray-200 hover:bg-gray-50 text-gray-500"
+                                    ? "border-gray-600 hover:bg-gray-700 text-gray-300"
+                                    : "border-gray-200 hover:bg-gray-50 text-gray-500"
                                     }`}
                             >
                                 <MessageCircle size={13} />

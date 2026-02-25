@@ -25,6 +25,7 @@ export interface UserProfileResponse {
   email: string;
   createdAt: string;
   avatarUrl: string;
+  avatar?: string; // Add this
 }
 
 export interface UserResponse {
@@ -63,7 +64,8 @@ export interface UserChatResponse {
   id: string;
   fullName: string;
   email: string;
-  avatarUrl?: string;
+  avatarUrl?: string; // Một số chỗ dùng avatarUrl
+  avatar?: string;    // Một số chỗ dùng avatar
 }
 
 export interface PageResponse<T> {

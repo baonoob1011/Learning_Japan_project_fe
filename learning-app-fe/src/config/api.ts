@@ -188,7 +188,9 @@ export const API_ENDPOINTS = {
     SEND_REQUEST: (receiverId: string) => `/friends/request/${receiverId}`,
     GET_STATUS: (userId: string) => `/friends/status/${userId}`,
     ACCEPT: (requestId: string) => `/friends/accept/${requestId}`,
+    REJECT: (requestId: string) => `/friends/reject/${requestId}`,
     UNFRIEND: (userId: string) => `/friends/${userId}`,
+    GET_PENDING: "/friends/pending", // ✅ thêm dòng này
   },
 } as const;
 

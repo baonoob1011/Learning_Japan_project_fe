@@ -27,6 +27,7 @@ export interface PrivateChatPreviewResponse {
 
   fullName: string;
   avatarUrl?: string;
+  avatar?: string; // Add this
 
   lastMessage?: string;
   lastMessageTime?: string;
@@ -38,6 +39,7 @@ export interface ChatGroupBasicResponse {
 
   name: string;
   avatarUrl?: string;
+  avatar?: string; // Add this
 
   lastMessage?: string;
   lastMessageTime?: string;

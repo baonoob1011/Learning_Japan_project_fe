@@ -12,6 +12,7 @@ import {
 import { userService } from "@/services/userService";
 import { CallModal } from "@/components/chat/CallModal";
 import { useIncomingCall } from "@/hooks/Useincomingcall";
+import { useNotificationStore } from "@/stores/notificationStore";
 
 import {
   ChatContactDropdown,
@@ -106,7 +107,7 @@ export default function FloatingChatButton({
       .getUserById(currentUserId)
       .then((profile) => {
         setCurrentUserName(profile.fullName);
-        setCurrentUserAvatar(profile.avatarUrl ?? "");
+        setCurrentUserAvatar(profile.avatarUrl || profile.avatar || "/default-avatar.png");
       })
       .catch(console.error);
   }, [currentUserId]);
@@ -151,7 +152,7 @@ export default function FloatingChatButton({
         .then((profile) => {
           setSenderAvatarMap((prev) => ({
             ...prev,
-            [senderId]: profile.avatarUrl ?? "",
+            [senderId]: profile.avatarUrl || profile.avatar || "/default-avatar.png",
           }));
           if (profile.fullName) {
             setSenderNameMap((prev) =>
@@ -175,35 +176,60 @@ export default function FloatingChatButton({
   }, [messages.length, selectedContact?.id]);
 
   // ── Fetch inbox ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!isOpen || hasFetchedInbox.current) return;
-    hasFetchedInbox.current = true;
+  const fetchInbox = useCallback(async (isManual = false) => {
+    if (!isOpen && !isManual) return;
+    if (hasFetchedInbox.current && !isManual) return;
+
     let cancelled = false;
-    async function run() {
-      setIsLoadingContacts(true);
-      try {
-        const data: PrivateChatPreviewResponse[] =
-          await roomService.getMyChatUsers();
-        if (cancelled) return;
-        const mapped: Contact[] = data.map((p) => ({
-          id: p.roomId,
-          userId: p.userId,
-          name: p.fullName,
-          avatar: p.avatarUrl ?? "/default-avatar.png",
-          lastMessage: p.lastMessage ?? "",
-          timestamp: p.lastMessageTime ?? "",
-          isGroup: false,
-        }));
-        setInboxContacts(mapped);
-      } catch {
-        if (!cancelled) setInboxContacts([]);
-      } finally {
-        if (!cancelled) setIsLoadingContacts(false);
+    setIsLoadingContacts(true);
+    try {
+      const data: PrivateChatPreviewResponse[] =
+        await roomService.getMyChatUsers();
+      if (cancelled) return;
+      const mapped: Contact[] = data.map((p) => ({
+        id: p.roomId,
+        userId: p.userId,
+        name: p.fullName,
+        avatar: p.avatarUrl || p.avatar || "/default-avatar.png",
+        lastMessage: p.lastMessage ?? "",
+        timestamp: p.lastMessageTime ?? "",
+        isGroup: false,
+      }));
+      setInboxContacts(mapped);
+      hasFetchedInbox.current = true;
+    } catch {
+      if (!cancelled) setInboxContacts([]);
+    } finally {
+      if (!cancelled) setIsLoadingContacts(false);
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    fetchInbox();
+  }, [fetchInbox]);
+
+  // ── Real-time Inbox Refresh ──────────────────────────────────────────
+  const { notifications } = useNotificationStore();
+  const prevNotifCount = useRef(notifications.length);
+
+  useEffect(() => {
+    if (notifications.length > prevNotifCount.current) {
+      const latest = notifications[0];
+      const isFriendAcceptance =
+        latest.title.toLowerCase().includes("kết bạn") ||
+        latest.title.toLowerCase().includes("chấp nhận") ||
+        latest.title.toLowerCase().includes("friend");
+
+      if (isFriendAcceptance) {
+        console.log("🔄 Real-time inbox refresh triggered");
+        fetchInbox(true);
       }
     }
-    run();
-    return () => { cancelled = true; };
-  }, [isOpen]);
+    prevNotifCount.current = notifications.length;
+  }, [notifications.length, fetchInbox]);
 
   // ── Fetch groups ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -217,7 +243,7 @@ export default function FloatingChatButton({
         const mapped = data.map((g) => ({
           id: g.id,
           name: g.name ?? "Nhóm không tên",
-          avatar: g.avatarUrl ?? "/group-avatar.png",
+          avatar: g.avatarUrl || g.avatar || "/group-avatar.png",
           lastMessage: g.lastMessage ?? "",
           timestamp: g.lastMessageTime ?? g.createdAt ?? "",
           isGroup: true,
