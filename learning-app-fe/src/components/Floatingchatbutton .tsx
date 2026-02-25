@@ -93,11 +93,10 @@ function MessageContent({
           <button
             key={url}
             onClick={() => onNavigate(`/video/${videoId}`)}
-            className={`w-full text-left rounded-xl overflow-hidden border transition-all hover:scale-[1.02] hover:shadow-lg ${
-              isMe
+            className={`w-full text-left rounded-xl overflow-hidden border transition-all hover:scale-[1.02] hover:shadow-lg ${isMe
                 ? "border-white/20 bg-white/10"
                 : "border-gray-600 bg-gray-700"
-            }`}
+              }`}
           >
             <div className="relative">
               <img
@@ -110,9 +109,8 @@ function MessageContent({
               </div>
             </div>
             <div
-              className={`px-2 py-1.5 text-[10px] font-medium truncate ${
-                isMe ? "text-white/90" : "text-gray-200"
-              }`}
+              className={`px-2 py-1.5 text-[10px] font-medium truncate ${isMe ? "text-white/90" : "text-gray-200"
+                }`}
             >
               {url}
             </div>
@@ -259,7 +257,7 @@ export default function FloatingChatButton({
 
   // Fetch avatars cho tất cả sender chưa có khi messages thay đổi
   useEffect(() => {
-    if (!selectedContact?.isGroup) return;
+    if (!selectedContact?.isGroup) return; // chỉ cần fetch cho group (inbox dùng selectedContact.avatar)
     messages.forEach((msg) => {
       if (String(msg.senderId) !== String(currentUserId)) {
         fetchSenderAvatar(msg.senderId);
@@ -432,9 +430,8 @@ export default function FloatingChatButton({
     <div className="fixed bottom-28 right-6 z-[9998]">
       {isOpen && (
         <div
-          className={`absolute bottom-20 right-0 w-80 rounded-2xl shadow-2xl border flex flex-col overflow-hidden animate-slide-up ${
-            dark ? "bg-gray-800 border-gray-700" : "bg-white border-cyan-100"
-          }`}
+          className={`absolute bottom-20 right-0 w-80 rounded-2xl shadow-2xl border flex flex-col overflow-hidden animate-slide-up ${dark ? "bg-gray-800 border-gray-700" : "bg-white border-cyan-100"
+            }`}
           style={{ height: "500px" }}
         >
           {/* ── Header ─────────────────────────────────────────────── */}
@@ -474,34 +471,30 @@ export default function FloatingChatButton({
                   )}
                   <ChevronDown
                     size={14}
-                    className={`text-white shrink-0 transition-transform ${
-                      showContactDropdown ? "rotate-180" : ""
-                    }`}
+                    className={`text-white shrink-0 transition-transform ${showContactDropdown ? "rotate-180" : ""
+                      }`}
                   />
                 </button>
 
                 {showContactDropdown && (
                   <div
-                    className={`absolute top-full left-0 right-0 mt-1 rounded-xl shadow-2xl border overflow-hidden z-50 ${
-                      dark
+                    className={`absolute top-full left-0 right-0 mt-1 rounded-xl shadow-2xl border overflow-hidden z-50 ${dark
                         ? "bg-gray-800 border-gray-700"
                         : "bg-white border-cyan-100"
-                    }`}
+                      }`}
                   >
                     <div
-                      className={`flex border-b ${
-                        dark ? "border-gray-700" : "border-gray-100"
-                      }`}
+                      className={`flex border-b ${dark ? "border-gray-700" : "border-gray-100"
+                        }`}
                     >
                       {(["GROUP", "INBOX"] as Tab[]).map((tab) => (
                         <button
                           key={tab}
                           onClick={() => handleTabChange(tab)}
-                          className={`flex-1 py-2 text-xs font-semibold flex items-center justify-center gap-1 border-b-2 transition ${
-                            activeTab === tab
+                          className={`flex-1 py-2 text-xs font-semibold flex items-center justify-center gap-1 border-b-2 transition ${activeTab === tab
                               ? "text-cyan-500 border-cyan-500"
                               : "border-transparent text-gray-400"
-                          }`}
+                            }`}
                         >
                           {tab === "GROUP" ? (
                             <>
@@ -517,9 +510,8 @@ export default function FloatingChatButton({
                     </div>
 
                     <div
-                      className={`max-h-52 overflow-y-auto ${
-                        dark ? "scrollbar-dark" : "scrollbar-light"
-                      }`}
+                      className={`max-h-52 overflow-y-auto ${dark ? "scrollbar-dark" : "scrollbar-light"
+                        }`}
                     >
                       {currentContacts.length === 0 ? (
                         <p className="text-xs text-center py-5 text-gray-400">
@@ -532,15 +524,14 @@ export default function FloatingChatButton({
                           <div
                             key={c.id}
                             onClick={() => handleSelectContact(c)}
-                            className={`flex items-center gap-2.5 px-3 py-2.5 cursor-pointer transition ${
-                              selectedContact?.id === c.id
+                            className={`flex items-center gap-2.5 px-3 py-2.5 cursor-pointer transition ${selectedContact?.id === c.id
                                 ? dark
                                   ? "bg-gray-700"
                                   : "bg-cyan-50"
                                 : dark
-                                ? "hover:bg-gray-700"
-                                : "hover:bg-gray-50"
-                            }`}
+                                  ? "hover:bg-gray-700"
+                                  : "hover:bg-gray-50"
+                              }`}
                           >
                             <div className="relative shrink-0">
                               <img
@@ -561,9 +552,8 @@ export default function FloatingChatButton({
                             </div>
                             <div className="flex-1 min-w-0">
                               <p
-                                className={`text-xs font-semibold truncate ${
-                                  dark ? "text-gray-100" : "text-gray-800"
-                                }`}
+                                className={`text-xs font-semibold truncate ${dark ? "text-gray-100" : "text-gray-800"
+                                  }`}
                               >
                                 {c.name}
                               </p>
@@ -600,9 +590,8 @@ export default function FloatingChatButton({
 
           {/* ── Messages ───────────────────────────────────────────── */}
           <div
-            className={`flex-1 overflow-y-auto p-3 space-y-2 ${
-              dark ? "bg-gray-900 scrollbar-dark" : "bg-gray-50 scrollbar-light"
-            }`}
+            className={`flex-1 overflow-y-auto p-3 space-y-2 ${dark ? "bg-gray-900 scrollbar-dark" : "bg-gray-50 scrollbar-light"
+              }`}
           >
             {isLoadingContacts || isLoadingMessages ? (
               <div className="flex items-center justify-center h-full">
@@ -611,9 +600,8 @@ export default function FloatingChatButton({
             ) : !selectedContact ? (
               <div className="flex flex-col items-center justify-center h-full gap-2">
                 <MessageCircle
-                  className={`w-8 h-8 ${
-                    dark ? "text-gray-600" : "text-cyan-200"
-                  }`}
+                  className={`w-8 h-8 ${dark ? "text-gray-600" : "text-cyan-200"
+                    }`}
                 />
                 <p className="text-xs text-gray-400">
                   Chọn cuộc trò chuyện để bắt đầu
@@ -630,9 +618,8 @@ export default function FloatingChatButton({
                   className="w-12 h-12 rounded-full object-cover ring-2 ring-cyan-200"
                 />
                 <p
-                  className={`text-xs font-semibold ${
-                    dark ? "text-gray-300" : "text-gray-600"
-                  }`}
+                  className={`text-xs font-semibold ${dark ? "text-gray-300" : "text-gray-600"
+                    }`}
                 >
                   {selectedContact.name}
                 </p>
@@ -648,44 +635,44 @@ export default function FloatingChatButton({
                 const showName =
                   selectedContact.isGroup && !isMe && displayName;
 
-                // ✅ Avatar riêng: fetch từ userService, fallback initials
-                const memberAvatar = senderAvatarMap[msg.senderId] ?? "";
+                // Avatar: group → fetch từ userService; inbox → dùng avatar của contact
+                const memberAvatar = selectedContact.isGroup
+                  ? (senderAvatarMap[msg.senderId] ?? "")
+                  : selectedContact.avatar;
 
                 return (
                   <div
                     key={`${msg.id}-${i}`}
                     className={`flex ${isMe ? "justify-end" : "justify-start"}`}
                   >
-                    {/* ✅ Avatar riêng của người gửi trong nhóm */}
+                    {/* Avatar người gửi (không phải mình) */}
                     {!isMe && (
                       <div className="mr-1.5 self-end shrink-0">
                         <SenderAvatar
                           avatar={memberAvatar}
-                          name={displayName || "?"}
+                          name={displayName || selectedContact.name}
                           size="sm"
                         />
                       </div>
                     )}
 
                     <div
-                      className={`flex flex-col gap-0.5 ${
-                        isMe ? "items-end" : "items-start"
-                      }`}
+                      className={`flex flex-col gap-0.5 ${isMe ? "items-end" : "items-start"
+                        }`}
                     >
-                      {/* ✅ Tên + avatar cùng dòng cho group */}
+                      {/* Tên sender (chỉ hiện trong group) */}
                       {showName && (
                         <span className="text-[10px] font-semibold text-cyan-400 px-1">
                           {displayName}
                         </span>
                       )}
                       <div
-                        className={`w-fit max-w-[210px] px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm ${
-                          isMe
+                        className={`w-fit max-w-[210px] px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm ${isMe
                             ? "bg-gradient-to-br from-cyan-500 to-cyan-600 text-white rounded-br-sm"
                             : dark
-                            ? "bg-gray-700 text-gray-100 rounded-bl-sm"
-                            : "bg-white text-gray-800 rounded-bl-sm border border-gray-100"
-                        }`}
+                              ? "bg-gray-700 text-gray-100 rounded-bl-sm"
+                              : "bg-white text-gray-800 rounded-bl-sm border border-gray-100"
+                          }`}
                       >
                         <MessageContent
                           text={msg.text}
@@ -696,9 +683,8 @@ export default function FloatingChatButton({
                           }}
                         />
                         <div
-                          className={`text-[10px] mt-0.5 ${
-                            isMe ? "text-cyan-100" : "text-gray-400"
-                          }`}
+                          className={`text-[10px] mt-0.5 ${isMe ? "text-cyan-100" : "text-gray-400"
+                            }`}
                         >
                           {msg.timestamp.toLocaleTimeString([], {
                             hour: "2-digit",
@@ -716,9 +702,8 @@ export default function FloatingChatButton({
 
           {/* ── Input ──────────────────────────────────────────────── */}
           <div
-            className={`px-3 py-2.5 border-t shrink-0 ${
-              dark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"
-            }`}
+            className={`px-3 py-2.5 border-t shrink-0 ${dark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"
+              }`}
           >
             <div className="flex flex-row items-center gap-2">
               <input
@@ -732,19 +717,17 @@ export default function FloatingChatButton({
                     : "Chọn cuộc trò chuyện..."
                 }
                 disabled={!isConnected || !selectedContact}
-                className={`flex-1 min-w-0 text-xs px-3 py-2 rounded-full border focus:outline-none focus:ring-2 focus:ring-cyan-400 transition disabled:opacity-50 ${
-                  dark
+                className={`flex-1 min-w-0 text-xs px-3 py-2 rounded-full border focus:outline-none focus:ring-2 focus:ring-cyan-400 transition disabled:opacity-50 ${dark
                     ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
                     : "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
-                }`}
+                  }`}
               />
               {/* ✅ Nút gửi cố định kích thước, bounce khi canSend */}
               <button
                 onClick={handleSend}
                 disabled={!canSend}
-                className={`flex-none w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-500 flex items-center justify-center disabled:opacity-40 transition-all ${
-                  canSend ? "animate-bounce-send hover:brightness-110" : ""
-                }`}
+                className={`flex-none w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-500 flex items-center justify-center disabled:opacity-40 transition-all ${canSend ? "animate-bounce-send hover:brightness-110" : ""
+                  }`}
               >
                 <Send size={13} className="text-white" />
               </button>
