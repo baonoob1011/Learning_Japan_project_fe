@@ -22,6 +22,11 @@ class ChatSocketService {
     }
   }
 
+  // Check if stompClient is active (used for debug)
+  isActive(): boolean {
+    return !!this.stompClient?.active;
+  }
+
   // =========================
   // 🔌 CONNECT
   // =========================
@@ -45,7 +50,7 @@ class ChatSocketService {
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },
-      debug: () => {}, // bật console.log nếu cần debug
+      debug: () => { }, // bật console.log nếu cần debug
     });
 
     this.stompClient.onConnect = () => {
@@ -93,7 +98,6 @@ class ChatSocketService {
     );
 
     this.subscriptions.set(roomId, subscription);
-
     return subscription;
   }
 

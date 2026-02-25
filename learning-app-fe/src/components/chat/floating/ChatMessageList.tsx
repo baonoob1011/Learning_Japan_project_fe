@@ -43,10 +43,12 @@ export default function ChatMessageList({
     onNavigate,
 }: ChatMessageListProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messageCount = messages.length;
 
+    // Scroll to bottom whenever new messages arrive
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages.length]);
+    }, [messageCount]);
 
     return (
         <div
@@ -87,7 +89,8 @@ export default function ChatMessageList({
             ) : (
                 messages.map((msg, i) => {
                     const isMe = String(msg.senderId) === String(currentUserId);
-                    const displayName = senderNameMap[msg.senderId] ?? msg.senderName ?? "";
+                    const displayName =
+                        senderNameMap[msg.senderId] ?? msg.senderName ?? "";
                     const showName = selectedContact.isGroup && !isMe && displayName;
 
                     const memberAvatar = selectedContact.isGroup

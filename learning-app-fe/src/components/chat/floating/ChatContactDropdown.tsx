@@ -1,5 +1,5 @@
 "use client";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { ChevronDown, Users, MessageCircle, Phone, X } from "lucide-react";
 
 interface Contact {
@@ -45,6 +45,17 @@ export default function ChatContactDropdown({
 }: ChatContactDropdownProps) {
     const dropdownRef = useRef<HTMLDivElement>(null);
 
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setShowContactDropdown(false);
+            }
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, [setShowContactDropdown]);
+
     return (
         <div className="shrink-0 bg-gradient-to-r from-cyan-400 to-cyan-500">
             <div className="flex items-center gap-2 px-3 pt-3 pb-2">
@@ -89,8 +100,8 @@ export default function ChatContactDropdown({
                     {showContactDropdown && (
                         <div
                             className={`absolute top-full left-0 right-0 mt-1 rounded-xl shadow-2xl border overflow-hidden z-50 ${dark
-                                    ? "bg-gray-800 border-gray-700"
-                                    : "bg-white border-cyan-100"
+                                ? "bg-gray-800 border-gray-700"
+                                : "bg-white border-cyan-100"
                                 }`}
                         >
                             {/* Tabs */}
@@ -103,8 +114,8 @@ export default function ChatContactDropdown({
                                         key={tab}
                                         onClick={() => onTabChange(tab)}
                                         className={`flex-1 py-2 text-xs font-semibold flex items-center justify-center gap-1 border-b-2 transition ${activeTab === tab
-                                                ? "text-cyan-500 border-cyan-500"
-                                                : "border-transparent text-gray-400"
+                                            ? "text-cyan-500 border-cyan-500"
+                                            : "border-transparent text-gray-400"
                                             }`}
                                     >
                                         {tab === "GROUP" ? (
@@ -135,12 +146,12 @@ export default function ChatContactDropdown({
                                             key={c.id}
                                             onClick={() => onSelectContact(c)}
                                             className={`flex items-center gap-2.5 px-3 py-2.5 cursor-pointer transition ${selectedContact?.id === c.id
-                                                    ? dark
-                                                        ? "bg-gray-700"
-                                                        : "bg-cyan-50"
-                                                    : dark
-                                                        ? "hover:bg-gray-700"
-                                                        : "hover:bg-gray-50"
+                                                ? dark
+                                                    ? "bg-gray-700"
+                                                    : "bg-cyan-50"
+                                                : dark
+                                                    ? "hover:bg-gray-700"
+                                                    : "hover:bg-gray-50"
                                                 }`}
                                         >
                                             <div className="relative shrink-0">

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useChatSocket } from "@/hooks/useChatSocket";
 import { getUserIdFromToken } from "@/utils/jwt";
@@ -104,12 +104,18 @@ export default function FloatingChatButton({
     selectedContact?.id || null
   );
 
-  const socketMapped: Message[] = socketMessages.map(mapApiMsg);
-  const historyIds = new Set(historyMessages.map((m) => m.id));
-  const messages = [
-    ...historyMessages,
-    ...socketMapped.filter((m) => !historyIds.has(m.id)),
-  ];
+  // ── Memoize to avoid unnecessary re-renders ─────────────────────────────
+  const socketMapped = useMemo(
+    () => socketMessages.map(mapApiMsg),
+    [socketMessages]
+  );
+  const messages = useMemo(() => {
+    const historyIds = new Set(historyMessages.map((m) => m.id));
+    return [
+      ...historyMessages,
+      ...socketMapped.filter((m) => !historyIds.has(m.id)),
+    ];
+  }, [historyMessages, socketMapped]);
 
   // ── Fetch sender avatar (group only) ─────────────────────────────────────
   const fetchSenderAvatar = useCallback(
@@ -285,8 +291,8 @@ export default function FloatingChatButton({
       {isOpen && (
         <div
           className={`absolute bottom-16 right-0 w-80 rounded-2xl shadow-2xl border flex flex-col overflow-hidden animate-slide-up ${isDarkMode
-              ? "bg-gray-800 border-gray-700"
-              : "bg-white border-cyan-100"
+            ? "bg-gray-800 border-gray-700"
+            : "bg-white border-cyan-100"
             }`}
           style={{ height: "500px" }}
         >
@@ -388,7 +394,7 @@ export default function FloatingChatButton({
         </div>
       </button>
 
-      <style jsx>{`
+      <style jsx global>{`
         @keyframes slide-up {
           from { opacity: 0; transform: translateY(16px) scale(0.97); }
           to   { opacity: 1; transform: translateY(0) scale(1); }

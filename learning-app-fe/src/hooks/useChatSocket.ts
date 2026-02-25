@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { chatSocketService } from "@/services/chatSocketService";
+import { Client, StompSubscription } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 import { ChatMessageResponse } from "@/types/chat";
 
 interface UseChatSocketReturn {
@@ -11,62 +12,115 @@ interface UseChatSocketReturn {
   setMessages: React.Dispatch<React.SetStateAction<ChatMessageResponse[]>>;
 }
 
+function getAccessToken(): string | null {
+  try {
+    const authStorage = localStorage.getItem("auth-storage");
+    if (!authStorage) return null;
+    const parsed = JSON.parse(authStorage);
+    return parsed?.state?.accessToken ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Ensure every incoming WebSocket message has an `id` (backend may omit it) */
+function normalizeMessage(raw: ChatMessageResponse): ChatMessageResponse {
+  return {
+    ...raw,
+    id: raw.id ?? `ws-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    sentAt: raw.sentAt ?? new Date().toISOString(),
+  };
+}
+
+/**
+ * Self-contained STOMP hook – owns its own Client instance.
+ * Mirrors the pattern used by useIncomingCall to avoid singleton race conditions.
+ */
 export const useChatSocket = (roomId: string | null): UseChatSocketReturn => {
   const [messages, setMessages] = useState<ChatMessageResponse[]>([]);
   const [isConnected, setIsConnected] = useState(false);
 
-  // Connect once on mount
+  const clientRef = useRef<Client | null>(null);
+  const subRef = useRef<StompSubscription | null>(null);
+
+  // ── Connect once on mount ──────────────────────────────────────────────
   useEffect(() => {
-    chatSocketService.connect(() => {
-      setIsConnected(true);
+    const token = getAccessToken();
+    if (!token) {
+      console.error("[ChatSocket] No access token – cannot connect");
+      return;
+    }
+
+    const backendUrl =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
+    const client = new Client({
+      webSocketFactory: () => new SockJS(`${backendUrl}/ws`),
+      reconnectDelay: 5000,
+      heartbeatIncoming: 10000,
+      heartbeatOutgoing: 10000,
+      connectHeaders: { Authorization: `Bearer ${token}` },
+      onConnect: () => setIsConnected(true),
+      onDisconnect: () => setIsConnected(false),
+      onWebSocketClose: () => setIsConnected(false),
+      onStompError: (frame) =>
+        console.error("[ChatSocket] STOMP error:", frame.headers["message"]),
     });
 
+    clientRef.current = client;
+    client.activate();
+
     return () => {
-      chatSocketService.disconnect();
+      subRef.current?.unsubscribe();
+      subRef.current = null;
+      client.deactivate();
+      clientRef.current = null;
+      setIsConnected(false);
     };
   }, []);
 
-  // Subscribe when roomId changes
+  // ── Subscribe / resubscribe when room or connection changes ──────────
   useEffect(() => {
-    if (!roomId || !isConnected) return;
+    const client = clientRef.current;
 
-    let isSubscriptionActive = true;
+    // Always clean up previous subscription
+    subRef.current?.unsubscribe();
+    subRef.current = null;
 
-    const subscription = chatSocketService.subscribeRoom(
-      roomId,
-      (msg: ChatMessageResponse) => {
-        // Chỉ update nếu subscription vẫn active (tránh race condition)
-        if (isSubscriptionActive) {
-          setMessages((prev) => [...prev, msg]);
+    if (!roomId || !isConnected || !client?.connected) return;
+
+    subRef.current = client.subscribe(
+      `/topic/room/${roomId}`,
+      (message) => {
+        try {
+          const raw: ChatMessageResponse = JSON.parse(message.body);
+          const normalized = normalizeMessage(raw);
+          setMessages((prev) => [...prev, normalized]);
+        } catch (error) {
+          console.error("[ChatSocket] Failed to parse message:", error);
         }
       }
     );
 
-    // Cleanup: unsubscribe when room changes
     return () => {
-      isSubscriptionActive = false;
-      if (subscription) {
-        subscription.unsubscribe();
-      }
+      subRef.current?.unsubscribe();
+      subRef.current = null;
     };
   }, [roomId, isConnected]);
 
+  // ── Send message ────────────────────────────────────────────────────
   const sendMessage = useCallback(
     (content: string) => {
-      if (!roomId || !content.trim()) return;
+      const client = clientRef.current;
+      if (!roomId || !content.trim() || !client?.connected) return;
 
-      chatSocketService.sendMessage({
-        roomId,
-        content: content.trim(),
+      client.publish({
+        destination: "/app/chat.send",
+        body: JSON.stringify({ roomId, content: content.trim() }),
       });
     },
     [roomId]
   );
 
-  return {
-    messages,
-    isConnected,
-    sendMessage,
-    setMessages,
-  };
+  return { messages, isConnected, sendMessage, setMessages };
 };
