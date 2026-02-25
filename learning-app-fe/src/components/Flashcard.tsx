@@ -235,14 +235,12 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
       <div className="w-full max-w-4xl mx-auto pt-1 pb-8 px-4">
         <div className="flex flex-col items-center justify-center min-h-[500px]">
           <Loader2
-            className={`w-12 h-12 animate-spin ${
-              isDark ? "text-cyan-400" : "text-cyan-600"
-            }`}
+            className={`w-12 h-12 animate-spin ${isDark ? "text-cyan-400" : "text-cyan-600"
+              }`}
           />
           <p
-            className={`mt-4 text-lg ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
+            className={`mt-4 text-lg ${isDark ? "text-gray-400" : "text-gray-600"
+              }`}
           >
             Đang tải từ vựng...
           </p>
@@ -309,11 +307,10 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
           >
             {/* Front Side */}
             <div
-              className={`absolute inset-0 rounded-3xl border-4 border-cyan-400 p-6 shadow-xl flex flex-col ${
-                isDark
+              className={`absolute inset-0 rounded-3xl border-4 border-cyan-400 p-6 shadow-xl flex flex-col ${isDark
                   ? "bg-gradient-to-br from-gray-800 to-gray-900"
                   : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
-              }`}
+                }`}
               style={{
                 backfaceVisibility: "hidden",
                 WebkitBackfaceVisibility: "hidden",
@@ -334,16 +331,14 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
                       e.stopPropagation();
                       playSound();
                     }}
-                    className={`w-9 h-9 rounded-full flex items-center justify-center transition ${
-                      isDark
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition ${isDark
                         ? "bg-gray-700 hover:bg-gray-600"
                         : "bg-white/80 hover:bg-white"
-                    }`}
+                      }`}
                   >
                     <Volume2
-                      className={`w-4 h-4 ${
-                        isDark ? "text-gray-300" : "text-cyan-600"
-                      }`}
+                      className={`w-4 h-4 ${isDark ? "text-gray-300" : "text-cyan-600"
+                        }`}
                     />
                   </button>
                   <button
@@ -351,16 +346,14 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
                       e.stopPropagation();
                       copyWord();
                     }}
-                    className={`w-9 h-9 rounded-full flex items-center justify-center transition ${
-                      isDark
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition ${isDark
                         ? "bg-gray-700 hover:bg-gray-600"
                         : "bg-white/80 hover:bg-white"
-                    }`}
+                      }`}
                   >
                     <Copy
-                      className={`w-4 h-4 ${
-                        isDark ? "text-gray-300" : "text-cyan-600"
-                      }`}
+                      className={`w-4 h-4 ${isDark ? "text-gray-300" : "text-cyan-600"
+                        }`}
                     />
                   </button>
                 </div>
@@ -380,16 +373,14 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
                   />
                 </div>
                 <div
-                  className={`px-10 py-8 rounded-2xl ${
-                    isDark
+                  className={`px-10 py-8 rounded-2xl ${isDark
                       ? "bg-gradient-to-br from-cyan-900/60 to-blue-900/60"
                       : "bg-gradient-to-br from-cyan-100 to-blue-100"
-                  }`}
+                    }`}
                 >
                   <div
-                    className={`text-4xl font-bold text-center ${
-                      isDark ? "text-cyan-300" : "text-gray-800"
-                    }`}
+                    className={`text-4xl font-bold text-center ${isDark ? "text-cyan-300" : "text-gray-800"
+                      }`}
                   >
                     {card.surface}
                   </div>
@@ -398,9 +389,8 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
 
               {/* Hint text */}
               <div
-                className={`text-center text-sm mt-4 ${
-                  isDark ? "text-gray-400" : "text-gray-500"
-                }`}
+                className={`text-center text-sm mt-4 ${isDark ? "text-gray-400" : "text-gray-500"
+                  }`}
               >
                 Nhấn để xem nghĩa
               </div>
@@ -408,11 +398,10 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
 
             {/* Back Side */}
             <div
-              className={`absolute inset-0 rounded-3xl border-4 border-cyan-400 p-6 shadow-xl flex flex-col ${
-                isDark
+              className={`absolute inset-0 rounded-3xl border-4 border-cyan-400 p-6 shadow-xl flex flex-col ${isDark
                   ? "bg-gradient-to-br from-gray-800 to-gray-900"
                   : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
-              }`}
+                }`}
               style={{
                 backfaceVisibility: "hidden",
                 WebkitBackfaceVisibility: "hidden",
@@ -434,16 +423,14 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
                       e.stopPropagation();
                       playSound();
                     }}
-                    className={`w-9 h-9 rounded-full flex items-center justify-center transition ${
-                      isDark
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition ${isDark
                         ? "bg-gray-700 hover:bg-gray-600"
                         : "bg-white/80 hover:bg-white"
-                    }`}
+                      }`}
                   >
                     <Volume2
-                      className={`w-4 h-4 ${
-                        isDark ? "text-gray-300" : "text-cyan-600"
-                      }`}
+                      className={`w-4 h-4 ${isDark ? "text-gray-300" : "text-cyan-600"
+                        }`}
                     />
                   </button>
                   <button
@@ -451,16 +438,14 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
                       e.stopPropagation();
                       copyWord();
                     }}
-                    className={`w-9 h-9 rounded-full flex items-center justify-center transition ${
-                      isDark
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition ${isDark
                         ? "bg-gray-700 hover:bg-gray-600"
                         : "bg-white/80 hover:bg-white"
-                    }`}
+                      }`}
                   >
                     <Copy
-                      className={`w-4 h-4 ${
-                        isDark ? "text-gray-300" : "text-cyan-600"
-                      }`}
+                      className={`w-4 h-4 ${isDark ? "text-gray-300" : "text-cyan-600"
+                        }`}
                     />
                   </button>
                 </div>
@@ -481,20 +466,18 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
                 </div>
                 <div className="text-center space-y-4 px-4">
                   <div
-                    className={`text-4xl font-bold ${
-                      isDark ? "text-cyan-400" : "text-cyan-600"
-                    }`}
+                    className={`text-4xl font-bold ${isDark ? "text-cyan-400" : "text-cyan-600"
+                      }`}
                   >
                     {card.translated}
                   </div>
 
                   {card.reading && (
                     <div
-                      className={`text-base mt-4 p-4 rounded-lg ${
-                        isDark
+                      className={`text-base mt-4 p-4 rounded-lg ${isDark
                           ? "bg-gray-700/80 text-gray-300"
                           : "bg-white/80 text-gray-600"
-                      }`}
+                        }`}
                     >
                       <div>({card.reading})</div>
                     </div>
@@ -510,24 +493,22 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
           <button
             onClick={handlePrev}
             disabled={currentCard === 0}
-            className={`flex items-center gap-1 px-4 py-2 rounded-lg transition text-sm font-medium ${
-              currentCard === 0
+            className={`flex items-center gap-1 px-4 py-2 rounded-lg transition text-sm font-medium ${currentCard === 0
                 ? isDark
                   ? "text-gray-600 cursor-not-allowed"
                   : "text-gray-300 cursor-not-allowed"
                 : isDark
-                ? "text-cyan-400 hover:bg-gray-700"
-                : "text-cyan-600 hover:bg-cyan-50"
-            }`}
+                  ? "text-cyan-400 hover:bg-gray-700"
+                  : "text-cyan-600 hover:bg-cyan-50"
+              }`}
           >
             <ChevronLeft className="w-4 h-4" />
             <span>Trước</span>
           </button>
 
           <div
-            className={`px-4 py-2 text-sm font-medium ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
+            className={`px-4 py-2 text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-600"
+              }`}
           >
             {currentCard + 1} / {vocabs.length}
           </div>
@@ -535,15 +516,14 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
           <button
             onClick={handleNext}
             disabled={currentCard === vocabs.length - 1}
-            className={`flex items-center gap-1 px-4 py-2 rounded-lg transition text-sm font-medium ${
-              currentCard === vocabs.length - 1
+            className={`flex items-center gap-1 px-4 py-2 rounded-lg transition text-sm font-medium ${currentCard === vocabs.length - 1
                 ? isDark
                   ? "text-gray-600 cursor-not-allowed"
                   : "text-gray-300 cursor-not-allowed"
                 : isDark
-                ? "text-cyan-400 hover:bg-gray-700"
-                : "text-cyan-600 hover:bg-cyan-50"
-            }`}
+                  ? "text-cyan-400 hover:bg-gray-700"
+                  : "text-cyan-600 hover:bg-cyan-50"
+              }`}
           >
             <span>Sau</span>
             <ChevronRight className="w-4 h-4" />
@@ -558,18 +538,19 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
             <button
               onClick={() => markVocab(true)}
               disabled={statusInfo.isKnown || isMarkingVocab}
-              className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl shadow-lg transition text-base font-bold ${
-                statusInfo.isKnown
+              className={`flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl transition-all duration-200 text-sm font-semibold tracking-wide ${statusInfo.isKnown
                   ? isDark
-                    ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-emerald-500 hover:bg-emerald-600 text-white active:scale-95"
-              }`}
+                    ? "bg-gray-700/60 text-gray-500 cursor-not-allowed border border-gray-600/40"
+                    : "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
+                  : isDark
+                    ? "bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-white shadow-lg shadow-cyan-500/30 hover:shadow-cyan-400/40 active:scale-95"
+                    : "bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-white shadow-lg shadow-cyan-500/30 hover:shadow-cyan-400/40 active:scale-95"
+                }`}
             >
               {isMarkingVocab ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <CheckCircle2 className="w-5 h-5" />
+                <CheckCircle2 className="w-4 h-4" />
               )}
               <span>Đã thuộc</span>
             </button>
@@ -578,44 +559,45 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
             <button
               onClick={() => markVocab(false)}
               disabled={isMarkingVocab}
-              className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl shadow-lg transition text-base font-bold ${
-                isDark
-                  ? "bg-red-500 hover:bg-red-600 text-white active:scale-95"
-                  : "bg-red-500 hover:bg-red-600 text-white active:scale-95"
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl transition-all duration-200 text-sm font-semibold tracking-wide border-2 ${isDark
+                  ? "border-red-500/70 text-red-400 hover:bg-red-500/15 hover:border-red-400 active:scale-95"
+                  : "border-red-400 text-red-500 hover:bg-red-50 hover:border-red-500 active:scale-95"
+                }`}
             >
               {isMarkingVocab ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <XCircle className="w-5 h-5" />
+                <XCircle className="w-4 h-4" />
               )}
               <span>Đã quên</span>
             </button>
           </div>
 
           {/* Các nút phụ */}
-          <div className="flex items-center justify-between px-2">
+          <div className="flex items-center justify-between px-1">
             <button
               onClick={handleShuffle}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full shadow-md transition text-sm font-medium ${
-                isDark
-                  ? "bg-gray-700 hover:bg-gray-600 text-gray-300"
-                  : "bg-white hover:bg-gray-50 text-gray-700"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 text-xs font-medium border ${isDark
+                  ? "border-cyan-500/30 text-cyan-400/80 hover:bg-cyan-500/10 hover:border-cyan-400/50 hover:text-cyan-300"
+                  : "border-cyan-300/60 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-400"
+                }`}
             >
-              <span>🔀</span>
+              <span className="text-sm">🔀</span>
               <span>Xáo trộn</span>
             </button>
 
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full shadow-md transition text-sm font-medium ${
-                isDark
-                  ? "bg-gray-700 hover:bg-gray-600 text-gray-300"
-                  : "bg-white hover:bg-gray-50 text-gray-700"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 text-xs font-medium border ${soundEnabled
+                  ? isDark
+                    ? "border-cyan-500/30 text-cyan-400/80 hover:bg-cyan-500/10 hover:border-cyan-400/50 hover:text-cyan-300"
+                    : "border-cyan-300/60 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-400"
+                  : isDark
+                    ? "border-gray-600/50 text-gray-500 hover:bg-gray-700/50 hover:text-gray-400"
+                    : "border-gray-300 text-gray-400 hover:bg-gray-50"
+                }`}
             >
-              <span>{soundEnabled ? "🔊" : "🔇"}</span>
+              <span className="text-sm">{soundEnabled ? "🔊" : "🔇"}</span>
               <span>{soundEnabled ? "Âm thanh" : "Tắt tiếng"}</span>
             </button>
           </div>
