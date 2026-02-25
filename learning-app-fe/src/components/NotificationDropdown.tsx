@@ -261,6 +261,10 @@ function FriendRequestItem({
     try {
       await friendService.acceptRequest(request.requestId);
       await roomService.createPrivateRoom({ targetUserId: request.senderId });
+
+      // Trigger inbox refresh in FloatingChatButton
+      window.dispatchEvent(new CustomEvent("refresh-inbox"));
+
       setState("accepted");
       setTimeout(onDismiss, 2000);
     } catch {

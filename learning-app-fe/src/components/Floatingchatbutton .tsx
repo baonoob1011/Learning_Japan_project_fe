@@ -185,7 +185,7 @@ export default function FloatingChatButton({
     try {
       const data: PrivateChatPreviewResponse[] =
         await roomService.getMyChatUsers();
-      if (cancelled) return;
+      if (cancelled) return [];
       const mapped: Contact[] = data.map((p) => ({
         id: p.roomId,
         userId: p.userId,
@@ -197,14 +197,13 @@ export default function FloatingChatButton({
       }));
       setInboxContacts(mapped);
       hasFetchedInbox.current = true;
+      return mapped;
     } catch {
       if (!cancelled) setInboxContacts([]);
+      return [];
     } finally {
       if (!cancelled) setIsLoadingContacts(false);
     }
-    return () => {
-      cancelled = true;
-    };
   }, [isOpen]);
 
   useEffect(() => {
@@ -230,6 +229,41 @@ export default function FloatingChatButton({
     }
     prevNotifCount.current = notifications.length;
   }, [notifications.length, fetchInbox]);
+
+  // Listen for manual acceptance events or routing
+  useEffect(() => {
+    const handleRefresh = () => {
+      console.log("🔄 Manual inbox refresh triggered");
+      fetchInbox(true);
+    };
+
+    const handleOpenRoom = async (e: any) => {
+      const { roomId, userId } = e.detail;
+      console.log("📬 Open room requested:", roomId);
+
+      setIsOpen(true);
+      setActiveTab("INBOX");
+
+      // 1. Fetch current inbox to ensure the room exists in local state
+      const mapped = await fetchInbox(true);
+
+      // 2. Select the room
+      if (Array.isArray(mapped)) {
+        const target = mapped.find((c: Contact) => c.id === roomId);
+        if (target) {
+          setSelectedContact(target);
+          clearUnread(roomId);
+        }
+      }
+    };
+
+    window.addEventListener("refresh-inbox", handleRefresh);
+    window.addEventListener("chat-open-room", handleOpenRoom);
+    return () => {
+      window.removeEventListener("refresh-inbox", handleRefresh);
+      window.removeEventListener("chat-open-room", handleOpenRoom);
+    };
+  }, [fetchInbox, clearUnread]);
 
   // ── Fetch groups ─────────────────────────────────────────────────────────
   useEffect(() => {

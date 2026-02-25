@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { UserPlus, UserCheck, X, Loader2, MessageCircle } from "lucide-react";
 import { friendService, FriendStatus as APIFriendStatus } from "@/services/friendService";
 import { userService, UserChatResponse } from "@/services/userService";
+import { roomService } from "@/services/roomService";
 
 type LocalFriendStatus = APIFriendStatus | "loading" | "error";
 
@@ -78,10 +79,14 @@ export default function UserProfileCard({
             await friendService.sendRequest(userId);
             setFriendStatus("PENDING");
             setActionDone(true);
+
+            // Trigger inbox refresh
+            window.dispatchEvent(new CustomEvent("refresh-inbox"));
         } catch {
             // If endpoint not yet available, show "Đã gửi" anyway for UX
             setFriendStatus("PENDING");
             setActionDone(true);
+            window.dispatchEvent(new CustomEvent("refresh-inbox"));
         } finally {
             setActionLoading(false);
         }
@@ -101,6 +106,23 @@ export default function UserProfileCard({
         top = window.innerHeight - cardHeight - margin;
     }
     if (top < margin) top = margin;
+
+    const handleOpenChat = async () => {
+        if (actionLoading) return;
+        setActionLoading(true);
+        try {
+            const room = await roomService.createPrivateRoom({ targetUserId: userId });
+            console.log("🚀 CustomEvent: chat-open-room", room.id);
+            window.dispatchEvent(new CustomEvent("chat-open-room", {
+                detail: { roomId: room.id, userId: userId }
+            }));
+            onClose(); // Close the card
+        } catch (err) {
+            console.error("Failed to open chat", err);
+        } finally {
+            setActionLoading(false);
+        }
+    };
 
     // ── Friend button state ──────────────────────────────────────────────
     const renderFriendButton = () => {
@@ -200,13 +222,15 @@ export default function UserProfileCard({
                         <div className="flex items-center gap-2">
                             {renderFriendButton()}
                             <button
+                                onClick={handleOpenChat}
+                                disabled={actionLoading}
                                 title="Nhắn tin"
                                 className={`p-1.5 rounded-full border transition ${dark
                                     ? "border-gray-600 hover:bg-gray-700 text-gray-300"
                                     : "border-gray-200 hover:bg-gray-50 text-gray-500"
-                                    }`}
+                                    } disabled:opacity-50`}
                             >
-                                <MessageCircle size={13} />
+                                {actionLoading ? <Loader2 size={13} className="animate-spin" /> : <MessageCircle size={13} />}
                             </button>
                         </div>
                     </>

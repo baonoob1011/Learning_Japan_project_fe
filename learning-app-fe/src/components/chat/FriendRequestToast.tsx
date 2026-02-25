@@ -29,6 +29,9 @@ export default function FriendRequestToast({
             // 2. Tạo phòng chat private giữa 2 người
             await roomService.createPrivateRoom({ targetUserId: request.senderId });
 
+            // Trigger inbox refresh
+            window.dispatchEvent(new CustomEvent("refresh-inbox"));
+
             setState("accepted");
             setTimeout(onDismiss, 2000);
         } catch {
