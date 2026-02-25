@@ -183,6 +183,13 @@ export const API_ENDPOINTS = {
     PURCHASE: "/vip-purchases",
     GET_MY_VIP: "/vip/me",
   },
+
+  FRIEND: {
+    SEND_REQUEST: (receiverId: string) => `/friends/request/${receiverId}`,
+    GET_STATUS: (userId: string) => `/friends/status/${userId}`,
+    ACCEPT: (requestId: string) => `/friends/accept/${requestId}`,
+    UNFRIEND: (userId: string) => `/friends/${userId}`,
+  },
 } as const;
 
 // Helper function để lấy full endpoint URL

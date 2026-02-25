@@ -5,12 +5,14 @@ interface SenderAvatarProps {
     avatar: string;
     name: string;
     size?: "sm" | "md";
+    onClick?: (e: React.MouseEvent) => void;
 }
 
 export default function SenderAvatar({
     avatar,
     name,
     size = "sm",
+    onClick,
 }: SenderAvatarProps) {
     const [imgError, setImgError] = useState(false);
     const initials = name
@@ -22,12 +24,14 @@ export default function SenderAvatar({
         .slice(0, 2);
 
     const sizeClass = size === "sm" ? "w-6 h-6 text-[9px]" : "w-8 h-8 text-xs";
+    const clickClass = onClick ? "cursor-pointer hover:opacity-80 transition-opacity" : "";
 
     if (imgError || !avatar || avatar === "/default-avatar.png") {
         return (
             <div
-                className={`${sizeClass} rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center font-bold text-white shrink-0`}
+                className={`${sizeClass} ${clickClass} rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center font-bold text-white shrink-0`}
                 title={name}
+                onClick={onClick}
             >
                 {initials || "?"}
             </div>
@@ -39,8 +43,10 @@ export default function SenderAvatar({
             src={avatar}
             alt={name}
             title={name}
-            className={`${sizeClass} rounded-full object-cover shrink-0`}
+            className={`${sizeClass} ${clickClass} rounded-full object-cover shrink-0`}
             onError={() => setImgError(true)}
+            onClick={onClick}
         />
     );
 }
+
