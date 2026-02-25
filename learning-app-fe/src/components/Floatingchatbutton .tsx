@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useChatSocket } from "@/hooks/useChatSocket";
+import { useUnreadCounts } from "@/hooks/useUnreadCounts";
 import { getUserIdFromToken } from "@/utils/jwt";
 import {
   roomService,
@@ -83,6 +84,17 @@ export default function FloatingChatButton({
   const hasFetchedGroup = useRef(false);
   const currentUserId = getUserIdFromToken();
 
+  // ── Collect all room IDs for unread tracking ─────────────────────────
+  const allRoomIds = useMemo(
+    () => [...inboxContacts, ...groupContacts].map((c) => c.id),
+    [inboxContacts, groupContacts]
+  );
+
+  const { unreadCounts, clearUnread, totalUnread } = useUnreadCounts(
+    allRoomIds,
+    currentUserId
+  );
+
   const { incomingCall, dismissCall } = useIncomingCall(
     currentUserId ? String(currentUserId) : null
   );
@@ -103,6 +115,12 @@ export default function FloatingChatButton({
   const { messages: socketMessages, isConnected, sendMessage } = useChatSocket(
     selectedContact?.id || null
   );
+
+  // ── Track socket message length for dedup only ───────────────────────
+  const prevSocketLengthRef = useRef(0);
+  useEffect(() => {
+    prevSocketLengthRef.current = socketMessages.length;
+  }, [socketMessages]);
 
   // ── Memoize to avoid unnecessary re-renders ─────────────────────────────
   const socketMapped = useMemo(
@@ -273,6 +291,7 @@ export default function FloatingChatButton({
   const handleSelectContact = (c: Contact) => {
     setSelectedContact(c);
     setShowContactDropdown(false);
+    clearUnread(c.id);
   };
 
   const handleTabChange = (tab: Tab) => {
@@ -310,6 +329,7 @@ export default function FloatingChatButton({
             onCall={() => setShowCall(true)}
             onClose={() => setIsOpen(false)}
             showCallButton={!!selectedContact && !!currentUserId}
+            unreadCounts={unreadCounts}
           />
 
           {/* Messages */}
@@ -385,6 +405,14 @@ export default function FloatingChatButton({
             className="w-full h-full object-contain"
           />
         </div>
+
+        {/* Unread badge (total across all rooms) */}
+        {totalUnread > 0 && (
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-md z-10 animate-pulse">
+            {totalUnread > 99 ? "99+" : totalUnread}
+          </span>
+        )}
+
         {/* Tooltip */}
         <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none">
           <div className="bg-gray-800 text-white text-sm font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg">

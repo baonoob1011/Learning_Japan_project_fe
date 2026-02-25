@@ -27,6 +27,7 @@ interface ChatContactDropdownProps {
     onCall: () => void;
     onClose: () => void;
     showCallButton: boolean;
+    unreadCounts?: Record<string, number>;
 }
 
 export default function ChatContactDropdown({
@@ -42,6 +43,7 @@ export default function ChatContactDropdown({
     onCall,
     onClose,
     showCallButton,
+    unreadCounts = {},
 }: ChatContactDropdownProps) {
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -169,6 +171,12 @@ export default function ChatContactDropdown({
                                                     <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-cyan-500 rounded-full flex items-center justify-center">
                                                         <Users size={8} className="text-white" />
                                                     </div>
+                                                )}
+                                                {/* Unread badge */}
+                                                {(unreadCounts[c.id] ?? 0) > 0 && (
+                                                    <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 shadow-md animate-pulse">
+                                                        {(unreadCounts[c.id] ?? 0) > 99 ? "99+" : unreadCounts[c.id]}
+                                                    </span>
                                                 )}
                                             </div>
                                             <div className="flex-1 min-w-0">
