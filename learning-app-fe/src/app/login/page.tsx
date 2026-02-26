@@ -35,7 +35,7 @@ export default function LoginPage() {
 
       if (roles.includes("ADMIN")) {
         console.log("Redirecting to /adminDashboard");
-        router.push("/admin");
+        router.push("/dasboardAdmin");
       } else {
         console.log("Redirecting to /video");
         router.push("/video");

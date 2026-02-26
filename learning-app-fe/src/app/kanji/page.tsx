@@ -7,8 +7,6 @@ import Sidebar from "@/components/Sidebar";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Header from "@/components/Header";
 import LoadingCat from "@/components/LoadingCat";
-import MaziAIChat from "@/components/NiboChatAI";
-import FloatingChatButton from "@/components/Floatingchatbutton ";
 import { Search, Book, AlertCircle, Layers } from "lucide-react";
 
 // Types
@@ -40,9 +38,8 @@ const KanjiCard: React.FC<KanjiCardProps> = ({ kanji, isDark, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className={`${
-        isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-      } rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer group border relative`}
+      className={`${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+        } rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer group border relative`}
     >
       {/* Gradient Background */}
       <div
@@ -55,18 +52,16 @@ const KanjiCard: React.FC<KanjiCardProps> = ({ kanji, isDark, onClick }) => {
       <div className="relative p-8 flex flex-col items-center justify-center min-h-[200px]">
         {/* Kanji Character */}
         <div
-          className={`text-7xl font-bold mb-4 ${
-            isDark ? "text-gray-100" : "text-gray-800"
-          } group-hover:scale-110 transition-transform`}
+          className={`text-7xl font-bold mb-4 ${isDark ? "text-gray-100" : "text-gray-800"
+            } group-hover:scale-110 transition-transform`}
         >
           {kanji.character}
         </div>
 
         {/* Meaning */}
         <div
-          className={`text-center text-sm font-medium mb-3 ${
-            isDark ? "text-gray-300" : "text-gray-700"
-          }`}
+          className={`text-center text-sm font-medium mb-3 ${isDark ? "text-gray-300" : "text-gray-700"
+            }`}
         >
           {kanji.meaning}
         </div>
@@ -81,9 +76,8 @@ const KanjiCard: React.FC<KanjiCardProps> = ({ kanji, isDark, onClick }) => {
         {/* Readings (if available) */}
         {(kanji.onyomi || kanji.kunyomi) && (
           <div
-            className={`mt-4 text-xs ${
-              isDark ? "text-gray-400" : "text-gray-500"
-            }`}
+            className={`mt-4 text-xs ${isDark ? "text-gray-400" : "text-gray-500"
+              }`}
           >
             {kanji.onyomi && <div>音: {kanji.onyomi}</div>}
             {kanji.kunyomi && <div>訓: {kanji.kunyomi}</div>}
@@ -200,11 +194,10 @@ export default function KanjiListPage() {
       `}</style>
 
       <div
-        className={`flex h-screen ${
-          isDarkMode
-            ? "bg-gray-900"
-            : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
-        }`}
+        className={`flex h-screen ${isDarkMode
+          ? "bg-gray-900"
+          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
+          }`}
       >
         <Sidebar
           sidebarOpen={sidebarOpen}
@@ -219,11 +212,10 @@ export default function KanjiListPage() {
 
           {/* Banner Section */}
           <div
-            className={`${
-              isDarkMode
-                ? "bg-gray-800 border-gray-700"
-                : "bg-white border-gray-200"
-            } border-b px-6 py-6`}
+            className={`${isDarkMode
+              ? "bg-gray-800 border-gray-700"
+              : "bg-white border-gray-200"
+              } border-b px-6 py-6`}
           >
             <div className="max-w-7xl mx-auto">
               <div className="flex items-center gap-3 mb-4">
@@ -232,16 +224,14 @@ export default function KanjiListPage() {
                 </div>
                 <div>
                   <h1
-                    className={`text-2xl font-bold ${
-                      isDarkMode ? "text-gray-100" : "text-gray-800"
-                    }`}
+                    className={`text-2xl font-bold ${isDarkMode ? "text-gray-100" : "text-gray-800"
+                      }`}
                   >
                     Luyện tập Kanji
                   </h1>
                   <p
-                    className={`text-sm ${
-                      isDarkMode ? "text-gray-400" : "text-gray-600"
-                    }`}
+                    className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
                   >
                     Chọn một chữ Kanji để bắt đầu luyện tập viết
                   </p>
@@ -251,62 +241,54 @@ export default function KanjiListPage() {
               {/* Search Bar */}
               <div className="relative">
                 <Search
-                  className={`absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 ${
-                    isDarkMode ? "text-gray-400" : "text-gray-500"
-                  }`}
+                  className={`absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 ${isDarkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
                 />
                 <input
                   type="text"
                   placeholder="Tìm kiếm kanji theo chữ, nghĩa, âm đọc..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full pl-12 pr-4 py-3 rounded-xl border ${
-                    isDarkMode
-                      ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
-                      : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
-                  } focus:outline-none focus:ring-2 focus:ring-cyan-400 transition`}
+                  className={`w-full pl-12 pr-4 py-3 rounded-xl border ${isDarkMode
+                    ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
+                    : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
+                    } focus:outline-none focus:ring-2 focus:ring-cyan-400 transition`}
                 />
               </div>
 
               {/* Stats */}
               <div className="mt-4 flex gap-4">
                 <div
-                  className={`px-4 py-2 rounded-lg ${
-                    isDarkMode ? "bg-gray-700" : "bg-gray-100"
-                  }`}
+                  className={`px-4 py-2 rounded-lg ${isDarkMode ? "bg-gray-700" : "bg-gray-100"
+                    }`}
                 >
                   <span
-                    className={`text-sm ${
-                      isDarkMode ? "text-gray-400" : "text-gray-600"
-                    }`}
+                    className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
                   >
                     Tổng số:{" "}
                   </span>
                   <span
-                    className={`font-bold ${
-                      isDarkMode ? "text-cyan-400" : "text-cyan-600"
-                    }`}
+                    className={`font-bold ${isDarkMode ? "text-cyan-400" : "text-cyan-600"
+                      }`}
                   >
                     {kanjis.length}
                   </span>
                 </div>
                 {searchQuery && (
                   <div
-                    className={`px-4 py-2 rounded-lg ${
-                      isDarkMode ? "bg-gray-700" : "bg-gray-100"
-                    }`}
+                    className={`px-4 py-2 rounded-lg ${isDarkMode ? "bg-gray-700" : "bg-gray-100"
+                      }`}
                   >
                     <span
-                      className={`text-sm ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
+                      className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
                     >
                       Kết quả:{" "}
                     </span>
                     <span
-                      className={`font-bold ${
-                        isDarkMode ? "text-cyan-400" : "text-cyan-600"
-                      }`}
+                      className={`font-bold ${isDarkMode ? "text-cyan-400" : "text-cyan-600"
+                        }`}
                     >
                       {filteredKanjis.length}
                     </span>
@@ -318,9 +300,8 @@ export default function KanjiListPage() {
 
           {/* Kanji Content */}
           <div
-            className={`flex-1 overflow-y-auto p-6 ${
-              isDarkMode ? "custom-scrollbar-dark" : "custom-scrollbar"
-            }`}
+            className={`flex-1 overflow-y-auto p-6 ${isDarkMode ? "custom-scrollbar-dark" : "custom-scrollbar"
+              }`}
           >
             {loading ? (
               <div className="flex items-center justify-center h-64">
@@ -335,21 +316,18 @@ export default function KanjiListPage() {
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
                   <AlertCircle
-                    className={`w-12 h-12 mx-auto mb-4 ${
-                      isDarkMode ? "text-cyan-400" : "text-cyan-500"
-                    }`}
+                    className={`w-12 h-12 mx-auto mb-4 ${isDarkMode ? "text-cyan-400" : "text-cyan-500"
+                      }`}
                   />
                   <p
-                    className={`text-lg font-medium mb-2 ${
-                      isDarkMode ? "text-gray-200" : "text-gray-800"
-                    }`}
+                    className={`text-lg font-medium mb-2 ${isDarkMode ? "text-gray-200" : "text-gray-800"
+                      }`}
                   >
                     Không thể tải danh sách kanji
                   </p>
                   <p
-                    className={`mb-4 ${
-                      isDarkMode ? "text-gray-400" : "text-gray-600"
-                    }`}
+                    className={`mb-4 ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
                   >
                     {error}
                   </p>
@@ -365,14 +343,12 @@ export default function KanjiListPage() {
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
                   <Book
-                    className={`w-12 h-12 mx-auto mb-4 ${
-                      isDarkMode ? "text-gray-600" : "text-cyan-400"
-                    }`}
+                    className={`w-12 h-12 mx-auto mb-4 ${isDarkMode ? "text-gray-600" : "text-cyan-400"
+                      }`}
                   />
                   <p
-                    className={`text-lg ${
-                      isDarkMode ? "text-gray-400" : "text-gray-600"
-                    }`}
+                    className={`text-lg ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
                   >
                     {searchQuery
                       ? "Không tìm thấy kanji nào"
@@ -396,9 +372,6 @@ export default function KanjiListPage() {
         </div>
       </div>
 
-      {/* MAZI AI Chat Component */}
-      <MaziAIChat isDarkMode={isDarkMode} />
-      <FloatingChatButton isDarkMode={isDarkMode} />
     </>
   );
 }

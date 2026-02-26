@@ -17,8 +17,6 @@ import {
 } from "lucide-react";
 import ProgressCard from "@/components/course/Progresscard ";
 import CourseCard from "@/components/course/CourseCard";
-import MaziAIChat from "@/components/NiboChatAI";
-import FloatingChatButton from "@/components/Floatingchatbutton ";
 
 // Types
 interface Section {
@@ -216,8 +214,8 @@ export default function MyCoursesPage() {
 
       <div
         className={`flex h-screen ${isDarkMode
-            ? "bg-gray-900"
-            : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
+          ? "bg-gray-900"
+          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
           }`}
       >
         <Sidebar
@@ -325,10 +323,10 @@ export default function MyCoursesPage() {
               <button
                 onClick={() => setActiveFilter("all")}
                 className={`px-4 py-2 rounded-lg transition ${activeFilter === "all"
-                    ? "bg-cyan-500 text-white"
-                    : isDarkMode
-                      ? "bg-gray-800 text-gray-400 hover:bg-gray-700"
-                      : "bg-white text-gray-600 hover:bg-gray-50"
+                  ? "bg-cyan-500 text-white"
+                  : isDarkMode
+                    ? "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                    : "bg-white text-gray-600 hover:bg-gray-50"
                   }`}
               >
                 Tất cả ({stats.total})
@@ -336,10 +334,10 @@ export default function MyCoursesPage() {
               <button
                 onClick={() => setActiveFilter("inProgress")}
                 className={`px-4 py-2 rounded-lg transition ${activeFilter === "inProgress"
-                    ? "bg-cyan-500 text-white"
-                    : isDarkMode
-                      ? "bg-gray-800 text-gray-400 hover:bg-gray-700"
-                      : "bg-white text-gray-600 hover:bg-gray-50"
+                  ? "bg-cyan-500 text-white"
+                  : isDarkMode
+                    ? "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                    : "bg-white text-gray-600 hover:bg-gray-50"
                   }`}
               >
                 Đang học ({stats.inProgress})
@@ -347,10 +345,10 @@ export default function MyCoursesPage() {
               <button
                 onClick={() => setActiveFilter("completed")}
                 className={`px-4 py-2 rounded-lg transition ${activeFilter === "completed"
-                    ? "bg-cyan-500 text-white"
-                    : isDarkMode
-                      ? "bg-gray-800 text-gray-400 hover:bg-gray-700"
-                      : "bg-white text-gray-600 hover:bg-gray-50"
+                  ? "bg-cyan-500 text-white"
+                  : isDarkMode
+                    ? "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                    : "bg-white text-gray-600 hover:bg-gray-50"
                   }`}
               >
                 Hoàn thành ({stats.completed})
@@ -452,9 +450,6 @@ export default function MyCoursesPage() {
         </div>
       </div>
 
-      {/* NIBO AI Chat Component */}
-      <MaziAIChat isDarkMode={isDarkMode} />
-      <FloatingChatButton isDarkMode={isDarkMode} />
     </>
   );
 }

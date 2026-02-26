@@ -113,46 +113,52 @@ export default function ShareVideoModal({
     const selectedRecipients = allRecipients.filter((r) =>
       selectedIds.includes(r.id)
     );
-    const userRecipients = selectedRecipients.filter((r) => r.type === "user");
-    const groupRecipients = selectedRecipients.filter(
-      (r) => r.type === "group"
-    );
 
     try {
+      const shareText = `🎬 ${videoTitle}\n/video/${videoId}\n${videoUrl}`;
       let firstRoomId: string | undefined;
 
-      // Handle user private rooms
-      if (userRecipients.length > 0) {
-        const firstUserRoom = await roomService.createPrivateRoom({
-          targetUserId: userRecipients[0].id,
-        });
-        firstRoomId = firstUserRoom.id;
+      // Send to all selected recipients
+      await Promise.all(
+        selectedRecipients.map(async (r) => {
+          let roomId = r.roomId;
+          if (!roomId && r.type === "user") {
+            const room = await roomService.createPrivateRoom({
+              targetUserId: r.id,
+            });
+            roomId = room.id;
+          }
 
-        if (userRecipients.length > 1) {
-          await Promise.allSettled(
-            userRecipients
-              .slice(1)
-              .map((r) => roomService.createPrivateRoom({ targetUserId: r.id }))
-          );
-        }
-      }
-
-      // Handle group rooms (roomId is already known)
-      if (groupRecipients.length > 0) {
-        if (!firstRoomId) {
-          firstRoomId = groupRecipients[0].roomId;
-        }
-        // Groups already have roomIds; messages will be sent via chat navigation
-      }
+          if (roomId) {
+            if (!firstRoomId) firstRoomId = roomId;
+            // Dispatch event to send via WebSocket (FloatingChatButton listens to this)
+            window.dispatchEvent(
+              new CustomEvent("chat-send-to-room", {
+                detail: {
+                  roomId: roomId,
+                  content: shareText,
+                },
+              })
+            );
+          }
+        })
+      );
 
       setSentTo(new Set(selectedIds));
       setSending(false);
       onClose();
 
       if (firstRoomId) {
-        router.push(`/chat?roomId=${firstRoomId}&shareMsg=${shareMsg}`);
+        window.dispatchEvent(
+          new CustomEvent("chat-open-room", {
+            detail: {
+              roomId: firstRoomId,
+            },
+          })
+        );
       }
-    } catch {
+    } catch (err) {
+      console.error("Failed to share video:", err);
       setSending(false);
     }
   };
@@ -237,8 +243,8 @@ export default function ShareVideoModal({
         <div className="px-5 mt-4">
           <div
             className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm ${isDarkMode
-                ? "bg-gray-700 border-gray-600 text-gray-100"
-                : "bg-gray-50 border-gray-200 text-gray-800"
+              ? "bg-gray-700 border-gray-600 text-gray-100"
+              : "bg-gray-50 border-gray-200 text-gray-800"
               }`}
           >
             <Search
@@ -305,12 +311,12 @@ export default function ShareVideoModal({
                   key={`${recipient.type}-${recipient.id}`}
                   onClick={() => toggleSelect(recipient.id)}
                   className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors text-left ${isSelected
-                      ? isDarkMode
-                        ? "bg-cyan-900/30"
-                        : "bg-cyan-50"
-                      : isDarkMode
-                        ? "hover:bg-gray-700"
-                        : "hover:bg-gray-50"
+                    ? isDarkMode
+                      ? "bg-cyan-900/30"
+                      : "bg-cyan-50"
+                    : isDarkMode
+                      ? "hover:bg-gray-700"
+                      : "hover:bg-gray-50"
                     }`}
                 >
                   {/* Avatar */}
@@ -355,12 +361,12 @@ export default function ShareVideoModal({
                   {/* Checkbox */}
                   <div
                     className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${isSent
-                        ? "bg-emerald-500 border-emerald-500"
-                        : isSelected
-                          ? "bg-cyan-500 border-cyan-500"
-                          : isDarkMode
-                            ? "border-gray-500"
-                            : "border-gray-300"
+                      ? "bg-emerald-500 border-emerald-500"
+                      : isSelected
+                        ? "bg-cyan-500 border-cyan-500"
+                        : isDarkMode
+                          ? "border-gray-500"
+                          : "border-gray-300"
                       }`}
                   >
                     {(isSelected || isSent) && (
@@ -382,12 +388,12 @@ export default function ShareVideoModal({
             onClick={handleSend}
             disabled={selected.size === 0 || sending || allSent}
             className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all ${allSent
-                ? "bg-emerald-500 text-white"
-                : selected.size === 0
-                  ? isDarkMode
-                    ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-md hover:shadow-lg"
+              ? "bg-emerald-500 text-white"
+              : selected.size === 0
+                ? isDarkMode
+                  ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-md hover:shadow-lg"
               }`}
           >
             {allSent ? (

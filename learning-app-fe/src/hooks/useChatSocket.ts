@@ -9,6 +9,7 @@ interface UseChatSocketReturn {
   messages: ChatMessageResponse[];
   isConnected: boolean;
   sendMessage: (content: string) => void;
+  sendToRoom: (roomId: string, content: string) => void;
   setMessages: React.Dispatch<React.SetStateAction<ChatMessageResponse[]>>;
 }
 
@@ -60,8 +61,14 @@ export const useChatSocket = (roomId: string | null): UseChatSocketReturn => {
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,
       connectHeaders: { Authorization: `Bearer ${token}` },
-      onConnect: () => setIsConnected(true),
-      onDisconnect: () => setIsConnected(false),
+      onConnect: () => {
+        console.log("[ChatSocket] ✅ Connected to STOMP server");
+        setIsConnected(true);
+      },
+      onDisconnect: () => {
+        console.log("[ChatSocket] ❌ Disconnected from STOMP server");
+        setIsConnected(false);
+      },
       onWebSocketClose: () => setIsConnected(false),
       onStompError: (frame) =>
         console.error("[ChatSocket] STOMP error:", frame.headers["message"]),
@@ -122,5 +129,15 @@ export const useChatSocket = (roomId: string | null): UseChatSocketReturn => {
     [roomId]
   );
 
-  return { messages, isConnected, sendMessage, setMessages };
+  const sendToRoom = useCallback((roomId: string, content: string) => {
+    const client = clientRef.current;
+    if (!client?.connected || !roomId) return;
+
+    client.publish({
+      destination: "/app/chat.send",
+      body: JSON.stringify({ roomId, content: content.trim() }),
+    });
+  }, []);
+
+  return { messages, isConnected, sendMessage, sendToRoom, setMessages };
 };

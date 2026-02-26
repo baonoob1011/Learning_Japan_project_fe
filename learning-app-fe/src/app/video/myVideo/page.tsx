@@ -5,8 +5,6 @@ import { useDarkMode } from "@/hooks/useDarkMode";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { youtubeService, YoutubeVideoSummary } from "@/services/videoService";
-import MaziAIChat from "@/components/NiboChatAI";
-import FloatingChatButton from "@/components/Floatingchatbutton ";
 import {
   BookmarkCheck,
   Play,
@@ -95,8 +93,8 @@ export default function SavedVideosPage() {
     <>
       <div
         className={`fixed inset-0 flex transition-colors duration-300 ${isDarkMode
-            ? "bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800"
-            : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
+          ? "bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800"
+          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
           }`}
       >
         <Sidebar
@@ -113,8 +111,8 @@ export default function SavedVideosPage() {
           {/* Page Title Bar */}
           <div
             className={`backdrop-blur-sm border-b px-6 py-3 flex items-center justify-between flex-shrink-0 transition-colors duration-300 ${isDarkMode
-                ? "bg-gray-800/90 border-gray-700"
-                : "bg-white/80 border-cyan-100"
+              ? "bg-gray-800/90 border-gray-700"
+              : "bg-white/80 border-cyan-100"
               }`}
           >
             <div className="flex items-center gap-3">
@@ -124,16 +122,16 @@ export default function SavedVideosPage() {
               />
               <h1
                 className={`text-xl font-bold bg-gradient-to-r bg-clip-text text-transparent ${isDarkMode
-                    ? "from-cyan-400 to-cyan-500"
-                    : "from-cyan-500 to-cyan-600"
+                  ? "from-cyan-400 to-cyan-500"
+                  : "from-cyan-500 to-cyan-600"
                   }`}
               >
                 Video đã lưu
               </h1>
               <span
                 className={`px-3 py-1 rounded-full text-xs font-medium ${isDarkMode
-                    ? "bg-gray-700 text-gray-300"
-                    : "bg-cyan-100 text-cyan-700"
+                  ? "bg-gray-700 text-gray-300"
+                  : "bg-cyan-100 text-cyan-700"
                   }`}
               >
                 {videos.length} video
@@ -206,8 +204,8 @@ export default function SavedVideosPage() {
                   <div
                     key={video.id}
                     className={`group rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 cursor-pointer border-2 ${isDarkMode
-                        ? "bg-gray-800 border-gray-700 hover:border-cyan-500 hover:shadow-lg hover:shadow-cyan-500/20"
-                        : "bg-white border-gray-200 hover:border-cyan-400 hover:shadow-xl"
+                      ? "bg-gray-800 border-gray-700 hover:border-cyan-500 hover:shadow-lg hover:shadow-cyan-500/20"
+                      : "bg-white border-gray-200 hover:border-cyan-400 hover:shadow-xl"
                       }`}
                   >
                     {/* Thumbnail */}
@@ -269,10 +267,10 @@ export default function SavedVideosPage() {
                           }}
                           disabled={deletingId === video.id}
                           className={`p-2 rounded-lg transition-all ${deletingId === video.id
-                              ? "opacity-50 cursor-not-allowed"
-                              : isDarkMode
-                                ? "hover:bg-red-500/20 text-red-400 hover:text-red-300"
-                                : "hover:bg-red-50 text-red-500 hover:text-red-600"
+                            ? "opacity-50 cursor-not-allowed"
+                            : isDarkMode
+                              ? "hover:bg-red-500/20 text-red-400 hover:text-red-300"
+                              : "hover:bg-red-50 text-red-500 hover:text-red-600"
                             }`}
                           title="Xóa khỏi danh sách đã lưu"
                         >
@@ -292,9 +290,6 @@ export default function SavedVideosPage() {
         </div>
       </div>
 
-      {/* NIBO AI Chat Component */}
-      <MaziAIChat isDarkMode={isDarkMode} />
-      <FloatingChatButton isDarkMode={isDarkMode} />
     </>
   );
 }

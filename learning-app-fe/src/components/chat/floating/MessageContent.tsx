@@ -28,42 +28,74 @@ export default function MessageContent({
         );
     }
 
-    const plainText = text.replace(YT_REGEX, "").trim();
+    // Regex to detect internal video routes
+    const ROUTE_REGEX = /\/video\/[\w-]+/g;
+
+    let plainText = text.replace(YT_REGEX, "").replace(ROUTE_REGEX, "").trim();
+    // Detect if plainText is just a video title (started with 🎬)
+    const displayTitle = plainText.startsWith("🎬") ? plainText : null;
+    const bodyText = displayTitle ? null : plainText;
+
     return (
-        <div className="space-y-1.5">
-            {plainText && (
-                <p className="text-xs leading-relaxed whitespace-pre-wrap">
-                    {plainText}
+        <div className="space-y-2.5">
+            {bodyText && (
+                <p className="text-xs leading-relaxed whitespace-pre-wrap opacity-90 px-1">
+                    {bodyText}
                 </p>
             )}
             {ytMatches.map((url) => {
                 const videoId = extractYoutubeId(url);
                 if (!videoId) return null;
-                const thumb = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+                const thumb = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
                 return (
                     <button
                         key={url}
                         onClick={() => onNavigate(`/video/${videoId}`)}
-                        className={`w-full text-left rounded-xl overflow-hidden border transition-all hover:scale-[1.02] hover:shadow-lg ${isMe
-                                ? "border-white/20 bg-white/10"
-                                : "border-gray-600 bg-gray-700"
+                        className={`w-full text-left rounded-2xl overflow-hidden border transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl group active:scale-95 shadow-lg ${isMe
+                            ? "border-white/10 bg-[#0f0f0f]"
+                            : "border-white/5 bg-[#0a0a0a]"
                             }`}
                     >
-                        <div className="relative">
+                        {/* Title bar with dark background */}
+                        {displayTitle && (
+                            <div className={`px-3 py-2.5 border-b text-[11px] font-bold truncate flex items-center gap-2 ${isMe ? "border-white/5 bg-white/5 text-gray-100" : "border-white/5 bg-white/5 text-gray-200"}`}>
+                                <span className="p-1 rounded bg-red-500/20 text-red-500 shrink-0">
+                                    <div className="w-0 h-0 border-t-[3px] border-t-transparent border-l-[6px] border-l-current border-b-[3px] border-b-transparent ml-0.5" />
+                                </span>
+                                <span className="truncate">{displayTitle.replace("🎬", "").trim()}</span>
+                            </div>
+                        )}
+
+                        <div className="relative aspect-video">
                             <img
                                 src={thumb}
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+                                }}
                                 alt="video"
-                                className="w-full h-24 object-cover"
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                             />
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                                <PlayCircle className="w-8 h-8 text-white drop-shadow-lg" />
+                            {/* Overlay with central play button */}
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/20 transition-all duration-300">
+                                <div className="w-12 h-12 rounded-full bg-red-600/90 flex items-center justify-center transform transition-all duration-300 group-hover:scale-110 group-hover:bg-red-600 shadow-xl shadow-red-600/20">
+                                    <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-white border-b-[8px] border-b-transparent ml-1" />
+                                </div>
+                            </div>
+
+                            {/* Internal Route Tag */}
+                            <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md border border-white/10 text-[9px] font-bold text-cyan-400 uppercase tracking-widest shadow-lg">
+                                Internal Path
                             </div>
                         </div>
-                        <div
-                            className={`px-2 py-1.5 text-[10px] font-medium truncate ${isMe ? "text-white/90" : "text-gray-200"
-                                }`}
-                        >
-                            {url}
+
+                        <div className="px-3 py-2 flex items-center justify-between">
+                            <span className={`text-[9px] font-medium truncate max-w-[150px] ${isMe ? "text-gray-500" : "text-gray-600"}`}>
+                                {url}
+                            </span>
+                            <div className="flex items-center gap-1 shrink-0">
+                                <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
+                                <span className="text-[8px] text-gray-500 font-bold uppercase tracking-tighter">HD Available</span>
+                            </div>
                         </div>
                     </button>
                 );

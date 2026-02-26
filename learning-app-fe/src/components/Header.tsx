@@ -1,10 +1,11 @@
 // components/Header.tsx
 import React, { useState, useEffect } from "react";
-import { Search, Settings } from "lucide-react";
+import { Search, Settings, Play } from "lucide-react";
 import { useRouter } from "next/navigation";
 import UserDropdown from "@/components/UserDropdown";
 import NotificationBell from "@/components/notificationBell"; // ← Giữ nguyên import
 import { youtubeService, YoutubeVideoSummary } from "@/services/videoService";
+import { useVideoStore } from "@/stores/videoStore";
 
 interface SimpleHeaderProps {
   isDarkMode: boolean;
@@ -16,38 +17,19 @@ export default function Header({
   onToggleDarkMode,
 }: SimpleHeaderProps) {
   const router = useRouter();
-  const [searchKeyword, setSearchKeyword] = useState("");
-  const [results, setResults] = useState<YoutubeVideoSummary[]>([]);
-  const [loading, setLoading] = useState(false);
+  const {
+    searchQuery,
+    setSearchQuery,
+    fetchVideos,
+    filteredVideos,
+    loading
+  } = useVideoStore();
 
-  // ❌ XÓA phần này - không cần userId state nữa
-  // const [userId, setUserId] = useState<string | null>(null);
-  // useEffect(() => {
-  //   const id = getUserIdFromToken();
-  //   console.log("🔍 Retrieved userId from token:", id);
-  //   setUserId(id);
-  // }, []);
+  const results = filteredVideos();
 
-  // debounce search 300ms
   useEffect(() => {
-    const handler = setTimeout(async () => {
-      if (searchKeyword.trim() === "") {
-        setResults([]);
-        return;
-      }
-      try {
-        setLoading(true);
-        const data = await youtubeService.search({ key: searchKeyword });
-        setResults(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }, 300);
-
-    return () => clearTimeout(handler);
-  }, [searchKeyword]);
+    fetchVideos();
+  }, [fetchVideos]);
 
   const formatDuration = (duration: string): string => {
     const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
@@ -127,55 +109,49 @@ export default function Header({
 
   const handleVideoClick = (video: YoutubeVideoSummary) => {
     youtubeService.getById(video.id).catch((err) => console.error(err));
-    setSearchKeyword("");
-    setResults([]);
+    setSearchQuery("");
     router.push(`/video/${video.id}`);
   };
 
   return (
     <div
-      className={`${
-        isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-      } border-b px-4 py-2 transition-colors duration-300`}
+      className={`${isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+        } border-b px-4 py-2 transition-colors duration-300`}
     >
       <div className="flex items-center justify-between gap-4">
         {/* Search Bar - Left */}
         <div className="flex-1 max-w-2xl relative">
           <Search
-            className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
-              isDarkMode ? "text-gray-400" : "text-gray-500"
-            }`}
+            className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"
+              }`}
           />
           <input
             type="text"
             placeholder="Nhập từ khóa để tìm kiếm"
-            value={searchKeyword}
-            onChange={(e) => setSearchKeyword(e.target.value)}
-            className={`w-full pl-10 pr-3 py-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all ${
-              isDarkMode
-                ? "bg-gray-700 text-gray-100 placeholder:text-gray-400"
-                : "bg-gray-50 text-gray-800 placeholder:text-gray-500 border border-gray-200"
-            }`}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={`w-full pl-10 pr-3 py-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all ${isDarkMode
+              ? "bg-gray-700 text-gray-100 placeholder:text-gray-400"
+              : "bg-gray-50 text-gray-800 placeholder:text-gray-500 border border-gray-200"
+              }`}
           />
 
           {/* Search Results Dropdown */}
-          {searchKeyword && results.length > 0 && (
+          {searchQuery && results.length > 0 && (
             <div
-              className={`absolute z-50 mt-2 w-full rounded-lg shadow-xl max-h-96 overflow-y-auto border ${
-                isDarkMode
-                  ? "bg-gray-800 border-gray-700"
-                  : "bg-white border-gray-200"
-              }`}
+              className={`absolute z-50 mt-2 w-full rounded-lg shadow-xl max-h-96 overflow-y-auto border ${isDarkMode
+                ? "bg-gray-800 border-gray-700"
+                : "bg-white border-gray-200"
+                }`}
             >
               {results.map((video) => (
                 <div
                   key={video.id}
                   onClick={() => handleVideoClick(video)}
-                  className={`flex gap-3 p-3 border-b last:border-b-0 transition-all duration-200 cursor-pointer ${
-                    isDarkMode
-                      ? "hover:bg-gray-700/50 border-gray-700"
-                      : "hover:bg-cyan-50 border-gray-100"
-                  }`}
+                  className={`flex gap-3 p-3 border-b last:border-b-0 transition-all duration-200 cursor-pointer ${isDarkMode
+                    ? "hover:bg-gray-700/50 border-gray-700"
+                    : "hover:bg-cyan-50 border-gray-100"
+                    }`}
                 >
                   <div className="relative flex-shrink-0">
                     <img
@@ -190,17 +166,15 @@ export default function Header({
 
                   <div className="flex-1 min-w-0">
                     <h4
-                      className={`text-sm font-medium line-clamp-2 mb-1 ${
-                        isDarkMode ? "text-gray-100" : "text-gray-900"
-                      }`}
+                      className={`text-sm font-medium line-clamp-2 mb-1 ${isDarkMode ? "text-gray-100" : "text-gray-900"
+                        }`}
                     >
                       {video.title}
                     </h4>
 
                     <p
-                      className={`text-xs mb-2 ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
+                      className={`text-xs mb-2 ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
                     >
                       Corodomo • {formatDate(video.createdAt)}
                     </p>
@@ -228,26 +202,24 @@ export default function Header({
           )}
 
           {/* Loading State */}
-          {searchKeyword && loading && (
+          {searchQuery && loading && (
             <div
-              className={`absolute z-50 mt-2 w-full rounded-lg shadow-xl px-4 py-3 text-sm border ${
-                isDarkMode
-                  ? "bg-gray-800 text-gray-100 border-gray-700"
-                  : "bg-white text-gray-800 border-gray-200"
-              }`}
+              className={`absolute z-50 mt-2 w-full rounded-lg shadow-xl px-4 py-3 text-sm border ${isDarkMode
+                ? "bg-gray-800 text-gray-100 border-gray-700"
+                : "bg-white text-gray-800 border-gray-200"
+                }`}
             >
               Đang tìm kiếm...
             </div>
           )}
 
           {/* No results */}
-          {searchKeyword && results.length === 0 && !loading && (
+          {searchQuery && results.length === 0 && !loading && (
             <div
-              className={`absolute z-50 mt-2 w-full rounded-lg shadow-xl px-4 py-3 text-sm border ${
-                isDarkMode
-                  ? "bg-gray-800 text-gray-100 border-gray-700"
-                  : "bg-white text-gray-800 border-gray-200"
-              }`}
+              className={`absolute z-50 mt-2 w-full rounded-lg shadow-xl px-4 py-3 text-sm border ${isDarkMode
+                ? "bg-gray-800 text-gray-100 border-gray-700"
+                : "bg-white text-gray-800 border-gray-200"
+                }`}
             >
               Không có kết quả
             </div>
@@ -255,16 +227,24 @@ export default function Header({
         </div>
 
         {/* Actions - Right */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          {/* ✅ Nút Video của tôi */}
+          <button
+            onClick={() => router.push("/video/myVideo")}
+            className="flex items-center gap-2 px-4 py-1.5 bg-[#00CFE8] text-white rounded-lg font-medium hover:shadow-lg transition-all transform hover:scale-105"
+          >
+            <Play className="w-4 h-4 fill-current" />
+            <span className="text-sm">Video của tôi</span>
+          </button>
+
           {/* ✅ Notification Bell - KHÔNG CẦN TRUYỀN userId */}
           <NotificationBell isDarkMode={isDarkMode} />
 
           <button
-            className={`p-1.5 rounded-lg transition-all ${
-              isDarkMode
-                ? "hover:bg-gray-700 text-gray-300"
-                : "hover:bg-gray-100 text-gray-600"
-            }`}
+            className={`p-1.5 rounded-lg transition-all ${isDarkMode
+              ? "hover:bg-gray-700 text-gray-300"
+              : "hover:bg-gray-100 text-gray-600"
+              }`}
             title="Cài đặt"
           >
             <Settings className="w-4 h-4" />

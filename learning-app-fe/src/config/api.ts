@@ -11,10 +11,16 @@ export const API_ENDPOINTS = {
   USER: {
     GET_USER_BY_ID: (id: string) => `/users/chat/${id}`,
     PROFILE: "/users/me",
+    UPDATE_PROFILE: "/users/me",
     UPLOAD_AVATAR: "/users/upload-avatar",
     CHANGE_PASSWORD: "/users/change-password",
     ALL_USERS: "/admin/users",
     SEARCH: "/users/search", // ✅ thêm dòng này
+  },
+  ORDER: {
+    MY_ORDERS: "/orders/me",
+    MY_ORDER_DETAIL: (orderCode: string) =>
+      `/orders/me/${orderCode}`,
   },
   VIDEO_EXERCISE: {
     GET_BY_VIDEO: (videoId: string) => `/video-exercises/video/${videoId}`,
@@ -162,7 +168,14 @@ export const API_ENDPOINTS = {
     CHAT: "/ai/chat",
     REALTIME_TOKEN: "/ai/realtime-token",
   },
-
+  REVENUE: {
+    SUMMARY: "/admin/revenue/summary",
+    BY_DAY: (date: string) =>
+      `/admin/revenue/day?date=${date}`,
+    BY_MONTH: (year: number, month: number) =>
+      `/admin/revenue/month?year=${year}&month=${month}`,
+    SUCCESS_COUNT: "/admin/revenue/success-count",
+  },
   VOCAB: {
     MARK_VOCAB: "/learning/vocab/mark",
     CREATE: "/vocab",

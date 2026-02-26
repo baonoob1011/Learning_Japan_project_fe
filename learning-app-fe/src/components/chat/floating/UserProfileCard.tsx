@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { UserPlus, UserCheck, X, Loader2, MessageCircle } from "lucide-react";
+import { UserPlus, UserCheck, X, Loader2, MessageCircle, Crown } from "lucide-react";
 import { friendService, FriendStatus as APIFriendStatus } from "@/services/friendService";
 import { userService, UserChatResponse } from "@/services/userService";
 import { roomService } from "@/services/roomService";
@@ -213,7 +213,17 @@ export default function UserProfileCard({
                             <p className={`text-sm font-bold leading-tight ${dark ? "text-white" : "text-gray-800"}`}>
                                 {profile?.fullName || "Người dùng"}
                             </p>
-                            <p className="text-[10px] text-gray-400 mt-0.5 truncate max-w-[180px]">
+                            <div className="flex items-center justify-center gap-1.5 mt-1">
+                                <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${dark ? "bg-cyan-900/40 text-cyan-400" : "bg-cyan-50 text-cyan-600"}`}>
+                                    {profile?.level || "N5"}
+                                </span>
+                                {profile?.isPremium && (
+                                    <span className="px-2 py-0.5 rounded text-[9px] font-black bg-gradient-to-r from-amber-200 to-amber-500 text-white shadow-sm flex items-center gap-0.5">
+                                        <Crown size={8} className="fill-current" /> VIP
+                                    </span>
+                                )}
+                            </div>
+                            <p className="text-[10px] text-gray-400 mt-1 truncate max-w-[180px]">
                                 {profile?.email || ""}
                             </p>
                         </div>

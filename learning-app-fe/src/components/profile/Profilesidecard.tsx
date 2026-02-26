@@ -45,7 +45,7 @@ export default function ProfileSideCard({
 
   return (
     <div
-      className={`rounded-2xl border shadow-sm overflow-hidden w-full ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+      className={`rounded-3xl border shadow-2xl overflow-hidden w-full transition-all duration-500 hover:shadow-cyan-500/10 ${isDark ? "bg-gray-800/40 border-gray-700/50 backdrop-blur-xl" : "bg-white/80 border-white/20 backdrop-blur-xl shadow-gray-200/50"
         }`}
     >
       {/* VIP shimmer keyframes */}
@@ -57,45 +57,50 @@ export default function ProfileSideCard({
             100% { background-position: 0% 50%; }
           }
           @keyframes vipCrownBob {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-3px); }
+            0%, 100% { transform: translateY(0) scale(1.1); }
+            50% { transform: translateY(-5px) scale(1.2); }
           }
           @keyframes vipStarTwinkle {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.4); }
+            0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+            50% { opacity: 0.4; transform: scale(1.4) rotate(45deg); }
+          }
+          @keyframes glowPulse {
+            0%, 100% { box-shadow: 0 0 15px rgba(251,191,36,0.3); }
+            50% { box-shadow: 0 0 30px rgba(251,191,36,0.6); }
           }
         `}</style>
       )}
 
       {/* Banner */}
       <div
-        className="h-20 relative overflow-hidden"
+        className="h-28 relative overflow-hidden"
         style={isVip ? {
           background: "linear-gradient(135deg, #f59e0b, #d97706, #fbbf24, #b45309)",
           backgroundSize: "200% 200%",
           animation: "vipBannerShimmer 4s ease infinite",
         } : {
-          background: "linear-gradient(to right, #22d3ee, #06b6d4)",
+          background: "linear-gradient(135deg, #22d3ee, #06b6d4, #0891b2)",
         }}
       >
         <div
-          className="absolute inset-0 opacity-20"
+          className="absolute inset-0 opacity-10"
           style={{
             backgroundImage:
               "radial-gradient(circle, white 1px, transparent 1px)",
-            backgroundSize: "20px 20px",
+            backgroundSize: "16px 16px",
           }}
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
         {isVip && (
-          <div className="absolute top-2 right-3 flex items-center gap-1">
-            {[0, 0.25, 0.5].map((d, i) => (
+          <div className="absolute top-3 right-4 flex items-center gap-1.5">
+            {[0, 0.3, 0.6].map((d, i) => (
               <Star
                 key={i}
-                className="w-3 h-3"
+                className="w-3.5 h-3.5"
                 style={{
-                  fill: "rgba(255,255,255,0.8)",
-                  color: "rgba(255,255,255,0.8)",
-                  animation: `vipStarTwinkle 1.5s ease-in-out ${d}s infinite`,
+                  fill: "rgba(255,255,255,0.9)",
+                  color: "rgba(255,255,255,0.9)",
+                  animation: `vipStarTwinkle 2s ease-in-out ${d}s infinite`,
                 }}
               />
             ))}
@@ -104,25 +109,23 @@ export default function ProfileSideCard({
       </div>
 
       <div className="px-6 pb-6">
-        {/* Avatar */}
-        <div className="relative -mt-10 mb-3 inline-block">
-          {/* VIP crown ring */}
+        {/* Avatar Section */}
+        <div className="relative -mt-14 mb-6 inline-block">
+          {/* VIP glow ring */}
           {isVip && (
             <div
+              className="absolute -inset-1.5 rounded-full"
               style={{
-                position: "absolute",
-                inset: -3,
-                borderRadius: "9999px",
                 background: "linear-gradient(135deg, #fbbf24, #d97706, #fbbf24)",
                 backgroundSize: "200% 200%",
-                animation: "vipBannerShimmer 3s ease infinite",
+                animation: "vipBannerShimmer 3s ease infinite, glowPulse 3s ease-in-out infinite",
                 zIndex: 0,
               }}
             />
           )}
           <div
-            className="w-20 h-20 rounded-full border-4 shadow-lg overflow-hidden bg-gray-200 relative z-[1]"
-            style={{ borderColor: isVip ? "transparent" : (isDark ? "#1f2937" : "#fff") }}
+            className={`w-28 h-28 rounded-full border-4 shadow-xl overflow-hidden bg-gray-200 relative z-[1] transition-transform duration-500 hover:scale-105 ${isDark ? "border-gray-800" : "border-white"
+              }`}
           >
             <img
               src={user.avatarUrl || avatarFallback}
@@ -133,26 +136,22 @@ export default function ProfileSideCard({
               }}
             />
           </div>
-          {/* VIP crown icon on top of avatar */}
+
+          {/* VIP crown icon */}
           {isVip && (
             <div
-              style={{
-                position: "absolute",
-                top: -14,
-                left: "50%",
-                transform: "translateX(-50%)",
-                animation: "vipCrownBob 2s ease-in-out infinite",
-                zIndex: 2,
-              }}
+              className="absolute -top-5 left-1/2 -translate-x-1/2 z-[2]"
+              style={{ animation: "vipCrownBob 2s ease-in-out infinite" }}
             >
-              <Crown className="w-5 h-5" style={{ color: "#d97706", filter: "drop-shadow(0 1px 3px rgba(217,119,6,0.7))" }} />
+              <Crown className="w-7 h-7" style={{ color: "#d97706", filter: "drop-shadow(0 2px 4px rgba(217,119,6,0.6))" }} />
             </div>
           )}
+
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="absolute bottom-0 right-0 w-7 h-7 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-all z-[2]"
+            className="absolute bottom-1 right-1 w-9 h-9 bg-gradient-to-br from-indigo-500 to-cyan-500 rounded-full flex items-center justify-center shadow-lg hover:scale-110 active:scale-90 transition-all z-[2] border-2 border-white/20"
           >
-            <Camera className="w-3.5 h-3.5 text-white" />
+            <Camera className="w-4 h-4 text-white" />
           </button>
           <input
             ref={fileInputRef}
@@ -163,109 +162,84 @@ export default function ProfileSideCard({
           />
         </div>
 
-        {/* Name & email */}
-        <h2
-          className={`text-lg font-bold ${isDark ? "text-gray-100" : "text-gray-800"
-            }`}
-        >
-          {user.fullName || "Chưa cập nhật tên"}
-        </h2>
-        <p
-          className={`text-sm mb-3 break-all ${isDark ? "text-gray-400" : "text-gray-500"
-            }`}
-        >
-          {user.email}
-        </p>
+        {/* User Info */}
+        <div className="space-y-1 mb-6">
+          <h2 className={`text-xl font-extrabold tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>
+            {user.fullName || "Học viên Nibo"}
+          </h2>
+          <p className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+            {user.email}
+          </p>
+        </div>
 
-        {/* Level badge + VIP badge */}
-        <div className="flex flex-wrap items-center gap-2 mb-4">
-          <span className="inline-flex items-center px-3 py-1 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white text-xs font-bold rounded-full shadow-sm">
-            N2 LEVEL
-          </span>
+        {/* Level & VIP Badges */}
+        <div className="flex flex-wrap items-center gap-2 mb-8">
+          <div className="flex items-center gap-1.5 px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-widest rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+            {user.level || "N5"} LEVEL
+          </div>
           {isVip && (
-            <span
-              className="inline-flex items-center gap-1 px-3 py-1 text-white text-xs font-bold rounded-full shadow-sm"
+            <div
+              className="flex items-center gap-1.5 px-4 py-1.5 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg overflow-hidden relative group"
               style={{
                 background: "linear-gradient(135deg, #f59e0b, #d97706)",
-                boxShadow: "0 0 8px rgba(251,191,36,0.5)",
               }}
             >
               <Crown className="w-3 h-3" />
-              VIP
-            </span>
+              VIP MEMBER
+              <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+            </div>
           )}
         </div>
 
-        <div
-          className={`border-t mb-4 ${isDark ? "border-gray-700" : "border-gray-100"
-            }`}
-        />
+        <div className={`h-px w-full mb-8 ${isDark ? "bg-white/5" : "bg-gray-100"}`} />
 
-        {/* Stats */}
-        <div className="flex flex-col gap-2.5">
+        {/* Stats List */}
+        <div className="space-y-3">
           {stats.map((stat, i) => (
             <div
               key={i}
-              className={`flex items-center gap-3 text-sm ${isDark ? "text-gray-300" : "text-gray-600"
+              className={`flex items-center p-3 rounded-2xl border transition-all hover:translate-x-1 ${isDark
+                ? "bg-white/5 border-white/5 hover:bg-white/10"
+                : "bg-gray-50/50 border-gray-100 hover:bg-white hover:shadow-md"
                 }`}
             >
-              <div
-                className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${isDark
-                    ? "bg-gray-700 text-cyan-400"
-                    : "bg-cyan-50 text-cyan-500"
-                  }`}
-              >
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? "bg-indigo-500/20 text-indigo-400" : "bg-indigo-50 text-indigo-600"
+                }`}>
                 {stat.icon}
               </div>
-              <span
-                className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"
-                  }`}
-              >
-                {stat.label}:
-              </span>
-              <span className="font-medium ml-auto">{stat.value}</span>
+              <div className="ml-3">
+                <p className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                  {stat.label}
+                </p>
+                <p className={`text-sm font-bold ${isDark ? "text-gray-200" : "text-gray-800"}`}>
+                  {stat.value}
+                </p>
+              </div>
             </div>
           ))}
-          {/* Account type row */}
+
+          {/* Account Type Row */}
           <div
-            className={`flex items-center gap-3 text-sm ${isDark ? "text-gray-300" : "text-gray-600"
+            className={`flex items-center p-3 rounded-2xl border transition-all hover:translate-x-1 ${isVip && !isDark ? "bg-amber-50/50 border-amber-100 shadow-amber-100/20" :
+              isDark ? "bg-white/5 border-white/5 hover:bg-white/10" : "bg-gray-50/50 border-gray-100 hover:bg-white"
               }`}
           >
-            <div
-              style={isVip ? {
-                width: 28, height: 28, borderRadius: 8,
-                background: "linear-gradient(135deg, #fbbf24, #d97706)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                flexShrink: 0,
-                boxShadow: "0 0 8px rgba(251,191,36,0.5)",
-              } : undefined}
-              className={isVip ? "" : `w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${isDark ? "bg-gray-700 text-cyan-400" : "bg-cyan-50 text-cyan-500"
-                }`}
-            >
-              {isVip
-                ? <Crown className="w-3.5 h-3.5 text-white" />
-                : <Star className="w-3.5 h-3.5" />}
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isVip ? "bg-gradient-to-br from-amber-400 to-amber-600 shadow-lg shadow-amber-500/20 text-white" :
+              isDark ? "bg-indigo-500/20 text-indigo-400" : "bg-indigo-50 text-indigo-600"
+              }`}>
+              {isVip ? <Crown className="w-5 h-5" /> : <Star className="w-5 h-5" />}
             </div>
-            <span
-              className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"
-                }`}
-            >
-              Tài khoản:
-            </span>
-            {isVip ? (
-              <span
-                className="font-bold ml-auto text-xs"
-                style={{
-                  background: "linear-gradient(90deg, #d97706, #fbbf24)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                VIP Member
-              </span>
-            ) : (
-              <span className="font-medium ml-auto">Miễn phí</span>
-            )}
+            <div className="ml-3">
+              <p className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                Tài khoản
+              </p>
+              <p className={`text-sm font-black ${isVip ? "bg-gradient-to-r from-amber-600 to-amber-400 bg-clip-text text-transparent" :
+                isDark ? "text-gray-200" : "text-gray-800"
+                }`}>
+                {isVip ? "PREMIUM VIP" : "FREE MEMBER"}
+              </p>
+            </div>
           </div>
         </div>
       </div>

@@ -5,8 +5,6 @@ import Header from "@/components/Header";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import LoadingCat from "@/components/LoadingCat";
 import Flashcard from "@/components/Flashcard";
-import MaziAIChat from "@/components/NiboChatAI";
-import FloatingChatButton from "@/components/Floatingchatbutton ";
 
 // Main Component
 export default function VocabularyPage() {
@@ -34,8 +32,8 @@ export default function VocabularyPage() {
     <>
       <div
         className={`flex h-screen ${isDarkMode
-            ? "bg-gray-900"
-            : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
+          ? "bg-gray-900"
+          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
           }`}
       >
         <Sidebar
@@ -53,14 +51,14 @@ export default function VocabularyPage() {
           {/* Page Title Bar */}
           <div
             className={`${isDarkMode
-                ? "bg-gray-800 border-gray-700"
-                : "bg-white/80 backdrop-blur-sm border-cyan-100"
+              ? "bg-gray-800 border-gray-700"
+              : "bg-white/80 backdrop-blur-sm border-cyan-100"
               } border-b px-6 py-3 shadow-sm`}
           >
             <h1
               className={`text-xl font-bold ${isDarkMode
-                  ? "text-gray-100"
-                  : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
+                ? "text-gray-100"
+                : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
                 }`}
             >
               Từ vựng của tôi
@@ -75,10 +73,10 @@ export default function VocabularyPage() {
                 <button
                   onClick={() => setActiveTab("flashcard")}
                   className={`flex-1 py-3 px-6 rounded-xl text-sm font-medium transition ${activeTab === "flashcard"
-                      ? "bg-cyan-500 text-white hover:bg-cyan-600"
-                      : isDarkMode
-                        ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    ? "bg-cyan-500 text-white hover:bg-cyan-600"
+                    : isDarkMode
+                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                     }`}
                 >
                   Flashcard
@@ -86,10 +84,10 @@ export default function VocabularyPage() {
                 <button
                   onClick={() => setActiveTab("vocabulary")}
                   className={`flex-1 py-3 px-6 rounded-xl text-sm font-medium transition ${activeTab === "vocabulary"
-                      ? "bg-cyan-500 text-white hover:bg-cyan-600"
-                      : isDarkMode
-                        ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    ? "bg-cyan-500 text-white hover:bg-cyan-600"
+                    : isDarkMode
+                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                     }`}
                 >
                   Vocabulary
@@ -97,10 +95,10 @@ export default function VocabularyPage() {
                 <button
                   onClick={() => setActiveTab("quiz")}
                   className={`flex-1 py-3 px-6 rounded-xl text-sm font-medium transition ${activeTab === "quiz"
-                      ? "bg-cyan-500 text-white hover:bg-cyan-600"
-                      : isDarkMode
-                        ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    ? "bg-cyan-500 text-white hover:bg-cyan-600"
+                    : isDarkMode
+                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                     }`}
                 >
                   Quiz
@@ -108,10 +106,10 @@ export default function VocabularyPage() {
                 <button
                   onClick={() => setActiveTab("write")}
                   className={`flex-1 py-3 px-6 rounded-xl text-sm font-medium transition ${activeTab === "write"
-                      ? "bg-cyan-500 text-white hover:bg-cyan-600"
-                      : isDarkMode
-                        ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    ? "bg-cyan-500 text-white hover:bg-cyan-600"
+                    : isDarkMode
+                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                     }`}
                 >
                   Write
@@ -161,9 +159,6 @@ export default function VocabularyPage() {
         </div>
       </div>
 
-      {/* NIBO AI Chat Component */}
-      <MaziAIChat isDarkMode={isDarkMode} />
-      <FloatingChatButton isDarkMode={isDarkMode} />
     </>
   );
 }

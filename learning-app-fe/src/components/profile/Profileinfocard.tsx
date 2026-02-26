@@ -47,8 +47,8 @@ function PasswordModal({
   if (!isOpen) return null;
 
   const baseInput = `w-full pl-4 pr-10 py-2.5 rounded-xl text-sm font-medium transition outline-none ${isDark
-      ? "bg-gray-700 border border-gray-600 text-gray-100 focus:border-cyan-400 placeholder-gray-500"
-      : "bg-gray-50 border border-gray-200 text-gray-800 focus:border-cyan-400 placeholder-gray-300"
+    ? "bg-gray-700 border border-gray-600 text-gray-100 focus:border-cyan-400 placeholder-gray-500"
+    : "bg-gray-50 border border-gray-200 text-gray-800 focus:border-cyan-400 placeholder-gray-300"
     }`;
 
   const fields = [
@@ -105,8 +105,8 @@ function PasswordModal({
           <button
             onClick={onClose}
             className={`w-8 h-8 rounded-xl flex items-center justify-center transition ${isDark
-                ? "hover:bg-gray-700 text-gray-400"
-                : "hover:bg-gray-100 text-gray-500"
+              ? "hover:bg-gray-700 text-gray-400"
+              : "hover:bg-gray-100 text-gray-500"
               }`}
           >
             <X className="w-4 h-4" />
@@ -136,8 +136,8 @@ function PasswordModal({
                   type="button"
                   onClick={field.toggle}
                   className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark
-                      ? "text-gray-500 hover:text-gray-300"
-                      : "text-gray-400 hover:text-gray-600"
+                    ? "text-gray-500 hover:text-gray-300"
+                    : "text-gray-400 hover:text-gray-600"
                     }`}
                 >
                   {field.shown ? (
@@ -154,15 +154,15 @@ function PasswordModal({
         {/* Footer */}
         <div
           className={`px-6 py-4 flex justify-end gap-3 border-t ${isDark
-              ? "border-gray-700 bg-gray-800/60"
-              : "border-gray-100 bg-gray-50"
+            ? "border-gray-700 bg-gray-800/60"
+            : "border-gray-100 bg-gray-50"
             }`}
         >
           <button
             onClick={onClose}
             className={`px-4 py-2.5 rounded-xl text-sm font-semibold border transition ${isDark
-                ? "border-gray-600 bg-gray-700 text-gray-300 hover:bg-gray-600"
-                : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+              ? "border-gray-600 bg-gray-700 text-gray-300 hover:bg-gray-600"
+              : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
               }`}
           >
             Hủy
@@ -224,12 +224,12 @@ export default function ProfileInfoCard({
     }
   }, []);
   const inputBase = `w-full px-4 py-2.5 rounded-xl text-sm font-medium transition outline-none ${isDark
-      ? "bg-gray-700 border border-cyan-500/50 text-gray-100 focus:border-cyan-400 placeholder-gray-500"
-      : "bg-white border border-cyan-400 text-gray-800 focus:border-cyan-500 placeholder-gray-300"
+    ? "bg-gray-700 border border-cyan-500/50 text-gray-100 focus:border-cyan-400 placeholder-gray-500"
+    : "bg-white border border-cyan-400 text-gray-800 focus:border-cyan-500 placeholder-gray-300"
     }`;
   const disabledInput = `w-full px-4 py-2.5 rounded-xl text-sm font-medium cursor-not-allowed ${isDark
-      ? "bg-gray-700/40 border border-gray-700 text-gray-500"
-      : "bg-gray-100 border border-gray-200 text-gray-400"
+    ? "bg-gray-700/40 border border-gray-700 text-gray-500"
+    : "bg-gray-100 border border-gray-200 text-gray-400"
     }`;
   const iconBox = `w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isDark ? "bg-gray-700 text-cyan-400" : "bg-cyan-50 text-cyan-500"
     }`;
@@ -245,39 +245,41 @@ export default function ProfileInfoCard({
   return (
     <>
       <div
-        className={`rounded-2xl border shadow-sm ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+        className={`rounded-3xl border shadow-2xl overflow-hidden transition-all duration-500 ${isDark
+          ? "bg-gray-800/40 border-gray-700/50 backdrop-blur-xl"
+          : "bg-white/80 border-white/20 backdrop-blur-xl shadow-gray-200/50"
           }`}
       >
         {/* Card Header */}
         <div
-          className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? "border-gray-700" : "border-gray-100"
+          className={`px-8 py-6 border-b flex items-center justify-between ${isDark ? "border-white/5" : "border-gray-100"
             }`}
         >
           <div>
             <h3
-              className={`font-bold text-base ${isDark ? "text-gray-100" : "text-gray-800"
+              className={`font-extrabold text-xl tracking-tight ${isDark ? "text-white" : "text-gray-900"
                 }`}
             >
               Thông tin cá nhân
             </h3>
             <p
-              className={`text-xs mt-0.5 ${isDark ? "text-gray-500" : "text-gray-400"
+              className={`text-sm mt-1 font-medium ${isDark ? "text-gray-500" : "text-gray-400"
                 }`}
             >
-              Cập nhật họ tên và thông tin tài khoản của bạn
+              Quản lý danh tính và bảo mật tài khoản của bạn
             </p>
           </div>
           {!isEditing && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <button
                 onClick={onOpenPasswordModal}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-pink-400 to-purple-500 hover:opacity-90 shadow-sm transition"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-br from-rose-400 to-pink-600 hover:shadow-lg hover:shadow-rose-500/20 transition-all active:scale-95"
               >
                 <Key className="w-3.5 h-3.5" /> Đổi mật khẩu
               </button>
               <button
                 onClick={onStartEdit}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-cyan-400 to-cyan-500 hover:opacity-90 shadow-sm transition"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-br from-indigo-500 to-cyan-500 hover:shadow-lg hover:shadow-indigo-500/20 transition-all active:scale-95"
               >
                 <Edit3 className="w-3.5 h-3.5" /> Chỉnh sửa
               </button>
@@ -286,40 +288,46 @@ export default function ProfileInfoCard({
         </div>
 
         {/* Card Body */}
-        <div className="px-6">
+        <div className="px-8 py-2">
           {!isEditing ? (
             // ── VIEW MODE ──
-            <>
-              <div className={`flex items-center gap-4 py-3.5 ${rowBorder}`}>
-                <div className={iconBox}>
-                  <User className="w-4 h-4" />
+            <div className="divide-y divide-gray-100/5">
+              <div className={`group flex items-center gap-5 py-5 transition-all hover:translate-x-1`}>
+                <div className={`${iconBox} group-hover:scale-110 transition-transform`}>
+                  <User className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className={labelSm}>Họ và tên</p>
-                  <p className={valText}>
+                  <p className={`${valText} text-base`}>
                     {user.fullName || "Chưa cập nhật tên"}
                   </p>
                 </div>
-                <ChevronRight className={chevronCls} />
+                <div className="p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-gray-500/10">
+                  <ChevronRight className={chevronCls} />
+                </div>
               </div>
-              <div className={`flex items-center gap-4 py-3.5 ${rowBorder}`}>
-                <div className={iconBox}>
-                  <Mail className="w-4 h-4" />
+
+              <div className={`group flex items-center gap-5 py-5 transition-all hover:translate-x-1`}>
+                <div className={`${iconBox} group-hover:scale-110 transition-transform`}>
+                  <Mail className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={labelSm}>Email</p>
-                  <p className={valText}>{user.email}</p>
+                  <p className={labelSm}>Địa chỉ Email</p>
+                  <p className={`${valText} text-base`}>{user.email}</p>
                 </div>
-                <ChevronRight className={chevronCls} />
+                <div className="p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-gray-500/10">
+                  <ChevronRight className={chevronCls} />
+                </div>
               </div>
-              <div className="flex items-center gap-4 py-3.5">
-                <div className={iconBox}>
-                  <Shield className="w-4 h-4" />
+
+              <div className={`group flex items-center gap-5 py-5 transition-all hover:translate-x-1`}>
+                <div className={`${iconBox} group-hover:scale-110 transition-transform`}>
+                  <Shield className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={labelSm}>Loại tài khoản</p>
+                  <p className={labelSm}>Trạng thái tài khoản</p>
                   {isVip ? (
-                    <>
+                    <div className="mt-1">
                       <style>{`
                         @keyframes vipInfoShimmer {
                           0%   { background-position: 0% 50%; }
@@ -328,116 +336,86 @@ export default function ProfileInfoCard({
                         }
                       `}</style>
                       <span
-                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-white text-xs font-bold rounded-full"
+                        className="inline-flex items-center gap-1.5 px-4 py-1 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg relative overflow-hidden group/vip"
                         style={{
                           background: "linear-gradient(135deg, #f59e0b, #d97706, #fbbf24)",
                           backgroundSize: "200% 200%",
                           animation: "vipInfoShimmer 3s ease infinite",
-                          boxShadow: "0 0 8px rgba(251,191,36,0.5)",
                         }}
                       >
-                        <Crown className="w-3 h-3" />
-                        VIP Member
+                        <Crown className="w-3.5 h-3.5" />
+                        PREMIUM VIP
                       </span>
-                    </>
+                    </div>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-                      Tài khoản miễn phí
+                    <span className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest rounded-full border border-emerald-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      STANDARD MEMBER
                     </span>
                   )}
                 </div>
-                <ChevronRight className={chevronCls} />
+                <div className="p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-gray-500/10">
+                  <ChevronRight className={chevronCls} />
+                </div>
               </div>
-            </>
+            </div>
           ) : (
             // ── EDIT MODE ──
-            <div className="py-4 flex flex-col gap-4">
-              <div>
-                <label
-                  className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1.5 ${isDark ? "text-gray-400" : "text-gray-500"
-                    }`}
-                >
-                  <User className="w-3 h-3" /> Họ và tên
-                </label>
-                <input
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={onInputChange}
-                  className={inputBase}
-                  placeholder="Nhập họ và tên"
-                  autoFocus
-                />
-              </div>
-              <div>
-                <label
-                  className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1.5 ${isDark ? "text-gray-400" : "text-gray-500"
-                    }`}
-                >
-                  <Mail className="w-3 h-3" /> Email
-                </label>
-                <input
-                  name="email"
-                  value={formData.email}
-                  className={disabledInput}
-                  disabled
-                />
-                <p
-                  className={`text-xs mt-1.5 ${isDark ? "text-gray-500" : "text-gray-400"
-                    }`}
-                >
-                  Email không thể thay đổi.
-                </p>
-              </div>
-              <div>
-                <label
-                  className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1.5 ${isDark ? "text-gray-400" : "text-gray-500"
-                    }`}
-                >
-                  <Shield className="w-3 h-3" /> Loại tài khoản
-                </label>
-                <div
-                  className={`w-full px-4 py-2.5 rounded-xl ${isDark
-                      ? "bg-gray-700/40 border border-gray-700"
-                      : "bg-gray-50 border border-gray-200"
-                    }`}
-                >
-                  {isVip ? (
-                    <span
-                      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-white text-xs font-bold rounded-full"
-                      style={{
-                        background: "linear-gradient(135deg, #f59e0b, #d97706, #fbbf24)",
-                        backgroundSize: "200% 200%",
-                        animation: "vipInfoShimmer 3s ease infinite",
-                        boxShadow: "0 0 8px rgba(251,191,36,0.5)",
-                      }}
-                    >
-                      <Crown className="w-3 h-3" />
-                      VIP Member
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-                      Tài khoản miễn phí
-                    </span>
-                  )}
+            <div className="py-8 flex flex-col gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label
+                    className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${isDark ? "text-gray-500" : "text-gray-400"
+                      }`}
+                  >
+                    <User className="w-3.5 h-3.5" /> Họ và tên của bạn
+                  </label>
+                  <input
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={onInputChange}
+                    className={`${inputBase} bg-white/5 border-white/10`}
+                    placeholder="Nhập họ và tên đầy đủ"
+                    autoFocus
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label
+                    className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${isDark ? "text-gray-500" : "text-gray-400"
+                      }`}
+                  >
+                    <Mail className="w-3.5 h-3.5" /> Địa chỉ Email
+                  </label>
+                  <div className="relative">
+                    <input
+                      name="email"
+                      value={formData.email}
+                      className={`${disabledInput} border-transparent`}
+                      disabled
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Shield className="w-4 h-4 text-gray-500/50" />
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 pt-1">
+
+              <div className="flex items-center gap-3 pt-4 border-t border-white/5">
                 <button
                   onClick={onCancelEdit}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border transition ${isDark
-                      ? "border-gray-600 bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                  className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold border transition-all active:scale-95 ${isDark
+                    ? "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"
+                    : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shadow-sm"
                     }`}
                 >
                   <X className="w-4 h-4" /> Hủy bỏ
                 </button>
                 <button
                   onClick={onSave}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold bg-gradient-to-r from-cyan-400 to-cyan-500 hover:opacity-90 shadow-sm transition hover:shadow-md"
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-bold bg-gradient-to-br from-indigo-500 to-cyan-500 hover:shadow-lg transition-all active:scale-95"
                 >
-                  <Save className="w-4 h-4" /> Lưu thay đổi
+                  <Save className="w-4 h-4" /> Lưu thông tin
                 </button>
               </div>
             </div>

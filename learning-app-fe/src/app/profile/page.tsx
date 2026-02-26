@@ -13,7 +13,8 @@ import ProfileInfoCard from "@/components/profile/Profileinfocard";
 import LearningStats from "@/components/profile/Learningstats";
 import SkillAnalysisCard from "@/components/profile/Skillanalysiscard";
 import JLPTRoadmapCard from "@/components/profile/Jlptroadmapcard";
-import VocabProgressCard from "@/components/profile/Vocabprogresscard"; // ✅ thêm
+import VocabProgressCard from "@/components/profile/Vocabprogresscard";
+import BillingHistoryCard from "@/components/profile/BillingHistoryCard";
 
 interface PasswordForm {
   currentPassword: string;
@@ -74,9 +75,9 @@ export default function ProfilePage() {
 
   const handleSaveInfo = async () => {
     try {
-      console.log("Saving info:", formData);
+      const updatedUser = await userService.updateProfile({ fullName: formData.fullName });
+      setUser(updatedUser);
       alert("Đã cập nhật thông tin thành công!");
-      setUser((prev) => (prev ? { ...prev, ...formData } : null));
       setIsEditing(false);
     } catch {
       alert("Lỗi khi lưu thông tin");
@@ -144,11 +145,10 @@ export default function ProfilePage() {
   if (!user)
     return (
       <div
-        className={`flex h-screen ${
-          isDarkMode
-            ? "bg-gray-900"
-            : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
-        }`}
+        className={`flex h-screen ${isDarkMode
+          ? "bg-gray-900"
+          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
+          }`}
       >
         <div className="flex-1 flex items-center justify-center">
           <LoadingCat
@@ -195,11 +195,10 @@ export default function ProfilePage() {
       `}</style>
 
       <div
-        className={`flex h-screen ${
-          isDarkMode
-            ? "bg-gray-900"
-            : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
-        }`}
+        className={`flex h-screen ${isDarkMode
+          ? "bg-gray-900"
+          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
+          }`}
       >
         <Sidebar
           sidebarOpen={sidebarOpen}
@@ -213,9 +212,8 @@ export default function ProfilePage() {
           <Header isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
 
           <div
-            className={`flex-1 overflow-y-auto p-6 ${
-              isDarkMode ? "custom-scrollbar-dark" : "custom-scrollbar"
-            }`}
+            className={`flex-1 overflow-y-auto p-6 ${isDarkMode ? "custom-scrollbar-dark" : "custom-scrollbar"
+              }`}
           >
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-5xl">
               {/* Cột trái */}
@@ -255,6 +253,7 @@ export default function ProfilePage() {
                   onPasswordChange={handlePasswordChange}
                   onSubmitPassword={handleSubmitPassword}
                 />
+                <BillingHistoryCard isDark={isDarkMode} />
                 <LearningStats isDark={isDarkMode} />
               </div>
             </div>

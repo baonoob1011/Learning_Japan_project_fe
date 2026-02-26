@@ -55,9 +55,8 @@ function ProgressBar({
 }) {
   return (
     <div
-      className={`w-full h-2 rounded-full overflow-hidden ${
-        isDark ? "bg-gray-700" : "bg-gray-100"
-      }`}
+      className={`w-full h-2 rounded-full overflow-hidden ${isDark ? "bg-gray-700" : "bg-gray-100"
+        }`}
     >
       <div
         className="h-full rounded-full transition-all duration-700"
@@ -82,9 +81,8 @@ const StatMiniCard = React.memo(
     isDark: boolean;
   }) => (
     <div
-      className={`flex items-center gap-3 p-3 rounded-xl ${
-        isDark ? "bg-gray-700/50" : "bg-gray-50"
-      }`}
+      className={`flex items-center gap-3 p-3 rounded-xl ${isDark ? "bg-gray-700/50" : "bg-gray-50"
+        }`}
     >
       <div
         className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -99,9 +97,8 @@ const StatMiniCard = React.memo(
           {label}
         </p>
         <p
-          className={`text-base font-bold ${
-            isDark ? "text-gray-100" : "text-gray-800"
-          }`}
+          className={`text-base font-bold ${isDark ? "text-gray-100" : "text-gray-800"
+            }`}
         >
           {value}
         </p>
@@ -118,26 +115,23 @@ const LevelAccordion = React.memo(
 
     return (
       <div
-        className={`rounded-xl border overflow-hidden ${
-          isDark ? "border-gray-700" : "border-gray-100"
-        }`}
+        className={`rounded-xl border overflow-hidden ${isDark ? "border-gray-700" : "border-gray-100"
+          }`}
       >
         <button
           onClick={() => setOpen((o) => !o)}
-          className={`w-full flex items-center justify-between px-4 py-3 transition ${
-            isDark
+          className={`w-full flex items-center justify-between px-4 py-3 transition ${isDark
               ? "bg-gray-700/40 hover:bg-gray-700"
               : "bg-gray-50 hover:bg-gray-100"
-          }`}
+            }`}
         >
           <div className="flex items-center gap-3">
             <span className="px-2.5 py-0.5 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white text-xs font-bold rounded-full">
               {level.level}
             </span>
             <span
-              className={`text-sm font-semibold ${
-                isDark ? "text-gray-200" : "text-gray-700"
-              }`}
+              className={`text-sm font-semibold ${isDark ? "text-gray-200" : "text-gray-700"
+                }`}
             >
               {level.totalExamsTaken} bài · {level.accuracy.toFixed(1)}% chính
               xác
@@ -145,9 +139,8 @@ const LevelAccordion = React.memo(
           </div>
           <div className="flex items-center gap-2">
             <div
-              className={`w-20 h-1.5 rounded-full overflow-hidden ${
-                isDark ? "bg-gray-600" : "bg-gray-200"
-              }`}
+              className={`w-20 h-1.5 rounded-full overflow-hidden ${isDark ? "bg-gray-600" : "bg-gray-200"
+                }`}
             >
               <div
                 className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500"
@@ -155,9 +148,8 @@ const LevelAccordion = React.memo(
               />
             </div>
             <svg
-              className={`w-4 h-4 transition-transform ${
-                open ? "rotate-180" : ""
-              } ${isDark ? "text-gray-400" : "text-gray-500"}`}
+              className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""
+                } ${isDark ? "text-gray-400" : "text-gray-500"}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -174,9 +166,8 @@ const LevelAccordion = React.memo(
 
         {open && (
           <div
-            className={`px-4 py-3 grid grid-cols-2 md:grid-cols-4 gap-3 ${
-              isDark ? "bg-gray-800" : "bg-white"
-            }`}
+            className={`px-4 py-3 grid grid-cols-2 md:grid-cols-4 gap-3 ${isDark ? "bg-gray-800" : "bg-white"
+              }`}
           >
             {[
               {
@@ -202,14 +193,12 @@ const LevelAccordion = React.memo(
             ].map((item) => (
               <div
                 key={item.label}
-                className={`text-center p-2.5 rounded-lg ${
-                  isDark ? "bg-gray-700/50" : "bg-gray-50"
-                }`}
+                className={`text-center p-2.5 rounded-lg ${isDark ? "bg-gray-700/50" : "bg-gray-50"
+                  }`}
               >
                 <p
-                  className={`text-xs mb-0.5 ${
-                    isDark ? "text-gray-500" : "text-gray-400"
-                  }`}
+                  className={`text-xs mb-0.5 ${isDark ? "text-gray-500" : "text-gray-400"
+                    }`}
                 >
                   {item.label}
                 </p>
@@ -219,9 +208,8 @@ const LevelAccordion = React.memo(
               </div>
             ))}
             <div
-              className={`col-span-2 md:col-span-4 mt-1 p-2.5 rounded-lg ${
-                isDark ? "bg-gray-700/50" : "bg-gray-50"
-              }`}
+              className={`col-span-2 md:col-span-4 mt-1 p-2.5 rounded-lg ${isDark ? "bg-gray-700/50" : "bg-gray-50"
+                }`}
             >
               <div className="flex justify-between text-xs mb-1">
                 <span className={isDark ? "text-gray-400" : "text-gray-500"}>
@@ -237,15 +225,14 @@ const LevelAccordion = React.memo(
                 isDark={isDark}
               />
               <p
-                className={`text-xs mt-1.5 ${
-                  isDark ? "text-gray-500" : "text-gray-400"
-                }`}
+                className={`text-xs mt-1.5 ${isDark ? "text-gray-500" : "text-gray-400"
+                  }`}
               >
                 {pct < 50
                   ? "💪 Tiếp tục luyện tập!"
                   : pct < 80
-                  ? "👍 Bạn đang làm tốt!"
-                  : "🎉 Xuất sắc!"}
+                    ? "👍 Bạn đang làm tốt!"
+                    : "🎉 Xuất sắc!"}
               </p>
             </div>
           </div>
@@ -347,12 +334,10 @@ export default function LearningStats({ isDark }: LearningStatsProps) {
     [isDark]
   );
 
-  const card = `rounded-2xl border shadow-sm ${
-    isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-  }`;
-  const titleCls = `font-bold text-base ${
-    isDark ? "text-gray-100" : "text-gray-800"
-  }`;
+  const card = `rounded-2xl border shadow-sm ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+    }`;
+  const titleCls = `font-bold text-base ${isDark ? "text-gray-100" : "text-gray-800"
+    }`;
 
   if (loading)
     return (
@@ -374,9 +359,8 @@ export default function LearningStats({ isDark }: LearningStatsProps) {
     return (
       <div className={`${card} px-6 py-8 text-center`}>
         <p
-          className={`text-sm mb-3 ${
-            isDark ? "text-gray-400" : "text-gray-500"
-          }`}
+          className={`text-sm mb-3 ${isDark ? "text-gray-400" : "text-gray-500"
+            }`}
         >
           {error}
         </p>
@@ -457,9 +441,8 @@ export default function LearningStats({ isDark }: LearningStatsProps) {
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp className="w-5 h-5 text-cyan-500" />
               <h3
-                className={`font-bold text-sm ${
-                  isDark ? "text-gray-100" : "text-gray-800"
-                }`}
+                className={`font-bold text-sm ${isDark ? "text-gray-100" : "text-gray-800"
+                  }`}
               >
                 Tiến độ 7 ngày qua
               </h3>
@@ -505,14 +488,12 @@ export default function LearningStats({ isDark }: LearningStatsProps) {
             ) : (
               <div className="h-40 flex flex-col items-center justify-center gap-2">
                 <Calendar
-                  className={`w-10 h-10 ${
-                    isDark ? "text-gray-600" : "text-gray-300"
-                  }`}
+                  className={`w-10 h-10 ${isDark ? "text-gray-600" : "text-gray-300"
+                    }`}
                 />
                 <p
-                  className={`text-xs text-center ${
-                    isDark ? "text-gray-500" : "text-gray-400"
-                  }`}
+                  className={`text-xs text-center ${isDark ? "text-gray-500" : "text-gray-400"
+                    }`}
                 >
                   Chưa có dữ liệu trong 7 ngày qua
                 </p>
@@ -526,9 +507,8 @@ export default function LearningStats({ isDark }: LearningStatsProps) {
             <div className="flex items-center gap-2 mb-4">
               <Brain className="w-5 h-5 text-cyan-500" />
               <h3
-                className={`font-bold text-sm ${
-                  isDark ? "text-gray-100" : "text-gray-800"
-                }`}
+                className={`font-bold text-sm ${isDark ? "text-gray-100" : "text-gray-800"
+                  }`}
               >
                 Tỷ lệ trả lời
               </h3>
@@ -560,47 +540,41 @@ export default function LearningStats({ isDark }: LearningStatsProps) {
                 </ResponsiveContainer>
                 <div className="flex gap-3 mt-2">
                   <div
-                    className={`flex-1 flex items-center justify-between px-3 py-2 rounded-lg ${
-                      isDark ? "bg-green-900/30" : "bg-green-50"
-                    }`}
+                    className={`flex-1 flex items-center justify-between px-3 py-2 rounded-lg ${isDark ? "bg-green-900/30" : "bg-green-50"
+                      }`}
                   >
                     <div className="flex items-center gap-1.5">
                       <div className="w-2.5 h-2.5 bg-green-500 rounded-full" />
                       <span
-                        className={`text-xs ${
-                          isDark ? "text-green-400" : "text-green-700"
-                        }`}
+                        className={`text-xs ${isDark ? "text-green-400" : "text-green-700"
+                          }`}
                       >
                         Đúng
                       </span>
                     </div>
                     <span
-                      className={`text-sm font-bold ${
-                        isDark ? "text-green-400" : "text-green-600"
-                      }`}
+                      className={`text-sm font-bold ${isDark ? "text-green-400" : "text-green-600"
+                        }`}
                     >
                       {dashboardData.correctQuestions}
                     </span>
                   </div>
                   <div
-                    className={`flex-1 flex items-center justify-between px-3 py-2 rounded-lg ${
-                      isDark ? "bg-red-900/30" : "bg-red-50"
-                    }`}
+                    className={`flex-1 flex items-center justify-between px-3 py-2 rounded-lg ${isDark ? "bg-red-900/30" : "bg-red-50"
+                      }`}
                   >
                     <div className="flex items-center gap-1.5">
                       <div className="w-2.5 h-2.5 bg-red-500 rounded-full" />
                       <span
-                        className={`text-xs ${
-                          isDark ? "text-red-400" : "text-red-700"
-                        }`}
+                        className={`text-xs ${isDark ? "text-red-400" : "text-red-700"
+                          }`}
                       >
                         Sai
                       </span>
                     </div>
                     <span
-                      className={`text-sm font-bold ${
-                        isDark ? "text-red-400" : "text-red-600"
-                      }`}
+                      className={`text-sm font-bold ${isDark ? "text-red-400" : "text-red-600"
+                        }`}
                     >
                       {dashboardData.totalQuestionsDone -
                         dashboardData.correctQuestions}
@@ -611,14 +585,12 @@ export default function LearningStats({ isDark }: LearningStatsProps) {
             ) : (
               <div className="h-40 flex flex-col items-center justify-center gap-2">
                 <Brain
-                  className={`w-10 h-10 ${
-                    isDark ? "text-gray-600" : "text-gray-300"
-                  }`}
+                  className={`w-10 h-10 ${isDark ? "text-gray-600" : "text-gray-300"
+                    }`}
                 />
                 <p
-                  className={`text-xs ${
-                    isDark ? "text-gray-500" : "text-gray-400"
-                  }`}
+                  className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"
+                    }`}
                 >
                   Chưa có dữ liệu
                 </p>
@@ -663,116 +635,6 @@ export default function LearningStats({ isDark }: LearningStatsProps) {
       {/* ── 4.5. Dự đoán thi đậu ── */}
       <JLPTPassPredictionCard isDark={isDark} />
 
-      {/* ── 5. Mục tiêu + Lời khuyên ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {dashboardData && (
-          <div className="rounded-2xl bg-gradient-to-br from-cyan-500 to-cyan-600 p-6 text-white shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <Target className="w-5 h-5" />
-              <h3 className="font-bold text-base">Mục tiêu tiếp theo</h3>
-            </div>
-            <div className="flex flex-col gap-4">
-              <div>
-                <div className="flex justify-between text-sm mb-1.5">
-                  <span className="opacity-90">Hoàn thành 10 bài thi</span>
-                  <span className="font-bold">
-                    {dashboardData.totalExamsTaken}/10
-                  </span>
-                </div>
-                <div className="w-full bg-white/30 rounded-full h-2">
-                  <div
-                    className="bg-white h-2 rounded-full transition-all"
-                    style={{
-                      width: `${Math.min(
-                        (dashboardData.totalExamsTaken / 10) * 100,
-                        100
-                      )}%`,
-                    }}
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1.5">
-                  <span className="opacity-90">Đạt 80% độ chính xác</span>
-                  <span className="font-bold">
-                    {dashboardData.accuracy.toFixed(1)}%
-                  </span>
-                </div>
-                <div className="w-full bg-white/30 rounded-full h-2">
-                  <div
-                    className="bg-white h-2 rounded-full transition-all"
-                    style={{
-                      width: `${Math.min(
-                        (dashboardData.accuracy / 80) * 100,
-                        100
-                      )}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className={card}>
-          <div className="px-6 py-5">
-            <div className="flex items-center gap-2 mb-4">
-              <Zap className="w-5 h-5 text-yellow-500" />
-              <h3
-                className={`font-bold text-sm ${
-                  isDark ? "text-gray-100" : "text-gray-800"
-                }`}
-              >
-                Lời khuyên
-              </h3>
-            </div>
-            <div className="flex flex-col gap-2.5">
-              {[
-                {
-                  emoji: "📚",
-                  title: "Luyện tập đều đặn",
-                  desc: "Hãy làm ít nhất 1 bài thi mỗi ngày",
-                },
-                {
-                  emoji: "✍️",
-                  title: "Ôn tập từ vựng",
-                  desc: "Xem lại các câu đã sai để cải thiện",
-                },
-                {
-                  emoji: "🎯",
-                  title: "Đặt mục tiêu",
-                  desc: "Tập trung vào một cấp độ tại một thời điểm",
-                },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  className={`flex items-start gap-3 p-3 rounded-xl ${
-                    isDark ? "bg-gray-700/50" : "bg-gray-50"
-                  }`}
-                >
-                  <span className="text-xl">{item.emoji}</span>
-                  <div>
-                    <p
-                      className={`text-xs font-semibold ${
-                        isDark ? "text-gray-200" : "text-gray-700"
-                      }`}
-                    >
-                      {item.title}
-                    </p>
-                    <p
-                      className={`text-xs mt-0.5 ${
-                        isDark ? "text-gray-400" : "text-gray-500"
-                      }`}
-                    >
-                      {item.desc}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

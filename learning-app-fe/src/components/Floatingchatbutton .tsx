@@ -113,7 +113,7 @@ export default function FloatingChatButton({
   }, [currentUserId]);
 
   // ── Socket ───────────────────────────────────────────────────────────────
-  const { messages: socketMessages, isConnected, sendMessage } = useChatSocket(
+  const { messages: socketMessages, isConnected, sendMessage, sendToRoom } = useChatSocket(
     selectedContact?.id || null
   );
 
@@ -223,7 +223,6 @@ export default function FloatingChatButton({
         latest.title.toLowerCase().includes("friend");
 
       if (isFriendAcceptance) {
-        console.log("🔄 Real-time inbox refresh triggered");
         fetchInbox(true);
       }
     }
@@ -233,13 +232,11 @@ export default function FloatingChatButton({
   // Listen for manual acceptance events or routing
   useEffect(() => {
     const handleRefresh = () => {
-      console.log("🔄 Manual inbox refresh triggered");
       fetchInbox(true);
     };
 
     const handleOpenRoom = async (e: any) => {
       const { roomId, userId } = e.detail;
-      console.log("📬 Open room requested:", roomId);
 
       setIsOpen(true);
       setActiveTab("INBOX");
@@ -257,13 +254,22 @@ export default function FloatingChatButton({
       }
     };
 
+    const handleSendToRoom = (e: any) => {
+      const { roomId, content } = e.detail;
+      if (roomId && content) {
+        sendToRoom(roomId, content);
+      }
+    };
+
     window.addEventListener("refresh-inbox", handleRefresh);
     window.addEventListener("chat-open-room", handleOpenRoom);
+    window.addEventListener("chat-send-to-room", handleSendToRoom);
     return () => {
       window.removeEventListener("refresh-inbox", handleRefresh);
       window.removeEventListener("chat-open-room", handleOpenRoom);
+      window.removeEventListener("chat-send-to-room", handleSendToRoom);
     };
-  }, [fetchInbox, clearUnread]);
+  }, [fetchInbox, clearUnread, sendToRoom]);
 
   // ── Fetch groups ─────────────────────────────────────────────────────────
   useEffect(() => {

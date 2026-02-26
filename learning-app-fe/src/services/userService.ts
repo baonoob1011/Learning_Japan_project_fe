@@ -3,10 +3,8 @@ import { axiosClient, HttpClientError } from "@/lib/axios";
 import { getEndpoint } from "@/config/api";
 import { ApiResponse } from "./api-types"; // <-- dùng từ file api-types
 import { API_ENDPOINTS } from "@/config/api";
+import { JLPTLevel } from "@/enums/JLPTLevel";
 import { http } from "@/lib/http";
-import { Upload } from "lucide-react";
-import { get } from "node_modules/axios/index.cjs";
-
 export interface RegisterRequest {
   fullName: string;
   email: string;
@@ -25,7 +23,9 @@ export interface UserProfileResponse {
   email: string;
   createdAt: string;
   avatarUrl: string;
+  level: JLPTLevel;
   avatar?: string; // Add this
+
 }
 
 export interface UserResponse {
@@ -34,9 +34,8 @@ export interface UserResponse {
   fullName: string; // Backend là fullName, không phải name
   avatarUrl?: string;
   enabled: boolean;
+  level: JLPTLevel;
 
-  // Các field học tập mới thêm
-  level: string; // "N5"
   stage: string; // "Junbi"
   processPercent: number; // 60
   isPremium: boolean; // true/false
@@ -66,6 +65,8 @@ export interface UserChatResponse {
   email: string;
   avatarUrl?: string; // Một số chỗ dùng avatarUrl
   avatar?: string;    // Một số chỗ dùng avatar
+  level?: string;
+  isPremium?: boolean;
 }
 
 export interface PageResponse<T> {
@@ -85,6 +86,10 @@ export interface UserStatsResponse {
 export const userService = {
   getProfile(): Promise<UserProfileResponse> {
     return http.get(API_ENDPOINTS.USER.PROFILE); // token đi kèm trong header
+  },
+
+  updateProfile(data: { fullName: string }): Promise<UserProfileResponse> {
+    return http.put(API_ENDPOINTS.USER.UPDATE_PROFILE, data);
   },
 
   uploadAvatar(file: File): Promise<void> {

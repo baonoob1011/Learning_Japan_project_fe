@@ -10,8 +10,6 @@ import {
 import Sidebar from "@/components/Sidebar";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useDarkMode } from "@/hooks/useDarkMode";
-import MaziAIChat from "@/components/NiboChatAI";
-import FloatingChatButton from "@/components/Floatingchatbutton ";
 
 interface ExamCardProps {
   id: string;
@@ -59,8 +57,8 @@ const ExamCard: React.FC<ExamCardProps> = ({
   return (
     <div
       className={`${isDark
-          ? "bg-gray-800 border-gray-700"
-          : "bg-white/90 backdrop-blur-sm border-cyan-100"
+        ? "bg-gray-800 border-gray-700"
+        : "bg-white/90 backdrop-blur-sm border-cyan-100"
         } rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all border`}
     >
       <h3
@@ -146,8 +144,8 @@ export default function PracticePage() {
     <>
       <div
         className={`flex h-screen ${isDarkMode
-            ? "bg-gray-900"
-            : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
+          ? "bg-gray-900"
+          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
           }`}
       >
         {/* Sidebar Component */}
@@ -163,14 +161,14 @@ export default function PracticePage() {
           {/* HEADER */}
           <header
             className={`${isDarkMode
-                ? "bg-gray-800 border-gray-700"
-                : "bg-white/80 backdrop-blur-sm border-cyan-100"
+              ? "bg-gray-800 border-gray-700"
+              : "bg-white/80 backdrop-blur-sm border-cyan-100"
               } border-b px-6 py-3 flex items-center justify-between sticky top-0 z-10 shadow-lg`}
           >
             <h1
               className={`text-2xl font-bold ${isDarkMode
-                  ? "text-gray-100"
-                  : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
+                ? "text-gray-100"
+                : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
                 }`}
             >
               Luyện thi JLPT
@@ -198,10 +196,10 @@ export default function PracticePage() {
                     key={level}
                     onClick={() => setActiveLevel(level)}
                     className={`px-6 py-3 rounded-xl font-semibold transition transform hover:scale-105 ${activeLevel === level
-                        ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg"
-                        : isDarkMode
-                          ? "bg-gray-700 text-gray-300 hover:bg-gray-600 border border-gray-600"
-                          : "bg-white text-gray-700 hover:bg-cyan-50 border border-cyan-200"
+                      ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg"
+                      : isDarkMode
+                        ? "bg-gray-700 text-gray-300 hover:bg-gray-600 border border-gray-600"
+                        : "bg-white text-gray-700 hover:bg-cyan-50 border border-cyan-200"
                       }`}
                   >
                     JLPT {level}
@@ -215,8 +213,8 @@ export default function PracticePage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Tìm đề thi..."
                 className={`mb-6 px-4 py-3 ${isDarkMode
-                    ? "bg-gray-700 border-gray-600 text-gray-100"
-                    : "bg-white border-cyan-200 text-gray-700"
+                  ? "bg-gray-700 border-gray-600 text-gray-100"
+                  : "bg-white border-cyan-200 text-gray-700"
                   } border-2 rounded-xl w-full max-w-md focus:outline-none focus:ring-2 focus:ring-cyan-400 transition`}
               />
 
@@ -280,9 +278,6 @@ export default function PracticePage() {
         </div>
       </div>
 
-      {/* NIBO AI Chat Component */}
-      <MaziAIChat isDarkMode={isDarkMode} />
-      <FloatingChatButton isDarkMode={isDarkMode} />
     </>
   );
 }

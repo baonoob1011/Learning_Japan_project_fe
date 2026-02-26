@@ -5,8 +5,6 @@ import { useDarkMode } from "@/hooks/useDarkMode";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { youtubeService, YoutubeVideoSummary } from "@/services/videoService";
-import MaziAIChat from "@/components/NiboChatAI";
-import FloatingChatButton from "@/components/Floatingchatbutton ";
 import {
   History,
   Play,
@@ -307,8 +305,8 @@ export default function RecentlyViewedPage() {
 
       <div
         className={`flex h-screen ${isDarkMode
-            ? "bg-gray-900"
-            : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
+          ? "bg-gray-900"
+          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
           }`}
       >
         <Sidebar
@@ -471,8 +469,8 @@ export default function RecentlyViewedPage() {
                   <div
                     key={video.id}
                     className={`group rounded-xl overflow-hidden transition-all hover:scale-[1.02] cursor-pointer border ${isDarkMode
-                        ? "bg-gray-800/50 border-gray-700 hover:bg-gray-800 hover:border-cyan-500"
-                        : "bg-white border-gray-200 hover:border-cyan-400 hover:shadow-lg"
+                      ? "bg-gray-800/50 border-gray-700 hover:bg-gray-800 hover:border-cyan-500"
+                      : "bg-white border-gray-200 hover:border-cyan-400 hover:shadow-lg"
                       }`}
                     onClick={() => handleVideoClick(video.id)}
                   >
@@ -539,8 +537,8 @@ export default function RecentlyViewedPage() {
                             <div className="flex items-center gap-2">
                               <span
                                 className={`text-xs font-medium px-2 py-1 rounded transition-colors ${video.completionPercentage === 100
-                                    ? "bg-green-500/20 text-green-500"
-                                    : "bg-cyan-500/20 text-cyan-500"
+                                  ? "bg-green-500/20 text-green-500"
+                                  : "bg-cyan-500/20 text-cyan-500"
                                   }`}
                               >
                                 {video.completionPercentage}%
@@ -558,9 +556,6 @@ export default function RecentlyViewedPage() {
         </div>
       </div>
 
-      {/* NIBO AI Chat Component */}
-      <MaziAIChat isDarkMode={isDarkMode} />
-      <FloatingChatButton isDarkMode={isDarkMode} />
     </>
   );
 }

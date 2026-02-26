@@ -1,5 +1,6 @@
 "use client";
 import { youtubeService } from "@/services/videoService";
+import { useVideoStore } from "@/stores/videoStore";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import { useDarkMode } from "@/hooks/useDarkMode";
@@ -7,8 +8,6 @@ import Header from "@/components/Header";
 import VideoBanner from "@/components/videoYTB/VideoBanner";
 import LoadingCat from "@/components/LoadingCat";
 import UploadVideoModal from "@/components/videoYTB/UploadVideoModal";
-import MaziAIChat from "@/components/NiboChatAI";
-import FloatingChatButton from "@/components/Floatingchatbutton ";
 
 import React, { useState, useEffect } from "react";
 
@@ -76,33 +75,28 @@ const VideoModal: React.FC<VideoModalProps> = ({ video, isDark, onClose }) => {
       style={{ zIndex: 9998 }}
     >
       <div
-        className={`${
-          isDark ? "bg-gray-800" : "bg-white"
-        } rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl`}
+        className={`${isDark ? "bg-gray-800" : "bg-white"
+          } rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl`}
         onClick={(e) => e.stopPropagation()}
       >
         <div
-          className={`flex items-center justify-between p-4 border-b ${
-            isDark ? "border-gray-700" : "border-gray-200"
-          }`}
+          className={`flex items-center justify-between p-4 border-b ${isDark ? "border-gray-700" : "border-gray-200"
+            }`}
         >
           <h2
-            className={`text-xl font-semibold ${
-              isDark ? "text-gray-100" : "text-gray-800"
-            } line-clamp-1`}
+            className={`text-xl font-semibold ${isDark ? "text-gray-100" : "text-gray-800"
+              } line-clamp-1`}
           >
             {video.title}
           </h2>
           <button
             onClick={onClose}
-            className={`p-2 rounded-lg transition ${
-              isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"
-            }`}
+            className={`p-2 rounded-lg transition ${isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"
+              }`}
           >
             <X
-              className={`w-5 h-5 ${
-                isDark ? "text-gray-300" : "text-gray-600"
-              }`}
+              className={`w-5 h-5 ${isDark ? "text-gray-300" : "text-gray-600"
+                }`}
             />
           </button>
         </div>
@@ -169,9 +163,8 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className={`${
-        isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-      } rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer group border`}
+      className={`${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+        } rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer group border`}
     >
       <div className="relative">
         {thumbnailUrl ? (
@@ -221,16 +214,14 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, isDark, onClick }) => {
 
       <div className="p-4">
         <h3
-          className={`font-semibold ${
-            isDark ? "text-gray-100" : "text-gray-800"
-          } text-sm line-clamp-2 mb-2 min-h-[40px]`}
+          className={`font-semibold ${isDark ? "text-gray-100" : "text-gray-800"
+            } text-sm line-clamp-2 mb-2 min-h-[40px]`}
         >
           {video.title}
         </h3>
         <div
-          className={`flex items-center gap-3 text-xs ${
-            isDark ? "text-gray-400" : "text-gray-600"
-          }`}
+          className={`flex items-center gap-3 text-xs ${isDark ? "text-gray-400" : "text-gray-600"
+            }`}
         >
           <div className="flex items-center gap-1">
             <Clock className="w-3 h-3" />
@@ -277,39 +268,25 @@ const formatDate = (dateString?: string): string => {
 export default function VideoListPage() {
   const router = useRouter();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const {
+    videos,
+    searchQuery,
+    setSearchQuery,
+    loading,
+    error,
+    fetchVideos
+  } = useVideoStore();
+
   const [activeTab, setActiveTab] = useState("Toàn bộ");
   const [activeLevel, setActiveLevel] = useState<JLPTLevel | "ALL">("ALL");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentStreak, setCurrentStreak] = useState(4);
   const { isDarkMode, toggleDarkMode, mounted } = useDarkMode();
-  const [videos, setVideos] = useState<YoutubeVideoSummary[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedVideo, setSelectedVideo] =
-    useState<YoutubeVideoSummary | null>(null);
-
-  const fetchVideos = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const videosData = await youtubeService.getAll();
-      setVideos(videosData);
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Không thể tải video. Vui lòng thử lại."
-      );
-      console.error("Error fetching videos:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [selectedVideo, setSelectedVideo] = useState<YoutubeVideoSummary | null>(null);
 
   useEffect(() => {
     fetchVideos();
-  }, []);
+  }, [fetchVideos]);
 
   const handleVideoClick = (video: YoutubeVideoSummary) => {
     youtubeService.getById(video.id).catch((err) => console.error(err));
@@ -388,11 +365,10 @@ export default function VideoListPage() {
       `}</style>
 
       <div
-        className={`flex h-screen ${
-          isDarkMode
-            ? "bg-gray-900"
-            : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
-        }`}
+        className={`flex h-screen ${isDarkMode
+          ? "bg-gray-900"
+          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
+          }`}
       >
         {selectedVideo && (
           <VideoModal
@@ -426,9 +402,8 @@ export default function VideoListPage() {
 
           {/* Video Content */}
           <div
-            className={`flex-1 overflow-y-auto p-6 ${
-              isDarkMode ? "custom-scrollbar-dark" : "custom-scrollbar"
-            }`}
+            className={`flex-1 overflow-y-auto p-6 ${isDarkMode ? "custom-scrollbar-dark" : "custom-scrollbar"
+              }`}
           >
             {loading ? (
               <div className="flex items-center justify-center h-64">
@@ -443,21 +418,18 @@ export default function VideoListPage() {
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
                   <AlertCircle
-                    className={`w-12 h-12 mx-auto mb-4 ${
-                      isDarkMode ? "text-cyan-400" : "text-cyan-500"
-                    }`}
+                    className={`w-12 h-12 mx-auto mb-4 ${isDarkMode ? "text-cyan-400" : "text-cyan-500"
+                      }`}
                   />
                   <p
-                    className={`text-lg font-medium mb-2 ${
-                      isDarkMode ? "text-gray-200" : "text-gray-800"
-                    }`}
+                    className={`text-lg font-medium mb-2 ${isDarkMode ? "text-gray-200" : "text-gray-800"
+                      }`}
                   >
                     Không thể tải video
                   </p>
                   <p
-                    className={`mb-4 ${
-                      isDarkMode ? "text-gray-400" : "text-gray-600"
-                    }`}
+                    className={`mb-4 ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
                   >
                     {error}
                   </p>
@@ -473,18 +445,16 @@ export default function VideoListPage() {
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
                   <Video
-                    className={`w-12 h-12 mx-auto mb-4 ${
-                      isDarkMode ? "text-gray-600" : "text-cyan-400"
-                    }`}
+                    className={`w-12 h-12 mx-auto mb-4 ${isDarkMode ? "text-gray-600" : "text-cyan-400"
+                      }`}
                   />
                   <p
-                    className={`text-lg ${
-                      isDarkMode ? "text-gray-400" : "text-gray-600"
-                    }`}
+                    className={`text-lg ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
                   >
                     {searchQuery ||
-                    activeLevel !== "ALL" ||
-                    activeTab !== "Toàn bộ"
+                      activeLevel !== "ALL" ||
+                      activeTab !== "Toàn bộ"
                       ? "Không tìm thấy video nào"
                       : "Chưa có video nào"}
                   </p>
@@ -512,10 +482,6 @@ export default function VideoListPage() {
         onSuccess={fetchVideos}
         isDark={isDarkMode}
       />
-
-      {/* MAZI AI Chat Component */}
-      <MaziAIChat isDarkMode={isDarkMode} />
-      <FloatingChatButton isDarkMode={isDarkMode} />
     </>
   );
 }

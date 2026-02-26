@@ -131,11 +131,6 @@ export default function Sidebar({
       label: "Danh sách video",
     },
     {
-      path: "/video/myVideo",
-      icon: <Play className="w-5 h-5" />,
-      label: "Video của tôi",
-    },
-    {
       path: "/myCourses",
       icon: <GraduationCap className="w-5 h-5" />,
       label: "Khóa học của tôi",
@@ -184,17 +179,15 @@ export default function Sidebar({
       `}</style>
 
       <div
-        className={`${sidebarOpen ? "w-72" : "w-24"} ${
-          isDarkMode
+        className={`${sidebarOpen ? "w-72" : "w-24"} ${isDarkMode
             ? "bg-gray-800 border-gray-700"
             : "bg-white/90 backdrop-blur-sm border-cyan-100"
-        } border-r transition-all duration-300 flex flex-col shadow-lg`}
+          } border-r transition-all duration-300 flex flex-col shadow-lg`}
       >
         {/* Logo */}
         <div
-          className={`p-4 ${
-            isDarkMode ? "border-gray-700" : "border-cyan-100"
-          } border-b flex items-center justify-between`}
+          className={`p-4 ${isDarkMode ? "border-gray-700" : "border-cyan-100"
+            } border-b flex items-center justify-between`}
         >
           {sidebarOpen ? (
             <>
@@ -220,11 +213,10 @@ export default function Sidebar({
               </div>
               <button
                 onClick={() => setSidebarOpen(false)}
-                className={`p-1.5 rounded-lg transition-colors ${
-                  isDarkMode
+                className={`p-1.5 rounded-lg transition-colors ${isDarkMode
                     ? "text-gray-400 hover:bg-gray-700"
                     : "text-cyan-500 hover:bg-cyan-50"
-                }`}
+                  }`}
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -243,11 +235,10 @@ export default function Sidebar({
               </div>
               <button
                 onClick={() => setSidebarOpen(true)}
-                className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${
-                  isDarkMode
+                className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${isDarkMode
                     ? "text-gray-400 hover:bg-gray-700"
                     : "text-cyan-400 hover:bg-cyan-50"
-                }`}
+                  }`}
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -258,22 +249,19 @@ export default function Sidebar({
         {/* Streak */}
         {sidebarOpen ? (
           <div
-            className={`p-4 ${
-              isDarkMode ? "border-gray-700" : "border-cyan-100"
-            } border-b`}
+            className={`p-4 ${isDarkMode ? "border-gray-700" : "border-cyan-100"
+              } border-b`}
           >
             <div
-              className={`${
-                isDarkMode
+              className={`${isDarkMode
                   ? "from-yellow-900/30 to-orange-900/30"
                   : "from-cyan-50 via-blue-50 to-indigo-50"
-              } bg-gradient-to-r rounded-xl p-3 shadow-md`}
+                } bg-gradient-to-r rounded-xl p-3 shadow-md`}
             >
               <div className="flex items-center justify-between mb-2">
                 <span
-                  className={`text-sm font-medium ${
-                    isDarkMode ? "text-gray-300" : "text-cyan-700"
-                  }`}
+                  className={`text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-cyan-700"
+                    }`}
                 >
                   Streak
                 </span>
@@ -283,31 +271,28 @@ export default function Sidebar({
                 {[...Array(7)].map((_, i) => (
                   <div
                     key={i}
-                    className={`flex-1 h-8 rounded ${
-                      i === currentDayIndex
+                    className={`flex-1 h-8 rounded ${i === currentDayIndex
                         ? "bg-gradient-to-t from-cyan-400 to-cyan-300 shadow-md"
                         : isDarkMode
-                        ? "bg-gray-700"
-                        : "bg-gray-200"
-                    } flex items-end justify-center pb-1`}
+                          ? "bg-gray-700"
+                          : "bg-gray-200"
+                      } flex items-end justify-center pb-1`}
                   >
                     <Star
-                      className={`w-3 h-3 ${
-                        i === currentDayIndex
+                      className={`w-3 h-3 ${i === currentDayIndex
                           ? "text-white drop-shadow"
                           : isDarkMode
-                          ? "text-gray-600"
-                          : "text-gray-400"
-                      }`}
+                            ? "text-gray-600"
+                            : "text-gray-400"
+                        }`}
                       fill={i === currentDayIndex ? "currentColor" : "none"}
                     />
                   </div>
                 ))}
               </div>
               <div
-                className={`flex justify-between mt-2 text-xs ${
-                  isDarkMode ? "text-gray-400" : "text-cyan-600"
-                }`}
+                className={`flex justify-between mt-2 text-xs ${isDarkMode ? "text-gray-400" : "text-cyan-600"
+                  }`}
               >
                 {days.map((day, i) => (
                   <span
@@ -324,23 +309,20 @@ export default function Sidebar({
           </div>
         ) : (
           <div
-            className={`py-4 ${
-              isDarkMode ? "border-gray-700" : "border-cyan-100"
-            } border-b flex flex-col items-center gap-2`}
+            className={`py-4 ${isDarkMode ? "border-gray-700" : "border-cyan-100"
+              } border-b flex flex-col items-center gap-2`}
           >
             <div
-              className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                isDarkMode
+              className={`w-12 h-12 rounded-full flex items-center justify-center ${isDarkMode
                   ? "bg-gradient-to-br from-orange-900/40 to-yellow-900/40"
                   : "bg-gradient-to-br from-orange-100 to-yellow-100"
-              }`}
+                }`}
             >
               <span className="text-2xl">🔥</span>
             </div>
             <span
-              className={`text-sm font-bold ${
-                isDarkMode ? "text-gray-200" : "text-gray-700"
-              }`}
+              className={`text-sm font-bold ${isDarkMode ? "text-gray-200" : "text-gray-700"
+                }`}
             >
               {days[currentDayIndex]}
             </span>
@@ -355,13 +337,12 @@ export default function Sidebar({
                 <button
                   key={path}
                   onClick={() => router.push(path)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition transform hover:scale-105 ${
-                    isActive(path)
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition transform hover:scale-105 ${isActive(path)
                       ? "bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-600 font-medium shadow-sm"
                       : isDarkMode
-                      ? "text-gray-300 hover:bg-gray-700"
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
+                        ? "text-gray-300 hover:bg-gray-700"
+                        : "text-gray-600 hover:bg-gray-50"
+                    }`}
                 >
                   {icon}
                   <span>{label}</span>
@@ -371,15 +352,14 @@ export default function Sidebar({
                   key={path}
                   onClick={() => router.push(path)}
                   title={label}
-                  className={`w-full flex items-center justify-center p-3.5 rounded-xl transition-all shadow-sm ${
-                    isActive(path)
+                  className={`w-full flex items-center justify-center p-3.5 rounded-xl transition-all shadow-sm ${isActive(path)
                       ? isDarkMode
                         ? "bg-cyan-900/40 text-cyan-400"
                         : "bg-gradient-to-br from-cyan-100 to-blue-100 text-cyan-600"
                       : isDarkMode
-                      ? "text-gray-400 hover:bg-gray-700 hover:text-gray-300"
-                      : "text-gray-600 hover:bg-cyan-50 hover:text-cyan-600"
-                  }`}
+                        ? "text-gray-400 hover:bg-gray-700 hover:text-gray-300"
+                        : "text-gray-600 hover:bg-cyan-50 hover:text-cyan-600"
+                    }`}
                 >
                   {icon}
                 </button>
