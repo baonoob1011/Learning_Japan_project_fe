@@ -19,8 +19,14 @@ export function useDarkMode() {
 
   useEffect(() => {
     // Set mounted để tránh hydration error
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     setMounted(true);
+
+    // Áp dụng class dark vào html element
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
 
     // Lắng nghe storage changes từ tabs khác
     const handleStorageChange = (e: StorageEvent) => {
@@ -31,7 +37,7 @@ export function useDarkMode() {
 
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+  }, [isDarkMode]);
 
   const toggleDarkMode = () => {
     setIsDarkMode((prev) => {

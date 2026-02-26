@@ -156,22 +156,6 @@ export default function Sidebar({
 
   return (
     <>
-      <style jsx>{`
-        .sidebar-scroll::-webkit-scrollbar {
-          width: 6px;
-        }
-        .sidebar-scroll::-webkit-scrollbar-track {
-          background: ${isDarkMode ? "#1f2937" : "#f3f4f6"};
-          border-radius: 3px;
-        }
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-          background: ${isDarkMode ? "#4b5563" : "#d1d5db"};
-          border-radius: 3px;
-        }
-        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
-          background: ${isDarkMode ? "#6b7280" : "#9ca3af"};
-        }
-      `}</style>
 
       <div
         className={`${sidebarOpen ? "w-72" : "w-24"} ${isDarkMode

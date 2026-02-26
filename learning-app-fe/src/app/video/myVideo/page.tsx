@@ -195,14 +195,6 @@ export default function MyLibraryPage() {
 
   return (
     <>
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { 
-          background: ${isDarkMode ? "#4b5563" : "#d1d5db"}; 
-          border-radius: 4px; 
-        }
-      `}</style>
 
       <div className={`fixed inset-0 flex transition-colors duration-300 ${isDarkMode ? "bg-gray-900" : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"}`}>
         <Sidebar sidebarOpen={showSidebar} setSidebarOpen={setShowSidebar} isDarkMode={isDarkMode} currentStreak={currentStreak} />
@@ -216,8 +208,8 @@ export default function MyLibraryPage() {
               <button
                 onClick={() => setActiveTab("SAVED")}
                 className={`flex items-center gap-2 pb-2 border-b-2 transition-all font-semibold ${activeTab === "SAVED"
-                    ? "border-cyan-500 text-cyan-500"
-                    : "border-transparent text-gray-400 hover:text-gray-300"
+                  ? "border-cyan-500 text-cyan-500"
+                  : "border-transparent text-gray-400 hover:text-gray-300"
                   }`}
               >
                 <BookmarkCheck className="w-5 h-5" />
@@ -226,8 +218,8 @@ export default function MyLibraryPage() {
               <button
                 onClick={() => setActiveTab("HISTORY")}
                 className={`flex items-center gap-2 pb-2 border-b-2 transition-all font-semibold ${activeTab === "HISTORY"
-                    ? "border-cyan-500 text-cyan-500"
-                    : "border-transparent text-gray-400 hover:text-gray-300"
+                  ? "border-cyan-500 text-cyan-500"
+                  : "border-transparent text-gray-400 hover:text-gray-300"
                   }`}
               >
                 <History className="w-5 h-5" />
