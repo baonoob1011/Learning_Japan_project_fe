@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   X,
   Key,
@@ -11,8 +11,10 @@ import {
   Edit3,
   Save,
   ChevronRight,
+  Crown,
 } from "lucide-react";
 import { UserProfileResponse } from "@/services/userService";
+import { getAccessTokenFromStorage, getRolesFromToken } from "@/utils/jwt";
 
 // ─── Password Modal ──────────────────────────────────────────────────────────
 
@@ -44,11 +46,10 @@ function PasswordModal({
   });
   if (!isOpen) return null;
 
-  const baseInput = `w-full pl-4 pr-10 py-2.5 rounded-xl text-sm font-medium transition outline-none ${
-    isDark
+  const baseInput = `w-full pl-4 pr-10 py-2.5 rounded-xl text-sm font-medium transition outline-none ${isDark
       ? "bg-gray-700 border border-gray-600 text-gray-100 focus:border-cyan-400 placeholder-gray-500"
       : "bg-gray-50 border border-gray-200 text-gray-800 focus:border-cyan-400 placeholder-gray-300"
-  }`;
+    }`;
 
   const fields = [
     {
@@ -81,36 +82,32 @@ function PasswordModal({
       onClick={onClose}
     >
       <div
-        className={`w-full max-w-md rounded-2xl shadow-2xl overflow-hidden ${
-          isDark ? "bg-gray-800" : "bg-white"
-        }`}
+        className={`w-full max-w-md rounded-2xl shadow-2xl overflow-hidden ${isDark ? "bg-gray-800" : "bg-white"
+          }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div
-          className={`flex items-center justify-between px-6 py-4 border-b ${
-            isDark ? "border-gray-700" : "border-gray-100"
-          }`}
+          className={`flex items-center justify-between px-6 py-4 border-b ${isDark ? "border-gray-700" : "border-gray-100"
+            }`}
         >
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center shadow-sm">
               <Key className="w-4 h-4 text-white" />
             </div>
             <h2
-              className={`text-base font-bold ${
-                isDark ? "text-gray-100" : "text-gray-800"
-              }`}
+              className={`text-base font-bold ${isDark ? "text-gray-100" : "text-gray-800"
+                }`}
             >
               Đổi mật khẩu
             </h2>
           </div>
           <button
             onClick={onClose}
-            className={`w-8 h-8 rounded-xl flex items-center justify-center transition ${
-              isDark
+            className={`w-8 h-8 rounded-xl flex items-center justify-center transition ${isDark
                 ? "hover:bg-gray-700 text-gray-400"
                 : "hover:bg-gray-100 text-gray-500"
-            }`}
+              }`}
           >
             <X className="w-4 h-4" />
           </button>
@@ -121,9 +118,8 @@ function PasswordModal({
           {fields.map((field) => (
             <div key={field.name}>
               <label
-                className={`block text-xs font-semibold uppercase tracking-wider mb-1.5 ${
-                  isDark ? "text-gray-400" : "text-gray-500"
-                }`}
+                className={`block text-xs font-semibold uppercase tracking-wider mb-1.5 ${isDark ? "text-gray-400" : "text-gray-500"
+                  }`}
               >
                 {field.label}
               </label>
@@ -139,11 +135,10 @@ function PasswordModal({
                 <button
                   type="button"
                   onClick={field.toggle}
-                  className={`absolute right-3 top-1/2 -translate-y-1/2 ${
-                    isDark
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark
                       ? "text-gray-500 hover:text-gray-300"
                       : "text-gray-400 hover:text-gray-600"
-                  }`}
+                    }`}
                 >
                   {field.shown ? (
                     <EyeOff className="w-4 h-4" />
@@ -158,19 +153,17 @@ function PasswordModal({
 
         {/* Footer */}
         <div
-          className={`px-6 py-4 flex justify-end gap-3 border-t ${
-            isDark
+          className={`px-6 py-4 flex justify-end gap-3 border-t ${isDark
               ? "border-gray-700 bg-gray-800/60"
               : "border-gray-100 bg-gray-50"
-          }`}
+            }`}
         >
           <button
             onClick={onClose}
-            className={`px-4 py-2.5 rounded-xl text-sm font-semibold border transition ${
-              isDark
+            className={`px-4 py-2.5 rounded-xl text-sm font-semibold border transition ${isDark
                 ? "border-gray-600 bg-gray-700 text-gray-300 hover:bg-gray-600"
                 : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-            }`}
+              }`}
           >
             Hủy
           </button>
@@ -221,57 +214,55 @@ export default function ProfileInfoCard({
   onPasswordChange,
   onSubmitPassword,
 }: ProfileInfoCardProps) {
-  const inputBase = `w-full px-4 py-2.5 rounded-xl text-sm font-medium transition outline-none ${
-    isDark
+  const [isVip, setIsVip] = useState(false);
+
+  useEffect(() => {
+    const token = getAccessTokenFromStorage();
+    if (token) {
+      const roles = getRolesFromToken(token);
+      setIsVip(roles.includes("USER_VIP"));
+    }
+  }, []);
+  const inputBase = `w-full px-4 py-2.5 rounded-xl text-sm font-medium transition outline-none ${isDark
       ? "bg-gray-700 border border-cyan-500/50 text-gray-100 focus:border-cyan-400 placeholder-gray-500"
       : "bg-white border border-cyan-400 text-gray-800 focus:border-cyan-500 placeholder-gray-300"
-  }`;
-  const disabledInput = `w-full px-4 py-2.5 rounded-xl text-sm font-medium cursor-not-allowed ${
-    isDark
+    }`;
+  const disabledInput = `w-full px-4 py-2.5 rounded-xl text-sm font-medium cursor-not-allowed ${isDark
       ? "bg-gray-700/40 border border-gray-700 text-gray-500"
       : "bg-gray-100 border border-gray-200 text-gray-400"
-  }`;
-  const iconBox = `w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-    isDark ? "bg-gray-700 text-cyan-400" : "bg-cyan-50 text-cyan-500"
-  }`;
-  const rowBorder = `border-b ${
-    isDark ? "border-gray-700" : "border-gray-100"
-  }`;
-  const labelSm = `text-xs font-semibold uppercase tracking-wide mb-0.5 ${
-    isDark ? "text-gray-500" : "text-gray-400"
-  }`;
-  const valText = `text-sm font-medium truncate ${
-    isDark ? "text-gray-200" : "text-gray-700"
-  }`;
-  const chevronCls = `w-4 h-4 flex-shrink-0 ${
-    isDark ? "text-gray-600" : "text-gray-300"
-  }`;
+    }`;
+  const iconBox = `w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isDark ? "bg-gray-700 text-cyan-400" : "bg-cyan-50 text-cyan-500"
+    }`;
+  const rowBorder = `border-b ${isDark ? "border-gray-700" : "border-gray-100"
+    }`;
+  const labelSm = `text-xs font-semibold uppercase tracking-wide mb-0.5 ${isDark ? "text-gray-500" : "text-gray-400"
+    }`;
+  const valText = `text-sm font-medium truncate ${isDark ? "text-gray-200" : "text-gray-700"
+    }`;
+  const chevronCls = `w-4 h-4 flex-shrink-0 ${isDark ? "text-gray-600" : "text-gray-300"
+    }`;
 
   return (
     <>
       <div
-        className={`rounded-2xl border shadow-sm ${
-          isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-        }`}
+        className={`rounded-2xl border shadow-sm ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+          }`}
       >
         {/* Card Header */}
         <div
-          className={`px-6 py-4 border-b flex items-center justify-between ${
-            isDark ? "border-gray-700" : "border-gray-100"
-          }`}
+          className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? "border-gray-700" : "border-gray-100"
+            }`}
         >
           <div>
             <h3
-              className={`font-bold text-base ${
-                isDark ? "text-gray-100" : "text-gray-800"
-              }`}
+              className={`font-bold text-base ${isDark ? "text-gray-100" : "text-gray-800"
+                }`}
             >
               Thông tin cá nhân
             </h3>
             <p
-              className={`text-xs mt-0.5 ${
-                isDark ? "text-gray-500" : "text-gray-400"
-              }`}
+              className={`text-xs mt-0.5 ${isDark ? "text-gray-500" : "text-gray-400"
+                }`}
             >
               Cập nhật họ tên và thông tin tài khoản của bạn
             </p>
@@ -327,10 +318,34 @@ export default function ProfileInfoCard({
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className={labelSm}>Loại tài khoản</p>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-                    Tài khoản miễn phí
-                  </span>
+                  {isVip ? (
+                    <>
+                      <style>{`
+                        @keyframes vipInfoShimmer {
+                          0%   { background-position: 0% 50%; }
+                          50%  { background-position: 100% 50%; }
+                          100% { background-position: 0% 50%; }
+                        }
+                      `}</style>
+                      <span
+                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-white text-xs font-bold rounded-full"
+                        style={{
+                          background: "linear-gradient(135deg, #f59e0b, #d97706, #fbbf24)",
+                          backgroundSize: "200% 200%",
+                          animation: "vipInfoShimmer 3s ease infinite",
+                          boxShadow: "0 0 8px rgba(251,191,36,0.5)",
+                        }}
+                      >
+                        <Crown className="w-3 h-3" />
+                        VIP Member
+                      </span>
+                    </>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                      Tài khoản miễn phí
+                    </span>
+                  )}
                 </div>
                 <ChevronRight className={chevronCls} />
               </div>
@@ -340,9 +355,8 @@ export default function ProfileInfoCard({
             <div className="py-4 flex flex-col gap-4">
               <div>
                 <label
-                  className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1.5 ${
-                    isDark ? "text-gray-400" : "text-gray-500"
-                  }`}
+                  className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1.5 ${isDark ? "text-gray-400" : "text-gray-500"
+                    }`}
                 >
                   <User className="w-3 h-3" /> Họ và tên
                 </label>
@@ -357,9 +371,8 @@ export default function ProfileInfoCard({
               </div>
               <div>
                 <label
-                  className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1.5 ${
-                    isDark ? "text-gray-400" : "text-gray-500"
-                  }`}
+                  className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1.5 ${isDark ? "text-gray-400" : "text-gray-500"
+                    }`}
                 >
                   <Mail className="w-3 h-3" /> Email
                 </label>
@@ -370,42 +383,53 @@ export default function ProfileInfoCard({
                   disabled
                 />
                 <p
-                  className={`text-xs mt-1.5 ${
-                    isDark ? "text-gray-500" : "text-gray-400"
-                  }`}
+                  className={`text-xs mt-1.5 ${isDark ? "text-gray-500" : "text-gray-400"
+                    }`}
                 >
                   Email không thể thay đổi.
                 </p>
               </div>
               <div>
                 <label
-                  className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1.5 ${
-                    isDark ? "text-gray-400" : "text-gray-500"
-                  }`}
+                  className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1.5 ${isDark ? "text-gray-400" : "text-gray-500"
+                    }`}
                 >
                   <Shield className="w-3 h-3" /> Loại tài khoản
                 </label>
                 <div
-                  className={`w-full px-4 py-2.5 rounded-xl ${
-                    isDark
+                  className={`w-full px-4 py-2.5 rounded-xl ${isDark
                       ? "bg-gray-700/40 border border-gray-700"
                       : "bg-gray-50 border border-gray-200"
-                  }`}
+                    }`}
                 >
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-                    Tài khoản miễn phí
-                  </span>
+                  {isVip ? (
+                    <span
+                      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-white text-xs font-bold rounded-full"
+                      style={{
+                        background: "linear-gradient(135deg, #f59e0b, #d97706, #fbbf24)",
+                        backgroundSize: "200% 200%",
+                        animation: "vipInfoShimmer 3s ease infinite",
+                        boxShadow: "0 0 8px rgba(251,191,36,0.5)",
+                      }}
+                    >
+                      <Crown className="w-3 h-3" />
+                      VIP Member
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                      Tài khoản miễn phí
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-3 pt-1">
                 <button
                   onClick={onCancelEdit}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border transition ${
-                    isDark
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border transition ${isDark
                       ? "border-gray-600 bg-gray-700 text-gray-300 hover:bg-gray-600"
                       : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-                  }`}
+                    }`}
                 >
                   <X className="w-4 h-4" /> Hủy bỏ
                 </button>
