@@ -8,6 +8,7 @@ import { useDarkMode } from "@/hooks/useDarkMode";
 import Header from "@/components/Header";
 import LoadingCat from "@/components/LoadingCat";
 import MaziAIChat from "@/components/NiboChatAI";
+import FloatingChatButton from "@/components/Floatingchatbutton ";
 import { Search, Book, AlertCircle, Layers } from "lucide-react";
 
 // Types
@@ -397,6 +398,7 @@ export default function KanjiListPage() {
 
       {/* MAZI AI Chat Component */}
       <MaziAIChat isDarkMode={isDarkMode} />
+      <FloatingChatButton isDarkMode={isDarkMode} />
     </>
   );
 }

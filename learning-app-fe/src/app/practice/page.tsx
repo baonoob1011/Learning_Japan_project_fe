@@ -10,6 +10,8 @@ import {
 import Sidebar from "@/components/Sidebar";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useDarkMode } from "@/hooks/useDarkMode";
+import MaziAIChat from "@/components/NiboChatAI";
+import FloatingChatButton from "@/components/Floatingchatbutton ";
 
 interface ExamCardProps {
   id: string;
@@ -42,9 +44,9 @@ const ExamCard: React.FC<ExamCardProps> = ({
 
       router.push(
         `/exam?examId=${res.examId}` +
-          `&participantId=${res.participantId}` +
-          `&duration=${res.duration}` +
-          `&section=1`
+        `&participantId=${res.participantId}` +
+        `&duration=${res.duration}` +
+        `&section=1`
       );
     } catch (err) {
       console.error("Lỗi khi bắt đầu bài thi:", err);
@@ -56,16 +58,14 @@ const ExamCard: React.FC<ExamCardProps> = ({
 
   return (
     <div
-      className={`${
-        isDark
+      className={`${isDark
           ? "bg-gray-800 border-gray-700"
           : "bg-white/90 backdrop-blur-sm border-cyan-100"
-      } rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all border`}
+        } rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all border`}
     >
       <h3
-        className={`text-lg font-bold mb-4 ${
-          isDark ? "text-gray-100" : "text-gray-800"
-        }`}
+        className={`text-lg font-bold mb-4 ${isDark ? "text-gray-100" : "text-gray-800"
+          }`}
       >
         {title}
       </h3>
@@ -84,9 +84,8 @@ const ExamCard: React.FC<ExamCardProps> = ({
           <Users className="w-5 h-5 text-cyan-500" />
           {participants > 0 && (
             <span
-              className={`text-sm ${
-                isDark ? "text-gray-300" : "text-gray-700"
-              }`}
+              className={`text-sm ${isDark ? "text-gray-300" : "text-gray-700"
+                }`}
             >
               {participants} người đã thi
             </span>
@@ -144,148 +143,146 @@ export default function PracticePage() {
   );
 
   return (
-    <div
-      className={`flex h-screen ${
-        isDarkMode
-          ? "bg-gray-900"
-          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
-      }`}
-    >
-      {/* Sidebar Component */}
-      <Sidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        isDarkMode={isDarkMode}
-        currentStreak={currentStreak}
-      />
+    <>
+      <div
+        className={`flex h-screen ${isDarkMode
+            ? "bg-gray-900"
+            : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
+          }`}
+      >
+        {/* Sidebar Component */}
+        <Sidebar
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          isDarkMode={isDarkMode}
+          currentStreak={currentStreak}
+        />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* HEADER */}
-        <header
-          className={`${
-            isDarkMode
-              ? "bg-gray-800 border-gray-700"
-              : "bg-white/80 backdrop-blur-sm border-cyan-100"
-          } border-b px-6 py-3 flex items-center justify-between sticky top-0 z-10 shadow-lg`}
-        >
-          <h1
-            className={`text-2xl font-bold ${
-              isDarkMode
-                ? "text-gray-100"
-                : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
-            }`}
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* HEADER */}
+          <header
+            className={`${isDarkMode
+                ? "bg-gray-800 border-gray-700"
+                : "bg-white/80 backdrop-blur-sm border-cyan-100"
+              } border-b px-6 py-3 flex items-center justify-between sticky top-0 z-10 shadow-lg`}
           >
-            Luyện thi JLPT
-          </h1>
-          <div className="flex items-center gap-4">
-            <ThemeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
-            {/* Clean Logo - No shadow, like sidebar */}
-            <div className="cursor-pointer group">
-              <img
-                src="/logo-cat.png"
-                alt="NIBO Academy"
-                className="w-10 h-10 object-contain transform group-hover:scale-110 transition-transform"
-              />
+            <h1
+              className={`text-2xl font-bold ${isDarkMode
+                  ? "text-gray-100"
+                  : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
+                }`}
+            >
+              Luyện thi JLPT
+            </h1>
+            <div className="flex items-center gap-4">
+              <ThemeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
+              {/* Clean Logo - No shadow, like sidebar */}
+              <div className="cursor-pointer group">
+                <img
+                  src="/logo-cat.png"
+                  alt="NIBO Academy"
+                  className="w-10 h-10 object-contain transform group-hover:scale-110 transition-transform"
+                />
+              </div>
             </div>
-          </div>
-        </header>
+          </header>
 
-        {/* CONTENT */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-7xl mx-auto px-6 py-8">
-            {/* Level Tabs */}
-            <div className="flex gap-3 mb-6">
-              {levels.map((level) => (
-                <button
-                  key={level}
-                  onClick={() => setActiveLevel(level)}
-                  className={`px-6 py-3 rounded-xl font-semibold transition transform hover:scale-105 ${
-                    activeLevel === level
-                      ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg"
-                      : isDarkMode
-                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600 border border-gray-600"
-                      : "bg-white text-gray-700 hover:bg-cyan-50 border border-cyan-200"
-                  }`}
-                >
-                  JLPT {level}
-                </button>
-              ))}
-            </div>
-
-            {/* Search */}
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm đề thi..."
-              className={`mb-6 px-4 py-3 ${
-                isDarkMode
-                  ? "bg-gray-700 border-gray-600 text-gray-100"
-                  : "bg-white border-cyan-200 text-gray-700"
-              } border-2 rounded-xl w-full max-w-md focus:outline-none focus:ring-2 focus:ring-cyan-400 transition`}
-            />
-
-            {/* Loading */}
-            {loading && (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto"></div>
-                  <p
-                    className={`mt-4 ${
-                      isDarkMode ? "text-gray-400" : "text-gray-600"
-                    }`}
+          {/* CONTENT */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="max-w-7xl mx-auto px-6 py-8">
+              {/* Level Tabs */}
+              <div className="flex gap-3 mb-6">
+                {levels.map((level) => (
+                  <button
+                    key={level}
+                    onClick={() => setActiveLevel(level)}
+                    className={`px-6 py-3 rounded-xl font-semibold transition transform hover:scale-105 ${activeLevel === level
+                        ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg"
+                        : isDarkMode
+                          ? "bg-gray-700 text-gray-300 hover:bg-gray-600 border border-gray-600"
+                          : "bg-white text-gray-700 hover:bg-cyan-50 border border-cyan-200"
+                      }`}
                   >
-                    Đang tải đề thi...
+                    JLPT {level}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search */}
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Tìm đề thi..."
+                className={`mb-6 px-4 py-3 ${isDarkMode
+                    ? "bg-gray-700 border-gray-600 text-gray-100"
+                    : "bg-white border-cyan-200 text-gray-700"
+                  } border-2 rounded-xl w-full max-w-md focus:outline-none focus:ring-2 focus:ring-cyan-400 transition`}
+              />
+
+              {/* Loading */}
+              {loading && (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto"></div>
+                    <p
+                      className={`mt-4 ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
+                    >
+                      Đang tải đề thi...
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error */}
+              {error && (
+                <div className="text-center py-8">
+                  <p
+                    className={`text-lg font-medium mb-2 ${isDarkMode ? "text-gray-200" : "text-gray-800"
+                      }`}
+                  >
+                    Không thể tải đề thi
+                  </p>
+                  <p className={isDarkMode ? "text-gray-400" : "text-red-500"}>
+                    {error}
                   </p>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Error */}
-            {error && (
-              <div className="text-center py-8">
+              {/* Exam Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {filteredExams.map((exam) => (
+                  <ExamCard
+                    key={exam.id}
+                    id={exam.id}
+                    title={exam.code}
+                    duration={exam.duration}
+                    participants={exam.participant ?? 0}
+                    sections={exam.numSections}
+                    questions={exam.numQuestions}
+                    isDark={isDarkMode}
+                  />
+                ))}
+              </div>
+
+              {/* Empty */}
+              {!loading && filteredExams.length === 0 && (
                 <p
-                  className={`text-lg font-medium mb-2 ${
-                    isDarkMode ? "text-gray-200" : "text-gray-800"
-                  }`}
+                  className={`text-center mt-10 ${isDarkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
                 >
-                  Không thể tải đề thi
+                  Không có đề thi phù hợp
                 </p>
-                <p className={isDarkMode ? "text-gray-400" : "text-red-500"}>
-                  {error}
-                </p>
-              </div>
-            )}
-
-            {/* Exam Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {filteredExams.map((exam) => (
-                <ExamCard
-                  key={exam.id}
-                  id={exam.id}
-                  title={exam.code}
-                  duration={exam.duration}
-                  participants={exam.participant ?? 0}
-                  sections={exam.numSections}
-                  questions={exam.numQuestions}
-                  isDark={isDarkMode}
-                />
-              ))}
+              )}
             </div>
-
-            {/* Empty */}
-            {!loading && filteredExams.length === 0 && (
-              <p
-                className={`text-center mt-10 ${
-                  isDarkMode ? "text-gray-400" : "text-gray-500"
-                }`}
-              >
-                Không có đề thi phù hợp
-              </p>
-            )}
           </div>
         </div>
       </div>
-    </div>
+
+      {/* NIBO AI Chat Component */}
+      <MaziAIChat isDarkMode={isDarkMode} />
+      <FloatingChatButton isDarkMode={isDarkMode} />
+    </>
   );
 }

@@ -5,6 +5,8 @@ import { useDarkMode } from "@/hooks/useDarkMode";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { youtubeService, YoutubeVideoSummary } from "@/services/videoService";
+import MaziAIChat from "@/components/NiboChatAI";
+import FloatingChatButton from "@/components/Floatingchatbutton ";
 import {
   History,
   Play,
@@ -161,9 +163,9 @@ export default function RecentlyViewedPage() {
           const completionPercentage =
             durationSeconds > 0
               ? Math.min(
-                  100,
-                  Math.floor((p.lastPositionSeconds / durationSeconds) * 100)
-                )
+                100,
+                Math.floor((p.lastPositionSeconds / durationSeconds) * 100)
+              )
               : 0;
 
           return {
@@ -304,11 +306,10 @@ export default function RecentlyViewedPage() {
       `}</style>
 
       <div
-        className={`flex h-screen ${
-          isDarkMode
+        className={`flex h-screen ${isDarkMode
             ? "bg-gray-900"
             : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
-        }`}
+          }`}
       >
         <Sidebar
           sidebarOpen={showSidebar}
@@ -322,14 +323,12 @@ export default function RecentlyViewedPage() {
 
           {/* Page Header with Stats */}
           <div
-            className={`p-6 border-b ${
-              isDarkMode ? "border-gray-700" : "border-gray-200"
-            }`}
+            className={`p-6 border-b ${isDarkMode ? "border-gray-700" : "border-gray-200"
+              }`}
           >
             <h1
-              className={`text-3xl font-bold mb-6 ${
-                isDarkMode ? "text-gray-100" : "text-gray-800"
-              }`}
+              className={`text-3xl font-bold mb-6 ${isDarkMode ? "text-gray-100" : "text-gray-800"
+                }`}
             >
               Xem gần đây
             </h1>
@@ -338,9 +337,8 @@ export default function RecentlyViewedPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Total Videos Watched */}
               <div
-                className={`${
-                  isDarkMode ? "bg-gray-800" : "bg-white"
-                } rounded-xl p-4 shadow-sm`}
+                className={`${isDarkMode ? "bg-gray-800" : "bg-white"
+                  } rounded-xl p-4 shadow-sm`}
               >
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg">
@@ -348,16 +346,14 @@ export default function RecentlyViewedPage() {
                   </div>
                   <div>
                     <p
-                      className={`text-sm ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
+                      className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
                     >
                       Tổng số video đã xem
                     </p>
                     <p
-                      className={`text-2xl font-bold ${
-                        isDarkMode ? "text-gray-100" : "text-gray-800"
-                      }`}
+                      className={`text-2xl font-bold ${isDarkMode ? "text-gray-100" : "text-gray-800"
+                        }`}
                     >
                       {stats.total}
                     </p>
@@ -367,9 +363,8 @@ export default function RecentlyViewedPage() {
 
               {/* Completed Videos */}
               <div
-                className={`${
-                  isDarkMode ? "bg-gray-800" : "bg-white"
-                } rounded-xl p-4 shadow-sm`}
+                className={`${isDarkMode ? "bg-gray-800" : "bg-white"
+                  } rounded-xl p-4 shadow-sm`}
               >
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
@@ -377,16 +372,14 @@ export default function RecentlyViewedPage() {
                   </div>
                   <div>
                     <p
-                      className={`text-sm ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
+                      className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
                     >
                       Video đã hoàn thành
                     </p>
                     <p
-                      className={`text-2xl font-bold ${
-                        isDarkMode ? "text-gray-100" : "text-gray-800"
-                      }`}
+                      className={`text-2xl font-bold ${isDarkMode ? "text-gray-100" : "text-gray-800"
+                        }`}
                     >
                       {stats.completed}
                     </p>
@@ -396,9 +389,8 @@ export default function RecentlyViewedPage() {
 
               {/* In Progress Videos */}
               <div
-                className={`${
-                  isDarkMode ? "bg-gray-800" : "bg-white"
-                } rounded-xl p-4 shadow-sm`}
+                className={`${isDarkMode ? "bg-gray-800" : "bg-white"
+                  } rounded-xl p-4 shadow-sm`}
               >
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
@@ -406,16 +398,14 @@ export default function RecentlyViewedPage() {
                   </div>
                   <div>
                     <p
-                      className={`text-sm ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
+                      className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
                     >
                       Đang xem dở
                     </p>
                     <p
-                      className={`text-2xl font-bold ${
-                        isDarkMode ? "text-gray-100" : "text-gray-800"
-                      }`}
+                      className={`text-2xl font-bold ${isDarkMode ? "text-gray-100" : "text-gray-800"
+                        }`}
                     >
                       {stats.inProgress}
                     </p>
@@ -427,21 +417,18 @@ export default function RecentlyViewedPage() {
 
           {/* Video List */}
           <div
-            className={`flex-1 overflow-y-auto p-6 ${
-              isDarkMode ? "custom-scrollbar-dark" : "custom-scrollbar"
-            }`}
+            className={`flex-1 overflow-y-auto p-6 ${isDarkMode ? "custom-scrollbar-dark" : "custom-scrollbar"
+              }`}
           >
             {isLoading ? (
               <div className="flex flex-col items-center justify-center h-full">
                 <Loader2
-                  className={`w-12 h-12 animate-spin ${
-                    isDarkMode ? "text-cyan-400" : "text-cyan-600"
-                  }`}
+                  className={`w-12 h-12 animate-spin ${isDarkMode ? "text-cyan-400" : "text-cyan-600"
+                    }`}
                 />
                 <p
-                  className={`mt-4 text-lg ${
-                    isDarkMode ? "text-gray-400" : "text-gray-600"
-                  }`}
+                  className={`mt-4 text-lg ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
                 >
                   Đang tải video...
                 </p>
@@ -449,9 +436,8 @@ export default function RecentlyViewedPage() {
             ) : error ? (
               <div className="flex flex-col items-center justify-center h-full">
                 <p
-                  className={`text-lg ${
-                    isDarkMode ? "text-gray-400" : "text-gray-600"
-                  }`}
+                  className={`text-lg ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
                 >
                   {error}
                 </p>
@@ -466,9 +452,8 @@ export default function RecentlyViewedPage() {
               <div className="flex flex-col items-center justify-center h-full">
                 <div className="text-6xl mb-4 opacity-50">👀</div>
                 <p
-                  className={`text-xl font-medium mb-2 ${
-                    isDarkMode ? "text-gray-300" : "text-gray-700"
-                  }`}
+                  className={`text-xl font-medium mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
                 >
                   Chưa xem video nào
                 </p>
@@ -485,11 +470,10 @@ export default function RecentlyViewedPage() {
                 {videos.map((video) => (
                   <div
                     key={video.id}
-                    className={`group rounded-xl overflow-hidden transition-all hover:scale-[1.02] cursor-pointer border ${
-                      isDarkMode
+                    className={`group rounded-xl overflow-hidden transition-all hover:scale-[1.02] cursor-pointer border ${isDarkMode
                         ? "bg-gray-800/50 border-gray-700 hover:bg-gray-800 hover:border-cyan-500"
                         : "bg-white border-gray-200 hover:border-cyan-400 hover:shadow-lg"
-                    }`}
+                      }`}
                     onClick={() => handleVideoClick(video.id)}
                   >
                     <div className="flex gap-4 p-4">
@@ -523,9 +507,8 @@ export default function RecentlyViewedPage() {
                       <div className="flex-1 flex flex-col justify-between min-w-0">
                         <div>
                           <h3
-                            className={`font-semibold text-base line-clamp-2 mb-2 ${
-                              isDarkMode ? "text-gray-100" : "text-gray-900"
-                            }`}
+                            className={`font-semibold text-base line-clamp-2 mb-2 ${isDarkMode ? "text-gray-100" : "text-gray-900"
+                              }`}
                           >
                             {video.title}
                           </h3>
@@ -533,18 +516,16 @@ export default function RecentlyViewedPage() {
 
                         <div className="flex items-center gap-4 text-sm">
                           <div
-                            className={`flex items-center gap-2 ${
-                              isDarkMode ? "text-gray-400" : "text-gray-600"
-                            }`}
+                            className={`flex items-center gap-2 ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                              }`}
                           >
                             <Clock className="w-4 h-4" />
                             <span>{formatDuration(video.duration)}</span>
                           </div>
 
                           <div
-                            className={`flex items-center gap-2 ${
-                              isDarkMode ? "text-gray-400" : "text-gray-600"
-                            }`}
+                            className={`flex items-center gap-2 ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                              }`}
                           >
                             <Calendar className="w-4 h-4" />
                             <span>
@@ -557,11 +538,10 @@ export default function RecentlyViewedPage() {
                           {video.completionPercentage !== undefined && (
                             <div className="flex items-center gap-2">
                               <span
-                                className={`text-xs font-medium px-2 py-1 rounded transition-colors ${
-                                  video.completionPercentage === 100
+                                className={`text-xs font-medium px-2 py-1 rounded transition-colors ${video.completionPercentage === 100
                                     ? "bg-green-500/20 text-green-500"
                                     : "bg-cyan-500/20 text-cyan-500"
-                                }`}
+                                  }`}
                               >
                                 {video.completionPercentage}%
                               </span>
@@ -577,6 +557,10 @@ export default function RecentlyViewedPage() {
           </div>
         </div>
       </div>
+
+      {/* NIBO AI Chat Component */}
+      <MaziAIChat isDarkMode={isDarkMode} />
+      <FloatingChatButton isDarkMode={isDarkMode} />
     </>
   );
 }

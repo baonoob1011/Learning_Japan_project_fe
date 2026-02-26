@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import ProgressCard from "@/components/course/Progresscard ";
 import CourseCard from "@/components/course/CourseCard";
+import MaziAIChat from "@/components/NiboChatAI";
+import FloatingChatButton from "@/components/Floatingchatbutton ";
 
 // Types
 interface Section {
@@ -213,11 +215,10 @@ export default function MyCoursesPage() {
       `}</style>
 
       <div
-        className={`flex h-screen ${
-          isDarkMode
+        className={`flex h-screen ${isDarkMode
             ? "bg-gray-900"
             : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
-        }`}
+          }`}
       >
         <Sidebar
           sidebarOpen={sidebarOpen}
@@ -231,14 +232,12 @@ export default function MyCoursesPage() {
           <Header isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
 
           <div
-            className={`p-6 border-b ${
-              isDarkMode ? "border-gray-700" : "border-gray-200"
-            }`}
+            className={`p-6 border-b ${isDarkMode ? "border-gray-700" : "border-gray-200"
+              }`}
           >
             <h1
-              className={`text-3xl font-bold mb-6 ${
-                isDarkMode ? "text-gray-100" : "text-gray-800"
-              }`}
+              className={`text-3xl font-bold mb-6 ${isDarkMode ? "text-gray-100" : "text-gray-800"
+                }`}
             >
               Khóa học của tôi
             </h1>
@@ -246,9 +245,8 @@ export default function MyCoursesPage() {
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div
-                className={`${
-                  isDarkMode ? "bg-gray-800" : "bg-white"
-                } rounded-xl p-4 shadow-sm`}
+                className={`${isDarkMode ? "bg-gray-800" : "bg-white"
+                  } rounded-xl p-4 shadow-sm`}
               >
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg">
@@ -256,16 +254,14 @@ export default function MyCoursesPage() {
                   </div>
                   <div>
                     <p
-                      className={`text-sm ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
+                      className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
                     >
                       Tổng khóa học
                     </p>
                     <p
-                      className={`text-2xl font-bold ${
-                        isDarkMode ? "text-gray-100" : "text-gray-800"
-                      }`}
+                      className={`text-2xl font-bold ${isDarkMode ? "text-gray-100" : "text-gray-800"
+                        }`}
                     >
                       {stats.total}
                     </p>
@@ -274,9 +270,8 @@ export default function MyCoursesPage() {
               </div>
 
               <div
-                className={`${
-                  isDarkMode ? "bg-gray-800" : "bg-white"
-                } rounded-xl p-4 shadow-sm`}
+                className={`${isDarkMode ? "bg-gray-800" : "bg-white"
+                  } rounded-xl p-4 shadow-sm`}
               >
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
@@ -284,16 +279,14 @@ export default function MyCoursesPage() {
                   </div>
                   <div>
                     <p
-                      className={`text-sm ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
+                      className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
                     >
                       Đang học
                     </p>
                     <p
-                      className={`text-2xl font-bold ${
-                        isDarkMode ? "text-gray-100" : "text-gray-800"
-                      }`}
+                      className={`text-2xl font-bold ${isDarkMode ? "text-gray-100" : "text-gray-800"
+                        }`}
                     >
                       {stats.inProgress}
                     </p>
@@ -302,9 +295,8 @@ export default function MyCoursesPage() {
               </div>
 
               <div
-                className={`${
-                  isDarkMode ? "bg-gray-800" : "bg-white"
-                } rounded-xl p-4 shadow-sm`}
+                className={`${isDarkMode ? "bg-gray-800" : "bg-white"
+                  } rounded-xl p-4 shadow-sm`}
               >
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
@@ -312,16 +304,14 @@ export default function MyCoursesPage() {
                   </div>
                   <div>
                     <p
-                      className={`text-sm ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
+                      className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
                     >
                       Hoàn thành
                     </p>
                     <p
-                      className={`text-2xl font-bold ${
-                        isDarkMode ? "text-gray-100" : "text-gray-800"
-                      }`}
+                      className={`text-2xl font-bold ${isDarkMode ? "text-gray-100" : "text-gray-800"
+                        }`}
                     >
                       {stats.completed}
                     </p>
@@ -334,37 +324,34 @@ export default function MyCoursesPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setActiveFilter("all")}
-                className={`px-4 py-2 rounded-lg transition ${
-                  activeFilter === "all"
+                className={`px-4 py-2 rounded-lg transition ${activeFilter === "all"
                     ? "bg-cyan-500 text-white"
                     : isDarkMode
-                    ? "bg-gray-800 text-gray-400 hover:bg-gray-700"
-                    : "bg-white text-gray-600 hover:bg-gray-50"
-                }`}
+                      ? "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                      : "bg-white text-gray-600 hover:bg-gray-50"
+                  }`}
               >
                 Tất cả ({stats.total})
               </button>
               <button
                 onClick={() => setActiveFilter("inProgress")}
-                className={`px-4 py-2 rounded-lg transition ${
-                  activeFilter === "inProgress"
+                className={`px-4 py-2 rounded-lg transition ${activeFilter === "inProgress"
                     ? "bg-cyan-500 text-white"
                     : isDarkMode
-                    ? "bg-gray-800 text-gray-400 hover:bg-gray-700"
-                    : "bg-white text-gray-600 hover:bg-gray-50"
-                }`}
+                      ? "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                      : "bg-white text-gray-600 hover:bg-gray-50"
+                  }`}
               >
                 Đang học ({stats.inProgress})
               </button>
               <button
                 onClick={() => setActiveFilter("completed")}
-                className={`px-4 py-2 rounded-lg transition ${
-                  activeFilter === "completed"
+                className={`px-4 py-2 rounded-lg transition ${activeFilter === "completed"
                     ? "bg-cyan-500 text-white"
                     : isDarkMode
-                    ? "bg-gray-800 text-gray-400 hover:bg-gray-700"
-                    : "bg-white text-gray-600 hover:bg-gray-50"
-                }`}
+                      ? "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                      : "bg-white text-gray-600 hover:bg-gray-50"
+                  }`}
               >
                 Hoàn thành ({stats.completed})
               </button>
@@ -372,9 +359,8 @@ export default function MyCoursesPage() {
           </div>
 
           <div
-            className={`flex-1 overflow-y-auto p-6 ${
-              isDarkMode ? "custom-scrollbar-dark" : "custom-scrollbar"
-            }`}
+            className={`flex-1 overflow-y-auto p-6 ${isDarkMode ? "custom-scrollbar-dark" : "custom-scrollbar"
+              }`}
           >
             {loading ? (
               <div className="flex items-center justify-center h-64">
@@ -389,14 +375,12 @@ export default function MyCoursesPage() {
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
                   <AlertCircle
-                    className={`w-12 h-12 mx-auto mb-4 ${
-                      isDarkMode ? "text-cyan-400" : "text-cyan-500"
-                    }`}
+                    className={`w-12 h-12 mx-auto mb-4 ${isDarkMode ? "text-cyan-400" : "text-cyan-500"
+                      }`}
                   />
                   <p
-                    className={`text-lg ${
-                      isDarkMode ? "text-gray-400" : "text-gray-600"
-                    }`}
+                    className={`text-lg ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
                   >
                     {error}
                   </p>
@@ -412,20 +396,18 @@ export default function MyCoursesPage() {
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
                   <BookOpen
-                    className={`w-12 h-12 mx-auto mb-4 ${
-                      isDarkMode ? "text-gray-600" : "text-cyan-400"
-                    }`}
+                    className={`w-12 h-12 mx-auto mb-4 ${isDarkMode ? "text-gray-600" : "text-cyan-400"
+                      }`}
                   />
                   <p
-                    className={`text-lg ${
-                      isDarkMode ? "text-gray-400" : "text-gray-600"
-                    }`}
+                    className={`text-lg ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
                   >
                     {activeFilter === "all"
                       ? "Chưa có khóa học nào"
                       : activeFilter === "inProgress"
-                      ? "Không có khóa học đang học"
-                      : "Chưa hoàn thành khóa học nào"}
+                        ? "Không có khóa học đang học"
+                        : "Chưa hoàn thành khóa học nào"}
                   </p>
                 </div>
               </div>
@@ -469,6 +451,10 @@ export default function MyCoursesPage() {
           </div>
         </div>
       </div>
+
+      {/* NIBO AI Chat Component */}
+      <MaziAIChat isDarkMode={isDarkMode} />
+      <FloatingChatButton isDarkMode={isDarkMode} />
     </>
   );
 }
