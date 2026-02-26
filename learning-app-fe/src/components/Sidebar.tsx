@@ -136,11 +136,6 @@ export default function Sidebar({
       label: "Khóa học của tôi",
     },
     {
-      path: "/recentlyViewed",
-      icon: <Clock className="w-5 h-5" />,
-      label: "Xem gần đây",
-    },
-    {
       path: "/vocabulary",
       icon: <BookMarked className="w-5 h-5" />,
       label: "Từ vựng của tôi",
@@ -180,8 +175,8 @@ export default function Sidebar({
 
       <div
         className={`${sidebarOpen ? "w-72" : "w-24"} ${isDarkMode
-            ? "bg-gray-800 border-gray-700"
-            : "bg-white/90 backdrop-blur-sm border-cyan-100"
+          ? "bg-gray-800 border-gray-700"
+          : "bg-white/90 backdrop-blur-sm border-cyan-100"
           } border-r transition-all duration-300 flex flex-col shadow-lg`}
       >
         {/* Logo */}
@@ -214,8 +209,8 @@ export default function Sidebar({
               <button
                 onClick={() => setSidebarOpen(false)}
                 className={`p-1.5 rounded-lg transition-colors ${isDarkMode
-                    ? "text-gray-400 hover:bg-gray-700"
-                    : "text-cyan-500 hover:bg-cyan-50"
+                  ? "text-gray-400 hover:bg-gray-700"
+                  : "text-cyan-500 hover:bg-cyan-50"
                   }`}
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -236,8 +231,8 @@ export default function Sidebar({
               <button
                 onClick={() => setSidebarOpen(true)}
                 className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${isDarkMode
-                    ? "text-gray-400 hover:bg-gray-700"
-                    : "text-cyan-400 hover:bg-cyan-50"
+                  ? "text-gray-400 hover:bg-gray-700"
+                  : "text-cyan-400 hover:bg-cyan-50"
                   }`}
               >
                 <ChevronRight className="w-4 h-4" />
@@ -254,8 +249,8 @@ export default function Sidebar({
           >
             <div
               className={`${isDarkMode
-                  ? "from-yellow-900/30 to-orange-900/30"
-                  : "from-cyan-50 via-blue-50 to-indigo-50"
+                ? "from-yellow-900/30 to-orange-900/30"
+                : "from-cyan-50 via-blue-50 to-indigo-50"
                 } bg-gradient-to-r rounded-xl p-3 shadow-md`}
             >
               <div className="flex items-center justify-between mb-2">
@@ -272,18 +267,18 @@ export default function Sidebar({
                   <div
                     key={i}
                     className={`flex-1 h-8 rounded ${i === currentDayIndex
-                        ? "bg-gradient-to-t from-cyan-400 to-cyan-300 shadow-md"
-                        : isDarkMode
-                          ? "bg-gray-700"
-                          : "bg-gray-200"
+                      ? "bg-gradient-to-t from-cyan-400 to-cyan-300 shadow-md"
+                      : isDarkMode
+                        ? "bg-gray-700"
+                        : "bg-gray-200"
                       } flex items-end justify-center pb-1`}
                   >
                     <Star
                       className={`w-3 h-3 ${i === currentDayIndex
-                          ? "text-white drop-shadow"
-                          : isDarkMode
-                            ? "text-gray-600"
-                            : "text-gray-400"
+                        ? "text-white drop-shadow"
+                        : isDarkMode
+                          ? "text-gray-600"
+                          : "text-gray-400"
                         }`}
                       fill={i === currentDayIndex ? "currentColor" : "none"}
                     />
@@ -314,8 +309,8 @@ export default function Sidebar({
           >
             <div
               className={`w-12 h-12 rounded-full flex items-center justify-center ${isDarkMode
-                  ? "bg-gradient-to-br from-orange-900/40 to-yellow-900/40"
-                  : "bg-gradient-to-br from-orange-100 to-yellow-100"
+                ? "bg-gradient-to-br from-orange-900/40 to-yellow-900/40"
+                : "bg-gradient-to-br from-orange-100 to-yellow-100"
                 }`}
             >
               <span className="text-2xl">🔥</span>
@@ -338,10 +333,10 @@ export default function Sidebar({
                   key={path}
                   onClick={() => router.push(path)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition transform hover:scale-105 ${isActive(path)
-                      ? "bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-600 font-medium shadow-sm"
-                      : isDarkMode
-                        ? "text-gray-300 hover:bg-gray-700"
-                        : "text-gray-600 hover:bg-gray-50"
+                    ? "bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-600 font-medium shadow-sm"
+                    : isDarkMode
+                      ? "text-gray-300 hover:bg-gray-700"
+                      : "text-gray-600 hover:bg-gray-50"
                     }`}
                 >
                   {icon}
@@ -353,12 +348,12 @@ export default function Sidebar({
                   onClick={() => router.push(path)}
                   title={label}
                   className={`w-full flex items-center justify-center p-3.5 rounded-xl transition-all shadow-sm ${isActive(path)
-                      ? isDarkMode
-                        ? "bg-cyan-900/40 text-cyan-400"
-                        : "bg-gradient-to-br from-cyan-100 to-blue-100 text-cyan-600"
-                      : isDarkMode
-                        ? "text-gray-400 hover:bg-gray-700 hover:text-gray-300"
-                        : "text-gray-600 hover:bg-cyan-50 hover:text-cyan-600"
+                    ? isDarkMode
+                      ? "bg-cyan-900/40 text-cyan-400"
+                      : "bg-gradient-to-br from-cyan-100 to-blue-100 text-cyan-600"
+                    : isDarkMode
+                      ? "text-gray-400 hover:bg-gray-700 hover:text-gray-300"
+                      : "text-gray-600 hover:bg-cyan-50 hover:text-cyan-600"
                     }`}
                 >
                   {icon}
