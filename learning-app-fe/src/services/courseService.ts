@@ -10,6 +10,8 @@ export interface CreateCourseRequest {
   title: string;
   description: string;
   level: JLPTLevel;
+  price: number;
+  isPaid: boolean;
   lessonProcess: LessonProcess;
   image?: File;
 }
@@ -19,29 +21,46 @@ export interface CourseResponse {
   title: string;
   description: string;
   level: JLPTLevel;
+  price: number;
+  isPaid: boolean;
   lessonProcess: LessonProcess;
   createdBy: string;
   isActive: boolean;
   imageUrl?: string;
-  createdAt: string; // ✅ thêm dòng này
+  createdAt: string;
+  isBought: boolean; // ✅ thêm dòng này
 }
 
 /* ===================== SERVICE ===================== */
 
 export const courseService = {
-  create(request: CreateCourseRequest): Promise<string> {
+  async create(request: CreateCourseRequest): Promise<string> {
     const formData = new FormData();
 
-    formData.append("title", request.title);
-    formData.append("description", request.description);
-    formData.append("level", request.level);
-    formData.append("lessonProcess", request.lessonProcess);
+    // Debugging FE payload
+    console.log("Creating Course with request:", request);
+
+    formData.append("title", request.title.trim());
+    formData.append("description", request.description.trim());
+    formData.append("level", String(request.level));
+    formData.append("lessonProcess", String(request.lessonProcess));
+    formData.append("isPaid", String(request.isPaid));
+    formData.append("price", String(request.price));
 
     if (request.image) {
       formData.append("image", request.image);
     }
 
-    return http.post<string>(API_ENDPOINTS.COURSE.CREATE, formData);
+    try {
+      return await http.post<string>(API_ENDPOINTS.COURSE.CREATE, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    } catch (error: any) {
+      console.error("Course creation failed details:", error.response?.data || error.message);
+      throw error;
+    }
   },
 
   getAll(): Promise<CourseResponse[]> {

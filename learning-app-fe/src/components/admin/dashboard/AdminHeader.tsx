@@ -10,7 +10,7 @@ interface AdminHeaderProps {
 
 export default function AdminHeader({ onToggleDarkMode, isDarkMode = false }: AdminHeaderProps) {
     return (
-        <header className="flex items-center justify-between px-8 py-4 bg-white border-b border-gray-200">
+        <header className={`flex items-center justify-between px-8 py-4 border-b transition-colors duration-300 ${isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
             <div className="flex items-center gap-4">
                 <div className="relative">
                     <div className="absolute inset-0 bg-indigo-400 rounded-full blur-md opacity-20"></div>
@@ -21,14 +21,14 @@ export default function AdminHeader({ onToggleDarkMode, isDarkMode = false }: Ad
                     />
                 </div>
                 <div>
-                    <h1 className="text-xl font-bold text-gray-900">NIBO Admin</h1>
-                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Hệ thống quản trị học tập</p>
+                    <h1 className={`text-xl font-bold ${isDarkMode ? "text-gray-100" : "text-gray-900"}`}>NIBO Admin</h1>
+                    <p className={`text-xs font-medium uppercase tracking-wider ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>Hệ thống quản trị học tập</p>
                 </div>
             </div>
 
             <div className="flex items-center gap-6">
                 <div className="hidden md:flex flex-col items-end mr-2">
-                    <span className="text-sm font-semibold text-gray-700">Chào bạn, Quản trị viên</span>
+                    <span className={`text-sm font-semibold ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>Chào bạn, Quản trị viên</span>
                     <span className="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100 font-bold">ONLINE</span>
                 </div>
                 <UserDropdown isDark={isDarkMode} onToggleDarkMode={() => onToggleDarkMode?.()} />

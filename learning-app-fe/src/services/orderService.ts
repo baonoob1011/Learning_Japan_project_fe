@@ -3,18 +3,39 @@ import { API_ENDPOINTS } from "@/config/api";
 
 /* ===================== TYPES ===================== */
 
+
+/* ===================== TYPES ===================== */
+
+export type PaymentStatus =
+    | "PENDING"
+    | "SUCCESS"
+    | "FAILED"
+    | "CANCELLED";
+
+export type ProductType =
+    | "COURSE"
+    | "VIP_PACKAGE";
+
+export interface OrderItemResponse {
+    id: string;
+    productType: ProductType;
+    courseId: string | null;
+    courseName: string | null;
+    vipPackageId: string | null;
+    vipPackageName: string | null;
+    price: number;
+}
+
 export interface OrderResponse {
     orderId: string;
     orderCode: string;
     amount: number;
     paymentMethod: string;
     transactionNo: string;
+    status: PaymentStatus;
+    createdAt: string;
     paidAt: string;
-    expiredAt: string;
-    vipPackageId: string;
-    packageName: string;
-    planType: string;
-    durationDays: number;
+    items: OrderItemResponse[];
 }
 
 /* ===================== SERVICE ===================== */
@@ -29,9 +50,6 @@ export const orderService = {
         );
     },
 
-    /**
-     * 🧾 Lấy chi tiết 1 hóa đơn theo orderCode
-     */
     getMyOrderDetail(orderCode: string): Promise<OrderResponse> {
         return http.get<OrderResponse>(
             API_ENDPOINTS.ORDER.MY_ORDER_DETAIL(orderCode)

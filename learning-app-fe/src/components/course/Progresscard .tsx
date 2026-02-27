@@ -81,11 +81,9 @@ const ProgressCard: React.FC<ProgressCardProps> = ({
   if (isLoading) {
     return (
       <div
-        className={`${
-          isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-        } rounded-2xl overflow-hidden shadow-sm border-l-4 ${
-          color.border
-        } relative h-64 flex items-center justify-center`}
+        className={`${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+          } rounded-2xl overflow-hidden shadow-sm border-l-4 ${color.border
+          } relative h-64 flex items-center justify-center`}
       >
         <div className="text-center">
           <Loader2 className="w-8 h-8 text-cyan-500 animate-spin mx-auto mb-2" />
@@ -103,9 +101,8 @@ const ProgressCard: React.FC<ProgressCardProps> = ({
   if (error || !data) {
     return (
       <div
-        className={`${
-          isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-        } rounded-2xl overflow-hidden shadow-sm border-l-4 border-l-red-400 relative h-64 flex items-center justify-center`}
+        className={`${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+          } rounded-2xl overflow-hidden shadow-sm border-l-4 border-l-red-400 relative h-64 flex items-center justify-center`}
       >
         <div className="text-center p-6">
           <p className="text-red-500 text-sm mb-2">
@@ -128,11 +125,9 @@ const ProgressCard: React.FC<ProgressCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`${
-        isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-      } rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer border-l-4 ${
-        color.border
-      }`}
+      className={`${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+        } rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer border-l-4 ${color.border
+        }`}
     >
       <div className="p-5">
         {/* Header */}
@@ -147,9 +142,8 @@ const ProgressCard: React.FC<ProgressCardProps> = ({
                 GIAI ĐOẠN {index + 1}
               </span>
               <span
-                className={`text-xs ${
-                  isDark ? "text-gray-500" : "text-gray-400"
-                }`}
+                className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"
+                  }`}
               >
                 {course.level}
               </span>
@@ -160,16 +154,14 @@ const ProgressCard: React.FC<ProgressCardProps> = ({
               )}
             </div>
             <h3
-              className={`text-base font-bold mb-1 ${
-                isDark ? "text-gray-100" : "text-gray-900"
-              }`}
+              className={`text-base font-bold mb-1 ${isDark ? "text-gray-100" : "text-gray-900"
+                }`}
             >
               {index + 1}. {course.title}
             </h3>
             <p
-              className={`text-xs ${
-                isDark ? "text-gray-400" : "text-gray-600"
-              } line-clamp-2`}
+              className={`text-xs ${isDark ? "text-gray-400" : "text-gray-600"
+                } line-clamp-2`}
             >
               {course.description}
             </p>
@@ -221,9 +213,8 @@ const ProgressCard: React.FC<ProgressCardProps> = ({
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span
-                  className={`text-lg font-bold ${
-                    isDark ? "text-gray-100" : "text-gray-900"
-                  }`}
+                  className={`text-lg font-bold ${isDark ? "text-gray-100" : "text-gray-900"
+                    }`}
                 >
                   {Math.round(percent)}%
                 </span>
@@ -238,18 +229,16 @@ const ProgressCard: React.FC<ProgressCardProps> = ({
           <div className="flex items-center gap-1.5">
             <BookOpen className="w-3.5 h-3.5 text-gray-400" />
             <span
-              className={`text-xs ${
-                isDark ? "text-gray-400" : "text-gray-600"
-              }`}
+              className={`text-xs ${isDark ? "text-gray-400" : "text-gray-600"
+                }`}
             >
               {course.lessonProcess}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
             <span
-              className={`text-xs ${
-                isDark ? "text-gray-400" : "text-gray-600"
-              }`}
+              className={`text-xs ${isDark ? "text-gray-400" : "text-gray-600"
+                }`}
             >
               Giảng viên: {course.createdBy}
             </span>
@@ -259,9 +248,8 @@ const ProgressCard: React.FC<ProgressCardProps> = ({
         {/* Progress Bar */}
         <div className="mb-3">
           <div
-            className={`h-2 rounded-full ${
-              isDark ? "bg-gray-700" : "bg-gray-200"
-            }`}
+            className={`h-2 rounded-full ${isDark ? "bg-gray-700" : "bg-gray-200"
+              }`}
           >
             <div
               className={`h-2 rounded-full bg-gradient-to-r ${color.bg} transition-all duration-500`}

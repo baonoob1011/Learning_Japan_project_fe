@@ -1,7 +1,7 @@
-// FE - src/enums/LessonLevel.ts
+// src/enums/LessonProcess.ts
+
 export enum LessonProcess {
-  BEGINNER = "BEGINNER", // Sơ cấp
-  ELEMENTARY = "ELEMENTARY", // Căn bản
-  INTERMEDIATE = "INTERMEDIATE", // Trung cấp
-  ADVANCED = "ADVANCED", // Cao cấp
+  JUNBI = "JUNBI",        // Học nền
+  TAISAKU = "TAISAKU",    // Ôn luyện chiến lược
+  PRACTICE = "PRACTICE",  // Luyện đề
 }

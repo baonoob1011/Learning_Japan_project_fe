@@ -4,19 +4,23 @@ import { API_ENDPOINTS } from "@/config/api";
 /* ===================== TYPES ===================== */
 
 export type PlanType = "MONTHLY" | "YEARLY" | "LIFETIME";
+export type ProductType = "VIP_PACKAGE" | "COURSE";
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
+export interface CreateVnPayRequest {
+  productId: string;
+  productType: ProductType;
+}
 
 export interface CreateVnPayResponse {
-  paymentUrl?: string;
-  orderId?: string;
-  [key: string]: unknown;
-}
-export interface CreateVnPayRequest {
-  vipPackageId: string;
+  paymentUrl: string;
 }
 
-/**
- * Response khi thanh toán thành công
- */
 export interface OrderSuccessResponse {
   orderId: string;
   orderCode: string;
@@ -24,22 +28,30 @@ export interface OrderSuccessResponse {
   paymentMethod: string;
   transactionNo: string;
   paidAt: string;
-  expiredAt: string;
+  expiredAt?: string | null;
 
-  vipPackageId: string;
-  packageName: string;
-  planType: PlanType;
-  durationDays: number | null;
+  vipPackageId?: string | null;
+  packageName?: string | null;
+  planType?: PlanType | null;
+  durationDays?: number | null;
 }
 
 /* ===================== SERVICE ===================== */
+
 export const vnPayService = {
-  create(vipPackageId: string): Promise<CreateVnPayResponse> {
-    return http.post<CreateVnPayResponse>(API_ENDPOINTS.PAYMENT.VNPAY_CREATE, {
-      vipPackageId,
-    });
+  /**
+   * Tạo link thanh toán (VIP hoặc COURSE)
+   */
+  async create(request: CreateVnPayRequest): Promise<CreateVnPayResponse> {
+    return http.post<CreateVnPayResponse>(
+      API_ENDPOINTS.PAYMENT.VNPAY_CREATE,
+      request
+    );
   },
 
+  /**
+   * Xử lý return từ VNPAY
+   */
   handleReturn(queryString: string): Promise<OrderSuccessResponse> {
     return http.get<OrderSuccessResponse>(
       `${API_ENDPOINTS.PAYMENT.VNPAY_RETURN}?${queryString}`

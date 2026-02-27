@@ -8,6 +8,8 @@ import { useDarkMode } from "@/hooks/useDarkMode";
 import LoadingCat from "@/components/LoadingCat";
 import { courseService } from "@/services/courseService";
 import { sectionService } from "@/services/sectionService";
+import { enrollmentService } from "@/services/enrollmentService";
+import { vnPayService } from "@/services/VnPayService";
 import {
   BookOpen,
   TrendingUp,
@@ -17,6 +19,7 @@ import {
 } from "lucide-react";
 import ProgressCard from "@/components/course/Progresscard ";
 import CourseCard from "@/components/course/CourseCard";
+import CoursePurchaseModal from "@/components/course/CoursePurchaseModal";
 
 // Types
 interface Section {
@@ -42,6 +45,9 @@ interface Course {
   expanded?: boolean;
   currentLesson?: string;
   totalSongs?: number;
+  isPaid?: boolean;
+  price?: number;
+  isBought?: boolean;
 }
 
 // Main Component
@@ -56,6 +62,13 @@ export default function MyCoursesPage() {
   const [activeFilter, setActiveFilter] = useState<
     "all" | "inProgress" | "completed"
   >("all");
+  const [purchaseModal, setPurchaseModal] = useState<{
+    visible: boolean;
+    courseId: string;
+    courseTitle: string;
+    price: number;
+    isProcessing: boolean;
+  }>({ visible: false, courseId: "", courseTitle: "", price: 0, isProcessing: false });
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -105,6 +118,20 @@ export default function MyCoursesPage() {
                 lastAccessed: course.createdAt,
                 sections: sections,
                 totalSongs: Math.floor(Math.random() * 50),
+                isPaid: course.isPaid,
+                price: course.price,
+                isBought: await (async () => {
+                  try {
+                    const res = await enrollmentService.check(course.id);
+                    // Handle both wrapped { data: { enrolled } } and direct { enrolled } responses
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const data = (res as any).data ?? res;
+                    return data.enrolled === true;
+                  } catch (e) {
+                    console.error("Enrollment check failed for", course.id, e);
+                    return false;
+                  }
+                })(),
               };
             })
         );
@@ -123,8 +150,53 @@ export default function MyCoursesPage() {
     }
   }, [mounted]);
 
-  const handleCourseClick = (courseId: string) => {
-    router.push(`/myCourses/${courseId}`);
+  const handleCourseClick = async (courseId: string) => {
+    try {
+      const checkResult = await enrollmentService.check(courseId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const enrollData = (checkResult as any).data ?? checkResult;
+      if (enrollData.enrolled === true) {
+        router.push(`/myCourses/${courseId}`);
+      } else {
+        const course = courses.find((c) => c.id === courseId);
+        if (course?.isPaid) {
+          setPurchaseModal({
+            visible: true,
+            courseId,
+            courseTitle: course.title,
+            price: course.price ?? 0,
+            isProcessing: false,
+          });
+        } else {
+          // free course but not enrolled — just navigate in
+          router.push(`/myCourses/${courseId}`);
+        }
+      }
+    } catch (err) {
+      console.error("Enrollment check failed:", err);
+    }
+  };
+
+  const handlePurchaseConfirm = async () => {
+    setPurchaseModal((prev) => ({ ...prev, isProcessing: true }));
+    try {
+      const paymentRes = await vnPayService.create({
+        productId: purchaseModal.courseId,
+        productType: "COURSE",
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const paymentUrl = (paymentRes as any).data?.paymentUrl ?? paymentRes.paymentUrl;
+      if (paymentUrl) {
+        window.location.href = paymentUrl;
+      } else {
+        alert("Không thể tạo link thanh toán. Vui lòng thử lại.");
+        setPurchaseModal((prev) => ({ ...prev, isProcessing: false }));
+      }
+    } catch (err) {
+      console.error("Payment error:", err);
+      alert("Đã xảy ra lỗi thanh toán. Vui lòng thử lại sau.");
+      setPurchaseModal((prev) => ({ ...prev, isProcessing: false }));
+    }
   };
 
   const toggleCourseExpand = (courseId: string) => {
@@ -174,6 +246,18 @@ export default function MyCoursesPage() {
 
   return (
     <>
+      {/* Purchase Confirmation Modal */}
+      {purchaseModal.visible && (
+        <CoursePurchaseModal
+          isDark={isDarkMode}
+          courseTitle={purchaseModal.courseTitle}
+          price={purchaseModal.price}
+          isProcessing={purchaseModal.isProcessing}
+          onConfirm={handlePurchaseConfirm}
+          onCancel={() => setPurchaseModal((prev) => ({ ...prev, visible: false }))}
+        />
+      )}
+
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 10px;

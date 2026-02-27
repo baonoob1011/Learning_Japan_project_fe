@@ -40,7 +40,7 @@ interface QuestionGroup {
   questions: Question[];
 }
 
-export default function ExamPage() {
+function ExamContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -487,9 +487,8 @@ export default function ExamPage() {
                       ref={(el) => {
                         questionRefs.current[q.id] = el;
                       }}
-                      className={`bg-white/90 backdrop-blur-sm border-x border-b border-cyan-100 p-6 shadow-sm ${
-                        isLastInGroup ? "rounded-b-lg mb-8" : ""
-                      }`}
+                      className={`bg-white/90 backdrop-blur-sm border-x border-b border-cyan-100 p-6 shadow-sm ${isLastInGroup ? "rounded-b-lg mb-8" : ""
+                        }`}
                     >
                       {/* Question Text */}
                       <div className="mb-5">
@@ -527,11 +526,10 @@ export default function ExamPage() {
                         {q.options.map((o) => (
                           <label
                             key={o.label}
-                            className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition ${
-                              mergedAnswers[q.id] === o.text
+                            className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition ${mergedAnswers[q.id] === o.text
                                 ? "border-cyan-400 bg-cyan-50"
                                 : "border-cyan-200 hover:bg-cyan-50/50"
-                            }`}
+                              }`}
                           >
                             <input
                               type="radio"
@@ -586,11 +584,10 @@ export default function ExamPage() {
                         <button
                           key={q.id}
                           onClick={() => scrollToQuestion(q.id)}
-                          className={`w-10 h-10 rounded-full text-sm font-medium transition shadow-sm ${
-                            mergedAnswers[q.id]
+                          className={`w-10 h-10 rounded-full text-sm font-medium transition shadow-sm ${mergedAnswers[q.id]
                               ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-md transform hover:scale-105"
                               : "bg-white text-gray-700 border-2 border-cyan-200 hover:bg-cyan-50 hover:border-cyan-300"
-                          }`}
+                            }`}
                         >
                           {q.questionOrder}
                         </button>
@@ -604,11 +601,10 @@ export default function ExamPage() {
 
           <div className="sticky bottom-0 bg-white/80 backdrop-blur-sm p-4 border-t border-cyan-100 flex justify-center">
             <button
-              className={`px-10 py-2.5 rounded-full font-medium text-sm shadow-lg transition ${
-                isSubmitting
+              className={`px-10 py-2.5 rounded-full font-medium text-sm shadow-lg transition ${isSubmitting
                   ? "bg-gray-400 text-gray-200 cursor-not-allowed"
                   : "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white hover:shadow-xl hover:scale-105"
-              }`}
+                }`}
               disabled={isSubmitting}
               onClick={handleSubmitClick}
             >
@@ -663,5 +659,13 @@ export default function ExamPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ExamPage() {
+  return (
+    <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center font-bold text-cyan-600">Đang tải dữ liệu...</div>}>
+      <ExamContent />
+    </React.Suspense>
   );
 }

@@ -9,7 +9,7 @@ import { useDarkMode } from "@/hooks/useDarkMode";
 import MaziAIChat from "@/components/NiboChatAI";
 import BackButton from "@/components/backButton";
 
-export default function ExamResultPage() {
+function ExamResultContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const participantId = searchParams.get("participantId");
@@ -45,11 +45,10 @@ export default function ExamResultPage() {
   return (
     <>
       <div
-        className={`flex h-screen ${
-          isDarkMode
+        className={`flex h-screen ${isDarkMode
             ? "bg-gray-900"
             : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
-        }`}
+          }`}
       >
         {/* Sidebar - giống VideoPage */}
         <Sidebar
@@ -69,11 +68,10 @@ export default function ExamResultPage() {
             <div className="max-w-5xl mx-auto">
               {/* Score Card */}
               <div
-                className={`rounded-2xl shadow-lg border overflow-hidden mb-6 ${
-                  isDarkMode
+                className={`rounded-2xl shadow-lg border overflow-hidden mb-6 ${isDarkMode
                     ? "bg-gray-800 border-gray-700"
                     : "bg-white border-cyan-100"
-                }`}
+                  }`}
               >
                 <div className="bg-gradient-to-r from-cyan-400 to-cyan-500 px-8 py-6">
                   <h1 className="text-2xl font-bold text-white drop-shadow-md">
@@ -177,11 +175,10 @@ export default function ExamResultPage() {
 
               {/* Section Navigation & Tabs */}
               <div
-                className={`rounded-2xl shadow-lg border p-2 mb-6 ${
-                  isDarkMode
+                className={`rounded-2xl shadow-lg border p-2 mb-6 ${isDarkMode
                     ? "bg-gray-800 border-gray-700"
                     : "bg-white border-cyan-100"
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between gap-2">
                   {sections.length > 1 && (
@@ -190,13 +187,12 @@ export default function ExamResultPage() {
                         <button
                           key={section}
                           onClick={() => setCurrentSection(section)}
-                          className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-                            currentSection === section
+                          className={`px-6 py-3 rounded-xl font-semibold transition-all ${currentSection === section
                               ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-md"
                               : isDarkMode
-                              ? "text-gray-300 hover:bg-gray-700"
-                              : "text-gray-700 hover:bg-cyan-50"
-                          }`}
+                                ? "text-gray-300 hover:bg-gray-700"
+                                : "text-gray-700 hover:bg-cyan-50"
+                            }`}
                         >
                           Phần {section}
                         </button>
@@ -209,25 +205,23 @@ export default function ExamResultPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => setActiveTab("answers")}
-                      className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-                        activeTab === "answers"
+                      className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === "answers"
                           ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-md"
                           : isDarkMode
-                          ? "text-gray-300 hover:bg-gray-700"
-                          : "text-gray-700 hover:bg-cyan-50"
-                      }`}
+                            ? "text-gray-300 hover:bg-gray-700"
+                            : "text-gray-700 hover:bg-cyan-50"
+                        }`}
                     >
                       📋 Đáp án
                     </button>
                     <button
                       onClick={() => setActiveTab("detail")}
-                      className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-                        activeTab === "detail"
+                      className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === "detail"
                           ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-md"
                           : isDarkMode
-                          ? "text-gray-300 hover:bg-gray-700"
-                          : "text-gray-700 hover:bg-cyan-50"
-                      }`}
+                            ? "text-gray-300 hover:bg-gray-700"
+                            : "text-gray-700 hover:bg-cyan-50"
+                        }`}
                     >
                       📝 Đề & Đáp án
                     </button>
@@ -247,11 +241,10 @@ export default function ExamResultPage() {
               {/* Tab: Answers */}
               {activeTab === "answers" && (
                 <div
-                  className={`rounded-2xl shadow-lg border p-8 ${
-                    isDarkMode
+                  className={`rounded-2xl shadow-lg border p-8 ${isDarkMode
                       ? "bg-gray-800 border-gray-700"
                       : "bg-white border-cyan-100"
-                  }`}
+                    }`}
                 >
                   <div className="grid grid-cols-10 gap-4">
                     {currentQuestions.map((q) => (
@@ -260,13 +253,12 @@ export default function ExamResultPage() {
                         className="flex flex-col items-center gap-2 group"
                       >
                         <div
-                          className={`w-14 h-14 rounded-full flex items-center justify-center text-sm font-bold shadow-md transition-all group-hover:scale-110 ${
-                            q.isCorrect
+                          className={`w-14 h-14 rounded-full flex items-center justify-center text-sm font-bold shadow-md transition-all group-hover:scale-110 ${q.isCorrect
                               ? "bg-gradient-to-br from-cyan-100 to-cyan-200 text-cyan-600 border-2 border-cyan-300"
                               : q.answer === null
-                              ? "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500 border-2 border-gray-300"
-                              : "bg-gradient-to-br from-red-100 to-red-200 text-red-600 border-2 border-red-300"
-                          }`}
+                                ? "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500 border-2 border-gray-300"
+                                : "bg-gradient-to-br from-red-100 to-red-200 text-red-600 border-2 border-red-300"
+                            }`}
                         >
                           {q.questionOrder}
                         </div>
@@ -297,29 +289,26 @@ export default function ExamResultPage() {
                     return (
                       <div
                         key={q.questionId}
-                        className={`rounded-2xl border-2 shadow-lg overflow-hidden hover:shadow-xl transition-shadow ${
-                          isDarkMode
+                        className={`rounded-2xl border-2 shadow-lg overflow-hidden hover:shadow-xl transition-shadow ${isDarkMode
                             ? "bg-gray-800 border-gray-700"
                             : "bg-white border-cyan-100"
-                        }`}
+                          }`}
                       >
                         <div className="p-6">
                           <div className="flex items-start gap-4 mb-4">
                             <div
-                              className={`w-12 h-12 rounded-full flex items-center justify-center font-bold flex-shrink-0 shadow-md ${
-                                q.isCorrect
+                              className={`w-12 h-12 rounded-full flex items-center justify-center font-bold flex-shrink-0 shadow-md ${q.isCorrect
                                   ? "bg-gradient-to-br from-cyan-100 to-cyan-200 text-cyan-600 border-2 border-cyan-300"
                                   : q.answer === null
-                                  ? "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500 border-2 border-gray-300"
-                                  : "bg-gradient-to-br from-red-100 to-red-200 text-red-600 border-2 border-red-300"
-                              }`}
+                                    ? "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500 border-2 border-gray-300"
+                                    : "bg-gradient-to-br from-red-100 to-red-200 text-red-600 border-2 border-red-300"
+                                }`}
                             >
                               {q.questionOrder}
                             </div>
                             <h3
-                              className={`text-lg font-medium leading-relaxed ${
-                                isDarkMode ? "text-gray-100" : "text-gray-900"
-                              }`}
+                              className={`text-lg font-medium leading-relaxed ${isDarkMode ? "text-gray-100" : "text-gray-900"
+                                }`}
                             >
                               {q.questionText}
                             </h3>
@@ -351,15 +340,14 @@ export default function ExamResultPage() {
                               return (
                                 <div
                                   key={idx}
-                                  className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-                                    isCorrectAnswer
+                                  className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${isCorrectAnswer
                                       ? "border-cyan-300 bg-gradient-to-r from-cyan-50 to-cyan-100 shadow-md"
                                       : isUserAnswer && !q.isCorrect
-                                      ? "border-red-300 bg-gradient-to-r from-red-50 to-red-100 shadow-md"
-                                      : isDarkMode
-                                      ? "border-gray-600 hover:border-gray-500"
-                                      : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                                  }`}
+                                        ? "border-red-300 bg-gradient-to-r from-red-50 to-red-100 shadow-md"
+                                        : isDarkMode
+                                          ? "border-gray-600 hover:border-gray-500"
+                                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                                    }`}
                                 >
                                   <input
                                     type="radio"
@@ -368,15 +356,14 @@ export default function ExamResultPage() {
                                     className="w-5 h-5"
                                   />
                                   <span
-                                    className={`text-base flex-1 ${
-                                      isCorrectAnswer
+                                    className={`text-base flex-1 ${isCorrectAnswer
                                         ? "text-cyan-600 font-semibold"
                                         : isUserAnswer && !q.isCorrect
-                                        ? "text-red-600 font-medium"
-                                        : isDarkMode
-                                        ? "text-gray-200"
-                                        : "text-gray-900"
-                                    }`}
+                                          ? "text-red-600 font-medium"
+                                          : isDarkMode
+                                            ? "text-gray-200"
+                                            : "text-gray-900"
+                                      }`}
                                   >
                                     {String.fromCharCode(65 + idx)}. {option}
                                   </span>
@@ -419,5 +406,13 @@ export default function ExamResultPage() {
       {/* NIBO AI Chat */}
       <MaziAIChat isDarkMode={isDarkMode} />
     </>
+  );
+}
+
+export default function ExamResultPage() {
+  return (
+    <React.Suspense fallback={<div className="h-screen flex items-center justify-center font-bold text-cyan-600">Đang tải kết quả...</div>}>
+      <ExamResultContent />
+    </React.Suspense>
   );
 }

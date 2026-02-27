@@ -176,6 +176,12 @@ export const API_ENDPOINTS = {
       `/admin/revenue/month?year=${year}&month=${month}`,
     SUCCESS_COUNT: "/admin/revenue/success-count",
   },
+  ENROLLMENT: {
+    CHECK: (courseId: string) =>
+      `/enrollments/check/${courseId}`,
+    MY_COURSES: "/enrollments/my-courses",
+
+  },
   VOCAB: {
     MARK_VOCAB: "/learning/vocab/mark",
     CREATE: "/vocab",

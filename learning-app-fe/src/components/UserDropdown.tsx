@@ -172,7 +172,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
                     className={`text-sm font-medium ${isDark ? "text-gray-100" : "text-gray-900"
                       }`}
                   >
-                    Dark Mode
+                    Chế độ hiển thị
                   </span>
                 </div>
                 <div

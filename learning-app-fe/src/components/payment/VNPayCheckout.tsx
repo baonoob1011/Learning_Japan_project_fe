@@ -47,7 +47,10 @@ export default function VNPayCheckout({
 
       // Tạo VNPay payment URL, truyền amount từ package đã chọn
       console.log("🔄 Creating VNPay payment for package:", packageId);
-      const response = await vnPayService.create(packageId);
+      const response = await vnPayService.create({
+        productId: packageId,
+        productType: "VIP_PACKAGE",
+      });
 
       // Debug: xem http wrapper trả về cấu trúc gì
       console.log("📦 Raw response:", JSON.stringify(response));
@@ -123,21 +126,19 @@ export default function VNPayCheckout({
 
   return (
     <div
-      className={`rounded-2xl p-8 ${
-        isDarkMode
+      className={`rounded-2xl p-8 ${isDarkMode
           ? "bg-gradient-to-br from-gray-700 to-gray-800 border border-gray-600"
           : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 border border-cyan-100"
-      }`}
+        }`}
     >
       {/* Back Button */}
       {step === "confirm" && (
         <button
           onClick={onBack}
-          className={`flex items-center gap-2 mb-6 transition-colors ${
-            isDarkMode
+          className={`flex items-center gap-2 mb-6 transition-colors ${isDarkMode
               ? "text-gray-400 hover:text-gray-300"
               : "text-gray-600 hover:text-gray-800"
-          }`}
+            }`}
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Quay lại</span>
@@ -154,9 +155,8 @@ export default function VNPayCheckout({
             <div>
               <h3 className="text-xl font-bold">Xác nhận thanh toán</h3>
               <p
-                className={`text-sm ${
-                  isDarkMode ? "text-gray-400" : "text-gray-600"
-                }`}
+                className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
               >
                 Thanh toán an toàn với VNPay
               </p>
@@ -165,9 +165,8 @@ export default function VNPayCheckout({
 
           {/* Order Summary */}
           <div
-            className={`rounded-xl p-4 mb-6 ${
-              isDarkMode ? "bg-gray-800/50" : "bg-white/80"
-            }`}
+            className={`rounded-xl p-4 mb-6 ${isDarkMode ? "bg-gray-800/50" : "bg-white/80"
+              }`}
           >
             <div className="flex justify-between mb-2">
               <span className={isDarkMode ? "text-gray-400" : "text-gray-600"}>
@@ -186,14 +185,12 @@ export default function VNPayCheckout({
               </span>
             </div>
             <div
-              className={`border-t mt-3 pt-3 flex justify-between ${
-                isDarkMode ? "border-gray-700" : "border-gray-200"
-              }`}
+              className={`border-t mt-3 pt-3 flex justify-between ${isDarkMode ? "border-gray-700" : "border-gray-200"
+                }`}
             >
               <span
-                className={`text-lg font-bold ${
-                  isDarkMode ? "text-gray-200" : "text-gray-800"
-                }`}
+                className={`text-lg font-bold ${isDarkMode ? "text-gray-200" : "text-gray-800"
+                  }`}
               >
                 Tổng cộng:
               </span>
@@ -230,9 +227,8 @@ export default function VNPayCheckout({
           </button>
 
           <p
-            className={`text-xs text-center mt-4 ${
-              isDarkMode ? "text-gray-500" : "text-gray-500"
-            }`}
+            className={`text-xs text-center mt-4 ${isDarkMode ? "text-gray-500" : "text-gray-500"
+              }`}
           >
             Bạn sẽ được chuyển đến trang VNPay để hoàn tất thanh toán an toàn
           </p>
@@ -240,9 +236,8 @@ export default function VNPayCheckout({
           {/* Supported Payment Methods */}
           <div className="mt-6 pt-6 border-t border-gray-200/20">
             <p
-              className={`text-xs text-center mb-3 ${
-                isDarkMode ? "text-gray-500" : "text-gray-500"
-              }`}
+              className={`text-xs text-center mb-3 ${isDarkMode ? "text-gray-500" : "text-gray-500"
+                }`}
             >
               Hỗ trợ thanh toán qua:
             </p>
