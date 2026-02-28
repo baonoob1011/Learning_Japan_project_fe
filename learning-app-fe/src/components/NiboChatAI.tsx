@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Send, X, Loader2 } from "lucide-react";
 import { chatbotService } from "@/services/chatbotService";
+import { getAccessTokenFromStorage, getRolesFromToken } from "@/utils/jwt";
 
 interface Message {
   role: "user" | "assistant";
@@ -14,6 +15,7 @@ interface MaziAIChatProps {
 }
 
 export default function MaziAIChat({ isDarkMode = false }: MaziAIChatProps) {
+  const [isVip, setIsVip] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -25,13 +27,25 @@ export default function MaziAIChat({ isDarkMode = false }: MaziAIChatProps) {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const token = getAccessTokenFromStorage();
+    if (token) {
+      const roles = getRolesFromToken(token);
+      setIsVip(roles.includes("USER_VIP"));
+    }
+  }, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (isVip) {
+      scrollToBottom();
+    }
+  }, [messages, isVip]);
+
+  if (!isVip) return null;
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;

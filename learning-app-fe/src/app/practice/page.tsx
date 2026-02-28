@@ -8,6 +8,7 @@ import {
   StartExamResponse,
 } from "@/services/examService";
 import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useDarkMode } from "@/hooks/useDarkMode";
 
@@ -159,32 +160,7 @@ export default function PracticePage() {
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* HEADER */}
-          <header
-            className={`${isDarkMode
-              ? "bg-gray-800 border-gray-700"
-              : "bg-white/80 backdrop-blur-sm border-cyan-100"
-              } border-b px-6 py-3 flex items-center justify-between sticky top-0 z-10 shadow-lg`}
-          >
-            <h1
-              className={`text-2xl font-bold ${isDarkMode
-                ? "text-gray-100"
-                : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
-                }`}
-            >
-              Luyện thi JLPT
-            </h1>
-            <div className="flex items-center gap-4">
-              <ThemeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
-              {/* Clean Logo - No shadow, like sidebar */}
-              <div className="cursor-pointer group">
-                <img
-                  src="/logo-cat.png"
-                  alt="NIBO Academy"
-                  className="w-10 h-10 object-contain transform group-hover:scale-110 transition-transform"
-                />
-              </div>
-            </div>
-          </header>
+          <Header isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
 
           {/* CONTENT */}
           <div className="flex-1 overflow-y-auto">

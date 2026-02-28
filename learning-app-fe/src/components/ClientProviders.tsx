@@ -12,10 +12,11 @@ export default function ClientProviders({ children }: { children: React.ReactNod
     const { isAuthenticated } = useAuthStore();
     const { isDarkMode, mounted } = useDarkMode();
 
-    // Các trang không hiển thị Chat/AI (Ví dụ: Login, Register, Admin)
+    // Các trang không hiển thị Chat/AI (Ví dụ: Login, Register, Admin, Exam)
     const isAuthPage = pathname === "/login" || pathname === "/register";
     const isAdminPage = pathname?.startsWith("/admin") || pathname?.startsWith("/dasboardAdmin");
-    const shouldShowFloating = isAuthenticated && !isAuthPage && !isAdminPage;
+    const isExamPage = pathname?.startsWith("/exam");
+    const shouldShowFloating = isAuthenticated && !isAuthPage && !isAdminPage && !isExamPage;
 
     if (!mounted) return <>{children}</>;
 

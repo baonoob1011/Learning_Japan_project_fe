@@ -211,22 +211,22 @@ export default function MyCoursesPage() {
 
   const filteredCourses = courses.filter((course) => {
     if (activeFilter === "inProgress") {
-      return course.progress > 0 && course.progress < 100;
+      return course.isBought && course.progress > 0 && course.progress < 100;
     }
     if (activeFilter === "completed") {
-      return course.progress === 100;
+      return course.isBought && course.progress === 100;
     }
     return true;
   });
 
   const inProgressCourses = courses.filter(
-    (c) => c.progress > 0 && c.progress < 100
+    (c) => c.isBought && c.progress > 0 && c.progress < 100
   );
 
   const stats = {
     total: courses.length,
     inProgress: inProgressCourses.length,
-    completed: courses.filter((c) => c.progress === 100).length,
+    completed: courses.filter((c) => c.isBought && c.progress === 100).length,
   };
 
   if (!mounted) {
