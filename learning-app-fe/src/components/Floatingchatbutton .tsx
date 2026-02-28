@@ -375,11 +375,11 @@ export default function FloatingChatButton({
       {/* ── Chat Panel ──────────────────────────────────────────────────── */}
       {isOpen && (
         <div
-          className={`absolute bottom-16 right-0 w-80 rounded-2xl shadow-2xl border flex flex-col overflow-hidden animate-slide-up ${isDarkMode
-            ? "bg-gray-800 border-gray-700"
+          className={`absolute bottom-16 right-0 w-85 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border flex flex-col overflow-hidden animate-slide-up ${isDarkMode
+            ? "bg-[#0f172a] border-gray-800 shadow-cyan-900/20"
             : "bg-white border-cyan-100"
             }`}
-          style={{ height: "500px" }}
+          style={{ height: "550px", width: "340px" }}
         >
           {/* Header / Contact Dropdown */}
           <ChatContactDropdown
@@ -463,7 +463,8 @@ export default function FloatingChatButton({
         className="group relative transition-all duration-300 hover:scale-110"
         title="Chat Room"
       >
-        <div className="absolute inset-0 rounded-full bg-purple-400 opacity-20 animate-ping" />
+        <div className={`absolute inset-0 rounded-full opacity-20 animate-ping ${isDarkMode ? "bg-cyan-400" : "bg-purple-400"
+          }`} />
         <div className="relative w-11 h-11 drop-shadow-2xl animate-bounce-slow">
           <img
             src="/message.png"
@@ -480,10 +481,12 @@ export default function FloatingChatButton({
         )}
 
         {/* Tooltip */}
-        <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none">
-          <div className="bg-gray-800 text-white text-sm font-medium px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg">
-            Chat Room
-            <span className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-800" />
+        <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none translate-x-2 group-hover:translate-x-0">
+          <div className={`${isDarkMode ? "bg-gray-800 text-cyan-400 border border-gray-700 shadow-cyan-900/40" : "bg-gray-900 text-white shadow-xl shadow-gray-200/50"
+            } text-[11px] font-bold tracking-wide uppercase px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl relative`}>
+            Phòng Chat
+            <span className={`absolute left-full top-1/2 -translate-y-1/2 border-6 border-transparent ${isDarkMode ? "border-l-gray-800" : "border-l-gray-900"
+              }`} />
           </div>
         </div>
       </button>

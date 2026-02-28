@@ -4,6 +4,7 @@ import { useState } from "react";
 interface SenderAvatarProps {
     avatar: string;
     name: string;
+    isDarkMode?: boolean;
     size?: "sm" | "md" | "lg";
     onClick?: (e: React.MouseEvent) => void;
 }
@@ -11,6 +12,7 @@ interface SenderAvatarProps {
 export default function SenderAvatar({
     avatar,
     name,
+    isDarkMode: dark,
     size = "sm",
     onClick,
 }: SenderAvatarProps) {
@@ -33,7 +35,8 @@ export default function SenderAvatar({
     if (imgError || !avatar || avatar === "/default-avatar.png") {
         return (
             <div
-                className={`${sizeClass} ${clickClass} rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center font-bold text-white shrink-0`}
+                className={`${sizeClass} ${clickClass} rounded-full bg-gradient-to-br ${dark ? "from-cyan-600 to-cyan-800 shadow-inner" : "from-cyan-400 to-cyan-600"
+                    } flex items-center justify-center font-bold text-white shrink-0`}
                 title={name}
                 onClick={onClick}
             >
@@ -53,4 +56,3 @@ export default function SenderAvatar({
         />
     );
 }
-

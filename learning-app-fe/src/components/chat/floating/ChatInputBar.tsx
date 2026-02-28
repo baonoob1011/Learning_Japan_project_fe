@@ -29,10 +29,10 @@ export default function ChatInputBar({
 
     return (
         <div
-            className={`px-3 py-2.5 border-t shrink-0 ${dark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"
+            className={`px-3 py-3 border-t shrink-0 transition-colors ${dark ? "bg-[#1e293b] border-gray-800" : "bg-white border-gray-100"
                 }`}
         >
-            <div className="flex flex-row items-center gap-2">
+            <div className="flex flex-row items-center gap-2.5">
                 <input
                     type="text"
                     value={inputMessage}
@@ -42,9 +42,9 @@ export default function ChatInputBar({
                         selectedContactId ? "Nhập tin nhắn..." : "Chọn cuộc trò chuyện..."
                     }
                     disabled={!isConnected || !selectedContactId}
-                    className={`flex-1 min-w-0 text-xs px-3 py-2 rounded-full border focus:outline-none focus:ring-2 focus:ring-cyan-400 transition disabled:opacity-50 ${dark
-                            ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
-                            : "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
+                    className={`flex-1 min-w-0 text-xs px-4 py-2.5 rounded-2xl border transition-all disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 ${dark
+                        ? "bg-[#0f172a] border-gray-700 text-gray-100 placeholder-gray-500"
+                        : "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
                         }`}
                 />
                 <button

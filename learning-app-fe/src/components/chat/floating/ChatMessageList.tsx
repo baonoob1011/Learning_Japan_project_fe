@@ -70,39 +70,47 @@ export default function ChatMessageList({
     return (
         <>
             <div
-                className={`flex-1 overflow-y-auto p-3 space-y-2 ${dark ? "bg-gray-900 scrollbar-dark" : "bg-gray-50 scrollbar-light"
+                className={`flex-1 overflow-y-auto p-3 space-y-3 ${dark ? "bg-[#0f172a] scrollbar-dark" : "bg-gray-50 scrollbar-light"
                     }`}
             >
                 {isLoadingContacts || isLoadingMessages ? (
                     <div className="flex items-center justify-center h-full">
-                        <Loader2 className="w-5 h-5 animate-spin text-cyan-500" />
+                        <Loader2 className="w-6 h-6 animate-spin text-cyan-500" />
                     </div>
                 ) : !selectedContact ? (
-                    <div className="flex flex-col items-center justify-center h-full gap-2">
-                        <MessageCircle
-                            className={`w-8 h-8 ${dark ? "text-gray-600" : "text-cyan-200"}`}
-                        />
-                        <p className="text-xs text-gray-400">
+                    <div className="flex flex-col items-center justify-center h-full gap-3 opacity-40">
+                        <div className={`p-4 rounded-full ${dark ? "bg-gray-800" : "bg-cyan-50"}`}>
+                            <MessageCircle
+                                className={`w-8 h-8 ${dark ? "text-cyan-400" : "text-cyan-500"}`}
+                            />
+                        </div>
+                        <p className={`text-xs font-medium ${dark ? "text-gray-400" : "text-gray-500"}`}>
                             Chọn cuộc trò chuyện để bắt đầu
                         </p>
                     </div>
                 ) : messages.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full gap-2">
-                        <img
-                            src={selectedContact.avatar}
-                            alt={selectedContact.name}
-                            onError={(e) => {
-                                (e.target as HTMLImageElement).src = "/default-avatar.png";
-                            }}
-                            className="w-12 h-12 rounded-full object-cover ring-2 ring-cyan-200"
-                        />
-                        <p
-                            className={`text-xs font-semibold ${dark ? "text-gray-300" : "text-gray-600"
-                                }`}
-                        >
-                            {selectedContact.name}
-                        </p>
-                        <p className="text-[11px] text-gray-400">Bắt đầu cuộc trò chuyện</p>
+                    <div className="flex flex-col items-center justify-center h-full gap-4 py-10">
+                        <div className="relative">
+                            <img
+                                src={selectedContact.avatar}
+                                alt={selectedContact.name}
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).src = "/default-avatar.png";
+                                }}
+                                className={`w-16 h-16 rounded-full object-cover ring-4 ${dark ? "ring-cyan-500/20 shadow-xl shadow-cyan-500/10" : "ring-white shadow-lg"
+                                    }`}
+                            />
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white dark:border-[#0f172a] rounded-full" />
+                        </div>
+                        <div className="text-center">
+                            <p
+                                className={`text-sm font-bold mb-1 ${dark ? "text-gray-100" : "text-gray-800"
+                                    }`}
+                            >
+                                {selectedContact.name}
+                            </p>
+                            <p className="text-[11px] text-gray-500 font-medium">Sẵn sàng để trò chuyện</p>
+                        </div>
                     </div>
                 ) : (
                     messages.map((msg, i) => {
@@ -118,13 +126,14 @@ export default function ChatMessageList({
                         return (
                             <div
                                 key={`${msg.id}-${i}`}
-                                className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+                                className={`flex items-end gap-2 ${isMe ? "flex-row-reverse" : "flex-row"}`}
                             >
                                 {!isMe && (
-                                    <div className="mr-1.5 self-end shrink-0">
+                                    <div className="shrink-0 mb-1">
                                         <SenderAvatar
                                             avatar={memberAvatar}
                                             name={displayName || selectedContact.name}
+                                            isDarkMode={dark}
                                             size="sm"
                                             onClick={
                                                 selectedContact.isGroup
@@ -136,29 +145,31 @@ export default function ChatMessageList({
                                 )}
 
                                 <div
-                                    className={`flex flex-col gap-0.5 ${isMe ? "items-end" : "items-start"
+                                    className={`flex flex-col gap-1 max-w-[75%] ${isMe ? "items-end" : "items-start"
                                         }`}
                                 >
                                     {showName && (
-                                        <span className="text-[10px] font-semibold text-cyan-400 px-1">
+                                        <span className={`text-[10px] font-bold px-2 ${dark ? "text-cyan-400" : "text-cyan-600"
+                                            }`}>
                                             {displayName}
                                         </span>
                                     )}
                                     <div
-                                        className={`w-fit max-w-[210px] px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm ${isMe
+                                        className={`px-3 py-2.5 rounded-2xl text-xs leading-relaxed shadow-sm transition-all hover:shadow-md ${isMe
                                             ? "bg-gradient-to-br from-cyan-500 to-cyan-600 text-white rounded-br-sm"
                                             : dark
-                                                ? "bg-gray-700 text-gray-100 rounded-bl-sm"
-                                                : "bg-white text-gray-800 rounded-bl-sm border border-gray-100"
+                                                ? "bg-[#1e293b] text-gray-100 rounded-bl-sm border border-gray-700/50"
+                                                : "bg-white text-gray-800 rounded-bl-sm border border-gray-100 shadow-sm"
                                             }`}
                                     >
                                         <MessageContent
                                             text={msg.text}
                                             isMe={isMe}
+                                            isDarkMode={dark}
                                             onNavigate={onNavigate}
                                         />
                                         <div
-                                            className={`text-[10px] mt-0.5 ${isMe ? "text-cyan-100" : "text-gray-400"
+                                            className={`text-[9px] mt-1.5 font-medium flex items-center justify-end ${isMe ? "text-cyan-100/70" : "text-gray-500"
                                                 }`}
                                         >
                                             {msg.timestamp.toLocaleTimeString([], {

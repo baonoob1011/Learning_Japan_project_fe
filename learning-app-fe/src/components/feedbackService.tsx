@@ -27,16 +27,10 @@ export interface FeedbackResponse {
     resolvedAt?: string;
 }
 export const feedbackService = {
-    /**
-     * Tạo feedback mới
-     */
     createFeedback(request: CreateFeedbackRequest): Promise<FeedbackResponse> {
         return http.post<FeedbackResponse>(API_ENDPOINTS.FEEDBACK.CREATE, request);
     },
 
-    /**
-     * Lấy danh sách feedback của user hiện tại
-     */
     getMyFeedbacks(): Promise<FeedbackResponse[]> {
         return http.get<FeedbackResponse[]>(API_ENDPOINTS.FEEDBACK.GET_MY);
     },
@@ -55,9 +49,6 @@ export const feedbackService = {
         );
     },
 
-    /**
-     * Admin cập nhật status + phản hồi
-     */
     updateFeedback(
         id: string,
         request: AdminUpdateFeedbackRequest

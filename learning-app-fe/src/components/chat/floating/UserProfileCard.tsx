@@ -141,7 +141,10 @@ export default function UserProfileCard({
             return (
                 <button
                     disabled
-                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold bg-cyan-50 text-cyan-500 cursor-default border border-cyan-200"
+                    className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold cursor-default border ${dark
+                            ? "bg-cyan-950/40 text-cyan-400 border-cyan-900/50"
+                            : "bg-cyan-50 text-cyan-500 border-cyan-200"
+                        }`}
                 >
                     <UserCheck size={13} />
                     Đã gửi lời mời
@@ -169,12 +172,13 @@ export default function UserProfileCard({
             ref={cardRef}
             style={{ position: "fixed", left, top, zIndex: 99999, width: cardWidth }}
             className={`rounded-2xl shadow-2xl border overflow-hidden animate-profile-card ${dark
-                ? "bg-gray-800 border-gray-700"
-                : "bg-white border-cyan-100"
+                ? "bg-gray-800 border-gray-700 shadow-cyan-900/10"
+                : "bg-white border-cyan-100 shadow-cyan-200/50"
                 }`}
         >
             {/* ── Header gradient banner ────────────────────────────────── */}
-            <div className="relative h-14 bg-gradient-to-br from-cyan-400 via-cyan-500 to-indigo-400">
+            <div className={`relative h-14 bg-gradient-to-br ${dark ? "from-cyan-800 via-cyan-950 to-indigo-900" : "from-cyan-400 via-cyan-500 to-indigo-400"
+                }`}>
                 {/* close btn */}
                 <button
                     onClick={onClose}

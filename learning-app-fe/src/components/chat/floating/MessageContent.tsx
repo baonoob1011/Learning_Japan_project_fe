@@ -12,12 +12,14 @@ export function extractYoutubeId(url: string): string | null {
 interface MessageContentProps {
     text: string;
     isMe: boolean;
+    isDarkMode: boolean;
     onNavigate: (path: string) => void;
 }
 
 export default function MessageContent({
     text,
     isMe,
+    isDarkMode: dark,
     onNavigate,
 }: MessageContentProps) {
     const ytMatches = Array.from(new Set(text.match(YT_REGEX) || []));
@@ -52,13 +54,20 @@ export default function MessageContent({
                         key={url}
                         onClick={() => onNavigate(`/video/${videoId}`)}
                         className={`w-full text-left rounded-2xl overflow-hidden border transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl group active:scale-95 shadow-lg ${isMe
-                            ? "border-white/10 bg-[#0f0f0f]"
-                            : "border-white/5 bg-[#0a0a0a]"
+                                ? dark
+                                    ? "border-white/10 bg-gray-950"
+                                    : "border-cyan-200 bg-cyan-50/50"
+                                : dark
+                                    ? "border-white/5 bg-gray-900"
+                                    : "border-gray-100 bg-gray-50/50"
                             }`}
                     >
                         {/* Title bar with dark background */}
                         {displayTitle && (
-                            <div className={`px-3 py-2.5 border-b text-[11px] font-bold truncate flex items-center gap-2 ${isMe ? "border-white/5 bg-white/5 text-gray-100" : "border-white/5 bg-white/5 text-gray-200"}`}>
+                            <div className={`px-3 py-2.5 border-b text-[11px] font-bold truncate flex items-center gap-2 ${dark
+                                    ? "border-white/5 bg-white/5 text-gray-100"
+                                    : "border-cyan-100 bg-cyan-100/30 text-cyan-800"
+                                }`}>
                                 <span className="p-1 rounded bg-red-500/20 text-red-500 shrink-0">
                                     <div className="w-0 h-0 border-t-[3px] border-t-transparent border-l-[6px] border-l-current border-b-[3px] border-b-transparent ml-0.5" />
                                 </span>

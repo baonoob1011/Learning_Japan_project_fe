@@ -6,11 +6,7 @@ import { API_ENDPOINTS } from "@/config/api";
 export type PlanType = "MONTHLY" | "YEARLY" | "LIFETIME";
 export type ProductType = "VIP_PACKAGE" | "COURSE";
 
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-}
+
 
 export interface CreateVnPayRequest {
   productId: string;
