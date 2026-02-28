@@ -140,6 +140,17 @@ export const API_ENDPOINTS = {
     MY_SAVED: "/youtube/me",
     SEARCH: "/videos/search",
     VIEW_BY_VOCAB: "/youtube/vocab",
+    COMMENTS: "/youtube/comments",
+    GET_COMMENTS: (videoId: string) =>
+      `/youtube/comments/${videoId}`,
+    DELETE_COMMENT: (commentId: string) =>
+      `/youtube/comments/${commentId}`,
+
+    RATINGS: "/youtube/ratings",
+    GET_RATING: (videoId: string) =>
+      `/youtube/ratings/${videoId}`,
+    DELETE_RATING: (videoId: string) =>
+      `/api/v1/youtube/ratings/${videoId}`,
   },
 
   LEARNING_PROGRESS: {

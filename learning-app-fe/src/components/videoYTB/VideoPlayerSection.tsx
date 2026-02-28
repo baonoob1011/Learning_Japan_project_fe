@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Share2 } from "lucide-react";
 import YoutubePlayerWithTranscript from "./YoutubePlayerWithTranscript";
 import ShareVideoModal from "@/components/chat/Sharevideomodal";
+import VideoCommentsRating from "./VideoCommentsRating";
 import { TranscriptDTO } from "@/services/transcriptService";
 import { YoutubePlayerHandle } from "./YoutubePlayer";
 import { JLPTLevel, VideoTag } from "@/types/video";
@@ -69,9 +70,8 @@ export default function VideoPlayerSection({
   return (
     <div
       id="video-content-scroll-container"
-      className={`flex-1 overflow-y-auto custom-scrollbar transition-colors duration-300 ${
-        isDarkMode ? "bg-gray-900" : "bg-gray-50"
-      }`}
+      className={`flex-1 overflow-y-auto custom-scrollbar transition-colors duration-300 ${isDarkMode ? "bg-gray-900" : "bg-gray-50"
+        }`}
     >
       <div className="p-6">
         <div className="max-w-4xl mx-auto">
@@ -89,38 +89,34 @@ export default function VideoPlayerSection({
           />
 
           <div
-            className={`rounded-2xl shadow-sm p-6 mt-6 transition-colors duration-300 ${
-              isDarkMode ? "bg-gray-800 border border-gray-700" : "bg-white"
-            }`}
+            className={`rounded-2xl shadow-sm p-6 mt-6 transition-colors duration-300 ${isDarkMode ? "bg-gray-800 border border-gray-700" : "bg-white"
+              }`}
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <span
-                  className={`px-3 py-1 text-xs font-medium rounded-full ${
-                    isDarkMode
+                  className={`px-3 py-1 text-xs font-medium rounded-full ${isDarkMode
                       ? "bg-cyan-900/50 text-cyan-300"
                       : "bg-cyan-100 text-cyan-700"
-                  }`}
+                    }`}
                 >
                   {level}
                 </span>
                 <span
-                  className={`px-3 py-1 text-xs font-medium rounded-full ${
-                    isDarkMode
+                  className={`px-3 py-1 text-xs font-medium rounded-full ${isDarkMode
                       ? "bg-purple-900/50 text-purple-300"
                       : "bg-purple-100 text-purple-700"
-                  }`}
+                    }`}
                 >
                   {tagDisplay[videoTag]}
                 </span>
               </div>
               <button
                 onClick={() => setShowShareModal(true)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-                  isDarkMode
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${isDarkMode
                     ? "bg-gray-700 text-gray-300 hover:bg-cyan-900/40 hover:text-cyan-400"
                     : "bg-gray-100 text-gray-600 hover:bg-cyan-50 hover:text-cyan-600"
-                }`}
+                  }`}
               >
                 <Share2 className="w-3.5 h-3.5" />
                 Chia sẻ
@@ -128,29 +124,25 @@ export default function VideoPlayerSection({
             </div>
 
             <h1
-              className={`text-xl font-bold mb-2 ${
-                isDarkMode ? "text-gray-100" : "text-gray-900"
-              }`}
+              className={`text-xl font-bold mb-2 ${isDarkMode ? "text-gray-100" : "text-gray-900"
+                }`}
             >
               {videoTitle || "Đang tải..."}
             </h1>
 
             <div
-              className={`border-t pt-4 mt-4 ${
-                isDarkMode ? "border-gray-700" : "border-gray-200"
-              }`}
+              className={`border-t pt-4 mt-4 ${isDarkMode ? "border-gray-700" : "border-gray-200"
+                }`}
             >
               <h3
-                className={`text-lg font-semibold mb-3 ${
-                  isDarkMode ? "text-gray-100" : "text-gray-900"
-                }`}
+                className={`text-lg font-semibold mb-3 ${isDarkMode ? "text-gray-100" : "text-gray-900"
+                  }`}
               >
                 Thông tin
               </h3>
               <div
-                className={`space-y-2 text-sm ${
-                  isDarkMode ? "text-gray-300" : "text-gray-700"
-                }`}
+                className={`space-y-2 text-sm ${isDarkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
               >
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Độ khó:</span>
@@ -163,6 +155,9 @@ export default function VideoPlayerSection({
               </div>
             </div>
           </div>
+
+          {/* Comments & Ratings Section */}
+          <VideoCommentsRating videoId={videoId} isDarkMode={isDarkMode} />
         </div>
       </div>
 
@@ -181,8 +176,8 @@ export default function VideoPlayerSection({
         }
         .custom-scrollbar::-webkit-scrollbar-track {
           background: ${isDarkMode
-            ? "rgba(31,41,55,0.5)"
-            : "rgba(243,244,246,0.5)"};
+          ? "rgba(31,41,55,0.5)"
+          : "rgba(243,244,246,0.5)"};
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
