@@ -53,29 +53,29 @@ export default function MessageContent({
                     <button
                         key={url}
                         onClick={() => onNavigate(`/video/${videoId}`)}
-                        className={`w-full text-left rounded-2xl overflow-hidden border transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl group active:scale-95 shadow-lg ${isMe
-                                ? dark
-                                    ? "border-white/10 bg-gray-950"
-                                    : "border-cyan-200 bg-cyan-50/50"
-                                : dark
-                                    ? "border-white/5 bg-gray-900"
-                                    : "border-gray-100 bg-gray-50/50"
+                        className={`w-full max-w-[220px] mx-auto block text-left rounded-xl overflow-hidden border transition-all duration-300 hover:scale-[1.02] hover:shadow-xl group active:scale-95 shadow-md ${isMe
+                            ? dark
+                                ? "border-white/10 bg-gray-950"
+                                : "border-cyan-200 bg-cyan-50/50"
+                            : dark
+                                ? "border-white/5 bg-gray-900"
+                                : "border-gray-100 bg-gray-50/50"
                             }`}
                     >
                         {/* Title bar with dark background */}
                         {displayTitle && (
-                            <div className={`px-3 py-2.5 border-b text-[11px] font-bold truncate flex items-center gap-2 ${dark
-                                    ? "border-white/5 bg-white/5 text-gray-100"
-                                    : "border-cyan-100 bg-cyan-100/30 text-cyan-800"
+                            <div className={`px-2.5 py-1.5 border-b text-[10px] font-bold truncate flex items-center gap-1.5 ${dark
+                                ? "border-white/5 bg-white/5 text-gray-100"
+                                : "border-cyan-100 bg-cyan-100/30 text-cyan-800"
                                 }`}>
-                                <span className="p-1 rounded bg-red-500/20 text-red-500 shrink-0">
-                                    <div className="w-0 h-0 border-t-[3px] border-t-transparent border-l-[6px] border-l-current border-b-[3px] border-b-transparent ml-0.5" />
-                                </span>
+                                <div className="w-4 h-4 rounded bg-red-500/20 text-red-500 flex items-center justify-center shrink-0">
+                                    <div className="w-0 h-0 border-t-[2px] border-t-transparent border-l-[4px] border-l-current border-b-[2px] border-b-transparent ml-0.5" />
+                                </div>
                                 <span className="truncate">{displayTitle.replace("🎬", "").trim()}</span>
                             </div>
                         )}
 
-                        <div className="relative aspect-video">
+                        <div className="relative aspect-video bg-black/20">
                             <img
                                 src={thumb}
                                 onError={(e) => {
@@ -85,25 +85,25 @@ export default function MessageContent({
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                             {/* Overlay with central play button */}
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/20 transition-all duration-300">
-                                <div className="w-12 h-12 rounded-full bg-red-600/90 flex items-center justify-center transform transition-all duration-300 group-hover:scale-110 group-hover:bg-red-600 shadow-xl shadow-red-600/20">
-                                    <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-white border-b-[8px] border-b-transparent ml-1" />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/10 transition-all duration-300">
+                                <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center transform transition-all duration-300 group-hover:scale-110 shadow-lg ring-2 ring-white/20">
+                                    <div className="w-0 h-0 border-t-[5px] border-t-transparent border-l-[8px] border-l-white border-b-[5px] border-b-transparent ml-0.5" />
                                 </div>
                             </div>
 
                             {/* Internal Route Tag */}
-                            <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md border border-white/10 text-[9px] font-bold text-cyan-400 uppercase tracking-widest shadow-lg">
-                                Internal Path
+                            <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-black/60 backdrop-blur-md border border-white/10 text-[7px] font-bold text-cyan-400 uppercase tracking-widest shadow-lg">
+                                Video
                             </div>
                         </div>
 
-                        <div className="px-3 py-2 flex items-center justify-between">
-                            <span className={`text-[9px] font-medium truncate max-w-[150px] ${isMe ? "text-gray-500" : "text-gray-600"}`}>
+                        <div className="px-2.5 py-1.5 flex items-center justify-between">
+                            <span className={`text-[8px] font-medium truncate max-w-[120px] opacity-60 ${isMe ? "text-gray-400" : "text-gray-500"}`}>
                                 {url}
                             </span>
                             <div className="flex items-center gap-1 shrink-0">
-                                <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
-                                <span className="text-[8px] text-gray-500 font-bold uppercase tracking-tighter">HD Available</span>
+                                <div className="w-1 h-1 rounded-full bg-green-500" />
+                                <span className="text-[7px] text-gray-500 font-bold uppercase tracking-tighter opacity-70">HD READY</span>
                             </div>
                         </div>
                     </button>
