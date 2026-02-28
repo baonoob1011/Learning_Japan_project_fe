@@ -10,6 +10,7 @@ export interface TranscriptDTO {
   text: string;
   startOffset: number; // ms
   endOffset: number; // ms
+  translatedText: string
   createdAt: string; // ISO string
 }
 

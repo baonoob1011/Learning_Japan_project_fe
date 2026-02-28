@@ -48,11 +48,10 @@ export default function TranscriptWordBar({
 
   return (
     <div
-      className={`rounded-2xl shadow-lg p-6 min-h-[120px] flex items-center justify-center ${
-        isDarkMode
+      className={`rounded-2xl shadow-lg p-6 min-h-[120px] flex items-center justify-center ${isDarkMode
           ? "bg-gradient-to-r from-gray-800 to-gray-900"
           : "bg-gradient-to-r from-slate-800 to-slate-900"
-      }`}
+        }`}
     >
       {currentTranscript ? (
         /* Text with word-by-word highlight - Large size with cyan/blue theme */
@@ -63,13 +62,12 @@ export default function TranscriptWordBar({
             return (
               <React.Fragment key={idx}>
                 <span
-                  className={`inline-block transition-all duration-300 ${
-                    isHighlighted
+                  className={`inline-block transition-all duration-300 ${isHighlighted
                       ? isDarkMode
                         ? "text-cyan-300 font-bold scale-110 underline decoration-cyan-300 decoration-2 underline-offset-4"
                         : "text-cyan-400 font-bold scale-110 underline decoration-cyan-400 decoration-2 underline-offset-4"
                       : "text-white"
-                  }`}
+                    }`}
                 >
                   <HoverTranslateWord
                     word={word}

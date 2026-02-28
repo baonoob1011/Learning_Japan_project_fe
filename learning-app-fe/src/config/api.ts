@@ -182,6 +182,14 @@ export const API_ENDPOINTS = {
     MY_COURSES: "/enrollments/my-courses",
 
   },
+  FEEDBACK: {
+    CREATE: "/feedbacks",
+    GET_MY: "/feedbacks/my-feedbacks",
+  },
+  ADMIN_FEEDBACK: {
+    GET_ALL: "/admin/feedbacks",
+    UPDATE: (id: string) => `/admin/feedbacks/${id}`,
+  },
   VOCAB: {
     MARK_VOCAB: "/learning/vocab/mark",
     CREATE: "/vocab",

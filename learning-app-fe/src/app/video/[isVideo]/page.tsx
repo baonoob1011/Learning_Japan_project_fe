@@ -23,6 +23,7 @@ import {
   X,
   Bookmark,
   BookmarkCheck,
+  Languages,
 } from "lucide-react";
 
 import {
@@ -62,6 +63,7 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
   const playerRef = useRef<YoutubePlayerHandle | null>(null);
 
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
+  const [showSidebarTranslation, setShowSidebarTranslation] = useState(false);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastVideoTimeRef = useRef<number | null>(null);
@@ -279,8 +281,8 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
     <>
       <div
         className={`fixed inset-0 flex transition-colors duration-300 ${isDarkMode
-            ? "bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800"
-            : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
+          ? "bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800"
+          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
           }`}
       >
         <Sidebar
@@ -294,14 +296,14 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
           {/* ── Top Nav Bar ── */}
           <div
             className={`backdrop-blur-sm border-b px-6 py-4 flex items-center justify-center flex-shrink-0 relative shadow-lg transition-colors duration-300 z-50 ${isDarkMode
-                ? "bg-gray-800/90 border-gray-700"
-                : "bg-white/80 border-cyan-100"
+              ? "bg-gray-800/90 border-gray-700"
+              : "bg-white/80 border-cyan-100"
               }`}
           >
             <button
               className={`lg:hidden absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors ${isDarkMode
-                  ? "text-cyan-400 hover:bg-gray-700"
-                  : "text-cyan-500 hover:bg-cyan-50"
+                ? "text-cyan-400 hover:bg-gray-700"
+                : "text-cyan-500 hover:bg-cyan-50"
                 }`}
               onClick={() => setShowSidebar(!showSidebar)}
             >
@@ -312,10 +314,10 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
               <button
                 onClick={() => setViewMode("video")}
                 className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all ${viewMode === "video"
-                    ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg"
-                    : isDarkMode
-                      ? "text-gray-300 hover:bg-gray-700 bg-gray-800 border-2 border-gray-600"
-                      : "text-gray-700 hover:bg-cyan-50 bg-white border-2 border-cyan-100"
+                  ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg"
+                  : isDarkMode
+                    ? "text-gray-300 hover:bg-gray-700 bg-gray-800 border-2 border-gray-600"
+                    : "text-gray-700 hover:bg-cyan-50 bg-white border-2 border-cyan-100"
                   }`}
               >
                 <Video className="w-5 h-5" />
@@ -325,10 +327,10 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
               <button
                 onClick={() => setViewMode("dictation")}
                 className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all ${viewMode === "dictation"
-                    ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg"
-                    : isDarkMode
-                      ? "text-gray-300 hover:bg-gray-700 bg-gray-800 border-2 border-gray-600"
-                      : "text-gray-700 hover:bg-cyan-50 bg-white border-2 border-cyan-100"
+                  ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg"
+                  : isDarkMode
+                    ? "text-gray-300 hover:bg-gray-700 bg-gray-800 border-2 border-gray-600"
+                    : "text-gray-700 hover:bg-cyan-50 bg-white border-2 border-cyan-100"
                   }`}
               >
                 <span className="text-lg">🎯</span>
@@ -338,10 +340,10 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
               <button
                 onClick={() => setViewMode("pronunciation")}
                 className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all ${viewMode === "pronunciation"
-                    ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg"
-                    : isDarkMode
-                      ? "text-gray-300 hover:bg-gray-700 bg-gray-800 border-2 border-gray-600"
-                      : "text-gray-700 hover:bg-cyan-50 bg-white border-2 border-cyan-100"
+                  ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg"
+                  : isDarkMode
+                    ? "text-gray-300 hover:bg-gray-700 bg-gray-800 border-2 border-gray-600"
+                    : "text-gray-700 hover:bg-cyan-50 bg-white border-2 border-cyan-100"
                   }`}
               >
                 <Volume2 className="w-5 h-5" />
@@ -351,10 +353,10 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
               <button
                 onClick={() => setViewMode("exercise")}
                 className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all border-2 ${viewMode === "exercise"
-                    ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg border-transparent"
-                    : isDarkMode
-                      ? "text-gray-300 hover:bg-gray-700 bg-gray-800 border-gray-600"
-                      : "text-gray-700 hover:bg-cyan-50 bg-white border-cyan-100"
+                  ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg border-transparent"
+                  : isDarkMode
+                    ? "text-gray-300 hover:bg-gray-700 bg-gray-800 border-gray-600"
+                    : "text-gray-700 hover:bg-cyan-50 bg-white border-cyan-100"
                   }`}
               >
                 <span className="text-lg">❓</span>
@@ -441,8 +443,8 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
             {viewMode === "video" && (
               <div
                 className={`w-96 backdrop-blur-sm border-l flex flex-col flex-shrink-0 shadow-xl transition-colors duration-300 relative z-10 ${isDarkMode
-                    ? "bg-gray-800/90 border-gray-700"
-                    : "bg-white/90 border-cyan-100"
+                  ? "bg-gray-800/90 border-gray-700"
+                  : "bg-white/90 border-cyan-100"
                   }`}
               >
                 <div
@@ -452,8 +454,8 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
                   <div className="flex items-center justify-between mb-3">
                     <h2
                       className={`text-lg font-bold bg-gradient-to-r bg-clip-text text-transparent ${isDarkMode
-                          ? "from-cyan-400 to-cyan-500"
-                          : "from-cyan-500 to-cyan-600"
+                        ? "from-cyan-400 to-cyan-500"
+                        : "from-cyan-500 to-cyan-600"
                         }`}
                     >
                       Phụ đề
@@ -464,9 +466,25 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
                         onToggle={toggleAutoScroll}
                       />
                       <button
+                        onClick={() =>
+                          setShowSidebarTranslation(!showSidebarTranslation)
+                        }
+                        className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95 ${showSidebarTranslation
+                            ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/30"
+                            : isDarkMode
+                              ? "text-cyan-400 hover:bg-gray-700"
+                              : "text-cyan-500 hover:bg-cyan-50"
+                          }`}
+                        title={
+                          showSidebarTranslation ? "Ẩn bản dịch" : "Hiện bản dịch"
+                        }
+                      >
+                        <Languages className="w-5 h-5" />
+                      </button>
+                      <button
                         className={`p-2 rounded-lg transition-colors ${isDarkMode
-                            ? "text-cyan-400 hover:bg-gray-700"
-                            : "text-cyan-500 hover:bg-cyan-50"
+                          ? "text-cyan-400 hover:bg-gray-700"
+                          : "text-cyan-500 hover:bg-cyan-50"
                           }`}
                       >
                         <X className="w-5 h-5" />
@@ -524,22 +542,22 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
                           transcriptRefs.current[t.id] = el;
                         }}
                         className={`group p-3 rounded-lg cursor-pointer transition-all duration-300 border ${isActive
-                            ? isDarkMode
-                              ? "bg-gradient-to-r from-gray-700 via-slate-700 to-gray-700 border-cyan-500 shadow-lg shadow-cyan-500/20 scale-105"
-                              : "bg-gradient-to-r from-cyan-50 via-blue-50 to-indigo-50 border-cyan-300 shadow-lg scale-105"
-                            : isDarkMode
-                              ? "hover:bg-gray-700 border-transparent hover:border-gray-600 bg-gray-800/50"
-                              : "hover:bg-cyan-50 border-transparent hover:border-cyan-200 bg-white/70"
+                          ? isDarkMode
+                            ? "bg-gradient-to-r from-gray-700 via-slate-700 to-gray-700 border-cyan-500 shadow-lg shadow-cyan-500/20 scale-105"
+                            : "bg-gradient-to-r from-cyan-50 via-blue-50 to-indigo-50 border-cyan-300 shadow-lg scale-105"
+                          : isDarkMode
+                            ? "hover:bg-gray-700 border-transparent hover:border-gray-600 bg-gray-800/50"
+                            : "hover:bg-cyan-50 border-transparent hover:border-cyan-200 bg-white/70"
                           }`}
                         onClick={() => handleSeekToTime(t.startOffset)}
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <button
                             className={`w-6 h-6 flex items-center justify-center rounded-full transition-colors ${isActive
-                                ? "bg-gradient-to-r from-cyan-400 to-cyan-500"
-                                : isDarkMode
-                                  ? "bg-gray-700 group-hover:bg-gray-600"
-                                  : "bg-gray-100 group-hover:bg-cyan-100"
+                              ? "bg-gradient-to-r from-cyan-400 to-cyan-500"
+                              : isDarkMode
+                                ? "bg-gray-700 group-hover:bg-gray-600"
+                                : "bg-gray-100 group-hover:bg-cyan-100"
                               }`}
                             onClick={(e) => {
                               e.stopPropagation();
@@ -548,27 +566,28 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
                           >
                             <Play
                               className={`w-3 h-3 ${isActive
-                                  ? "text-white"
-                                  : isDarkMode
-                                    ? "text-gray-300 group-hover:text-cyan-400"
-                                    : "text-gray-600 group-hover:text-cyan-500"
+                                ? "text-white"
+                                : isDarkMode
+                                  ? "text-gray-300 group-hover:text-cyan-400"
+                                  : "text-gray-600 group-hover:text-cyan-500"
                                 }`}
                             />
                           </button>
                           <span
                             className={`text-xs font-medium ${isActive
-                                ? isDarkMode
-                                  ? "text-cyan-400"
-                                  : "text-cyan-700"
-                                : isDarkMode
-                                  ? "text-gray-400"
-                                  : "text-gray-500"
+                              ? isDarkMode
+                                ? "text-cyan-400"
+                                : "text-cyan-700"
+                              : isDarkMode
+                                ? "text-gray-400"
+                                : "text-gray-500"
                               }`}
                           >
                             {formatTime(t.startOffset)}
                           </span>
-                          {isActive && (
-                            <div className="ml-auto">
+
+                          <div className="ml-auto">
+                            {isActive && (
                               <div className="flex gap-1">
                                 <div
                                   className={`w-1 h-3 rounded animate-pulse ${isDarkMode ? "bg-cyan-400" : "bg-cyan-500"
@@ -585,21 +604,37 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
                                   style={{ animationDelay: "0.4s" }}
                                 ></div>
                               </div>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                         <p
                           className={`leading-relaxed text-sm ${isActive
-                              ? isDarkMode
-                                ? "text-gray-100 font-medium"
-                                : "text-gray-900 font-medium"
-                              : isDarkMode
-                                ? "text-gray-300"
-                                : "text-gray-900"
+                            ? isDarkMode
+                              ? "text-gray-100 font-medium"
+                              : "text-gray-900 font-medium"
+                            : isDarkMode
+                              ? "text-gray-300"
+                              : "text-gray-900"
                             }`}
                         >
                           {t.text}
                         </p>
+
+                        {/* Translation display for this segment */}
+                        {showSidebarTranslation && t.translatedText && (
+                          <div
+                            className={`mt-2 p-2 rounded-lg text-sm transition-all duration-300 animate-in fade-in slide-in-from-top-1 border-l-2 ${isActive
+                              ? isDarkMode
+                                ? "bg-cyan-500/10 text-cyan-200 border-cyan-400"
+                                : "bg-cyan-50 text-cyan-700 border-cyan-500"
+                              : isDarkMode
+                                ? "bg-gray-700/50 text-gray-300 border-gray-600"
+                                : "bg-gray-50 text-gray-600 border-gray-200"
+                              }`}
+                          >
+                            {t.translatedText}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
