@@ -104,13 +104,7 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
 
                 <main className="p-8 max-w-6xl mx-auto w-full space-y-8">
                     {/* Breadcrumbs */}
-                    <div className={`flex items-center gap-2 text-sm font-medium mb-4 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                        <span className="hover:text-indigo-500 cursor-pointer transition-colors" onClick={() => router.push('/dasboardAdmin')}>Dashboard</span>
-                        <ChevronRight className="w-4 h-4" />
-                        <span className="hover:text-indigo-500 cursor-pointer transition-colors" onClick={() => router.push('/dasboardAdmin/courses')}>Khóa học</span>
-                        <ChevronRight className="w-4 h-4" />
-                        <span className={`font-bold ${isDark ? "text-gray-100" : "text-gray-900"} truncate max-w-xs`}>{course?.title || "Đang tải..."}</span>
-                    </div>
+
 
                     {/* Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

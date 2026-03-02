@@ -45,9 +45,9 @@ export default function AdminSidebar({ isDark = false }: SidebarProps) {
             label: "Quản lý Khóa học",
         },
         {
-            path: "/dasboardAdmin/vip/create",
+            path: "/dasboardAdmin/vip",
             icon: <Crown className="w-5 h-5" />,
-            label: "Tạo gói VIP",
+            label: "Quản lý VIP",
         },
         {
             path: "/dasboardAdmin/feedback",

@@ -105,11 +105,7 @@ export default function CreateVipPackagePage() {
 
                 <main className="p-8 w-full space-y-8">
                     {/* Breadcrumbs */}
-                    <div className={`flex items-center gap-2 text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                        <span className="hover:text-indigo-500 cursor-pointer transition-colors" onClick={() => router.push('/dasboardAdmin')}>Dashboard</span>
-                        <ChevronRight className="w-4 h-4" />
-                        <span className={`font-bold ${isDark ? "text-gray-100" : "text-gray-900"}`}>Tạo gói VIP</span>
-                    </div>
+
 
                     <div className="flex items-center gap-3">
                         <div className={`p-3 rounded-2xl ${isDark ? "bg-amber-500/20 text-amber-400" : "bg-gradient-to-br from-amber-400 to-amber-500 text-white shadow-lg"}`}>

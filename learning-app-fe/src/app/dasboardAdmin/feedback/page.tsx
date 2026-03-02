@@ -203,11 +203,7 @@ export default function AdminFeedbackPage() {
                     {/* Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
-                            <div className={`flex items-center gap-2 text-sm font-medium mb-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                                <span className="hover:text-indigo-500 cursor-pointer transition-colors" onClick={() => router.push('/dasboardAdmin')}>Dashboard</span>
-                                <ChevronRight className="w-4 h-4" />
-                                <span className={`font-bold ${isDark ? "text-gray-100" : "text-gray-900"}`}>Phản hồi</span>
-                            </div>
+
                             <h1 className={`text-3xl font-extrabold tracking-tight flex items-center gap-3 ${isDark ? "text-white" : "text-gray-900"}`}>
                                 <MessageSquare className={`w-8 h-8 ${isDark ? "text-indigo-400" : "text-indigo-600"}`} />
                                 Quản lý Phản hồi
@@ -297,10 +293,7 @@ export default function AdminFeedbackPage() {
                                                     <span className={`text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${isDark ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-600"}`}>
                                                         {typeInfo.label}
                                                     </span>
-                                                    <span className={`text-xs flex items-center gap-1.5 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-                                                        <User className="w-3 h-3" />
-                                                        <span className="truncate">{fb.userId}</span>
-                                                    </span>
+
                                                     <span className={`text-xs flex items-center gap-1.5 ${isDark ? "text-gray-500" : "text-gray-400"} hidden sm:flex`}>
                                                         <Calendar className="w-3 h-3" />
                                                         {formatDate(fb.createdAt)}
@@ -367,8 +360,8 @@ export default function AdminFeedbackPage() {
                                                                         onClick={() => handleUpdateFeedback(fb.id, status)}
                                                                         disabled={isSubmitting}
                                                                         className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-tight transition-all active:scale-95 disabled:opacity-50 disabled:scale-100 ${status === "RESOLVED" ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20" :
-                                                                                status === "REJECTED" ? "bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-600/20" :
-                                                                                    "bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/20"
+                                                                            status === "REJECTED" ? "bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-600/20" :
+                                                                                "bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/20"
                                                                             }`}
                                                                     >
                                                                         {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
