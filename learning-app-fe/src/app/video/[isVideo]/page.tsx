@@ -205,6 +205,17 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
         } catch (metaError) {
           console.warn("⚠️ Failed to fetch video metadata:", metaError);
         }
+
+        // Kiểm tra xem video đã được lưu chưa
+        try {
+          const savedVideos = await youtubeService.getMySavedVideos();
+          if (isMounted && savedVideos.some((v) => v.id === videoId)) {
+            setIsSaved(true);
+            console.log("✅ Video is already saved");
+          }
+        } catch (saveError) {
+          console.warn("⚠️ Failed to check saved status:", saveError);
+        }
       } catch (err) {
         console.error("❌ Failed to fetch video data", err);
         if (isMounted) {
@@ -470,10 +481,10 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
                           setShowSidebarTranslation(!showSidebarTranslation)
                         }
                         className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95 ${showSidebarTranslation
-                            ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/30"
-                            : isDarkMode
-                              ? "text-cyan-400 hover:bg-gray-700"
-                              : "text-cyan-500 hover:bg-cyan-50"
+                          ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/30"
+                          : isDarkMode
+                            ? "text-cyan-400 hover:bg-gray-700"
+                            : "text-cyan-500 hover:bg-cyan-50"
                           }`}
                         title={
                           showSidebarTranslation ? "Ẩn bản dịch" : "Hiện bản dịch"
