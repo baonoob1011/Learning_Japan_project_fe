@@ -12,6 +12,7 @@ import { lessonDocumentService } from "@/services/lessonDocumentService";
 import { JLPTLevel } from "@/enums/JLPTLevel";
 import { LessonProcess } from "@/enums/LessonProcess";
 import { LessonLevel } from "@/enums/LessonLevel";
+import { LessonPartType } from "@/enums/LessonPartType";
 
 /* ---- icons ---- */
 import {
@@ -369,6 +370,8 @@ function Step3Lessons({ sections, onFinish, isDark }: Step3Props) {
 
     /* part / doc adding per lesson */
     const [partTitle, setPartTitle] = useState<Record<string, string>>({});
+    const [partType, setPartType] = useState<Record<string, LessonPartType>>({});
+    const [partVideoUrl, setPartVideoUrl] = useState<Record<string, string>>({});
     const [docTitle, setDocTitle] = useState<Record<string, string>>({});
     const [docFile, setDocFile] = useState<Record<string, File | null>>({});
 
@@ -407,8 +410,11 @@ function Step3Lessons({ sections, onFinish, isDark }: Step3Props) {
         const lesson = lessonsForSection.find(l => l.id === lessonId);
         if (!lesson) return;
         const partOrder = lesson.parts.length + 1;
+        const type = partType[lessonId] || LessonPartType.VOCABULARY;
+        const videoUrl = partVideoUrl[lessonId]?.trim() || "";
+
         try {
-            const id = await lessonPartService.create({ lessonId, title, partOrder });
+            const id = await lessonPartService.create({ lessonId, title, lessonPartType: type, videoUrl, partOrder });
             setLessons(prev => ({
                 ...prev,
                 [selectedSectionId]: (prev[selectedSectionId] ?? []).map(l =>
@@ -416,6 +422,7 @@ function Step3Lessons({ sections, onFinish, isDark }: Step3Props) {
                 ),
             }));
             setPartTitle(prev => ({ ...prev, [lessonId]: "" }));
+            setPartVideoUrl(prev => ({ ...prev, [lessonId]: "" }));
         } catch { setError("Thêm phần bài học thất bại."); }
     };
 
@@ -542,16 +549,34 @@ function Step3Lessons({ sections, onFinish, isDark }: Step3Props) {
                                             </button>
                                         </div>
                                     ))}
-                                    <div className="flex gap-2">
-                                        <input type="text"
-                                            value={partTitle[lesson.id] ?? ""}
-                                            onChange={e => setPartTitle(prev => ({ ...prev, [lesson.id]: e.target.value }))}
-                                            placeholder="Tên phần (Ví dụ: Từ vựng)"
-                                            className={`${getInputCls(isDark)} text-xs py-2`} />
-                                        <button onClick={() => addPart(lesson.id)}
-                                            className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 whitespace-nowrap">
-                                            <Plus className="w-3.5 h-3.5" /> Thêm
-                                        </button>
+                                    <div className="space-y-2">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            <input type="text"
+                                                value={partTitle[lesson.id] ?? ""}
+                                                onChange={e => setPartTitle(prev => ({ ...prev, [lesson.id]: e.target.value }))}
+                                                placeholder="Tên phần (Ví dụ: Từ vựng)"
+                                                className={`${getInputCls(isDark)} text-xs py-2`} />
+                                            <select
+                                                value={partType[lesson.id] || LessonPartType.VOCABULARY}
+                                                onChange={e => setPartType(prev => ({ ...prev, [lesson.id]: e.target.value as LessonPartType }))}
+                                                className={`${getInputCls(isDark)} text-xs py-2`}
+                                            >
+                                                {Object.values(LessonPartType).map(t => (
+                                                    <option key={t} value={t}>{t}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <input type="text"
+                                                value={partVideoUrl[lesson.id] ?? ""}
+                                                onChange={e => setPartVideoUrl(prev => ({ ...prev, [lesson.id]: e.target.value }))}
+                                                placeholder="Link Youtube (nếu có)"
+                                                className={`${getInputCls(isDark)} text-xs py-2`} />
+                                            <button onClick={() => addPart(lesson.id)}
+                                                className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 whitespace-nowrap">
+                                                <Plus className="w-3.5 h-3.5" /> Thêm phần
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 

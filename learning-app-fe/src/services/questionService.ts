@@ -1,8 +1,6 @@
 // services/questionService.ts
-import { axiosClient } from "@/lib/axios";
-import { ApiResponse } from "@/services/api-types";
+import { http } from "@/lib/http";
 import { API_ENDPOINTS } from "@/config/api";
-import { useAuthStore } from "@/stores/authStore";
 
 export interface ApiOption {
   label: string;
@@ -22,30 +20,23 @@ export interface QuestionApiResponse {
 }
 
 export const questionService = {
-  async getAll(): Promise<QuestionApiResponse[]> {
-    try {
-      // Lấy accessToken từ store
-      const { accessToken } = useAuthStore.getState();
+  /**
+   * ✅ Lấy danh sách câu hỏi
+   */
+  getAll(): Promise<QuestionApiResponse[]> {
+    return http.get<QuestionApiResponse[]>(API_ENDPOINTS.QUESTION.GET_ALL);
+  },
+  /**
+   * ✅ Lấy danh sách câu hỏi theo examId
+   */
+  getByExamId(examId: string): Promise<QuestionApiResponse[]> {
+    return http.get<QuestionApiResponse[]>(API_ENDPOINTS.QUESTION.GET_BY_EXAM_ID(examId));
+  },
 
-      const res = await axiosClient.get<ApiResponse<QuestionApiResponse[]>>(
-        API_ENDPOINTS.EXAM.QUESTION_VIEW_ALL,
-        {
-          headers: {
-            Authorization: accessToken ? `Bearer ${accessToken}` : "",
-          },
-        }
-      );
-
-      if (!res.data.success) {
-        throw new Error(res.data.message || "Không lấy được danh sách câu hỏi");
-      }
-
-      return res.data.result;
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(error.message);
-      }
-      throw new Error("Lỗi không xác định khi lấy danh sách câu hỏi");
-    }
+  /**
+   * ✅ Xóa câu hỏi
+   */
+  delete(id: string): Promise<void> {
+    return http.delete<void>(API_ENDPOINTS.QUESTION.DELETE(id));
   },
 };

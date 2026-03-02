@@ -35,4 +35,12 @@ export const instructionMap: Record<AssessmentType, string> = {
     "問題 音声を聞いて即座に答えを選びなさい。",
   [AssessmentType.LISTENING_LONG]:
     "問題 長めの音声を聞き、内容を理解して答えを選びなさい。",
+  [AssessmentType.PARAPHRASE]:
+    "問題 次の（　）の言葉の意味が最も近いものを、1・2・3・4から一つ選びなさい。",
+  [AssessmentType.GRAMMAR_SELECT]:
+    "問題 (　　) に入れるのに最もよいものを、1・2・3・4から一つ選びなさい。",
+  [AssessmentType.TEXT_COMPLETION]:
+    "問題 次の文章の意味を考えて、(　　)に入る最もよいものを、1・2・3・4から一つ選びなさい。",
+  [AssessmentType.READING_MEDIUM]:
+    "問題 次の文章を読んで、後の問いに対する答えとして最もよいものを、1・2・3・4から一つ選びなさい。",
 };

@@ -44,6 +44,14 @@ const instructionMap: Record<AssessmentType, string> = {
     "問題X 音声を聞いて即座に答えを選びなさい。",
   [AssessmentType.LISTENING_LONG]:
     "問題5 長めの音声を聞き、内容を理解して答えを選びなさい。",
+  [AssessmentType.PARAPHRASE]:
+    "問題 次の（　）の言葉の意味が最も近いものを、1・2・3・4から一つ選びなさい。",
+  [AssessmentType.GRAMMAR_SELECT]:
+    "問題 (　　) に入れるのに最もよいものを、1・2・3・4から一つ選びなさい。",
+  [AssessmentType.TEXT_COMPLETION]:
+    "問題 次の文章の意味を考えて、(　　)に入る最もよいものを、1・2・3・4から一つ選びなさい。",
+  [AssessmentType.READING_MEDIUM]:
+    "問題 次の文章を読んで、後の問いに対する答えとして最もよいものを、1・2・3・4から一つ選びなさい。",
 };
 
 export function AssessmentInstruction({ type }: AssessmentInstructionProps) {
@@ -81,10 +89,9 @@ export function Question({ questionText, options, onAnswer }: QuestionProps) {
             key={idx}
             onClick={() => handleSelect(idx)}
             className={`text-left px-4 py-2 rounded-md border transition 
-              ${
-                selected === idx
-                  ? "bg-teal-500 text-white border-teal-500"
-                  : "bg-gray-50 text-gray-800 border-gray-200 hover:bg-gray-100"
+              ${selected === idx
+                ? "bg-teal-500 text-white border-teal-500"
+                : "bg-gray-50 text-gray-800 border-gray-200 hover:bg-gray-100"
               }`}
           >
             {`${idx + 1}. ${opt}`}

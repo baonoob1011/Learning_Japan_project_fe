@@ -109,4 +109,28 @@ export const typeInstructionStyles: Record<
     instruction:
       "問題0では、すぐに質問を聞いて答えてください。話を聞いたら、問題用紙の1から4の中から最もよいものを一つ選んでください。",
   },
+  [AssessmentType.PARAPHRASE]: {
+    bg: "bg-gray-200",
+    text: "text-black",
+    instruction:
+      "問題 次の（　）の言葉の意味が最も近いものを、1・2・3・4から一つ選びなさい。",
+  },
+  [AssessmentType.GRAMMAR_SELECT]: {
+    bg: "bg-gray-200",
+    text: "text-black",
+    instruction:
+      "問題 (　　) に入れるのに最もよいものを、1・2・3・4から一つ選びなさい。",
+  },
+  [AssessmentType.TEXT_COMPLETION]: {
+    bg: "bg-blue-900",
+    text: "text-white",
+    instruction:
+      "問題 次の文章の意味を考えて、(　　)に入る最もよいものを、1・2・3・4から一つ選びなさい。",
+  },
+  [AssessmentType.READING_MEDIUM]: {
+    bg: "bg-gray-100",
+    text: "text-black",
+    instruction:
+      "問題 次の文章を読んで、後の問いに対する答えとして最もよいものを、1・2・3・4から一つ選びなさい。",
+  },
 };

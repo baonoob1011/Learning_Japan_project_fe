@@ -1,9 +1,7 @@
 export enum AssessmentType {
-  // ===== KANJI =====
+  // ===== VOCABULARY =====
   KANJI_READING = "KANJI_READING",
   KANJI_MEMORY = "KANJI_MEMORY",
-
-  // ===== VOCAB =====
   VOCAB_CONTEXT = "VOCAB_CONTEXT",
 
   // ===== GRAMMAR =====

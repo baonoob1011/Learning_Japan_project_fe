@@ -6,7 +6,6 @@ export const API_CONFIG = {
 } as const;
 
 // API Endpoints (flat)
-// API Endpoints (flat)
 export const API_ENDPOINTS = {
   ASSESSMENT_ITEM: {
     BY_SECTION: (sectionId: string) =>
@@ -185,8 +184,15 @@ export const API_ENDPOINTS = {
     QUESTION_LISTEN: "/questions/listen",
     EXAM_SUBMIT: "exams/submit",
     EXAM_START: "/exams/start",
-    QUESTION_VIEW_ALL: "/questions",
     IMPORT: "/exams/import",
+  },
+
+  QUESTION: {
+    GET_ALL: "/questions",
+    GET_BY_EXAM_ID: (examId: string) => `/questions/exam/${examId}`,
+    CREATE: "/questions",
+    UPDATE: (id: string) => `/questions/${id}`,
+    DELETE: (id: string) => `/questions/${id}`,
   },
 
   TRANSLATE: {

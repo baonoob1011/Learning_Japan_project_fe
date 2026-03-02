@@ -6,6 +6,7 @@ import {
   examService,
   SectionWithQuestionsResponse,
 } from "@/services/examService";
+import { questionService } from "@/services/questionService";
 import { QUESTION_TYPE_ORDER } from "@/config/questionTypeOrder";
 import { LISTENING_TYPE_ORDER } from "@/config/listeningTypeOrder";
 import { useExamResultStore } from "@/stores/examResultStore";
@@ -126,6 +127,7 @@ function ExamContent() {
 
     const fetchQuestions = async () => {
       try {
+        // Fetch sections for metadata (duration, title, order)
         const sectionsData: SectionWithQuestionsResponse[] =
           await examService.getSections(examId);
 
@@ -141,40 +143,50 @@ function ExamContent() {
         setSections(sectionsInfo);
         console.log("✅ Sections info:", sectionsInfo);
 
-        const mapped = sectionsData.flatMap((section) =>
-          section.questions.map((q) => {
-            let parsedOptions: { label: string; text: string }[] = [];
-            try {
-              const optionsArray: string[] = JSON.parse(q.options);
-              parsedOptions = optionsArray.map((text, index) => ({
-                label: String(index + 1),
-                text: text,
-              }));
-            } catch (err) {
-              console.error("Error parsing options for question:", q.id, err);
-              parsedOptions = [];
-            }
+        const questionsData = await questionService.getByExamId(examId);
+        console.log("📥 Raw questions data from questionService:", questionsData);
 
-            return {
-              id: q.id,
-              sectionOrder: section.sectionOrder,
-              questionOrder: q.questionOrder,
-              questionType: q.questionType,
-              text: q.questionText,
-              options: parsedOptions,
-              answer: q.answer,
-              imageUrl: q.imageUrl,
-              audioUrl: q.audioUrl,
-            };
-          })
-        );
-
-        console.log("📝 All mapped questions:", mapped);
-        console.log("📊 Questions by section:", {
-          section1: mapped.filter((q) => q.sectionOrder === 1).length,
-          section2: mapped.filter((q) => q.sectionOrder === 2).length,
+        // Build a lookup map from sectionsData to recover missing sectionOrder
+        const qIdToSectionOrder: Record<string, number> = {};
+        sectionsData.forEach((section) => {
+          if (section.questions) {
+            section.questions.forEach((sq) => {
+              qIdToSectionOrder[sq.id] = section.sectionOrder;
+            });
+          }
         });
 
+        const mapped = questionsData.map((q) => {
+          let parsedOptions: { label: string; text: string }[] = [];
+          try {
+            const optionsArray: string[] = JSON.parse(q.options);
+            parsedOptions = optionsArray.map((text, index) => ({
+              label: String(index + 1),
+              text: text,
+            }));
+          } catch (err) {
+            console.error("Error parsing options for question:", q.id, err);
+            parsedOptions = [];
+          }
+
+          // Recover sectionOrder if it's null in questionsData (backend might return null in flat list)
+          const recoveredSectionOrder =
+            q.sectionOrder ?? qIdToSectionOrder[q.id] ?? 1;
+
+          return {
+            id: q.id,
+            sectionOrder: recoveredSectionOrder,
+            questionOrder: q.questionOrder,
+            questionType: q.questionType,
+            text: q.questionText,
+            options: parsedOptions,
+            answer: q.answer,
+            imageUrl: q.imageUrl,
+            audioUrl: q.audioUrl,
+          };
+        });
+
+        console.log("📝 All mapped questions ready:", mapped);
         setQuestions(mapped);
       } catch (err) {
         console.error("Lỗi fetch questions:", err);
@@ -527,8 +539,8 @@ function ExamContent() {
                           <label
                             key={o.label}
                             className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition ${mergedAnswers[q.id] === o.text
-                                ? "border-cyan-400 bg-cyan-50"
-                                : "border-cyan-200 hover:bg-cyan-50/50"
+                              ? "border-cyan-400 bg-cyan-50"
+                              : "border-cyan-200 hover:bg-cyan-50/50"
                               }`}
                           >
                             <input
@@ -585,8 +597,8 @@ function ExamContent() {
                           key={q.id}
                           onClick={() => scrollToQuestion(q.id)}
                           className={`w-10 h-10 rounded-full text-sm font-medium transition shadow-sm ${mergedAnswers[q.id]
-                              ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-md transform hover:scale-105"
-                              : "bg-white text-gray-700 border-2 border-cyan-200 hover:bg-cyan-50 hover:border-cyan-300"
+                            ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-md transform hover:scale-105"
+                            : "bg-white text-gray-700 border-2 border-cyan-200 hover:bg-cyan-50 hover:border-cyan-300"
                             }`}
                         >
                           {q.questionOrder}
@@ -602,8 +614,8 @@ function ExamContent() {
           <div className="sticky bottom-0 bg-white/80 backdrop-blur-sm p-4 border-t border-cyan-100 flex justify-center">
             <button
               className={`px-10 py-2.5 rounded-full font-medium text-sm shadow-lg transition ${isSubmitting
-                  ? "bg-gray-400 text-gray-200 cursor-not-allowed"
-                  : "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white hover:shadow-xl hover:scale-105"
+                ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                : "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white hover:shadow-xl hover:scale-105"
                 }`}
               disabled={isSubmitting}
               onClick={handleSubmitClick}
