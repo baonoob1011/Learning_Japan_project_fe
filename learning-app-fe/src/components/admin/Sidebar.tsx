@@ -9,6 +9,7 @@ import {
     ChevronRight,
     BookOpen,
     Crown,
+    MessageSquare,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -47,6 +48,11 @@ export default function AdminSidebar({ isDark = false }: SidebarProps) {
             path: "/dasboardAdmin/vip/create",
             icon: <Crown className="w-5 h-5" />,
             label: "Tạo gói VIP",
+        },
+        {
+            path: "/dasboardAdmin/feedback",
+            icon: <MessageSquare className="w-5 h-5" />,
+            label: "Quản lý Phản hồi",
         },
     ];
 

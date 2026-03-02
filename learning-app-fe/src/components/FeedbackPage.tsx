@@ -16,12 +16,14 @@ import {
     Loader2,
     AlertCircle,
     Sparkles,
+    HelpCircle,
+    MoreHorizontal,
 } from "lucide-react";
 import {
     feedbackService,
     CreateFeedbackRequest,
     FeedbackResponse,
-} from "@/components/feedbackService";
+} from "@/services/feedbackService";
 import { FeedbackType } from "@/enums/FeedbackType";
 import { FeedbackStatus } from "@/enums/FeedbackStatus";
 
@@ -64,6 +66,14 @@ const FEEDBACK_TYPES: {
             icon: <BookOpen className="w-5 h-5" />,
             color: "text-cyan-500",
             gradient: "from-cyan-400 to-blue-500",
+        },
+
+        {
+            value: "OTHER",
+            label: "Khác",
+            icon: <MoreHorizontal className="w-5 h-5" />,
+            color: "text-slate-500",
+            gradient: "from-slate-400 to-gray-500",
         },
     ];
 
