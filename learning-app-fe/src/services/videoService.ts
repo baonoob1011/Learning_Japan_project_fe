@@ -49,7 +49,10 @@ export interface YoutubeVideoDetail extends YoutubeVideoSummary {
   publishedAt?: string;
   updatedAt: string;
 }
-
+export interface UpdateYoutubeVideoRequest {
+  videoTag?: VideoTag;
+  level?: JLPTLevel;
+}
 /* ===================== HELPERS ===================== */
 
 const getHeaders = () => {
@@ -132,7 +135,18 @@ export const youtubeService = {
   saveVideo(videoId: string): Promise<void> {
     return http.post<void>(API_ENDPOINTS.VIDEO.SAVE(videoId));
   },
-
+  /**
+   * ✅ Update video metadata (videoTag + level)
+   */
+  updateVideo(
+    videoId: string,
+    request: UpdateYoutubeVideoRequest
+  ): Promise<void> {
+    return http.put<void>(
+      API_ENDPOINTS.VIDEO.UPDATE(videoId), // dùng cùng endpoint /{videoId}
+      request
+    );
+  },
   /**
    * Remove video đã save
    */

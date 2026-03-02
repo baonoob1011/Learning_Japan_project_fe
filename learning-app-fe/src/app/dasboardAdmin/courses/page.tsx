@@ -2,8 +2,10 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDarkMode } from "@/hooks/useDarkMode";
-import { BookOpen, Map, ChevronRight, Loader2, Library, EyeOff, LayoutGrid, Search } from "lucide-react";
-import { courseService, CourseResponse } from "@/services/courseService";
+import { BookOpen, Map, ChevronRight, Loader2, Library, EyeOff, LayoutGrid, Search, Edit3, X, Check, DollarSign, Type, FileText } from "lucide-react";
+import { courseService, CourseResponse, UpdateCourseRequest } from "@/services/courseService";
+import { JLPTLevel } from "@/enums/JLPTLevel";
+import { LessonProcess } from "@/enums/LessonProcess";
 
 export default function AdminCourseManagerPage() {
     const router = useRouter();
@@ -11,6 +13,17 @@ export default function AdminCourseManagerPage() {
     const [courses, setCourses] = useState<CourseResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+
+    // Edit Modal State
+    const [editingCourse, setEditingCourse] = useState<CourseResponse | null>(null);
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [editForm, setEditForm] = useState<UpdateCourseRequest>({
+        title: "",
+        description: "",
+        level: JLPTLevel.N5,
+        lessonProcess: LessonProcess.JUNBI,
+        price: 0
+    });
 
     useEffect(() => {
         const fetchCourses = async () => {
@@ -44,6 +57,34 @@ export default function AdminCourseManagerPage() {
         c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.level.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const handleEditClick = (e: React.MouseEvent, course: CourseResponse) => {
+        e.stopPropagation();
+        setEditingCourse(course);
+        setEditForm({
+            title: course.title,
+            description: course.description,
+            level: course.level,
+            lessonProcess: course.lessonProcess,
+            price: course.price
+        });
+    };
+
+    const handleUpdate = async () => {
+        if (!editingCourse) return;
+        setIsUpdating(true);
+        try {
+            await courseService.update(editingCourse.id, editForm);
+            setCourses(prev => prev.map(c => c.id === editingCourse.id ? { ...c, ...editForm } : c));
+            setEditingCourse(null);
+            alert("Cập nhật khóa học thành công!");
+        } catch (error: any) {
+            console.error("Failed to update course:", error);
+            alert(error.message || "Cập nhật khóa học thất bại");
+        } finally {
+            setIsUpdating(false);
+        }
+    };
 
     return (
         <main className="p-8 space-y-8">
@@ -161,6 +202,12 @@ export default function AdminCourseManagerPage() {
                                 >
                                     {course.isActive ? "Đang hiển thị" : "Bị ẩn"}
                                 </button>
+                                <button
+                                    onClick={(e) => handleEditClick(e, course)}
+                                    className={`text-[11px] font-bold uppercase py-1.5 px-3 rounded-lg border transition-all flex items-center gap-1.5 ${isDark ? "border-amber-500/30 text-amber-500 bg-amber-500/10 hover:bg-amber-500/20" : "border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100"}`}
+                                >
+                                    <Edit3 className="w-3.5 h-3.5" /> Chỉnh sửa
+                                </button>
                                 <span className={`text-xs font-bold flex items-center gap-1 transition-colors ${isDark ? "text-gray-400 group-hover:text-indigo-400" : "text-gray-500 group-hover:text-indigo-600"}`}>
                                     Chi tiết <ChevronRight className="w-4 h-4" />
                                 </span>
@@ -173,6 +220,126 @@ export default function AdminCourseManagerPage() {
                             <p className="text-sm">Không tìm thấy khóa học nào</p>
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Edit Course Modal */}
+            {editingCourse && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        onClick={() => setEditingCourse(null)}
+                    ></div>
+                    <div className={`relative w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"}`}>
+                        <div className="p-8 space-y-8">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className={`text-2xl font-extrabold mb-1 ${isDark ? "text-white" : "text-gray-900"}`}>
+                                        Chỉnh sửa Khóa học
+                                    </h3>
+                                    <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                                        Cập nhật thông tin chi tiết của khóa học này.
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setEditingCourse(null)}
+                                    className={`p-2 rounded-xl transition-colors ${isDark ? "bg-gray-700 text-gray-400 hover:text-white" : "bg-gray-100 text-gray-500 hover:text-gray-900"}`}
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Title */}
+                                <div className="space-y-2 md:col-span-2">
+                                    <label className={`text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                                        <Type className="w-3.5 h-3.5" /> Tiêu đề khóa học
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={editForm.title}
+                                        onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                                        className={`w-full px-4 py-3 rounded-xl border text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition ${isDark ? "bg-gray-900 border-gray-700 text-white" : "bg-gray-50 border-gray-200 text-gray-900"}`}
+                                    />
+                                </div>
+
+                                {/* Description */}
+                                <div className="space-y-2 md:col-span-2">
+                                    <label className={`text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                                        <FileText className="w-3.5 h-3.5" /> Mô tả
+                                    </label>
+                                    <textarea
+                                        rows={4}
+                                        value={editForm.description}
+                                        onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                                        className={`w-full px-4 py-3 rounded-xl border text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition resize-none ${isDark ? "bg-gray-900 border-gray-700 text-white" : "bg-gray-50 border-gray-200 text-gray-900"}`}
+                                    />
+                                </div>
+
+                                {/* Price */}
+                                <div className="space-y-2">
+                                    <label className={`text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                                        <DollarSign className="w-3.5 h-3.5" /> Giá tiền (VND)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={editForm.price}
+                                        onChange={(e) => setEditForm({ ...editForm, price: Number(e.target.value) })}
+                                        className={`w-full px-4 py-3 rounded-xl border text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition ${isDark ? "bg-gray-900 border-gray-700 text-white" : "bg-gray-50 border-gray-200 text-gray-900"}`}
+                                    />
+                                </div>
+
+                                {/* Level */}
+                                <div className="space-y-2">
+                                    <label className={`text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                                        <Library className="w-3.5 h-3.5" /> Trình độ JLPT
+                                    </label>
+                                    <select
+                                        value={editForm.level}
+                                        onChange={(e) => setEditForm({ ...editForm, level: e.target.value as JLPTLevel })}
+                                        className={`w-full px-4 py-3 rounded-xl border text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition appearance-none cursor-pointer ${isDark ? "bg-gray-900 border-gray-700 text-white" : "bg-gray-50 border-gray-200 text-gray-900"}`}
+                                    >
+                                        {Object.values(JLPTLevel).map(l => (
+                                            <option key={l} value={l}>{l}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Lesson Process */}
+                                <div className="space-y-2 md:col-span-2">
+                                    <label className={`text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                                        <Map className="w-3.5 h-3.5" /> Lộ trình bài học
+                                    </label>
+                                    <select
+                                        value={editForm.lessonProcess}
+                                        onChange={(e) => setEditForm({ ...editForm, lessonProcess: e.target.value as LessonProcess })}
+                                        className={`w-full px-4 py-3 rounded-xl border text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition appearance-none cursor-pointer ${isDark ? "bg-gray-900 border-gray-700 text-white" : "bg-gray-50 border-gray-200 text-gray-900"}`}
+                                    >
+                                        <option value={LessonProcess.JUNBI}>Học nền (JUNBI)</option>
+                                        <option value={LessonProcess.TAISAKU}>Ôn luyện chiến lược (TAISAKU)</option>
+                                        <option value={LessonProcess.PRACTICE}>Luyện đề (PRACTICE)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4 pt-4">
+                                <button
+                                    onClick={() => setEditingCourse(null)}
+                                    className={`flex-1 py-3.5 rounded-2xl font-bold text-sm transition-all ${isDark ? "bg-gray-700 text-gray-300 hover:bg-gray-600" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                                >
+                                    Hủy bỏ
+                                </button>
+                                <button
+                                    onClick={handleUpdate}
+                                    disabled={isUpdating}
+                                    className={`flex-[2] py-3.5 rounded-2xl font-bold text-sm text-white transition-all bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-500/20 flex items-center justify-center gap-2 ${isUpdating ? "opacity-50 cursor-not-allowed" : "active:scale-95"}`}
+                                >
+                                    {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+                                    Lưu thay đổi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
         </main>

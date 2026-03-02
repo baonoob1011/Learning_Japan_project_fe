@@ -19,8 +19,9 @@ import {
 import { courseService, CourseResponse } from "@/services/courseService";
 import { sectionService, SectionResponse } from "@/services/sectionService";
 import { lessonService, LessonResponse } from "@/services/lessonService";
-import { lessonPartService, LessonPartResponse, CreateLessonPartRequest } from "@/services/lessonPartService";
+import { lessonPartService, LessonPartResponse, CreateLessonPartRequest, UpdateLessonPartRequest } from "@/services/lessonPartService";
 import { lessonDocumentService, LessonDocumentResponse, CreateLessonDocumentRequest } from "@/services/lessonDocumentService";
+import { LessonPartType } from "@/enums/LessonPartType";
 
 export default function AdminLessonBuilderPage({ params }: { params: Promise<{ courseId: string, sectionId: string, lessonId: string }> }) {
     const router = useRouter();
@@ -41,7 +42,17 @@ export default function AdminLessonBuilderPage({ params }: { params: Promise<{ c
     const [parts, setParts] = useState<LessonPartResponse[]>([]);
     const [isAddingPart, setIsAddingPart] = useState(false);
     const [newPartTitle, setNewPartTitle] = useState("");
+    const [newPartType, setNewPartType] = useState<LessonPartType>(LessonPartType.VOCABULARY);
+    const [newPartVideoUrl, setNewPartVideoUrl] = useState("");
     const [newPartOrder, setNewPartOrder] = useState(1);
+
+    // Edit Part State
+    const [editingPart, setEditingPart] = useState<LessonPartResponse | null>(null);
+    const [editPartTitle, setEditPartTitle] = useState("");
+    const [editPartType, setEditPartType] = useState<LessonPartType>(LessonPartType.VOCABULARY);
+    const [editPartVideoUrl, setEditPartVideoUrl] = useState("");
+    const [editPartOrder, setEditPartOrder] = useState(1);
+
     const [isSubmittingPart, setIsSubmittingPart] = useState(false);
 
     /* --- LESSON DOCUMENTS STATE --- */
@@ -100,21 +111,57 @@ export default function AdminLessonBuilderPage({ params }: { params: Promise<{ c
             const req: CreateLessonPartRequest = {
                 lessonId,
                 title: newPartTitle.trim(),
+                lessonPartType: newPartType,
+                videoUrl: newPartVideoUrl.trim(),
                 partOrder: newPartOrder
             };
             await lessonPartService.create(req);
 
-            // Re-fetch
             const updated = await lessonPartService.getByLesson(lessonId);
             updated.sort((a, b) => a.partOrder - b.partOrder);
             setParts(updated);
 
             setNewPartTitle("");
+            setNewPartVideoUrl("");
             setNewPartOrder(updated.length + 1);
             setIsAddingPart(false);
         } catch (error) {
             console.error(error);
             alert("Create Part failed!");
+        } finally {
+            setIsSubmittingPart(false);
+        }
+    };
+
+    const handleEditPartClick = (part: LessonPartResponse) => {
+        setEditingPart(part);
+        setEditPartTitle(part.title);
+        setEditPartType(part.lessonPartType as LessonPartType);
+        setEditPartVideoUrl(part.videoUrl || "");
+        setEditPartOrder(part.partOrder);
+        setIsAddingPart(false);
+    };
+
+    const handleUpdatePart = async () => {
+        if (!editingPart || !editPartTitle.trim()) return;
+        setIsSubmittingPart(true);
+        try {
+            const req: UpdateLessonPartRequest = {
+                title: editPartTitle.trim(),
+                lessonPartType: editPartType,
+                videoUrl: editPartVideoUrl.trim(),
+                partOrder: editPartOrder
+            };
+            await lessonPartService.update(editingPart.id, req);
+
+            const updated = await lessonPartService.getByLesson(lessonId);
+            updated.sort((a, b) => a.partOrder - b.partOrder);
+            setParts(updated);
+
+            setEditingPart(null);
+        } catch (error) {
+            console.error("Update Part failed:", error);
+            alert("Cập nhật Part không thành công!");
         } finally {
             setIsSubmittingPart(false);
         }
@@ -227,12 +274,14 @@ export default function AdminLessonBuilderPage({ params }: { params: Promise<{ c
                         <ArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
-                        <h1 className={`text-3xl font-extrabold tracking-tight flex items-center gap-3 ${isDark ? "text-white" : "text-gray-900"}`}>
-                            <FolderSync className={`w-8 h-8 ${isDark ? "text-teal-400" : "text-teal-600"}`} />
+                        <h1 className={`text-4xl font-black tracking-tight flex items-center gap-3 ${isDark ? "text-white" : "text-gray-900"}`}>
+                            <div className={`p-2 rounded-2xl ${isDark ? "bg-teal-500/10" : "bg-teal-50"}`}>
+                                <FolderSync className={`w-8 h-8 ${isDark ? "text-teal-400" : "text-teal-600"}`} />
+                            </div>
                             Cấu trúc Bài học
                         </h1>
-                        <p className={`text-sm mt-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                            Thiết lập nội dung & file tài liệu cho bài: <strong className={isDark ? "text-gray-200" : "text-gray-700"}>{lesson?.title}</strong>
+                        <p className={`text-sm mt-1.5 font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                            Thiết lập nội dung & file tài liệu cho bài: <span className={`px-2 py-0.5 rounded-lg font-bold ${isDark ? "bg-teal-500/10 text-teal-300" : "bg-teal-50 text-teal-700"}`}>{lesson?.title}</span>
                         </p>
                     </div>
                 </div>
@@ -242,28 +291,30 @@ export default function AdminLessonBuilderPage({ params }: { params: Promise<{ c
             <div className={`rounded-3xl border overflow-hidden shadow-sm ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
 
                 {/* Tab Switcher */}
-                <div className={`flex border-b ${isDark ? "border-gray-700" : "border-gray-200"}`}>
+                <div className={`flex border-b p-1 gap-1 ${isDark ? "border-gray-700 bg-gray-900/20" : "border-gray-200 bg-gray-50/50"}`}>
                     <button
                         onClick={() => setActiveTab("parts")}
-                        className={`flex-1 py-4 text-center font-bold text-sm tracking-wide transition-all ${activeTab === "parts"
-                            ? isDark ? "bg-teal-500/10 text-teal-400 border-b-2 border-teal-400" : "bg-teal-50 text-teal-600 border-b-2 border-teal-600"
-                            : isDark ? "text-gray-400 hover:text-gray-200 hover:bg-gray-700/50" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                        className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-black text-sm tracking-wide transition-all duration-300 ${activeTab === "parts"
+                            ? isDark ? "bg-teal-500/10 text-teal-400 shadow-[0_0_20px_rgba(20,184,166,0.1)]" : "bg-white text-teal-600 shadow-sm ring-1 ring-gray-200"
+                            : isDark ? "text-gray-500 hover:text-gray-300 hover:bg-gray-800" : "text-gray-400 hover:text-gray-600 hover:bg-gray-100/50"
                             }`}
                     >
-                        <span className="flex items-center justify-center gap-2">
-                            <Video className="w-4 h-4" /> Lesson Parts (Phần học / Vocabulary)
-                        </span>
+                        <div className={`p-1.5 rounded-lg ${activeTab === "parts" ? (isDark ? "bg-teal-400/20" : "bg-teal-50") : (isDark ? "bg-gray-800" : "bg-gray-100")}`}>
+                            <Video className="w-4 h-4" />
+                        </div>
+                        Lesson Parts (Nội dung bài)
                     </button>
                     <button
                         onClick={() => setActiveTab("docs")}
-                        className={`flex-1 py-4 text-center font-bold text-sm tracking-wide transition-all ${activeTab === "docs"
-                            ? isDark ? "bg-orange-500/10 text-orange-400 border-b-2 border-orange-400" : "bg-orange-50 text-orange-600 border-b-2 border-orange-600"
-                            : isDark ? "text-gray-400 hover:text-gray-200 hover:bg-gray-700/50" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                        className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-black text-sm tracking-wide transition-all duration-300 ${activeTab === "docs"
+                            ? isDark ? "bg-orange-500/10 text-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.1)]" : "bg-white text-orange-600 shadow-sm ring-1 ring-gray-200"
+                            : isDark ? "text-gray-500 hover:text-gray-300 hover:bg-gray-800" : "text-gray-400 hover:text-gray-600 hover:bg-gray-100/50"
                             }`}
                     >
-                        <span className="flex items-center justify-center gap-2">
-                            <FileText className="w-4 h-4" /> Documents (Tài liệu đính kèm)
-                        </span>
+                        <div className={`p-1.5 rounded-lg ${activeTab === "docs" ? (isDark ? "bg-orange-400/20" : "bg-orange-50") : (isDark ? "bg-gray-800" : "bg-gray-100")}`}>
+                            <FileText className="w-4 h-4" />
+                        </div>
+                        Documents (Tài liệu)
                     </button>
                 </div>
 
@@ -281,23 +332,90 @@ export default function AdminLessonBuilderPage({ params }: { params: Promise<{ c
                             )}
                         </div>
 
-                        {/* Add Form */}
-                        {isAddingPart && (
-                            <div className={`p-5 rounded-2xl border ${isDark ? "bg-gray-900/50 border-teal-500/30" : "bg-teal-50/50 border-teal-100"}`}>
-                                <div className="grid gap-4 sm:grid-cols-3">
+                        {/* Add/Edit Form for Lesson Parts */}
+                        {(isAddingPart || editingPart) && (
+                            <div className={`p-8 rounded-3xl border shadow-2xl relative overflow-hidden transition-all duration-500 animate-in fade-in slide-in-from-top-4 ${isDark ? "bg-gray-900/50 border-teal-500/30 backdrop-blur-xl" : "bg-white border-teal-100"}`}>
+                                <div className={`absolute top-0 left-0 w-1.5 h-full ${editingPart ? "bg-teal-400" : "bg-teal-600"}`} />
+
+                                <h4 className={`text-xl font-black mb-6 flex items-center gap-2 ${isDark ? "text-white" : "text-gray-900"}`}>
+                                    {editingPart ? (
+                                        <><Video className="w-6 h-6 text-teal-400" /> Chỉnh sửa: <span className="text-teal-400">{editingPart.title}</span></>
+                                    ) : (
+                                        <><Plus className="w-6 h-6 text-teal-600" /> Thêm Phần Nội Dung Mới</>
+                                    )}
+                                </h4>
+
+                                <div className="grid gap-6 sm:grid-cols-4">
                                     <div className="sm:col-span-2">
-                                        <label className={`block text-sm font-bold mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Tiêu đề phần <span className="text-red-500">*</span></label>
-                                        <input type="text" autoFocus value={newPartTitle} onChange={(e) => setNewPartTitle(e.target.value)} placeholder="Ví dụ: Từ vựng 1" className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${isDark ? "bg-gray-800 border-gray-700 text-white focus:ring-2 focus:ring-teal-400" : "bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-teal-500"}`} />
+                                        <label className={`block text-sm font-bold mb-2.5 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Tiêu đề phần <span className="text-red-500">*</span></label>
+                                        <input
+                                            type="text"
+                                            autoFocus
+                                            value={editingPart ? editPartTitle : newPartTitle}
+                                            onChange={(e) => editingPart ? setEditPartTitle(e.target.value) : setNewPartTitle(e.target.value)}
+                                            placeholder="Ví dụ: Từ vựng 1"
+                                            className={`w-full px-5 py-3 rounded-2xl border text-base font-medium outline-none transition-all duration-300 ${isDark ? "bg-gray-800 border-gray-700 text-white focus:ring-4 focus:ring-teal-500/20 focus:border-teal-500" : "bg-gray-50 border-gray-200 text-gray-900 focus:ring-4 focus:ring-teal-500/20 focus:border-teal-400"}`}
+                                        />
                                     </div>
                                     <div className="sm:col-span-1">
-                                        <label className={`block text-sm font-bold mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Thứ tự <span className="text-red-500">*</span></label>
-                                        <input type="number" min="1" value={newPartOrder} onChange={(e) => setNewPartOrder(Number(e.target.value))} className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${isDark ? "bg-gray-800 border-gray-700 text-white focus:ring-2 focus:ring-teal-400" : "bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-teal-500"}`} />
+                                        <label className={`block text-sm font-bold mb-2.5 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Loại nội dung <span className="text-red-500">*</span></label>
+                                        <select
+                                            value={editingPart ? editPartType : newPartType}
+                                            onChange={(e) => {
+                                                const val = e.target.value as LessonPartType;
+                                                editingPart ? setEditPartType(val) : setNewPartType(val);
+                                            }}
+                                            className={`w-full px-5 py-3 rounded-2xl border text-base font-medium outline-none transition-all duration-300 appearance-none ${isDark ? "bg-gray-800 border-gray-700 text-white focus:ring-4 focus:ring-teal-500/20 focus:border-teal-500" : "bg-gray-50 border-gray-200 text-gray-900 focus:ring-4 focus:ring-teal-500/20 focus:border-teal-400"}`}
+                                        >
+                                            <option value={LessonPartType.VOCABULARY}>Từ vựng</option>
+                                            <option value={LessonPartType.GRAMMAR}>Ngữ pháp</option>
+                                            <option value={LessonPartType.LISTENING}>Nghe hiểu</option>
+                                            <option value={LessonPartType.READING}>Đọc hiểu</option>
+                                            <option value={LessonPartType.PRACTICE}>Luyện tập</option>
+                                        </select>
+                                    </div>
+                                    <div className="sm:col-span-1">
+                                        <label className={`block text-sm font-bold mb-2.5 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Thứ tự <span className="text-red-500">*</span></label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            value={editingPart ? editPartOrder : newPartOrder}
+                                            onChange={(e) => editingPart ? setEditPartOrder(Number(e.target.value)) : setNewPartOrder(Number(e.target.value))}
+                                            className={`w-full px-5 py-3 rounded-2xl border text-base font-medium outline-none transition-all duration-300 ${isDark ? "bg-gray-800 border-gray-700 text-white focus:ring-4 focus:ring-teal-500/20 focus:border-teal-500" : "bg-gray-50 border-gray-200 text-gray-900 focus:ring-4 focus:ring-teal-500/20 focus:border-teal-400"}`}
+                                        />
+                                    </div>
+                                    <div className="sm:col-span-4">
+                                        <label className={`block text-sm font-bold mb-2.5 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Video URL (YouTube)</label>
+                                        <div className="relative">
+                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-teal-500">
+                                                <Video className="w-5 h-5" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={editingPart ? editPartVideoUrl : newPartVideoUrl}
+                                                onChange={(e) => editingPart ? setEditPartVideoUrl(e.target.value) : setNewPartVideoUrl(e.target.value)}
+                                                placeholder="https://www.youtube.com/watch?v=..."
+                                                className={`w-full pl-12 pr-5 py-3 rounded-2xl border text-base font-medium outline-none transition-all duration-300 ${isDark ? "bg-gray-800 border-gray-700 text-white focus:ring-4 focus:ring-teal-500/20 focus:border-teal-500" : "bg-gray-50 border-gray-200 text-gray-900 focus:ring-4 focus:ring-teal-500/20 focus:border-teal-400"}`}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="mt-4 flex justify-end gap-3">
-                                    <button onClick={() => setIsAddingPart(false)} className={`px-4 py-2 font-bold text-sm transition-colors ${isDark ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-gray-900"}`}>Hủy</button>
-                                    <button onClick={handleCreatePart} disabled={isSubmittingPart || !newPartTitle} className={`px-5 py-2 font-bold text-sm text-white rounded-xl shadow-md flex items-center gap-2 ${isSubmittingPart || !newPartTitle ? "bg-gray-500/50 cursor-not-allowed" : "bg-teal-600 hover:bg-teal-700"}`}>
-                                        {isSubmittingPart ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Lưu Part
+                                <div className="mt-8 flex justify-end gap-3">
+                                    <button
+                                        onClick={() => {
+                                            setIsAddingPart(false);
+                                            setEditingPart(null);
+                                        }}
+                                        className={`px-6 py-2.5 font-bold text-sm transition-all duration-300 rounded-xl ${isDark ? "text-gray-400 hover:text-white hover:bg-gray-800" : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"}`}
+                                    >
+                                        Hủy
+                                    </button>
+                                    <button
+                                        onClick={editingPart ? handleUpdatePart : handleCreatePart}
+                                        disabled={isSubmittingPart || (editingPart ? !editPartTitle.trim() : !newPartTitle.trim())}
+                                        className={`px-8 py-2.5 font-black text-sm text-white rounded-xl shadow-lg shadow-teal-500/20 flex items-center gap-2 transition-all duration-300 active:scale-95 ${isSubmittingPart || (editingPart ? !editPartTitle.trim() : !newPartTitle.trim()) ? "bg-gray-500/50 cursor-not-allowed" : "bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600"}`}
+                                    >
+                                        {isSubmittingPart ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} {editingPart ? "Lưu thay đổi" : "Lưu Part"}
                                     </button>
                                 </div>
                             </div>
@@ -309,17 +427,47 @@ export default function AdminLessonBuilderPage({ params }: { params: Promise<{ c
                                 <div className={`text-center py-10 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Chưa có phần học nào.</div>
                             ) : (
                                 parts.map(p => (
-                                    <div key={p.id} className={`flex items-center justify-between p-4 border rounded-xl transition-colors ${isDark ? "bg-gray-800/80 border-gray-700 hover:border-teal-500/50" : "bg-white border-gray-200 hover:border-teal-300"}`}>
-                                        <div className="flex items-center gap-4">
-                                            <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${isDark ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-600"}`}>{p.partOrder}</span>
+                                    <div
+                                        key={p.id}
+                                        className={`group relative flex items-center justify-between p-6 rounded-2xl border transition-all duration-500 overflow-hidden ${isDark ? "bg-gray-800/40 border-gray-700/50 hover:border-teal-500/40 hover:bg-gray-800" : "bg-white border-gray-100 hover:border-teal-200 hover:bg-teal-50/5 hover:shadow-xl"}`}
+                                    >
+                                        <div className={`absolute -right-20 -top-20 w-40 h-40 rounded-full blur-3xl opacity-0 group-hover:opacity-10 transition-opacity duration-500 ${isDark ? "bg-teal-500" : "bg-teal-400"}`} />
+
+                                        <div className="flex items-center gap-6 relative z-10">
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg transition-all duration-300 group-hover:scale-110 ${isDark ? "bg-teal-500/20 text-teal-400" : "bg-teal-50 text-teal-600"}`}>
+                                                {p.partOrder}
+                                            </div>
                                             <div>
-                                                <p className={`font-bold ${isDark ? "text-gray-100" : "text-gray-900"}`}>{p.title}</p>
-                                                {p.videoUrl && <p className="text-xs text-blue-500 truncate max-w-xs">{p.videoUrl}</p>}
+                                                <div className="flex items-center gap-3">
+                                                    <p className={`font-black text-lg transition-colors duration-300 group-hover:text-teal-500 ${isDark ? "text-gray-100" : "text-gray-900"}`}>{p.title}</p>
+                                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter ${isDark ? "bg-teal-500/10 text-teal-400 border border-teal-500/20" : "bg-teal-50 text-teal-600 border border-teal-100"}`}>
+                                                        {p.lessonPartType}
+                                                    </span>
+                                                </div>
+                                                {p.videoUrl && (
+                                                    <div className="flex items-center gap-2 mt-1.5 group/url">
+                                                        <Video className="w-3 h-3 text-gray-500 group-hover/url:text-teal-500 transition-colors" />
+                                                        <p className="text-xs text-gray-500 truncate max-w-xs transition-colors group-hover/url:text-teal-600/70">{p.videoUrl}</p>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                        <button onClick={(e) => handleDeletePart(e, p.id)} className={`p-2 rounded-lg transition-colors ${isDark ? "hover:bg-red-500/20 text-gray-500 hover:text-red-400" : "hover:bg-red-50 text-gray-400 hover:text-red-500"}`}>
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                        <div className="flex items-center gap-2 relative z-10">
+                                            <button
+                                                onClick={() => handleEditPartClick(p)}
+                                                className={`p-2.5 rounded-xl transition-all duration-300 opacity-60 lg:opacity-0 group-hover:opacity-100 hover:scale-110 ${isDark ? "hover:bg-teal-500/20 text-teal-400" : "hover:bg-teal-50 text-teal-600"}`}
+                                                title="Sửa phần học"
+                                            >
+                                                <X className="w-5 h-5 rotate-45" /> {/* Using X rotated as a simple Edit icon or Import Lucide Edit3 */}
+                                            </button>
+                                            <button
+                                                onClick={(e) => handleDeletePart(e, p.id)}
+                                                className={`p-2.5 rounded-xl transition-all duration-300 opacity-60 lg:opacity-0 group-hover:opacity-100 hover:scale-110 ${isDark ? "hover:bg-red-500/20 text-red-400" : "hover:bg-red-50 text-red-500"}`}
+                                                title="Xóa phần học"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
                                     </div>
                                 ))
                             )}
@@ -394,19 +542,31 @@ export default function AdminLessonBuilderPage({ params }: { params: Promise<{ c
                                 <div className={`text-center py-10 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Chưa có tài liệu đính kèm nào.</div>
                             ) : (
                                 docs.map(d => (
-                                    <div key={d.id} className={`flex items-center justify-between p-4 border rounded-xl transition-colors ${isDark ? "bg-gray-800/80 border-gray-700 hover:border-orange-500/50" : "bg-white border-gray-200 hover:border-orange-300"}`}>
-                                        <div className="flex items-center gap-4">
-                                            <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${isDark ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-600"}`}>{d.documentOrder}</span>
-                                            <div className="flex items-center gap-3">
-                                                <FileText className={`w-6 h-6 ${isDark ? "text-orange-400" : "text-orange-500"}`} />
+                                    <div
+                                        key={d.id}
+                                        className={`group relative flex items-center justify-between p-5 rounded-2xl border transition-all duration-500 overflow-hidden ${isDark ? "bg-gray-800/40 border-gray-700/50 hover:border-orange-500/40 hover:bg-gray-800" : "bg-white border-gray-100 hover:border-orange-200 hover:bg-orange-50/5 hover:shadow-lg"}`}
+                                    >
+                                        <div className={`absolute -right-20 -top-20 w-40 h-40 rounded-full blur-3xl opacity-0 group-hover:opacity-10 transition-opacity duration-500 ${isDark ? "bg-orange-500" : "bg-orange-400"}`} />
+
+                                        <div className="flex items-center gap-5 relative z-10">
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg transition-all duration-300 group-hover:scale-110 ${isDark ? "bg-orange-500/20 text-orange-400 shadow-inner" : "bg-orange-50 text-orange-600 shadow-sm"}`}>
+                                                {d.documentOrder}
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <div className={`p-3 rounded-xl ${isDark ? "bg-gray-800 group-hover:bg-orange-500/10" : "bg-gray-50 group-hover:bg-orange-50"} transition-colors duration-300`}>
+                                                    <FileText className={`w-6 h-6 ${isDark ? "text-orange-400" : "text-orange-500"}`} />
+                                                </div>
                                                 <div>
-                                                    <p className={`font-bold ${isDark ? "text-gray-100" : "text-gray-900"}`}>{d.title}</p>
-                                                    <a href={d.documentUrl} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline">Link file tải xuống</a>
+                                                    <p className={`font-black text-lg group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors duration-300 ${isDark ? "text-gray-100" : "text-gray-900"}`}>{d.title}</p>
+                                                    <a href={d.documentUrl} target="_blank" rel="noreferrer" className="text-xs font-bold text-blue-500 hover:text-blue-600 hover:underline transition-colors mt-1 inline-block">Mở tài liệu (Click để tải)</a>
                                                 </div>
                                             </div>
                                         </div>
-                                        <button onClick={(e) => handleDeleteDoc(e, d.id)} className={`p-2 rounded-lg transition-colors ${isDark ? "hover:bg-red-500/20 text-gray-500 hover:text-red-400" : "hover:bg-red-50 text-gray-400 hover:text-red-500"}`}>
-                                            <Trash2 className="w-4 h-4" />
+                                        <button
+                                            onClick={(e) => handleDeleteDoc(e, d.id)}
+                                            className={`p-2.5 rounded-xl transition-all duration-300 opacity-60 lg:opacity-0 group-hover:opacity-100 hover:scale-110 relative z-10 ${isDark ? "hover:bg-red-500/20 text-red-500/70 hover:text-red-400" : "hover:bg-red-50 text-red-400 hover:text-red-500"}`}
+                                        >
+                                            <Trash2 className="w-5 h-5" />
                                         </button>
                                     </div>
                                 ))

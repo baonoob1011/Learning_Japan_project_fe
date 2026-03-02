@@ -8,6 +8,19 @@ export const API_CONFIG = {
 // API Endpoints (flat)
 // API Endpoints (flat)
 export const API_ENDPOINTS = {
+  ASSESSMENT_ITEM: {
+    BY_SECTION: (sectionId: string) =>
+      `/assessment-items/section/${sectionId}`,
+
+    DETAIL: (id: string) =>
+      `/assessment-items/${id}`,
+
+    UPDATE: (id: string) =>
+      `/assessment-items/${id}`,
+  },
+  S3: {
+    UPLOAD: "/api/v1/s3/upload",
+  },
   USER: {
     GET_USER_BY_ID: (id: string) => `/users/chat/${id}`,
     PROFILE: "/users/me",
@@ -55,6 +68,8 @@ export const API_ENDPOINTS = {
     CREATE: "/course",
     GET_MY_PROGRESS: "/courses/my-progress",
     GET_ALL: "/course",
+    UPDATE: (id: string) => `/course/${id}`,   // 👈 thêm dòng này
+
     GET_DETAIL: (courseId: string) => `/course/${courseId}`,
     TOGGLE_ACTIVE: (courseId: string) => `/course/${courseId}/active`,
     GET_PROGRESS: (courseId: string) => `/courses/${courseId}/progress`,
@@ -72,6 +87,8 @@ export const API_ENDPOINTS = {
     GET_BY_COURSE: (courseId: string) => `/section/course/${courseId}`,
     GET_DETAIL: (sectionId: string) => `/section/${sectionId}`,
     DELETE: (sectionId: string) => `/section/${sectionId}`,
+    UPDATE: (sectionId: string) =>
+      `/section/${sectionId}`,
   },
   // config/api.ts
 
@@ -88,6 +105,8 @@ export const API_ENDPOINTS = {
     GET_BY_SECTION: (sectionId: string) => `/lesson/section/${sectionId}`,
     GET_DETAIL: (lessonId: string) => `/lesson/${lessonId}`,
     DELETE: (lessonId: string) => `/lesson/${lessonId}`,
+    UPDATE: (id: string) => `/lesson/${id}`,
+
   },
 
   /* ===================== SECTION DOCUMENT ===================== */
@@ -101,6 +120,8 @@ export const API_ENDPOINTS = {
     GET_BY_LESSON: (lessonId: string) => `/lesson-part/lesson/${lessonId}`,
     GET_DETAIL: (id: string) => `/lesson-part/${id}`,
     DELETE: (id: string) => `/lesson-part/${id}`,
+    UPDATE: (id: string) =>
+      `/lesson-part/${id}`,
   },
 
   /* ===================== ADMIN ===================== */
@@ -145,12 +166,13 @@ export const API_ENDPOINTS = {
       `/youtube/comments/${videoId}`,
     DELETE_COMMENT: (commentId: string) =>
       `/youtube/comments/${commentId}`,
+    UPDATE: (videoId: string) => `/youtube/${videoId}`,
 
     RATINGS: "/youtube/ratings",
     GET_RATING: (videoId: string) =>
       `/youtube/ratings/${videoId}`,
     DELETE_RATING: (videoId: string) =>
-      `/api/v1/youtube/ratings/${videoId}`,
+      `/youtube/ratings/${videoId}`,
   },
 
   LEARNING_PROGRESS: {
@@ -178,6 +200,9 @@ export const API_ENDPOINTS = {
   AI: {
     CHAT: "/ai/chat",
     REALTIME_TOKEN: "/ai/realtime-token",
+  },
+  BATCH: {
+    RUN: "/batch/run",
   },
   REVENUE: {
     SUMMARY: "/admin/revenue/summary",

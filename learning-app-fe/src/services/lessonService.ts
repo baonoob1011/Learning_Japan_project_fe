@@ -26,7 +26,9 @@ export const lessonService = {
   create(request: CreateLessonRequest): Promise<string> {
     return http.post<string>(API_ENDPOINTS.LESSON.CREATE, request);
   },
-
+  update: async (id: string, data: CreateLessonRequest) => {
+    return http.put(API_ENDPOINTS.LESSON.UPDATE(id), data);
+  },
   /**
    * ✅ Get lessons by section
    */

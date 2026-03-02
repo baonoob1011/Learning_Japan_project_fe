@@ -1,13 +1,22 @@
 import { http } from "@/lib/http";
 import { API_ENDPOINTS } from "@/config/api";
+import { LessonPartType } from "@/enums/LessonPartType";
 
 /* ===================== SERVICE ===================== */
 export interface CreateLessonPartRequest {
   lessonId: string;
-  title: string; // Ví dụ: Từ vựng
+  lessonPartType: LessonPartType;
+  title: string;
+  videoUrl: string;
   partOrder: number;
 }
 
+export interface UpdateLessonPartRequest {
+  lessonPartType?: LessonPartType;
+  title?: string;
+  videoUrl?: string;
+  partOrder?: number;
+}
 export interface LessonPartResponse {
   id: string;
   lessonPartType: string;
@@ -41,6 +50,13 @@ export const lessonPartService = {
     return http.get<LessonPartResponse>(
       API_ENDPOINTS.LESSON_PART.GET_DETAIL(id)
     );
+  },
+
+  /**
+   * ✅ Update
+   */
+  update(id: string, request: UpdateLessonPartRequest): Promise<string> {
+    return http.put<string>(API_ENDPOINTS.LESSON_PART.UPDATE(id), request);
   },
 
   /**

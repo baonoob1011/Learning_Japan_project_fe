@@ -83,6 +83,21 @@ export default function DashboardAdmin() {
                                     </span>
                                 </div>
                             </button>
+                            <button
+                                onClick={() => router.push('/dasboardAdmin/kanji')}
+                                className={`p-6 rounded-2xl border shadow-sm transition-all text-left flex items-start gap-4 group ${isDark ? "bg-gray-800 border-gray-700 hover:border-gray-600" : "bg-white border-gray-100 hover:border-purple-300 hover:shadow-md"}`}
+                            >
+                                <div className={`p-3 rounded-xl transition-transform group-hover:scale-110 ${isDark ? "bg-purple-500/20 text-purple-400" : "bg-purple-50 text-purple-600"}`}>
+                                    <Activity className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h4 className={`font-bold ${isDark ? "text-gray-100" : "text-gray-900"}`}>Quản lý Kanji</h4>
+                                    <p className={`text-xs mt-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>Thêm mới và quản lý danh sách Hán tự.</p>
+                                    <span className="inline-flex items-center gap-1 text-xs font-bold text-purple-600 mt-3">
+                                        Truy cập ngay <ChevronRight className="w-3 h-3" />
+                                    </span>
+                                </div>
+                            </button>
                         </div>
 
                         <div className="bg-gradient-to-br from-indigo-600 to-blue-700 p-8 rounded-3xl text-white shadow-xl relative overflow-hidden">

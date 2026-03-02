@@ -11,6 +11,8 @@ import {
     Crown,
     MessageSquare,
     Video,
+    Languages,
+    FileEdit,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -51,6 +53,11 @@ export default function AdminSidebar({ isDark = false }: SidebarProps) {
             label: "Quản lý Video",
         },
         {
+            path: "/dasboardAdmin/kanji",
+            icon: <Languages className="w-5 h-5" />,
+            label: "Quản lý Kanji",
+        },
+        {
             path: "/dasboardAdmin/vip",
             icon: <Crown className="w-5 h-5" />,
             label: "Quản lý VIP",
@@ -59,6 +66,11 @@ export default function AdminSidebar({ isDark = false }: SidebarProps) {
             path: "/dasboardAdmin/feedback",
             icon: <MessageSquare className="w-5 h-5" />,
             label: "Quản lý Phản hồi",
+        },
+        {
+            path: "/dasboardAdmin/exams",
+            icon: <FileEdit className="w-5 h-5" />,
+            label: "Quản lý Đề thi",
         },
     ];
 

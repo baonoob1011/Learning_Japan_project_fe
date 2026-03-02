@@ -118,7 +118,7 @@ export const examService = {
       if (axiosErr.response) {
         throw new Error(
           axiosErr.response.data?.message ||
-            `Lỗi khi fetch sections, status ${axiosErr.response.status}`
+          `Lỗi khi fetch sections, status ${axiosErr.response.status}`
         );
       } else if (axiosErr.request) {
         throw new Error("Không nhận được phản hồi từ server");
@@ -219,7 +219,7 @@ export const examService = {
       if (axiosErr.response) {
         throw new Error(
           axiosErr.response.data?.message ||
-            `Lỗi submit bài thi, status ${axiosErr.response.status}`
+          `Lỗi submit bài thi, status ${axiosErr.response.status}`
         );
       } else if (axiosErr.request) {
         throw new Error("Không nhận được phản hồi từ server");

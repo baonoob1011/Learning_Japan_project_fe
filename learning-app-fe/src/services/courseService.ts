@@ -15,7 +15,13 @@ export interface CreateCourseRequest {
   lessonProcess: LessonProcess;
   image?: File;
 }
-
+export interface UpdateCourseRequest {
+  title?: string;
+  description?: string;
+  level?: JLPTLevel;
+  lessonProcess?: LessonProcess;
+  price?: number;
+}
 export interface CourseResponse {
   id: string;
   title: string;
@@ -66,7 +72,14 @@ export const courseService = {
   getAll(): Promise<CourseResponse[]> {
     return http.get<CourseResponse[]>(API_ENDPOINTS.COURSE.GET_ALL);
   },
+  update(courseId: string, request: UpdateCourseRequest): Promise<string> {
+    console.log("Updating Course:", courseId, request);
 
+    return http.put<string>(
+      API_ENDPOINTS.COURSE.UPDATE(courseId),
+      request
+    );
+  },
   getDetail(courseId: string): Promise<CourseResponse> {
     return http.get<CourseResponse>(API_ENDPOINTS.COURSE.GET_DETAIL(courseId));
   },

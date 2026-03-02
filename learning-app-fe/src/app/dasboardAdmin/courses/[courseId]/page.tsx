@@ -2,9 +2,9 @@
 import React, { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { useDarkMode } from "@/hooks/useDarkMode";
-import { BookOpen, Layers, CheckCircle2, ChevronRight, Loader2, Plus, Trash2, ArrowLeft } from "lucide-react";
+import { BookOpen, Layers, CheckCircle2, ChevronRight, Loader2, Plus, Trash2, ArrowLeft, Edit3, X, Save } from "lucide-react";
 import { courseService, CourseResponse } from "@/services/courseService";
-import { sectionService, SectionResponse, CreateSectionRequest } from "@/services/sectionService";
+import { sectionService, SectionResponse, CreateSectionRequest, UpdateSectionRequest } from "@/services/sectionService";
 import { LessonLevel } from "@/enums/LessonLevel";
 
 export default function AdminSectionManagerPage({ params }: { params: Promise<{ courseId: string }> }) {
@@ -20,6 +20,12 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
     const [isAdding, setIsAdding] = useState(false);
     const [newTitle, setNewTitle] = useState("");
     const [newLevel, setNewLevel] = useState<LessonLevel>(LessonLevel.N5_BEGINNER);
+
+    // Edit state
+    const [editingSection, setEditingSection] = useState<SectionResponse | null>(null);
+    const [editTitle, setEditTitle] = useState("");
+    const [editLevel, setEditLevel] = useState<LessonLevel>(LessonLevel.N5_BEGINNER);
+
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
@@ -56,9 +62,8 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
                 title: newTitle.trim(),
                 lessonLevel: newLevel
             };
-            const newId = await sectionService.create(req);
+            await sectionService.create(req);
 
-            // Re-fetch to get full object or manually add
             const updated = await sectionService.getByCourse(courseId);
             setSections(updated);
 
@@ -67,6 +72,38 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
         } catch (error) {
             console.error(error);
             alert("Create failed!");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleEditClick = (section: SectionResponse) => {
+        setEditingSection(section);
+        setEditTitle(section.title);
+        setEditLevel(section.lessonLevel);
+        setIsAdding(false); // Close add form if open
+    };
+
+    const handleUpdateSection = async () => {
+        if (!editingSection || !editTitle.trim()) return;
+        setIsSubmitting(true);
+        try {
+            const req: UpdateSectionRequest = {
+                title: editTitle.trim(),
+                lessonLevel: editLevel
+            };
+            await sectionService.update(editingSection.id, req);
+
+            setSections(prev => prev.map(s =>
+                s.id === editingSection.id
+                    ? { ...s, title: editTitle.trim(), lessonLevel: editLevel }
+                    : s
+            ));
+
+            setEditingSection(null);
+        } catch (error) {
+            console.error("Update failed:", error);
+            alert("Cập nhật không thành công!");
         } finally {
             setIsSubmitting(false);
         }
@@ -93,77 +130,110 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
 
 
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                <div className="flex items-center gap-5">
                     <button
                         onClick={() => router.push('/dasboardAdmin/courses')}
-                        className={`p-2.5 rounded-full border transition-all ${isDark ? "border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-300" : "border-gray-200 bg-white hover:bg-gray-50 text-gray-600"}`}
+                        className={`p-3 rounded-2xl border transition-all duration-300 shadow-sm hover:shadow-md active:scale-90 ${isDark ? "border-gray-700 bg-gray-800/80 hover:bg-gray-700 text-gray-300" : "border-gray-200 bg-white hover:bg-gray-50 text-gray-600"}`}
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
-                        <h1 className={`text-3xl font-extrabold tracking-tight flex items-center gap-3 ${isDark ? "text-white" : "text-gray-900"}`}>
-                            <Layers className={`w-8 h-8 ${isDark ? "text-purple-400" : "text-purple-600"}`} />
+                        <h1 className={`text-4xl font-black tracking-tight flex items-center gap-3 ${isDark ? "text-white" : "text-gray-900"}`}>
+                            <div className={`p-2 rounded-xl ${isDark ? "bg-purple-500/10" : "bg-purple-50"}`}>
+                                <Layers className={`w-8 h-8 ${isDark ? "text-purple-400" : "text-purple-600"}`} />
+                            </div>
                             Chương (Sections)
                         </h1>
-                        <p className={`text-sm mt-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>Quản lý cấu trúc của khóa học: <strong className={isDark ? "text-gray-200" : "text-gray-700"}>{course?.title}</strong></p>
+                        <p className={`text-sm mt-1.5 font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                            Quản lý cấu trúc của khóa học: <span className={`px-2 py-0.5 rounded-lg ${isDark ? "bg-purple-500/10 text-purple-300" : "bg-purple-50 text-purple-700"}`}>{course?.title}</span>
+                        </p>
                     </div>
                 </div>
 
                 <button
-                    onClick={() => setIsAdding(!isAdding)}
-                    className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-bold rounded-xl flex items-center gap-2 shadow-sm transition-all text-sm"
+                    onClick={() => {
+                        setIsAdding(!isAdding);
+                        setEditingSection(null);
+                    }}
+                    className={`px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 active:scale-95 text-white font-bold rounded-2xl flex items-center gap-2 shadow-lg shadow-purple-500/20 transition-all duration-300 group ${isAdding ? "ring-2 ring-purple-400" : ""}`}
                 >
-                    <Plus className="w-4 h-4" /> {isAdding ? "Hủy Thêm" : "Tạo Section mới"}
+                    {isAdding ? (
+                        <><X className="w-5 h-5" /> Hủy Thêm</>
+                    ) : (
+                        <><Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" /> Tạo Section mới</>
+                    )}
                 </button>
             </div>
 
-            {/* Form thêm mới Modal-like (inline) */}
-            {isAdding && (
-                <div className={`p-6 rounded-2xl border shadow-xl ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-purple-100"}`}>
-                    <h3 className={`text-lg font-bold mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>Thêm Chương (Section) Mới</h3>
-                    <div className="grid gap-4 sm:grid-cols-2">
+            {/* Form thêm hoặc sửa */}
+            {(isAdding || editingSection) && (
+                <div className={`p-8 rounded-3xl border shadow-2xl relative overflow-hidden transition-all duration-500 animate-in fade-in slide-in-from-top-4 ${isDark ? "bg-gray-800/50 border-gray-700 backdrop-blur-xl" : "bg-white border-purple-100"}`}>
+                    <div className={`absolute top-0 left-0 w-1.5 h-full ${editingSection ? "bg-amber-500" : "bg-purple-600"}`} />
+
+                    <h3 className={`text-xl font-black mb-6 flex items-center gap-2 ${isDark ? "text-white" : "text-gray-900"}`}>
+                        {editingSection ? (
+                            <><Edit3 className="w-6 h-6 text-amber-500" /> Chỉnh sửa: <span className="text-amber-500">{editingSection.title}</span></>
+                        ) : (
+                            <><Plus className="w-6 h-6 text-purple-600" /> Thêm Chương (Section) Mới</>
+                        )}
+                    </h3>
+
+                    <div className="grid gap-6 sm:grid-cols-2">
                         <div>
-                            <label className={`block text-sm font-bold mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Tên Section <span className="text-red-500">*</span></label>
+                            <label className={`block text-sm font-bold mb-2.5 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Tên Section <span className="text-red-500">*</span></label>
                             <input
                                 type="text"
                                 autoFocus
-                                value={newTitle}
-                                onChange={(e) => setNewTitle(e.target.value)}
+                                value={editingSection ? editTitle : newTitle}
+                                onChange={(e) => editingSection ? setEditTitle(e.target.value) : setNewTitle(e.target.value)}
                                 placeholder="Ví dụ: Chương 1: Bảng chữ cái"
-                                className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none transition ${isDark ? "bg-gray-900/50 border-gray-700 text-white placeholder-gray-500" : "bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400"}`}
+                                className={`w-full px-5 py-3 rounded-2xl border text-base font-medium focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all duration-300 ${isDark ? "bg-gray-900/50 border-gray-700 text-white placeholder-gray-600" : "bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400"}`}
                             />
                         </div>
                         <div>
-                            <label className={`block text-sm font-bold mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Trình độ (Lesson Level) <span className="text-red-500">*</span></label>
-                            <select
-                                value={newLevel}
-                                onChange={(e) => setNewLevel(e.target.value as LessonLevel)}
-                                className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none transition ${isDark ? "bg-gray-900/50 border-gray-700 text-white" : "bg-gray-50 border-gray-200 text-gray-900"}`}
-                            >
-                                <option value={LessonLevel.N5_BEGINNER}>N5 Sơ cấp</option>
-                                <option value={LessonLevel.N5_ELEMENTARY}>N5 Sơ trung cấp</option>
-                                <option value={LessonLevel.N4_BEGINNER}>N4 Sơ cấp</option>
-                                <option value={LessonLevel.N4_ELEMENTARY}>N4 Sơ trung cấp</option>
-                                <option value={LessonLevel.N3_INTERMEDIATE}>N3 Trung cấp</option>
-                                <option value={LessonLevel.N2_UPPER}>N2 Cao cấp</option>
-                                <option value={LessonLevel.N1_ADVANCED}>N1 Thượng cấp</option>
-                            </select>
+                            <label className={`block text-sm font-bold mb-2.5 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Trình độ (Lesson Level) <span className="text-red-500">*</span></label>
+                            <div className="relative">
+                                <select
+                                    value={editingSection ? editLevel : newLevel}
+                                    onChange={(e) => editingSection ? setEditLevel(e.target.value as LessonLevel) : setNewLevel(e.target.value as LessonLevel)}
+                                    className={`w-full px-5 py-3 rounded-2xl border text-base font-medium appearance-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all duration-300 ${isDark ? "bg-gray-900/50 border-gray-700 text-white" : "bg-gray-50 border-gray-200 text-gray-900"}`}
+                                >
+                                    <option value={LessonLevel.N5_BEGINNER}>N5 Sơ cấp</option>
+                                    <option value={LessonLevel.N5_ELEMENTARY}>N5 Sơ trung cấp</option>
+                                    <option value={LessonLevel.N4_BEGINNER}>N4 Sơ cấp</option>
+                                    <option value={LessonLevel.N4_ELEMENTARY}>N4 Sơ trung cấp</option>
+                                    <option value={LessonLevel.N3_INTERMEDIATE}>N3 Trung cấp</option>
+                                    <option value={LessonLevel.N2_UPPER}>N2 Cao cấp</option>
+                                    <option value={LessonLevel.N1_ADVANCED}>N1 Thượng cấp</option>
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
+                                    <ChevronRight className="w-5 h-5 rotate-90" />
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div className="mt-4 flex justify-end gap-3">
+
+                    <div className="mt-8 flex justify-end gap-3">
                         <button
-                            onClick={() => setIsAdding(false)}
-                            className={`px-4 py-2 font-bold text-sm rounded-xl transition-colors ${isDark ? "text-gray-400 hover:text-white hover:bg-gray-700" : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"}`}
+                            onClick={() => {
+                                setIsAdding(false);
+                                setEditingSection(null);
+                            }}
+                            className={`px-6 py-2.5 font-bold text-sm rounded-xl transition-all duration-300 ${isDark ? "text-gray-400 hover:text-white hover:bg-gray-700/50" : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"}`}
                         >
                             Hủy
                         </button>
                         <button
-                            onClick={handleCreateSection}
-                            disabled={isSubmitting || !newTitle.trim()}
-                            className={`px-5 py-2 font-bold text-sm text-white rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2 ${isSubmitting || !newTitle.trim() ? "bg-gray-400 cursor-not-allowed" : "bg-purple-600 hover:bg-purple-700"}`}
+                            onClick={editingSection ? handleUpdateSection : handleCreateSection}
+                            disabled={isSubmitting || (editingSection ? !editTitle.trim() : !newTitle.trim())}
+                            className={`px-8 py-2.5 font-bold text-sm text-white rounded-xl shadow-lg active:scale-95 flex items-center gap-2 transition-all duration-300 ${isSubmitting || (editingSection ? !editTitle.trim() : !newTitle.trim()) ? "bg-gray-400 cursor-not-allowed" : (editingSection ? "bg-amber-500 hover:bg-amber-600 shadow-amber-500/20" : "bg-purple-600 hover:bg-purple-700 shadow-purple-500/20")}`}
                         >
-                            {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Đang thêm...</> : <><CheckCircle2 className="w-4 h-4" /> Xác nhận tạo</>}
+                            {isSubmitting ? (
+                                <><Loader2 className="w-4 h-4 animate-spin" /> {editingSection ? "Đang lưu..." : "Đang thêm..."}</>
+                            ) : (
+                                <>{editingSection ? <><Save className="w-4 h-4" /> Lưu thay đổi</> : <><CheckCircle2 className="w-4 h-4" /> Xác nhận tạo</>}</>
+                            )}
                         </button>
                     </div>
                 </div>
@@ -193,34 +263,54 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
                             <div
                                 key={section.id}
                                 onClick={() => router.push(`/dasboardAdmin/courses/${courseId}/sections/${section.id}`)}
-                                className={`group flex items-center justify-between p-5 rounded-2xl border cursor-pointer transition-all duration-300 hover:shadow-lg ${isDark ? "bg-gray-800 border-gray-700 hover:border-purple-500/50 hover:bg-gray-800/80" : "bg-white border-gray-200 hover:border-purple-300 hover:bg-purple-50/10"}`}
+                                className={`group relative flex items-center justify-between p-6 rounded-3xl border cursor-pointer transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 overflow-hidden ${isDark ? "bg-gray-800/40 border-gray-700/50 hover:border-purple-500/50 hover:bg-gray-800" : "bg-white border-gray-100 hover:border-purple-200 hover:bg-purple-50/5"}`}
                             >
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-lg ${isDark ? "bg-purple-500/20 text-purple-400" : "bg-purple-100 text-purple-600"}`}>
+                                {/* Background glow effect on hover */}
+                                <div className={`absolute -right-20 -top-20 w-40 h-40 rounded-full blur-3xl opacity-0 group-hover:opacity-10 transition-opacity duration-500 ${isDark ? "bg-purple-500" : "bg-purple-400"}`} />
+
+                                <div className="flex items-center gap-6 relative z-10">
+                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${isDark ? "bg-gradient-to-br from-purple-500/20 to-indigo-500/20 text-purple-400 shadow-inner" : "bg-gradient-to-br from-purple-50 to-indigo-50 text-purple-600 shadow-sm"}`}>
                                         {index + 1}
                                     </div>
                                     <div>
-                                        <h3 className={`font-bold text-lg group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors ${isDark ? "text-white" : "text-gray-900"}`}>{section.title}</h3>
-                                        <div className="flex items-center gap-3 mt-1">
-                                            <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
-                                                {section.lessonLevel}
+                                        <h3 className={`font-black text-xl group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300 ${isDark ? "text-white" : "text-gray-900"}`}>
+                                            {section.title}
+                                        </h3>
+                                        <div className="flex items-center gap-4 mt-2">
+                                            <span className={`px-3 py-1 rounded-full text-[10px] uppercase font-black tracking-wider border transition-colors ${isDark ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" : "bg-indigo-50 text-indigo-600 border-indigo-100"}`}>
+                                                {section.lessonLevel.replace('_', ' ')}
                                             </span>
-                                            <span className={`text-xs font-medium ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-                                                Tạo lúc: {section.createdAt ? new Date(section.createdAt).toLocaleDateString('vi-VN') : "N/A"}
-                                            </span>
+                                            <div className={`flex items-center gap-1.5 text-xs font-bold ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                                                <div className={`w-1 h-1 rounded-full ${isDark ? "bg-gray-700" : "bg-gray-300"}`} />
+                                                Tạo lúc: {section.createdAt ? new Date(section.createdAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : "N/A"}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={(e) => handleDeleteSection(e, section.id)}
-                                        className={`p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all ${isDark ? "hover:bg-red-500/20 text-red-400" : "hover:bg-red-50 text-red-500"}`}
-                                        title="Xóa section"
-                                    >
-                                        <Trash2 className="w-5 h-5" />
-                                    </button>
-                                    <ChevronRight className={`w-5 h-5 transition-transform group-hover:translate-x-1 ${isDark ? "text-gray-500" : "text-gray-400"}`} />
+                                <div className="flex items-center gap-2 relative z-10">
+                                    <div className="flex items-center gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all duration-300 translate-x-4 lg:translate-x-8 group-hover:translate-x-0">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleEditClick(section);
+                                            }}
+                                            className={`p-2.5 rounded-xl transition-all duration-300 hover:scale-110 ${isDark ? "hover:bg-amber-500/20 text-amber-500" : "hover:bg-amber-50 text-amber-600"}`}
+                                            title="Sửa section"
+                                        >
+                                            <Edit3 className="w-5 h-5" />
+                                        </button>
+                                        <button
+                                            onClick={(e) => handleDeleteSection(e, section.id)}
+                                            className={`p-2.5 rounded-xl transition-all duration-300 hover:scale-110 ${isDark ? "hover:bg-red-500/20 text-red-500" : "hover:bg-red-50 text-red-600"}`}
+                                            title="Xóa section"
+                                        >
+                                            <Trash2 className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                    <div className={`p-2 rounded-xl transition-all duration-300 group-hover:bg-purple-500/10 ${isDark ? "text-gray-600" : "text-gray-300"}`}>
+                                        <ChevronRight className={`w-6 h-6 transition-transform duration-500 group-hover:translate-x-1 group-hover:text-purple-500`} />
+                                    </div>
                                 </div>
                             </div>
                         ))

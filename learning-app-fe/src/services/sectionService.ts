@@ -16,6 +16,10 @@ export interface SectionResponse {
   lessonLevel: LessonLevel;
   createdAt: string;
 }
+export interface UpdateSectionRequest {
+  title?: string;
+  lessonLevel?: LessonLevel;
+}
 
 /* ===================== SERVICE ===================== */
 
@@ -26,7 +30,18 @@ export const sectionService = {
   create(request: CreateSectionRequest): Promise<string> {
     return http.post<string>(API_ENDPOINTS.SECTION.CREATE, request);
   },
-
+  /**
+   * ✅ Cập nhật section (partial)
+   */
+  update(
+    sectionId: string,
+    request: UpdateSectionRequest
+  ): Promise<string> {
+    return http.put<string>(
+      API_ENDPOINTS.SECTION.UPDATE(sectionId),
+      request
+    );
+  },
   /**
    * ✅ Lấy danh sách section theo course
    */

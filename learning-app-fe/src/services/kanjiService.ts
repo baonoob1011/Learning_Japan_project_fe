@@ -14,10 +14,7 @@ export interface KanjiResponse {
 
 export interface CreateKanjiRequest {
   character: string;
-  meaning: string;
-  onyomi: string;
-  kunyomi: string;
-  svgStrokes: string[]; // ✅ gửi list string
+
 }
 
 /* ===================== SERVICE ===================== */
