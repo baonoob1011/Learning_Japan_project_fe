@@ -19,7 +19,7 @@ export const API_ENDPOINTS = {
       `/assessment-items/${id}`,
   },
   S3: {
-    UPLOAD: "/api/v1/s3/upload",
+    UPLOAD: "/s3/upload",
   },
   USER: {
     GET_USER_BY_ID: (id: string) => `/users/chat/${id}`,
@@ -186,6 +186,7 @@ export const API_ENDPOINTS = {
     EXAM_SUBMIT: "exams/submit",
     EXAM_START: "/exams/start",
     QUESTION_VIEW_ALL: "/questions",
+    IMPORT: "/exams/import",
   },
 
   TRANSLATE: {

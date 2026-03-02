@@ -31,12 +31,15 @@ import {
     X,
     Type,
     ListOrdered,
+    Upload,
+    FileUp,
 } from "lucide-react";
 import { examService, ExamResponse, SectionWithQuestionsResponse } from "@/services/examService";
 import { assessmentItemService, AssessmentItemResponse, UpdateAssessmentItemRequest } from "@/services/assessmentItemService";
 import { batchService } from "@/services/batchService";
 import { BatchJobType } from "@/enums/BatchJobType";
 import { AssessmentType } from "@/enums/assessmentType";
+import { s3Service } from "@/services/s3Service";
 
 interface ExamDetail {
     sections: SectionWithQuestionsResponse[];
@@ -53,6 +56,14 @@ export default function ExamManagementPage() {
     const [batchMessage, setBatchMessage] = useState<string | null>(null);
     const [showConfirm, setShowConfirm] = useState(false);
     const [pendingJob, setPendingJob] = useState<BatchJobType | null>(null);
+
+    // Upload exam state
+    const [showUploadModal, setShowUploadModal] = useState(false);
+    const [uploadFile, setUploadFile] = useState<File | null>(null);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadResult, setUploadResult] = useState<{ ok: boolean; msg: string } | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
 
     // Inline detail state
     const [expandedExamId, setExpandedExamId] = useState<string | null>(null);
@@ -187,6 +198,25 @@ export default function ExamManagementPage() {
         }
     };
 
+    const handleUploadExam = async () => {
+        if (!uploadFile) return;
+        setIsUploading(true);
+        setUploadProgress(0);
+        setUploadResult(null);
+        try {
+            await s3Service.uploadExam(uploadFile, setUploadProgress);
+            setUploadResult({ ok: true, msg: `Import "${uploadFile.name}" thành công!` });
+            setUploadFile(null);
+            // Refresh exam list
+            await fetchExams();
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : "Upload thất bại, vui lòng thử lại.";
+            setUploadResult({ ok: false, msg });
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     return (
         <main className="p-8 max-w-7xl mx-auto w-full space-y-8 animate-in fade-in duration-700 relative">
 
@@ -205,6 +235,113 @@ export default function ExamManagementPage() {
                         <div className="flex items-center gap-3">
                             <button onClick={() => setShowConfirm(false)} className={`flex-1 py-4 rounded-2xl font-black text-sm transition-all ${isDark ? "bg-gray-800 hover:bg-gray-700 text-gray-300" : "bg-gray-100 hover:bg-gray-200 text-gray-600"}`}>Hủy bỏ</button>
                             <button onClick={handleConfirmBatch} className="flex-1 py-4 rounded-2xl font-black text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 active:scale-95 transition-all">Xác nhận</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Upload Exam Modal */}
+            {showUploadModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { if (!isUploading) { setShowUploadModal(false); setUploadFile(null); setUploadResult(null); } }} />
+                    <div className={`relative w-full max-w-lg p-8 rounded-[32px] border shadow-2xl ${isDark ? "bg-gray-900 border-gray-700 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
+                        {/* Header */}
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isDark ? "bg-violet-500/10 text-violet-400" : "bg-violet-50 text-violet-600"}`}>
+                                    <FileUp className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black">Import Đề thi</h3>
+                                    <p className={`text-xs font-bold ${isDark ? "text-gray-500" : "text-gray-400"}`}>Hỗ trợ file .csv</p>
+                                </div>
+                            </div>
+                            {!isUploading && (
+                                <button onClick={() => { setShowUploadModal(false); setUploadFile(null); setUploadResult(null); }} className={`p-2 rounded-xl transition-all ${isDark ? "hover:bg-gray-800 text-gray-500" : "hover:bg-gray-100 text-gray-400"}`}>
+                                    <X className="w-5 h-5" />
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Drop Zone */}
+                        <div
+                            onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
+                            onDragLeave={() => setIsDragging(false)}
+                            onDrop={e => {
+                                e.preventDefault(); setIsDragging(false);
+                                const f = e.dataTransfer.files[0];
+                                if (f) { setUploadFile(f); setUploadResult(null); }
+                            }}
+                            className={`relative border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-300 ${isDragging
+                                ? (isDark ? "border-violet-400 bg-violet-500/10" : "border-violet-400 bg-violet-50")
+                                : uploadFile
+                                    ? (isDark ? "border-emerald-500/50 bg-emerald-500/5" : "border-emerald-300 bg-emerald-50/50")
+                                    : (isDark ? "border-gray-700 hover:border-gray-500" : "border-gray-200 hover:border-violet-300")
+                                }`}
+                        >
+                            {uploadFile ? (
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${isDark ? "bg-emerald-500/10 text-emerald-400" : "bg-emerald-50 text-emerald-600"}`}>
+                                        <CheckCircle2 className="w-8 h-8" />
+                                    </div>
+                                    <p className={`font-black text-sm ${isDark ? "text-white" : "text-gray-900"}`}>{uploadFile.name}</p>
+                                    <p className={`text-xs font-bold ${isDark ? "text-gray-500" : "text-gray-400"}`}>{(uploadFile.size / 1024).toFixed(1)} KB</p>
+                                    <button onClick={() => setUploadFile(null)} className={`mt-1 text-xs font-black underline ${isDark ? "text-gray-500 hover:text-red-400" : "text-gray-400 hover:text-red-500"}`}>Xóa file</button>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center gap-3">
+                                    <Upload className={`w-10 h-10 ${isDark ? "text-gray-600" : "text-gray-300"}`} />
+                                    <p className={`font-black text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Kéo thả file vào đây</p>
+                                    <p className={`text-xs ${isDark ? "text-gray-600" : "text-gray-400"}`}>hoặc</p>
+                                    <label className={`px-5 py-2.5 rounded-xl font-black text-sm cursor-pointer transition-all active:scale-95 ${isDark ? "bg-gray-800 hover:bg-gray-700 text-gray-300" : "bg-gray-100 hover:bg-gray-200 text-gray-600"}`}>
+                                        Chọn file
+                                        <input type="file" accept=".csv" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) { setUploadFile(f); setUploadResult(null); } }} />
+                                    </label>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Progress */}
+                        {isUploading && (
+                            <div className="mt-5 space-y-2">
+                                <div className="flex justify-between">
+                                    <span className={`text-xs font-black ${isDark ? "text-gray-400" : "text-gray-500"}`}>Đang tải lên...</span>
+                                    <span className={`text-xs font-black text-violet-500`}>{uploadProgress}%</span>
+                                </div>
+                                <div className={`h-2 rounded-full overflow-hidden ${isDark ? "bg-gray-800" : "bg-gray-100"}`}>
+                                    <div
+                                        className="h-full bg-gradient-to-r from-violet-500 to-blue-500 rounded-full transition-all duration-300"
+                                        style={{ width: `${uploadProgress}%` }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Result message */}
+                        {uploadResult && (
+                            <div className={`mt-4 px-4 py-3 rounded-2xl flex items-center gap-2 text-sm font-bold ${uploadResult.ok ? (isDark ? "bg-emerald-500/10 text-emerald-400" : "bg-emerald-50 text-emerald-700") : (isDark ? "bg-red-500/10 text-red-400" : "bg-red-50 text-red-700")}`}>
+                                {uploadResult.ok ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
+                                {uploadResult.msg}
+                            </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-3 mt-6">
+                            <button
+                                onClick={() => { setShowUploadModal(false); setUploadFile(null); setUploadResult(null); }}
+                                disabled={isUploading}
+                                className={`flex-1 py-3.5 rounded-2xl font-black text-sm transition-all ${isDark ? "bg-gray-800 hover:bg-gray-700 text-gray-300" : "bg-gray-100 hover:bg-gray-200 text-gray-600"} disabled:opacity-40`}
+                            >
+                                {uploadResult?.ok ? "Đóng" : "Hủy"}
+                            </button>
+                            <button
+                                onClick={handleUploadExam}
+                                disabled={!uploadFile || isUploading}
+                                className={`flex-1 py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg ${!uploadFile || isUploading ? "bg-gray-400 text-gray-200 cursor-not-allowed shadow-none" : "bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-violet-500/20 hover:shadow-violet-500/30"}`}
+                            >
+                                {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                                {isUploading ? "Đang import..." : "Import ngay"}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -246,6 +383,12 @@ export default function ExamManagementPage() {
                             <Zap className="w-4 h-4" /> Assessment
                         </button>
                     </div>
+                    <button
+                        onClick={() => { setShowUploadModal(true); setUploadResult(null); setUploadFile(null); }}
+                        className={`px-6 py-3.5 font-black rounded-2xl flex items-center gap-3 shadow-xl transition-all active:scale-95 text-sm border ${isDark ? "border-violet-500/30 bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 shadow-violet-500/10" : "border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100 shadow-violet-100"}`}
+                    >
+                        <FileUp className="w-5 h-5" /> Import Excel
+                    </button>
                     <button className="px-6 py-3.5 font-black rounded-2xl flex items-center gap-3 shadow-xl transition-all active:scale-95 text-sm bg-gradient-to-r from-blue-600 to-indigo-500 text-white shadow-blue-500/20 hover:shadow-blue-500/30">
                         <Plus className="w-5 h-5" /> Tạo Đề mới
                     </button>
