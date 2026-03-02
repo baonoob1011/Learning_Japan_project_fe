@@ -303,7 +303,8 @@ export default function VideoListPage() {
       .includes(searchQuery.toLowerCase());
     const matchesLevel = activeLevel === "ALL" || video.level === activeLevel;
     const matchesTag = activeTag === "ALL" || video.videoTag === activeTag;
-    return matchesSearch && matchesLevel && matchesTag;
+    const isShadowingVideo = !!video.videoTag; // Extra safety check
+    return matchesSearch && matchesLevel && matchesTag && isShadowingVideo;
   });
 
   if (!mounted) {

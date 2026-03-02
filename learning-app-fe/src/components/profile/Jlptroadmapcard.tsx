@@ -54,9 +54,8 @@ const CourseProgressCard: React.FC<{
   return (
     <div
       onClick={onClick}
-      className={`rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer border-l-4 ${
-        color.border
-      } ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}
+      className={`rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer border-l-4 ${color.border
+        } ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}
     >
       <div className="p-5">
         {/* Header */}
@@ -70,16 +69,14 @@ const CourseProgressCard: React.FC<{
               </div>
             )}
             <h3
-              className={`text-base font-bold mb-1 ${
-                isDark ? "text-gray-100" : "text-gray-900"
-              }`}
+              className={`text-base font-bold mb-1 ${isDark ? "text-gray-100" : "text-gray-900"
+                }`}
             >
               {index + 1}. {course.title}
             </h3>
             <p
-              className={`text-xs line-clamp-2 ${
-                isDark ? "text-gray-400" : "text-gray-600"
-              }`}
+              className={`text-xs line-clamp-2 ${isDark ? "text-gray-400" : "text-gray-600"
+                }`}
             >
               {course.description}
             </p>
@@ -111,9 +108,8 @@ const CourseProgressCard: React.FC<{
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span
-                  className={`text-lg font-bold ${
-                    isDark ? "text-gray-100" : "text-gray-900"
-                  }`}
+                  className={`text-lg font-bold ${isDark ? "text-gray-100" : "text-gray-900"
+                    }`}
                 >
                   {Math.round(percent)}%
                 </span>
@@ -128,9 +124,8 @@ const CourseProgressCard: React.FC<{
           <div className="flex items-center gap-1.5">
             <BookOpen className="w-3.5 h-3.5 text-gray-400" />
             <span
-              className={`text-xs ${
-                isDark ? "text-gray-400" : "text-gray-600"
-              }`}
+              className={`text-xs ${isDark ? "text-gray-400" : "text-gray-600"
+                }`}
             >
               {course.lessonProcess}
             </span>
@@ -145,9 +140,8 @@ const CourseProgressCard: React.FC<{
         {/* Progress Bar */}
         <div className="mb-3">
           <div
-            className={`h-2 rounded-full ${
-              isDark ? "bg-gray-700" : "bg-gray-200"
-            }`}
+            className={`h-2 rounded-full ${isDark ? "bg-gray-700" : "bg-gray-200"
+              }`}
           >
             <div
               className={`h-2 rounded-full bg-gradient-to-r ${color.bg} transition-all duration-500`}
@@ -202,16 +196,14 @@ export default function JLPTRoadmapCard({ isDark }: JLPTRoadmapCardProps) {
         {[0, 1].map((i) => (
           <div
             key={i}
-            className={`rounded-2xl border-l-4 border-l-cyan-400 h-48 flex items-center justify-center ${
-              isDark ? "bg-gray-800" : "bg-white"
-            }`}
+            className={`rounded-2xl border-l-4 border-l-cyan-400 h-48 flex items-center justify-center ${isDark ? "bg-gray-800" : "bg-white"
+              }`}
           >
             <div className="text-center">
               <Loader2 className="w-8 h-8 text-cyan-500 animate-spin mx-auto mb-2" />
               <p
-                className={`text-sm ${
-                  isDark ? "text-gray-400" : "text-gray-600"
-                }`}
+                className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"
+                  }`}
               >
                 Đang tải...
               </p>
@@ -225,9 +217,8 @@ export default function JLPTRoadmapCard({ isDark }: JLPTRoadmapCardProps) {
   if (error) {
     return (
       <div
-        className={`rounded-2xl p-6 text-center ${
-          isDark ? "bg-gray-800" : "bg-white"
-        }`}
+        className={`rounded-2xl p-6 text-center ${isDark ? "bg-gray-800" : "bg-white"
+          }`}
       >
         <p className="text-red-500 text-sm">{error}</p>
         <button
@@ -243,9 +234,8 @@ export default function JLPTRoadmapCard({ isDark }: JLPTRoadmapCardProps) {
   if (list.length === 0) {
     return (
       <div
-        className={`rounded-2xl p-6 text-center ${
-          isDark ? "bg-gray-800" : "bg-white"
-        }`}
+        className={`rounded-2xl p-6 text-center ${isDark ? "bg-gray-800" : "bg-white"
+          }`}
       >
         <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>
           Chưa có dữ liệu khóa học

@@ -26,7 +26,14 @@ export const useVideoStore = create<VideoState>((set, get) => ({
         set({ loading: true, error: null });
         try {
             const data = await youtubeService.getAll();
-            set({ videos: data, loading: false });
+            // Lọc bỏ các video không có tag hoặc level (thường là video khóa học)
+            const filteredData = data.filter(video =>
+                video.videoTag &&
+                video.level &&
+                video.videoTag !== ("" as any) &&
+                video.level !== ("" as any)
+            );
+            set({ videos: filteredData, loading: false });
         } catch (err) {
             set({ error: err instanceof Error ? err.message : "Không thể tải video", loading: false });
         }

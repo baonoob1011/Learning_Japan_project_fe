@@ -10,6 +10,7 @@ import {
     BookOpen,
     Crown,
     MessageSquare,
+    Video,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -35,7 +36,7 @@ export default function AdminSidebar({ isDark = false }: SidebarProps) {
             label: "Dashboard",
         },
         {
-            path: "/admin/users",
+            path: "/dasboardAdmin/users",
             icon: <Users className="w-5 h-5" />,
             label: "Quản lý Học viên",
         },
@@ -43,6 +44,11 @@ export default function AdminSidebar({ isDark = false }: SidebarProps) {
             path: "/dasboardAdmin/courses",
             icon: <BookOpen className="w-5 h-5" />,
             label: "Quản lý Khóa học",
+        },
+        {
+            path: "/dasboardAdmin/videos",
+            icon: <Video className="w-5 h-5" />,
+            label: "Quản lý Video",
         },
         {
             path: "/dasboardAdmin/vip",

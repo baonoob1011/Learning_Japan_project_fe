@@ -121,8 +121,8 @@ const LevelAccordion = React.memo(
         <button
           onClick={() => setOpen((o) => !o)}
           className={`w-full flex items-center justify-between px-4 py-3 transition ${isDark
-              ? "bg-gray-700/40 hover:bg-gray-700"
-              : "bg-gray-50 hover:bg-gray-100"
+            ? "bg-gray-700/40 hover:bg-gray-700"
+            : "bg-gray-50 hover:bg-gray-100"
             }`}
         >
           <div className="flex items-center gap-3">

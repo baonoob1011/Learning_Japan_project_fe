@@ -63,15 +63,6 @@ export default function AdminUserDetailPage() {
                 <AdminHeader />
 
                 <main className="p-8">
-                    {/* Breadcrumbs */}
-                    <div className="flex items-center gap-2 text-sm text-gray-500 mb-6 font-medium">
-                        <span className="hover:text-indigo-600 cursor-pointer" onClick={() => router.push('/dasboardAdmin')}>Dashboard</span>
-                        <span>/</span>
-                        <span className="hover:text-indigo-600 cursor-pointer" onClick={() => router.push('/admin/users')}>Quản lý học viên</span>
-                        <span>/</span>
-                        <span className="text-gray-900 font-bold">Chi tiết hồ sơ</span>
-                    </div>
-
                     <button
                         onClick={() => router.back()}
                         className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-indigo-600 mb-8 transition-colors group"
@@ -100,23 +91,6 @@ export default function AdminUserDetailPage() {
                                     isDark={false}
                                     onUploadAvatar={() => { }} // Admin không đổi được avatar ở đây
                                 />
-
-                                <div className="mt-6 p-6 bg-white rounded-3xl border border-gray-100 shadow-sm">
-                                    <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                        <ShieldCheck className="w-5 h-5 text-green-500" />
-                                        Trạng thái hệ thống
-                                    </h4>
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl">
-                                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Account ID</span>
-                                            <span className="text-xs font-mono text-gray-900">{user.id}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl">
-                                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Xác thực</span>
-                                            <span className="px-2 py-1 bg-green-100 text-green-700 rounded-md text-[10px] font-bold">VERIFIED</span>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
 
                             {/* Right: Detailed Info */}
@@ -180,23 +154,6 @@ export default function AdminUserDetailPage() {
                                             </div>
                                         </div>
 
-                                        <div className="mt-12 pt-8 border-t border-gray-100">
-                                            <h4 className="font-bold text-gray-800 mb-6 uppercase tracking-wider text-xs">Phân tích học tập</h4>
-                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                                <div className="p-5 bg-indigo-600 rounded-3xl text-white shadow-lg shadow-indigo-200">
-                                                    <p className="text-indigo-100 text-[10px] font-bold uppercase mb-1">Cấp độ</p>
-                                                    <p className="text-3xl font-black">{user.level || "N5"}</p>
-                                                </div>
-                                                <div className="p-5 bg-white border border-gray-100 rounded-3xl shadow-sm">
-                                                    <p className="text-gray-400 text-[10px] font-bold uppercase mb-1">Tiến độ</p>
-                                                    <p className="text-3xl font-black text-gray-900">{user.processPercent || 0}%</p>
-                                                </div>
-                                                <div className="p-5 bg-white border border-gray-100 rounded-3xl shadow-sm">
-                                                    <p className="text-gray-400 text-[10px] font-bold uppercase mb-1">Giai đoạn</p>
-                                                    <p className="text-xl font-black text-gray-900">{user.stage || "Chưa bắt đầu"}</p>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>

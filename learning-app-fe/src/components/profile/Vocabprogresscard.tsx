@@ -93,35 +93,31 @@ export default function VocabProgressCard({ isDark }: VocabProgressCardProps) {
     [data]
   );
 
-  const card = `rounded-2xl border shadow-sm overflow-hidden ${
-    isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-  }`;
+  const card = `rounded-2xl border shadow-sm overflow-hidden ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+    }`;
 
   // ── Loading ──
   if (loading) {
     return (
       <div className={card}>
         <div
-          className={`px-5 py-4 flex items-center gap-2 border-b ${
-            isDark ? "border-gray-700" : "border-gray-100"
-          }`}
+          className={`px-5 py-4 flex items-center gap-2 border-b ${isDark ? "border-gray-700" : "border-gray-100"
+            }`}
         >
           <div className="w-7 h-7 rounded-lg bg-purple-500/20 flex items-center justify-center">
             <Brain className="w-4 h-4 text-purple-400" />
           </div>
           <div
-            className={`h-4 w-32 rounded animate-pulse ${
-              isDark ? "bg-gray-700" : "bg-gray-200"
-            }`}
+            className={`h-4 w-32 rounded animate-pulse ${isDark ? "bg-gray-700" : "bg-gray-200"
+              }`}
           />
         </div>
         <div className="px-5 py-4 flex flex-col gap-3">
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className={`h-8 w-full rounded-xl animate-pulse ${
-                isDark ? "bg-gray-700" : "bg-gray-100"
-              }`}
+              className={`h-8 w-full rounded-xl animate-pulse ${isDark ? "bg-gray-700" : "bg-gray-100"
+                }`}
             />
           ))}
         </div>
@@ -155,18 +151,16 @@ export default function VocabProgressCard({ isDark }: VocabProgressCardProps) {
     <div className={card}>
       {/* Header */}
       <div
-        className={`px-5 py-4 flex items-center justify-between border-b ${
-          isDark ? "border-gray-700" : "border-gray-100"
-        }`}
+        className={`px-5 py-4 flex items-center justify-between border-b ${isDark ? "border-gray-700" : "border-gray-100"
+          }`}
       >
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-purple-500/20 flex items-center justify-center">
             <Brain className="w-4 h-4 text-purple-400" />
           </div>
           <h3
-            className={`font-bold text-sm ${
-              isDark ? "text-gray-100" : "text-gray-800"
-            }`}
+            className={`font-bold text-sm ${isDark ? "text-gray-100" : "text-gray-800"
+              }`}
           >
             Từ Vựng Của Tôi
           </h3>
@@ -181,9 +175,8 @@ export default function VocabProgressCard({ isDark }: VocabProgressCardProps) {
         <div>
           <div className="flex justify-between items-center mb-1.5">
             <span
-              className={`text-xs ${
-                isDark ? "text-gray-400" : "text-gray-500"
-              }`}
+              className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"
+                }`}
             >
               Đã biết
             </span>
@@ -192,9 +185,8 @@ export default function VocabProgressCard({ isDark }: VocabProgressCardProps) {
             </span>
           </div>
           <div
-            className={`w-full h-2 rounded-full overflow-hidden ${
-              isDark ? "bg-gray-700" : "bg-gray-100"
-            }`}
+            className={`w-full h-2 rounded-full overflow-hidden ${isDark ? "bg-gray-700" : "bg-gray-100"
+              }`}
           >
             <div
               className="h-full rounded-full transition-all duration-700"
@@ -236,9 +228,8 @@ export default function VocabProgressCard({ isDark }: VocabProgressCardProps) {
           ].map(({ icon: Icon, label, value, color }) => (
             <div
               key={label}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl ${
-                isDark ? "bg-gray-700/50" : "bg-gray-50"
-              }`}
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl ${isDark ? "bg-gray-700/50" : "bg-gray-50"
+                }`}
             >
               <div
                 className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -251,9 +242,8 @@ export default function VocabProgressCard({ isDark }: VocabProgressCardProps) {
                   {value}
                 </p>
                 <p
-                  className={`text-[10px] leading-tight ${
-                    isDark ? "text-gray-500" : "text-gray-400"
-                  }`}
+                  className={`text-[10px] leading-tight ${isDark ? "text-gray-500" : "text-gray-400"
+                    }`}
                 >
                   {label}
                 </p>
@@ -266,9 +256,8 @@ export default function VocabProgressCard({ isDark }: VocabProgressCardProps) {
         {recent.length > 0 && (
           <div>
             <p
-              className={`text-xs font-semibold mb-2 ${
-                isDark ? "text-gray-400" : "text-gray-500"
-              }`}
+              className={`text-xs font-semibold mb-2 ${isDark ? "text-gray-400" : "text-gray-500"
+                }`}
             >
               Gần đây
             </p>
@@ -280,14 +269,12 @@ export default function VocabProgressCard({ isDark }: VocabProgressCardProps) {
                 return (
                   <div
                     key={item.vocabId}
-                    className={`flex items-center justify-between px-3 py-2 rounded-lg ${
-                      isDark ? "bg-gray-700/40" : "bg-gray-50"
-                    }`}
+                    className={`flex items-center justify-between px-3 py-2 rounded-lg ${isDark ? "bg-gray-700/40" : "bg-gray-50"
+                      }`}
                   >
                     <span
-                      className={`text-xs font-medium ${
-                        isDark ? "text-gray-200" : "text-gray-700"
-                      }`}
+                      className={`text-xs font-medium ${isDark ? "text-gray-200" : "text-gray-700"
+                        }`}
                     >
                       {item.vocabWord}
                     </span>

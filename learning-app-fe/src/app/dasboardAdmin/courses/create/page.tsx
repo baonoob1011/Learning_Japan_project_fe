@@ -1,10 +1,7 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Sidebar from "@/components/admin/Sidebar";
-import AdminHeader from "@/components/admin/dashboard/AdminHeader";
-import { useAuthStore } from "@/stores/authStore";
-import { getRolesFromToken } from "@/utils/jwt";
+import { useDarkMode } from "@/hooks/useDarkMode";
 
 /* ---- services ---- */
 import { courseService, CreateCourseRequest } from "@/services/courseService";
@@ -12,9 +9,6 @@ import { sectionService, SectionResponse } from "@/services/sectionService";
 import { lessonService, LessonResponse } from "@/services/lessonService";
 import { lessonPartService } from "@/services/lessonPartService";
 import { lessonDocumentService } from "@/services/lessonDocumentService";
-import { useDarkMode } from "@/hooks/useDarkMode";
-
-/* ---- enums ---- */
 import { JLPTLevel } from "@/enums/JLPTLevel";
 import { LessonProcess } from "@/enums/LessonProcess";
 import { LessonLevel } from "@/enums/LessonLevel";
@@ -625,60 +619,50 @@ export default function CreateCoursePage() {
     const { isDarkMode: isDark } = useDarkMode();
 
     useEffect(() => {
-        const { accessToken } = useAuthStore.getState();
-        if (!accessToken) { router.push("/login"); return; }
-        const roles = getRolesFromToken(accessToken);
-        if (!roles.includes("ADMIN")) { router.push("/login"); return; }
         setIsReady(true);
-    }, [router]);
+    }, []);
 
     if (!isReady) return null;
 
     return (
-        <div className={`flex min-h-screen font-sans transition-colors duration-300 ${isDark ? "bg-gray-900" : "bg-[#F3F4F6]"}`}>
-            <Sidebar isDark={isDark} />
-            <div className={`flex-1 ml-64 flex flex-col transition-colors duration-300 ${isDark ? "text-gray-100" : "text-gray-900"}`}>
-                <AdminHeader isDarkMode={isDark} />
-                <main className="p-8 w-full">
-                    {/* Title */}
-                    <div className="mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-indigo-100 text-indigo-600 rounded-xl">
-                                <BookOpen className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <h1 className={`text-2xl font-extrabold tracking-tight ${isDark ? "text-gray-100" : "text-gray-900"}`}>Tạo khóa học mới</h1>
-                                <p className={`text-sm mt-0.5 ${isDark ? "text-gray-400" : "text-gray-500"}`}>Điền đầy đủ từng bước để hoàn thiện khóa học.</p>
-                            </div>
-                        </div>
+        <main className="p-8 w-full">
+            {/* Title */}
+            <div className="mb-6">
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-indigo-100 text-indigo-600 rounded-xl">
+                        <BookOpen className="w-6 h-6" />
                     </div>
-
-                    {/* Step indicator */}
-                    <StepIndicator current={step} isDark={isDark} />
-
-                    {/* Card */}
-                    <div className={`rounded-2xl border shadow-sm p-8 ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"}`}>
-                        {step === 0 && (
-                            <Step1Course onCreated={(id) => { setCourseId(id); setStep(1); }} isDark={isDark} />
-                        )}
-                        {step === 1 && courseId && (
-                            <Step2Sections courseId={courseId} onDone={(s) => { setSections(s); setStep(2); }} isDark={isDark} />
-                        )}
-                        {step === 2 && (
-                            sections.length > 0 ? (
-                                <Step3Lessons sections={sections} onFinish={() => router.push("/dasboardAdmin")} isDark={isDark} />
-                            ) : (
-                                <div className="text-center space-y-4 py-6">
-                                    <SuccessAlert msg="Khóa học đã được tạo thành công!" />
-                                    <button onClick={() => router.push("/dasboardAdmin")} className={`${btnPrimary} mx-auto`}>
-                                        Về Dashboard
-                                    </button>
-                                </div>
-                            )
-                        )}
+                    <div>
+                        <h1 className={`text-2xl font-extrabold tracking-tight ${isDark ? "text-gray-100" : "text-gray-900"}`}>Tạo khóa học mới</h1>
+                        <p className={`text-sm mt-0.5 ${isDark ? "text-gray-400" : "text-gray-500"}`}>Điền đầy đủ từng bước để hoàn thiện khóa học.</p>
                     </div>
-                </main>
+                </div>
             </div>
-        </div>
+
+            {/* Step indicator */}
+            <StepIndicator current={step} isDark={isDark} />
+
+            {/* Card */}
+            <div className={`rounded-2xl border shadow-sm p-8 ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"}`}>
+                {step === 0 && (
+                    <Step1Course onCreated={(id) => { setCourseId(id); setStep(1); }} isDark={isDark} />
+                )}
+                {step === 1 && courseId && (
+                    <Step2Sections courseId={courseId} onDone={(s) => { setSections(s); setStep(2); }} isDark={isDark} />
+                )}
+                {step === 2 && (
+                    sections.length > 0 ? (
+                        <Step3Lessons sections={sections} onFinish={() => router.push("/dasboardAdmin")} isDark={isDark} />
+                    ) : (
+                        <div className="text-center space-y-4 py-6">
+                            <SuccessAlert msg="Khóa học đã được tạo thành công!" />
+                            <button onClick={() => router.push("/dasboardAdmin")} className={`${btnPrimary} mx-auto`}>
+                                Về Dashboard
+                            </button>
+                        </div>
+                    )
+                )}
+            </div>
+        </main>
     );
 }

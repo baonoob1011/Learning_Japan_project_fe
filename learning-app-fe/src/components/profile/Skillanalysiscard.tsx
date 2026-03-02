@@ -13,37 +13,37 @@ const SKILL_CONFIG: {
   color: string;
   trackColor: string;
 }[] = [
-  {
-    key: "vocabulary",
-    label: "Từ vựng",
-    color: "#9ca3af", // xám (như ảnh)
-    trackColor: "#374151",
-  },
-  {
-    key: "grammar",
-    label: "Ngữ pháp",
-    color: "#06b6d4", // cyan
-    trackColor: "#164e63",
-  },
-  {
-    key: "reading",
-    label: "Đọc hiểu",
-    color: "#f59e0b", // vàng amber
-    trackColor: "#78350f",
-  },
-  {
-    key: "listening",
-    label: "Nghe hiểu",
-    color: "#ef4444", // đỏ
-    trackColor: "#7f1d1d",
-  },
-  {
-    key: "kanji",
-    label: "Kanji",
-    color: "#8b5cf6", // tím
-    trackColor: "#3b0764",
-  },
-];
+    {
+      key: "vocabulary",
+      label: "Từ vựng",
+      color: "#9ca3af", // xám (như ảnh)
+      trackColor: "#374151",
+    },
+    {
+      key: "grammar",
+      label: "Ngữ pháp",
+      color: "#06b6d4", // cyan
+      trackColor: "#164e63",
+    },
+    {
+      key: "reading",
+      label: "Đọc hiểu",
+      color: "#f59e0b", // vàng amber
+      trackColor: "#78350f",
+    },
+    {
+      key: "listening",
+      label: "Nghe hiểu",
+      color: "#ef4444", // đỏ
+      trackColor: "#7f1d1d",
+    },
+    {
+      key: "kanji",
+      label: "Kanji",
+      color: "#8b5cf6", // tím
+      trackColor: "#3b0764",
+    },
+  ];
 
 // ── Neko advice theo kỹ năng yếu nhất ──
 function getNekoAdvice(skills: SkillProgressResponse): string {
@@ -80,25 +80,22 @@ export default function SkillAnalysisCard({ isDark }: SkillAnalysisCardProps) {
       .finally(() => setLoading(false));
   }, []);
 
-  const card = `rounded-2xl border shadow-sm overflow-hidden ${
-    isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-  }`;
+  const card = `rounded-2xl border shadow-sm overflow-hidden ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+    }`;
 
   return (
     <div className={card}>
       {/* Header */}
       <div
-        className={`px-5 py-4 flex items-center gap-2 border-b ${
-          isDark ? "border-gray-700" : "border-gray-100"
-        }`}
+        className={`px-5 py-4 flex items-center gap-2 border-b ${isDark ? "border-gray-700" : "border-gray-100"
+          }`}
       >
         <div className="w-7 h-7 rounded-lg bg-cyan-500/20 flex items-center justify-center">
           <Brain className="w-4 h-4 text-cyan-500" />
         </div>
         <h3
-          className={`font-bold text-sm ${
-            isDark ? "text-gray-100" : "text-gray-800"
-          }`}
+          className={`font-bold text-sm ${isDark ? "text-gray-100" : "text-gray-800"
+            }`}
         >
           Phân tích AI
         </h3>
@@ -113,29 +110,25 @@ export default function SkillAnalysisCard({ isDark }: SkillAnalysisCardProps) {
               <div key={c.key} className="flex flex-col gap-1">
                 <div className="flex justify-between">
                   <div
-                    className={`h-3 w-16 rounded animate-pulse ${
-                      isDark ? "bg-gray-700" : "bg-gray-200"
-                    }`}
+                    className={`h-3 w-16 rounded animate-pulse ${isDark ? "bg-gray-700" : "bg-gray-200"
+                      }`}
                   />
                   <div
-                    className={`h-3 w-8 rounded animate-pulse ${
-                      isDark ? "bg-gray-700" : "bg-gray-200"
-                    }`}
+                    className={`h-3 w-8 rounded animate-pulse ${isDark ? "bg-gray-700" : "bg-gray-200"
+                      }`}
                   />
                 </div>
                 <div
-                  className={`h-2 w-full rounded-full ${
-                    isDark ? "bg-gray-700" : "bg-gray-100"
-                  }`}
+                  className={`h-2 w-full rounded-full ${isDark ? "bg-gray-700" : "bg-gray-100"
+                    }`}
                 />
               </div>
             ))}
           </div>
         ) : !skills ? (
           <p
-            className={`text-xs text-center py-4 ${
-              isDark ? "text-gray-500" : "text-gray-400"
-            }`}
+            className={`text-xs text-center py-4 ${isDark ? "text-gray-500" : "text-gray-400"
+              }`}
           >
             Chưa có dữ liệu kỹ năng
           </p>
@@ -149,9 +142,8 @@ export default function SkillAnalysisCard({ isDark }: SkillAnalysisCardProps) {
                   <div key={c.key}>
                     <div className="flex items-center justify-between mb-1">
                       <span
-                        className={`text-xs font-medium ${
-                          isDark ? "text-gray-300" : "text-gray-600"
-                        }`}
+                        className={`text-xs font-medium ${isDark ? "text-gray-300" : "text-gray-600"
+                          }`}
                       >
                         {c.label}
                       </span>
@@ -164,9 +156,8 @@ export default function SkillAnalysisCard({ isDark }: SkillAnalysisCardProps) {
                     </div>
                     {/* Track */}
                     <div
-                      className={`w-full h-2 rounded-full overflow-hidden ${
-                        isDark ? "bg-gray-700" : "bg-gray-100"
-                      }`}
+                      className={`w-full h-2 rounded-full overflow-hidden ${isDark ? "bg-gray-700" : "bg-gray-100"
+                        }`}
                     >
                       {/* Fill */}
                       <div
@@ -184,9 +175,8 @@ export default function SkillAnalysisCard({ isDark }: SkillAnalysisCardProps) {
 
             {/* Neko Sensei advice */}
             <div
-              className={`flex items-start gap-3 p-3 rounded-xl ${
-                isDark ? "bg-gray-700/50" : "bg-gray-50"
-              }`}
+              className={`flex items-start gap-3 p-3 rounded-xl ${isDark ? "bg-gray-700/50" : "bg-gray-50"
+                }`}
             >
               {/* Avatar Neko */}
               <div className="w-9 h-9 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-cyan-300">
@@ -195,16 +185,14 @@ export default function SkillAnalysisCard({ isDark }: SkillAnalysisCardProps) {
               </div>
               <div>
                 <p
-                  className={`text-xs font-semibold mb-0.5 ${
-                    isDark ? "text-gray-300" : "text-gray-700"
-                  }`}
+                  className={`text-xs font-semibold mb-0.5 ${isDark ? "text-gray-300" : "text-gray-700"
+                    }`}
                 >
                   Neko Sensei khuyên:
                 </p>
                 <p
-                  className={`text-xs italic ${
-                    isDark ? "text-gray-400" : "text-gray-500"
-                  }`}
+                  className={`text-xs italic ${isDark ? "text-gray-400" : "text-gray-500"
+                    }`}
                 >
                   &ldquo;{getNekoAdvice(skills)}&rdquo;
                 </p>
