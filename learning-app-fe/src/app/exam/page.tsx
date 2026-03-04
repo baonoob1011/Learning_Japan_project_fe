@@ -6,7 +6,7 @@ import {
   examService,
   SectionWithQuestionsResponse,
 } from "@/services/examService";
-import { questionService } from "@/services/questionService";
+import { questionService, PassageResponse } from "@/services/questionService";
 import { QUESTION_TYPE_ORDER } from "@/config/questionTypeOrder";
 import { LISTENING_TYPE_ORDER } from "@/config/listeningTypeOrder";
 import { useExamResultStore } from "@/stores/examResultStore";
@@ -24,6 +24,7 @@ interface Question {
   answer: string;
   imageUrl?: string;
   audioUrl?: string;
+  passage?: PassageResponse;
 }
 
 interface Section {
@@ -183,6 +184,7 @@ function ExamContent() {
             answer: q.answer,
             imageUrl: q.imageUrl,
             audioUrl: q.audioUrl,
+            passage: q.passage,
           };
         });
 
@@ -490,77 +492,112 @@ function ExamContent() {
                   </p>
                 </div>
 
-                {/* Questions in this group */}
-                {group.questions.map((q, index) => {
-                  const isLastInGroup = index === group.questions.length - 1;
-                  return (
-                    <div
-                      key={q.id}
-                      ref={(el) => {
-                        questionRefs.current[q.id] = el;
-                      }}
-                      className={`bg-white/90 backdrop-blur-sm border-x border-b border-cyan-100 p-6 shadow-sm ${isLastInGroup ? "rounded-b-lg mb-8" : ""
-                        }`}
-                    >
-                      {/* Question Text */}
-                      <div className="mb-5">
-                        <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-full text-base font-bold mb-3 shadow-md">
-                          {q.questionOrder}
-                        </div>
-                        <h3 className="text-lg font-normal text-gray-900 leading-relaxed">
-                          {q.text}
-                        </h3>
-                      </div>
+                {/* Questions in this group, grouped by passage if exists */}
+                {(() => {
+                  const subGroups: { passage?: PassageResponse; questions: Question[] }[] = [];
+                  let lastPassageId: string | undefined = undefined;
 
-                      {/* Audio nếu có */}
-                      {q.audioUrl && (
-                        <div className="mb-4">
-                          <audio controls className="w-full">
-                            <source src={q.audioUrl} type="audio/mpeg" />
-                            Trình duyệt không hỗ trợ audio.
-                          </audio>
+                  group.questions.forEach((q) => {
+                    const currentPassageId = q.passage?.id;
+                    if (subGroups.length === 0 || currentPassageId !== lastPassageId) {
+                      subGroups.push({ passage: q.passage, questions: [q] });
+                      lastPassageId = currentPassageId;
+                    } else {
+                      subGroups[subGroups.length - 1].questions.push(q);
+                    }
+                  });
+
+                  return subGroups.map((sub, sIndex) => (
+                    <div key={sub.passage?.id || `no-passage-${sIndex}`} className="mb-4">
+                      {sub.passage && (
+                        <div className="bg-white border-2 border-cyan-100 p-8 rounded-lg mb-4 shadow-sm relative italic leading-relaxed text-gray-800 animate-in fade-in slide-in-from-top-2 duration-500">
+                          {sub.passage.title && (
+                            <h4 className="text-center font-bold mb-6 text-xl text-cyan-800">
+                              {sub.passage.title}
+                            </h4>
+                          )}
+                          <div className="whitespace-pre-wrap text-lg font-medium leading-loose">
+                            {sub.passage.content}
+                          </div>
                         </div>
                       )}
 
-                      {/* Image nếu có */}
-                      {q.imageUrl && (
-                        <div className="mb-4">
-                          <img
-                            src={q.imageUrl}
-                            alt="Question image"
-                            className="max-w-full h-auto rounded-lg shadow-sm"
-                          />
-                        </div>
-                      )}
+                      {sub.questions.map((q, qIndex) => {
+                        const isLastInSubGroup = qIndex === sub.questions.length - 1;
+                        const isLastOverall = sIndex === subGroups.length - 1 && isLastInSubGroup;
 
-                      {/* Options */}
-                      <div className="space-y-3">
-                        {q.options.map((o) => (
-                          <label
-                            key={o.label}
-                            className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition ${mergedAnswers[q.id] === o.text
-                              ? "border-cyan-400 bg-cyan-50"
-                              : "border-cyan-200 hover:bg-cyan-50/50"
+                        return (
+                          <div
+                            key={q.id}
+                            ref={(el) => {
+                              questionRefs.current[q.id] = el;
+                            }}
+                            className={`bg-white/90 backdrop-blur-sm border-x border-b border-cyan-100 p-6 shadow-sm ${isLastOverall ? "rounded-b-lg mb-8" : ""
                               }`}
                           >
-                            <input
-                              type="radio"
-                              name={`question-${q.id}`}
-                              checked={mergedAnswers[q.id] === o.text}
-                              onChange={() =>
-                                setAnswers((p) => ({ ...p, [q.id]: o.text }))
-                              }
-                              className="w-5 h-5 text-cyan-500 focus:ring-cyan-400"
-                            />
-                            <span className="text-base text-gray-900">
-                              {o.label}. {o.text}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
+                            {/* Question Text */}
+                            <div className="mb-5">
+                              <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-full text-base font-bold mb-3 shadow-md">
+                                {q.questionOrder}
+                              </div>
+                              <h3 className="text-lg font-normal text-gray-900 leading-relaxed">
+                                {q.text}
+                              </h3>
+                            </div>
+
+                            {/* Audio nếu có */}
+                            {q.audioUrl && (
+                              <div className="mb-4">
+                                <audio controls className="w-full">
+                                  <source src={q.audioUrl} type="audio/mpeg" />
+                                  Trình duyệt không hỗ trợ audio.
+                                </audio>
+                              </div>
+                            )}
+
+                            {/* Image nếu có */}
+                            {q.imageUrl && (
+                              <div className="mb-6 flex justify-center">
+                                <img
+                                  src={q.imageUrl}
+                                  alt="Question image"
+                                  className="max-w-[300px] h-auto rounded-xl shadow-md border border-cyan-100 animate-in zoom-in-95 duration-500"
+                                  referrerPolicy="no-referrer"
+                                />
+                              </div>
+                            )}
+
+                            {/* Options */}
+                            <div className="space-y-3">
+                              {q.options.map((o) => (
+                                <label
+                                  key={o.label}
+                                  className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition ${mergedAnswers[q.id] === o.text
+                                    ? "border-cyan-400 bg-cyan-50"
+                                    : "border-cyan-200 hover:bg-cyan-50/50"
+                                    }`}
+                                >
+                                  <input
+                                    type="radio"
+                                    name={`question-${q.id}`}
+                                    checked={mergedAnswers[q.id] === o.text}
+                                    onChange={() =>
+                                      setAnswers((p) => ({ ...p, [q.id]: o.text }))
+                                    }
+                                    className="w-5 h-5 text-cyan-500 focus:ring-cyan-400"
+                                  />
+                                  <span className="text-base text-gray-900">
+                                    {o.label}. {o.text}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                  ));
+                })()}
               </div>
             ))}
           </div>

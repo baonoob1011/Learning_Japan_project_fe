@@ -10,15 +10,28 @@ export const API_ENDPOINTS = {
   ASSESSMENT_ITEM: {
     BY_SECTION: (sectionId: string) =>
       `/assessment-items/section/${sectionId}`,
-
+    GET_ALL: "/assessment-items",
     DETAIL: (id: string) =>
       `/assessment-items/${id}`,
 
     UPDATE: (id: string) =>
       `/assessment-items/${id}`,
   },
+  PASSAGE: {
+    GET_ALL: "/passages",
+    GET_BY_ID: (id: string) => `/passages/${id}`,
+    CREATE: "/passages",
+    UPDATE: (id: string) => `/passages/${id}`,
+    DELETE: (id: string) => `/passages/${id}`,
+  },
   S3: {
     UPLOAD: "/s3/upload",
+    GET_IMAGES_FILES: "/s3/images/urls",
+    GET_AUDIOS_FILES: "/s3/audios/urls",
+    GET_ASSESSEMENT_FILES: "/s3/assessment/urls",
+    DELETE_AUDIO: "/s3/audio",
+    DELETE_ASSESSEMENT: "/s3/assessment",
+    DELETE_IMAGE: "/s3/image",
   },
   USER: {
     GET_USER_BY_ID: (id: string) => `/users/chat/${id}`,
@@ -185,6 +198,7 @@ export const API_ENDPOINTS = {
     EXAM_SUBMIT: "exams/submit",
     EXAM_START: "/exams/start",
     IMPORT: "/exams/import",
+    GET_SECTIONS: (examId: string) => `/exams/sections/${examId}`,
   },
 
   QUESTION: {

@@ -28,7 +28,11 @@ export const assessmentItemService = {
             API_ENDPOINTS.ASSESSMENT_ITEM.BY_SECTION(sectionId)
         );
     },
-
+    getAll: async () => {
+        return http.get<AssessmentItemResponse[]>(
+            API_ENDPOINTS.ASSESSMENT_ITEM.GET_ALL
+        );
+    },
     /* ================= GET DETAIL ================= */
     getDetail: async (id: string) => {
         return http.get<AssessmentItemResponse>(

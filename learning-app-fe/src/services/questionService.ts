@@ -17,6 +17,23 @@ export interface QuestionApiResponse {
   imageUrl?: string;
   audioUrl?: string;
   questionOrder: number;
+  passage?: PassageResponse
+}
+export interface CreateQuestionRequest {
+  sectionId: string;
+  type: string;
+  questionText: string;
+  options: string; // JSON string
+  answer: string;
+  imageUrl?: string;
+  audioUrl?: string;
+  sectionOrder: number;
+}
+export interface PassageResponse {
+  id: string;
+  title: string;
+  content: string;
+  passageOrder: string;
 }
 
 export const questionService = {
@@ -29,10 +46,15 @@ export const questionService = {
   /**
    * ✅ Lấy danh sách câu hỏi theo examId
    */
+  updateQuestion(question: QuestionApiResponse): Promise<QuestionApiResponse> {
+    return http.put<QuestionApiResponse>(API_ENDPOINTS.QUESTION.UPDATE(question.id), question);
+  },
   getByExamId(examId: string): Promise<QuestionApiResponse[]> {
     return http.get<QuestionApiResponse[]>(API_ENDPOINTS.QUESTION.GET_BY_EXAM_ID(examId));
   },
-
+  createQuestion(question: CreateQuestionRequest): Promise<QuestionApiResponse> {
+    return http.post<QuestionApiResponse>(API_ENDPOINTS.QUESTION.CREATE, question);
+  },
   /**
    * ✅ Xóa câu hỏi
    */
