@@ -18,9 +18,7 @@ export const API_ENDPOINTS = {
       `/assessment-items/${id}`,
   },
   PASSAGE: {
-    GET_ALL: "/passages",
     GET_BY_ID: (id: string) => `/passages/${id}`,
-    CREATE: "/passages",
     UPDATE: (id: string) => `/passages/${id}`,
     DELETE: (id: string) => `/passages/${id}`,
   },

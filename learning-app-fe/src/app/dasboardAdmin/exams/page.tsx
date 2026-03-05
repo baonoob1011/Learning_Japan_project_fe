@@ -413,18 +413,16 @@ export default function ExamManagementPage() {
     const fetchS3Media = async () => {
         setIsLoadingS3(true);
         try {
-            if (libraryTab === "images") {
-                const data = await s3Service.getImagesUrls();
-                setS3Images(data);
-            } else if (libraryTab === "audios") {
-                const data = await s3Service.getAudiosUrls();
-                setS3Audios(data);
-            } else {
-                const data = await s3Service.getAssessmentUrls();
-                setS3Assessments(data);
-            }
+            const [images, audios, assessments] = await Promise.all([
+                s3Service.getImagesUrls(),
+                s3Service.getAudiosUrls(),
+                s3Service.getAssessmentUrls()
+            ]);
+            setS3Images(images);
+            setS3Audios(audios);
+            setS3Assessments(assessments);
         } catch (err) {
-            console.error(`Failed to fetch S3 ${libraryTab}:`, err);
+            console.error(`Failed to fetch S3 media:`, err);
         } finally {
             setIsLoadingS3(false);
         }
@@ -460,28 +458,9 @@ export default function ExamManagementPage() {
     }, [showAssetsLibrary, libraryTab]);
 
     const getAllAssets = () => {
-        const images = new Map<string, { url: string; key?: string }>();
-        const audios = new Map<string, { url: string; key?: string }>();
-
-        // Add discovered assets from current exams
-        Object.values(examDetails).forEach(detail => {
-            detail.sections.forEach(section => {
-                section.questions.forEach(q => {
-                    if (q.imageUrl) images.set(q.imageUrl, { url: q.imageUrl });
-                    if (q.audioUrl) audios.set(q.audioUrl, { url: q.audioUrl });
-                });
-            });
-        });
-
-        // Add assets fetched from S3
-        s3Images.forEach(img => images.set(img.url, { url: img.url, key: img.key }));
-        s3Audios.forEach(aud => audios.set(aud.url, { url: aud.url, key: aud.key }));
-        // Assessments are usually purely from S3 or external links, we'll keep them separate or in a specific bucket
-        // For now, s3Assessments are managed directly in the tab
-
         return {
-            images: Array.from(images.values()),
-            audios: Array.from(audios.values())
+            images: s3Images,
+            audios: s3Audios
         };
     };
 
