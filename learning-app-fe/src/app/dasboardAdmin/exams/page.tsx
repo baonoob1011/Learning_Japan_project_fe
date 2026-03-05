@@ -943,7 +943,17 @@ export default function ExamManagementPage() {
                                                                                                                             <div className="grid grid-cols-2 gap-3">
                                                                                                                                 <div className="space-y-1">
                                                                                                                                     <label className="text-[10px] font-black uppercase text-gray-500">Loại</label>
-                                                                                                                                    <input type="text" value={editQuestionType} onChange={e => setEditQuestionType(e.target.value)} className={`w-full px-3 py-2 rounded-xl border bg-transparent font-bold text-sm outline-none ${isDark ? "border-gray-700 focus:border-blue-500 text-white" : "border-gray-200 focus:border-blue-400 text-gray-900"}`} />
+                                                                                                                                    <select
+                                                                                                                                        value={editQuestionType}
+                                                                                                                                        onChange={e => setEditQuestionType(e.target.value)}
+                                                                                                                                        className={`w-full px-3 py-2 rounded-xl border bg-transparent font-bold text-sm outline-none cursor-pointer ${isDark ? "border-gray-700 focus:border-blue-500 text-white bg-gray-900" : "border-gray-200 focus:border-blue-400 text-gray-900 bg-white"}`}
+                                                                                                                                    >
+                                                                                                                                        {Object.values(AssessmentType).map((type) => (
+                                                                                                                                            <option key={type} value={type} className={isDark ? "bg-gray-900 text-white" : "bg-white text-gray-900"}>
+                                                                                                                                                {type}
+                                                                                                                                            </option>
+                                                                                                                                        ))}
+                                                                                                                                    </select>
                                                                                                                                 </div>
                                                                                                                                 <div className="space-y-1">
                                                                                                                                     <label className="text-[10px] font-black uppercase text-gray-500">Thứ tự</label>
