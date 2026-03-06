@@ -16,7 +16,7 @@ export const useWebRTC = () => {
   const getLocalStream = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: true,
-      video: false,
+      video: true,
     });
 
     localStreamRef.current = stream;
@@ -25,9 +25,13 @@ export const useWebRTC = () => {
 
   const addTracksToPeer = () => {
     if (!peerRef.current || !localStreamRef.current) return;
+    if (peerRef.current.signalingState === "closed") return;
 
     localStreamRef.current.getTracks().forEach((track) => {
-      peerRef.current!.addTrack(track, localStreamRef.current!);
+      const alreadyAdded = peerRef.current!.getSenders().find(s => s.track === track);
+      if (!alreadyAdded) {
+        peerRef.current!.addTrack(track, localStreamRef.current!);
+      }
     });
   };
 

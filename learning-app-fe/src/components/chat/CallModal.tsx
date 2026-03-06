@@ -43,6 +43,9 @@ export const CallModal = ({
   const stompRef = useRef<Client | null>(null);
   const peerLocalRef = useRef<RTCPeerConnection | null>(null);
 
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+
   const [callState, setCallState] = useState<CallState>(
     isCaller ? "connecting" : "ringing"
   );
@@ -102,7 +105,10 @@ export const CallModal = ({
     const stomp = stompRef.current;
     if (!peer || !stomp?.connected) return;
 
-    await getLocalStream();
+    const stream = await getLocalStream();
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = stream;
+    }
     addTracksToPeer();
 
     const answer = await peer.createAnswer();
@@ -141,9 +147,9 @@ export const CallModal = ({
         };
 
         peer.ontrack = (event: RTCTrackEvent) => {
-          const audio = new Audio();
-          audio.srcObject = event.streams[0];
-          audio.play().catch(console.error);
+          if (remoteVideoRef.current && !remoteVideoRef.current.srcObject) {
+            remoteVideoRef.current.srcObject = event.streams[0];
+          }
           setCallState("in-call");
         };
 
@@ -210,7 +216,10 @@ export const CallModal = ({
           }
 
           await new Promise((resolve) => setTimeout(resolve, 800));
-          await getLocalStream();
+          const stream = await getLocalStream();
+          if (localVideoRef.current) {
+            localVideoRef.current.srcObject = stream;
+          }
           addTracksToPeer();
 
           const offer = await peer.createOffer();
@@ -250,22 +259,44 @@ export const CallModal = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div
-        className={`relative w-80 rounded-3xl shadow-2xl overflow-hidden flex flex-col items-center py-10 px-8 gap-6 transition-colors ${
-          isDarkMode
+        className={`relative w-80 md:w-[600px] rounded-3xl shadow-2xl overflow-hidden flex flex-col items-center py-10 px-8 gap-6 transition-colors ${isDarkMode
             ? "bg-gray-900 border border-gray-700"
             : "bg-white border border-cyan-100"
-        }`}
+          }`}
       >
         {(callState === "ringing" || callState === "connecting") && (
           <span className="absolute inset-0 rounded-3xl animate-ping opacity-10 bg-cyan-400 pointer-events-none" />
         )}
 
         <div className="relative">
-          <img
-            src={displayAvatar || "/default-avatar.png"} // ✅ dùng displayAvatar
-            alt={displayName}
-            className="w-24 h-24 rounded-full object-cover ring-4 ring-cyan-400 shadow-xl"
-          />
+          {callState !== "in-call" ? (
+            <img
+              src={displayAvatar || "/default-avatar.png"} // ✅ dùng displayAvatar
+              alt={displayName}
+              className="w-24 h-24 rounded-full object-cover ring-4 ring-cyan-400 shadow-xl"
+            />
+          ) : (
+            <div className="relative w-full max-w-sm aspect-video bg-black rounded-xl overflow-hidden shadow-lg">
+              {/* Remote Video */}
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                className="w-full h-full object-cover"
+              />
+
+              {/* Local Video - Picture in Picture */}
+              <div className="absolute bottom-4 right-4 w-1/4 min-w-[80px] aspect-video bg-gray-800 rounded-lg overflow-hidden border-2 border-white shadow-xl z-10">
+                <video
+                  ref={localVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          )}
           {callState === "in-call" && (
             <span className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white" />
           )}
@@ -273,20 +304,18 @@ export const CallModal = ({
 
         <div className="text-center">
           <h2
-            className={`text-xl font-bold ${
-              isDarkMode ? "text-gray-100" : "text-gray-800"
-            }`}
+            className={`text-xl font-bold ${isDarkMode ? "text-gray-100" : "text-gray-800"
+              }`}
           >
             {displayName} {/* ✅ dùng displayName */}
           </h2>
           <p
-            className={`text-sm mt-1 ${
-              callState === "in-call"
+            className={`text-sm mt-1 ${callState === "in-call"
                 ? "text-emerald-500 font-mono font-semibold"
                 : isDarkMode
-                ? "text-gray-400"
-                : "text-gray-500"
-            }`}
+                  ? "text-gray-400"
+                  : "text-gray-500"
+              }`}
           >
             {stateLabel[callState]}
           </p>
@@ -309,21 +338,19 @@ export const CallModal = ({
             {callState === "in-call" && (
               <button
                 onClick={toggleMute}
-                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow ${
-                  isMuted
+                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow ${isMuted
                     ? "bg-yellow-500 hover:bg-yellow-600"
                     : isDarkMode
-                    ? "bg-gray-700 hover:bg-gray-600"
-                    : "bg-gray-100 hover:bg-gray-200"
-                }`}
+                      ? "bg-gray-700 hover:bg-gray-600"
+                      : "bg-gray-100 hover:bg-gray-200"
+                  }`}
               >
                 {isMuted ? (
                   <MicOff className="w-5 h-5 text-white" />
                 ) : (
                   <Mic
-                    className={`w-5 h-5 ${
-                      isDarkMode ? "text-gray-300" : "text-gray-600"
-                    }`}
+                    className={`w-5 h-5 ${isDarkMode ? "text-gray-300" : "text-gray-600"
+                      }`}
                   />
                 )}
               </button>
@@ -331,14 +358,12 @@ export const CallModal = ({
 
             {callState === "ringing" && !isCaller && (
               <div
-                className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                  isDarkMode ? "bg-gray-700" : "bg-gray-100"
-                }`}
+                className={`w-12 h-12 rounded-full flex items-center justify-center ${isDarkMode ? "bg-gray-700" : "bg-gray-100"
+                  }`}
               >
                 <Volume2
-                  className={`w-5 h-5 ${
-                    isDarkMode ? "text-gray-400" : "text-gray-500"
-                  }`}
+                  className={`w-5 h-5 ${isDarkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
                 />
               </div>
             )}
@@ -363,9 +388,8 @@ export const CallModal = ({
 
         {callState === "ended" && (
           <p
-            className={`text-sm animate-pulse ${
-              isDarkMode ? "text-gray-500" : "text-gray-400"
-            }`}
+            className={`text-sm animate-pulse ${isDarkMode ? "text-gray-500" : "text-gray-400"
+              }`}
           >
             Đang đóng...
           </p>
