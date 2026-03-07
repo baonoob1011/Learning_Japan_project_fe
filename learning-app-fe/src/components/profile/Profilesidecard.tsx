@@ -19,12 +19,18 @@ export default function ProfileSideCard({
   const [isVip, setIsVip] = useState(false);
 
   useEffect(() => {
-    const token = getAccessTokenFromStorage();
-    if (token) {
-      const roles = getRolesFromToken(token);
-      setIsVip(roles.includes("USER_VIP"));
+    if (user) {
+      if (user.isPremium || user.roles?.includes("USER_VIP")) {
+        setIsVip(true);
+      } else {
+        const token = getAccessTokenFromStorage();
+        if (token) {
+          const roles = getRolesFromToken(token);
+          setIsVip(roles.includes("USER_VIP"));
+        }
+      }
     }
-  }, []);
+  }, [user]);
 
   const avatarFallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     user.fullName || "U"

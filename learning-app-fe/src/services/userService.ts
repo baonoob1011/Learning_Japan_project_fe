@@ -24,8 +24,9 @@ export interface UserProfileResponse {
   createdAt: string;
   avatarUrl: string;
   level: JLPTLevel;
-  avatar?: string; // Add this
-
+  avatar?: string;
+  isPremium?: boolean;
+  roles?: string[];
 }
 
 export interface UserResponse {

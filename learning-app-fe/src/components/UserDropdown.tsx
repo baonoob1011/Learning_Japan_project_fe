@@ -23,12 +23,18 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
   const router = useRouter();
 
   useEffect(() => {
-    const token = getAccessTokenFromStorage();
-    if (token) {
-      const roles = getRolesFromToken(token);
-      setIsVip(roles.includes("USER_VIP"));
+    if (user) {
+      if (user.isPremium || user.roles?.includes("USER_VIP")) {
+        setIsVip(true);
+      } else {
+        const token = getAccessTokenFromStorage();
+        if (token) {
+          const roles = getRolesFromToken(token);
+          setIsVip(roles.includes("USER_VIP"));
+        }
+      }
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -285,7 +291,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
                       className={`text-sm font-medium ${isDark ? "text-gray-100" : "text-gray-900"
                         }`}
                     >
-                      Corodomo Plus
+                      NiBo Plus
                     </div>
                   </div>
                   <span className="text-xs bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-2 py-0.5 rounded-full font-medium">

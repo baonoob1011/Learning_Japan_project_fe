@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { login } from "@/services/authService";
@@ -16,6 +16,13 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const router = useRouter();
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+
+  // Xoá mọi phiên token cũ khi truy cập vào trang Đăng nhập
+  useEffect(() => {
+    localStorage.removeItem("auth-storage");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+  }, []);
 
   const handleLogin = async () => {
     if (!username || !password) {

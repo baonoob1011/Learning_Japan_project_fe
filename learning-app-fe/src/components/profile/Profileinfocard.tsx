@@ -217,12 +217,18 @@ export default function ProfileInfoCard({
   const [isVip, setIsVip] = useState(false);
 
   useEffect(() => {
-    const token = getAccessTokenFromStorage();
-    if (token) {
-      const roles = getRolesFromToken(token);
-      setIsVip(roles.includes("USER_VIP"));
+    if (user) {
+      if (user.isPremium || user.roles?.includes("USER_VIP")) {
+        setIsVip(true);
+      } else {
+        const token = getAccessTokenFromStorage();
+        if (token) {
+          const roles = getRolesFromToken(token);
+          setIsVip(roles.includes("USER_VIP"));
+        }
+      }
     }
-  }, []);
+  }, [user]);
   const inputBase = `w-full px-4 py-2.5 rounded-xl text-sm font-medium transition outline-none ${isDark
     ? "bg-gray-700 border border-cyan-500/50 text-gray-100 focus:border-cyan-400 placeholder-gray-500"
     : "bg-white border border-cyan-400 text-gray-800 focus:border-cyan-500 placeholder-gray-300"

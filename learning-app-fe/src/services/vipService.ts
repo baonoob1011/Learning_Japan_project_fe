@@ -66,4 +66,18 @@ export const vipService = {
   getMyVip(): Promise<MyVipResponse> {
     return http.get<MyVipResponse>(API_ENDPOINTS.VIP.GET_MY_VIP);
   },
+
+  /**
+   * ADMIN cập nhật VIP package
+   */
+  update(id: string, request: CreateVipPackageRequest): Promise<void> {
+    return http.put<void>(API_ENDPOINTS.VIP.UPDATE(id), request);
+  },
+
+  /**
+   * ADMIN xóa VIP package
+   */
+  delete(id: string): Promise<void> {
+    return http.delete<void>(API_ENDPOINTS.VIP.DELETE(id));
+  },
 };

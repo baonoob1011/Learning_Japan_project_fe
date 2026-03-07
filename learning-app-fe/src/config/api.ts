@@ -264,6 +264,8 @@ export const API_ENDPOINTS = {
     CREATE: "/vip-packages",
     PURCHASE: "/vip-purchases",
     GET_MY_VIP: "/vip/me",
+    UPDATE: (id: string) => `/vip-packages/${id}`,
+    DELETE: (id: string) => `/vip-packages/${id}`,
   },
 
   FRIEND: {

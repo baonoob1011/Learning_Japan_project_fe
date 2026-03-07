@@ -6,6 +6,7 @@ import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import LoadingCat from "@/components/LoadingCat";
 import { useDarkMode } from "@/hooks/useDarkMode";
+import { getAccessTokenFromStorage, getRolesFromToken } from "@/utils/jwt";
 
 // ── Components chính ──
 import ProfileSideCard from "@/components/profile/Profilesidecard";
@@ -37,6 +38,21 @@ export default function ProfilePage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentStreak, setCurrentStreak] = useState(4);
   const { isDarkMode, toggleDarkMode, mounted } = useDarkMode();
+  const [isVip, setIsVip] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      if (user.isPremium || user.roles?.includes("USER_VIP")) {
+        setIsVip(true);
+      } else {
+        const token = getAccessTokenFromStorage();
+        if (token) {
+          const roles = getRolesFromToken(token);
+          setIsVip(roles.includes("USER_VIP"));
+        }
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
     const load = async () => {
@@ -147,7 +163,9 @@ export default function ProfilePage() {
       <div
         className={`flex h-screen ${isDarkMode
           ? "bg-gray-900"
-          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
+          : isVip
+            ? "bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50"
+            : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
           }`}
       >
         <div className="flex-1 flex items-center justify-center">
@@ -197,7 +215,9 @@ export default function ProfilePage() {
       <div
         className={`flex h-screen ${isDarkMode
           ? "bg-gray-900"
-          : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
+          : isVip
+            ? "bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50"
+            : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
           }`}
       >
         <Sidebar

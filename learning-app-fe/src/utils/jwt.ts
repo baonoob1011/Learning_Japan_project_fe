@@ -64,11 +64,18 @@ export const getUserIdFromToken = (): string | null => {
 };
 
 export const getRolesFromToken = (token: string): string[] => {
-  if (!token) return [];
+  if (!token) {
+    console.log("getRolesFromToken: No token provided");
+    return [];
+  }
   try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload["cognito:groups"] || [];
-  } catch {
+    const payload = jwtDecode<any>(token);
+    console.log("getRolesFromToken -> Decoded Payload:", payload);
+    const roles = payload["cognito:groups"] || [];
+    console.log("getRolesFromToken -> Roles:", roles);
+    return roles;
+  } catch (e) {
+    console.error("Failed to decode token for roles", e);
     return [];
   }
 };
