@@ -21,20 +21,20 @@ import { vipService, VipPackageResponse, PlanType, CreateVipPackageRequest } fro
 const PLAN_TYPE_CONFIG: Record<PlanType, { label: string; bg: string; text: string; icon: React.ReactNode }> = {
     MONTHLY: {
         label: "Tháng",
-        bg: "bg-blue-100 dark:bg-blue-900/40",
-        text: "text-blue-700 dark:text-blue-300",
+        bg: "bg-blue-500 dark:bg-blue-600",
+        text: "text-white dark:text-blue-50",
         icon: <Clock className="w-4 h-4" />
     },
     YEARLY: {
         label: "Năm",
-        bg: "bg-purple-100 dark:bg-purple-900/40",
-        text: "text-purple-700 dark:text-purple-300",
+        bg: "bg-purple-500 dark:bg-purple-600",
+        text: "text-white dark:text-purple-50",
         icon: <Sparkles className="w-4 h-4" />
     },
     LIFETIME: {
         label: "Vĩnh viễn",
-        bg: "bg-amber-100 dark:bg-amber-900/40",
-        text: "text-amber-700 dark:text-amber-300",
+        bg: "bg-amber-500 dark:bg-amber-600",
+        text: "text-white dark:text-amber-50",
         icon: <Zap className="w-4 h-4" />
     }
 };
@@ -251,7 +251,7 @@ export default function AdminVipManagementPage() {
                                         {typeConfig.icon}
                                         {typeConfig.label}
                                     </div>
-                                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${pkg.active ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" : "bg-gray-100 text-gray-500 dark:bg-gray-700/50 dark:text-gray-400"}`}>
+                                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${pkg.active ? "bg-emerald-500 text-white dark:bg-emerald-600 dark:text-emerald-50" : "bg-gray-500 text-white dark:bg-gray-600 dark:text-gray-50"}`}>
                                         {pkg.active ? (
                                             <><CheckCircle2 className="w-3.5 h-3.5" /> Hoạt động</>
                                         ) : (
@@ -413,8 +413,8 @@ export default function AdminVipManagementPage() {
             {/* Notification Toast */}
             {notification.show && (
                 <div className={`fixed top-4 right-4 z-[60] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl transition-all duration-300 animate-in slide-in-from-top-4 ${notification.type === 'success'
-                        ? (isDark ? "bg-emerald-900/90 text-emerald-100 border border-emerald-800" : "bg-emerald-50 text-emerald-800 border border-emerald-200")
-                        : (isDark ? "bg-red-900/90 text-red-100 border border-red-800" : "bg-red-50 text-red-800 border border-red-200")
+                    ? (isDark ? "bg-emerald-900/90 text-emerald-100 border border-emerald-800" : "bg-emerald-50 text-emerald-800 border border-emerald-200")
+                    : (isDark ? "bg-red-900/90 text-red-100 border border-red-800" : "bg-red-50 text-red-800 border border-red-200")
                     }`}>
                     {notification.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
                     <p className="font-bold text-sm tracking-wide">{notification.message}</p>
