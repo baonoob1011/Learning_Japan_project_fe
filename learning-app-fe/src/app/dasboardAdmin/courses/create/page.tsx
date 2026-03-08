@@ -46,38 +46,7 @@ const LESSON_LEVEL_OPTIONS = [
     { value: LessonLevel.N1_ADVANCED, label: "N1 Thượng cấp" },
 ];
 
-/* ===================================================================
-   STEP INDICATOR
-=================================================================== */
-const STEPS = ["Thông tin khóa học", "Thêm chương (Section)", "Thêm bài học & nội dung"];
 
-function StepIndicator({ current, isDark }: { current: number, isDark: boolean }) {
-    return (
-        <div className="flex items-center gap-0 mb-8">
-            {STEPS.map((label, idx) => {
-                const done = idx < current;
-                const active = idx === current;
-                return (
-                    <React.Fragment key={idx}>
-                        <div className="flex flex-col items-center">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all
-                                ${done ? "bg-green-500 text-white" : active ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" : isDark ? "bg-gray-800 text-gray-500" : "bg-gray-200 text-gray-500"}`}>
-                                {done ? <CheckCircle2 className="w-4 h-4" /> : idx + 1}
-                            </div>
-                            <span className={`text-[10px] mt-1 font-semibold text-center max-w-[80px] leading-tight
-                                ${active ? "text-indigo-600" : done ? "text-green-600" : isDark ? "text-gray-500" : "text-gray-400"}`}>
-                                {label}
-                            </span>
-                        </div>
-                        {idx < STEPS.length - 1 && (
-                            <div className={`flex-1 h-0.5 mx-1 mb-4 rounded-full transition-colors ${done ? "bg-green-400" : isDark ? "bg-gray-700" : "bg-gray-200"}`} />
-                        )}
-                    </React.Fragment>
-                );
-            })}
-        </div>
-    );
-}
 
 /* ===================================================================
    ALERT HELPERS
@@ -230,8 +199,11 @@ function Step1Course({ onCreated, isDark }: Step1Props) {
                 <div>
                     <label className={getLabelCls(isDark)}>Giá (VNĐ) <span className="text-red-500">*</span></label>
                     <div className="relative">
-                        <input type="number" min={1000} step={1000} value={price}
-                            onChange={e => setPrice(Number(e.target.value))}
+                        <input type="number" min={0} step={1000} value={price || ""}
+                            onChange={e => {
+                                const val = Number(e.target.value);
+                                setPrice(val < 0 ? 0 : val);
+                            }}
                             placeholder="Ví dụ: 299000" className={`${getInputCls(isDark)} pr-16`} />
                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-semibold">VNĐ</span>
                     </div>
@@ -240,397 +212,14 @@ function Step1Course({ onCreated, isDark }: Step1Props) {
             )}
 
             <div className="pt-2 flex justify-end">
-                <button type="submit" disabled={loading} className={btnPrimary}>
-                    {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Đang tạo…</> : <>Tạo & tiếp tục <ChevronDown className="w-4 h-4 rotate-[-90deg]" /></>}
+                <button type="submit" disabled={loading} className={`${btnPrimary} w-full sm:w-auto justify-center`}>
+                    {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Đang tạo…</> : <>Xác nhận tạo khóa học <CheckCircle2 className="w-5 h-5" /></>}
                 </button>
             </div>
         </form>
     );
 }
 
-/* ===================================================================
-   STEP 2 – Sections
-=================================================================== */
-interface Step2Props {
-    courseId: string;
-    onDone: (sections: SectionResponse[]) => void;
-    isDark: boolean;
-}
-function Step2Sections({ courseId, onDone, isDark }: Step2Props) {
-    const [title, setTitle] = useState("");
-    const [lessonLevel, setLessonLevel] = useState<LessonLevel>(LessonLevel.N5_BEGINNER);
-    const [sections, setSections] = useState<SectionResponse[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    const addSection = async () => {
-        if (!title.trim()) { setError("Vui lòng nhập tên chương."); return; }
-        setError(null);
-        setLoading(true);
-        try {
-            await sectionService.create({ courseId, title, lessonLevel });
-            const updated = await sectionService.getByCourse(courseId);
-            setSections(updated);
-            setTitle("");
-        } catch {
-            setError("Thêm chương thất bại. Vui lòng thử lại.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const deleteSection = async (id: string) => {
-        try {
-            await sectionService.delete(id);
-            setSections(prev => prev.filter(s => s.id !== id));
-        } catch {
-            setError("Xóa chương thất bại.");
-        }
-    };
-
-    return (
-        <div className="space-y-5">
-            {error && <ErrorAlert msg={error} />}
-
-            {/* Add section form */}
-            <div className={`p-4 rounded-xl border space-y-3 ${isDark ? "bg-gray-800 border-gray-700" : "bg-gray-50 border-gray-200"}`}>
-                <p className={`text-sm font-bold flex items-center gap-2 ${isDark ? "text-gray-200" : "text-gray-700"}`}><Layers className="w-4 h-4 text-indigo-500" /> Thêm chương mới</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input type="text" value={title} onChange={e => setTitle(e.target.value)}
-                        placeholder="Tên chương (Ví dụ: Chương 1 – Bảng chữ cái)" className={getInputCls(isDark)} />
-                    <select value={lessonLevel} onChange={e => setLessonLevel(e.target.value as LessonLevel)} className={getInputCls(isDark)}>
-                        {LESSON_LEVEL_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                    </select>
-                </div>
-                <button onClick={addSection} disabled={loading} className={`${btnPrimary} w-full justify-center`}>
-                    {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Đang thêm…</> : <><Plus className="w-4 h-4" /> Thêm chương</>}
-                </button>
-            </div>
-
-            {/* Section list */}
-            {sections.length > 0 && (
-                <div className="space-y-2">
-                    {sections.map((s, idx) => (
-                        <div key={s.id} className={`flex items-center justify-between border rounded-xl px-4 py-3 shadow-sm ${isDark ? "bg-gray-900 border-gray-700" : "bg-white border-gray-100"}`}>
-                            <div className="flex items-center gap-3">
-                                <span className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${isDark ? "bg-indigo-500/20 text-indigo-400" : "bg-indigo-100 text-indigo-600"}`}>{idx + 1}</span>
-                                <div>
-                                    <p className={`text-sm font-semibold ${isDark ? "text-gray-200" : "text-gray-800"}`}>{s.title}</p>
-                                    <p className="text-xs text-gray-400">{s.lessonLevel}</p>
-                                </div>
-                            </div>
-                            <button onClick={() => deleteSection(s.id)} className="text-red-400 hover:text-red-600 transition p-1.5 hover:bg-red-50 rounded-lg">
-                                <Trash2 className="w-4 h-4" />
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {sections.length === 0 && (
-                <div className="text-center py-6 text-gray-400 text-sm">Chưa có chương nào. Thêm ít nhất 1 chương để tiếp tục.</div>
-            )}
-
-            <div className="flex justify-between pt-2">
-                <button className={getBtnSecondary(isDark)} onClick={() => onDone([])}>Bỏ qua bước này</button>
-                <button disabled={sections.length === 0} onClick={() => onDone(sections)} className={btnPrimary}>
-                    Tiếp tục <ChevronDown className="w-4 h-4 rotate-[-90deg]" />
-                </button>
-            </div>
-        </div>
-    );
-}
-
-/* ===================================================================
-   STEP 3 – Lessons, Lesson Parts, Lesson Documents
-=================================================================== */
-interface Step3Props {
-    sections: SectionResponse[];
-    onFinish: () => void;
-    isDark: boolean;
-}
-
-interface LocalLesson {
-    id: string;
-    title: string;
-    lessonLevel: LessonLevel;
-    lessonOrder: number;
-    parts: { id: string; title: string; partOrder: number }[];
-    docs: { id: string; title: string; documentOrder: number }[];
-    open: boolean;
-}
-
-function Step3Lessons({ sections, onFinish, isDark }: Step3Props) {
-    const [selectedSectionId, setSelectedSectionId] = useState(sections[0]?.id ?? "");
-    const [lessons, setLessons] = useState<Record<string, LocalLesson[]>>({});
-    const [lessonTitle, setLessonTitle] = useState("");
-    const [lessonLevel, setLessonLevel] = useState<LessonLevel>(LessonLevel.N5_BEGINNER);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    /* part / doc adding per lesson */
-    const [partTitle, setPartTitle] = useState<Record<string, string>>({});
-    const [partType, setPartType] = useState<Record<string, LessonPartType>>({});
-    const [partVideoUrl, setPartVideoUrl] = useState<Record<string, string>>({});
-    const [docTitle, setDocTitle] = useState<Record<string, string>>({});
-    const [docFile, setDocFile] = useState<Record<string, File | null>>({});
-
-    const lessonsForSection = lessons[selectedSectionId] ?? [];
-    const lessonOrder = lessonsForSection.length + 1;
-
-    /* ---- Add lesson ---- */
-    const addLesson = async () => {
-        if (!lessonTitle.trim()) { setError("Vui lòng nhập tên bài học."); return; }
-        setError(null);
-        setLoading(true);
-        try {
-            const id = await lessonService.create({ sectionId: selectedSectionId, title: lessonTitle, lessonLevel, lessonOrder });
-            const newLesson: LocalLesson = { id, title: lessonTitle, lessonLevel, lessonOrder, parts: [], docs: [], open: true };
-            setLessons(prev => ({ ...prev, [selectedSectionId]: [...(prev[selectedSectionId] ?? []), newLesson] }));
-            setLessonTitle("");
-        } catch {
-            setError("Thêm bài học thất bại. Vui lòng thử lại.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    /* ---- Delete lesson ---- */
-    const deleteLesson = async (lessonId: string) => {
-        try {
-            await lessonService.delete(lessonId);
-            setLessons(prev => ({ ...prev, [selectedSectionId]: (prev[selectedSectionId] ?? []).filter(l => l.id !== lessonId) }));
-        } catch { setError("Xóa bài học thất bại."); }
-    };
-
-    /* ---- Add lesson part ---- */
-    const addPart = async (lessonId: string) => {
-        const title = partTitle[lessonId]?.trim();
-        if (!title) return;
-        const lesson = lessonsForSection.find(l => l.id === lessonId);
-        if (!lesson) return;
-        const partOrder = lesson.parts.length + 1;
-        const type = partType[lessonId] || LessonPartType.VOCABULARY;
-        const videoUrl = partVideoUrl[lessonId]?.trim() || "";
-
-        try {
-            const id = await lessonPartService.create({ lessonId, title, lessonPartType: type, videoUrl, partOrder });
-            setLessons(prev => ({
-                ...prev,
-                [selectedSectionId]: (prev[selectedSectionId] ?? []).map(l =>
-                    l.id === lessonId ? { ...l, parts: [...l.parts, { id, title, partOrder }] } : l
-                ),
-            }));
-            setPartTitle(prev => ({ ...prev, [lessonId]: "" }));
-            setPartVideoUrl(prev => ({ ...prev, [lessonId]: "" }));
-        } catch { setError("Thêm phần bài học thất bại."); }
-    };
-
-    /* ---- Delete lesson part ---- */
-    const deletePart = async (lessonId: string, partId: string) => {
-        try {
-            await lessonPartService.delete(partId);
-            setLessons(prev => ({
-                ...prev,
-                [selectedSectionId]: (prev[selectedSectionId] ?? []).map(l =>
-                    l.id === lessonId ? { ...l, parts: l.parts.filter(p => p.id !== partId) } : l
-                ),
-            }));
-        } catch { setError("Xóa phần bài học thất bại."); }
-    };
-
-    /* ---- Add document ---- */
-    const addDoc = async (lessonId: string) => {
-        const title = docTitle[lessonId]?.trim();
-        const file = docFile[lessonId];
-        if (!title || !file) { setError("Vui lòng nhập tiêu đề và chọn file tài liệu."); return; }
-        const lesson = lessonsForSection.find(l => l.id === lessonId);
-        if (!lesson) return;
-        const documentOrder = lesson.docs.length + 1;
-        try {
-            const id = await lessonDocumentService.create({ lessonId, title, documentOrder, file });
-            setLessons(prev => ({
-                ...prev,
-                [selectedSectionId]: (prev[selectedSectionId] ?? []).map(l =>
-                    l.id === lessonId ? { ...l, docs: [...l.docs, { id, title, documentOrder }] } : l
-                ),
-            }));
-            setDocTitle(prev => ({ ...prev, [lessonId]: "" }));
-            setDocFile(prev => ({ ...prev, [lessonId]: null }));
-        } catch { setError("Tải lên tài liệu thất bại."); }
-    };
-
-    /* ---- Delete document ---- */
-    const deleteDoc = async (lessonId: string, docId: string) => {
-        try {
-            await lessonDocumentService.delete(docId);
-            setLessons(prev => ({
-                ...prev,
-                [selectedSectionId]: (prev[selectedSectionId] ?? []).map(l =>
-                    l.id === lessonId ? { ...l, docs: l.docs.filter(d => d.id !== docId) } : l
-                ),
-            }));
-        } catch { setError("Xóa tài liệu thất bại."); }
-    };
-
-    const toggleLesson = (lessonId: string) => {
-        setLessons(prev => ({
-            ...prev,
-            [selectedSectionId]: (prev[selectedSectionId] ?? []).map(l =>
-                l.id === lessonId ? { ...l, open: !l.open } : l
-            ),
-        }));
-    };
-
-    return (
-        <div className="space-y-5">
-            {error && <ErrorAlert msg={error} />}
-
-            {/* Section tabs */}
-            <div className="flex gap-2 flex-wrap">
-                {sections.map(s => (
-                    <button key={s.id} onClick={() => setSelectedSectionId(s.id)}
-                        className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${selectedSectionId === s.id ? "bg-indigo-600 text-white shadow-md" : isDark ? "bg-gray-800 text-gray-400 hover:bg-gray-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
-                        {s.title}
-                    </button>
-                ))}
-            </div>
-
-            {/* Add lesson */}
-            <div className={`p-4 rounded-xl border space-y-3 ${isDark ? "bg-gray-800 border-gray-700" : "bg-gray-50 border-gray-200"}`}>
-                <p className={`text-sm font-bold flex items-center gap-2 ${isDark ? "text-gray-200" : "text-gray-700"}`}><GraduationCap className="w-4 h-4 text-indigo-500" /> Thêm bài học</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input type="text" value={lessonTitle} onChange={e => setLessonTitle(e.target.value)}
-                        placeholder="Tên bài học (Ví dụ: Bài 1 – Hiragana)" className={getInputCls(isDark)} />
-                    <select value={lessonLevel} onChange={e => setLessonLevel(e.target.value as LessonLevel)} className={getInputCls(isDark)}>
-                        {LESSON_LEVEL_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                    </select>
-                </div>
-                <button onClick={addLesson} disabled={loading} className={`${btnPrimary} w-full justify-center`}>
-                    {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Đang thêm…</> : <><Plus className="w-4 h-4" /> Thêm bài học</>}
-                </button>
-            </div>
-
-            {/* Lesson list */}
-            <div className="space-y-3">
-                {lessonsForSection.map((lesson, idx) => (
-                    <div key={lesson.id} className={`border rounded-2xl shadow-sm overflow-hidden ${isDark ? "bg-gray-900 border-gray-700" : "bg-white border-gray-100"}`}>
-                        {/* Lesson header */}
-                        <div className={`flex items-center justify-between px-4 py-3 cursor-pointer transition ${isDark ? "hover:bg-gray-800" : "hover:bg-gray-50"}`}
-                            onClick={() => toggleLesson(lesson.id)}>
-                            <div className="flex items-center gap-3">
-                                <span className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${isDark ? "bg-indigo-500/20 text-indigo-400" : "bg-indigo-100 text-indigo-600"}`}>{idx + 1}</span>
-                                <div>
-                                    <p className={`text-sm font-semibold ${isDark ? "text-gray-200" : "text-gray-800"}`}>{lesson.title}</p>
-                                    <p className="text-xs text-gray-400">{lesson.lessonLevel}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button onClick={e => { e.stopPropagation(); deleteLesson(lesson.id); }}
-                                    className="text-red-400 hover:text-red-600 transition p-1.5 hover:bg-red-50 rounded-lg">
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                                {lesson.open ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-                            </div>
-                        </div>
-
-                        {lesson.open && (
-                            <div className={`px-4 pb-4 pt-2 border-t space-y-4 ${isDark ? "border-gray-700" : "border-gray-100"}`}>
-                                {/* --- Lesson Parts --- */}
-                                <div className="space-y-2">
-                                    <p className={`text-xs font-bold flex items-center gap-1.5 uppercase tracking-wider ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                                        <PuzzleIcon className="w-3.5 h-3.5 text-purple-500" /> Phần bài học (Lesson Parts)
-                                    </p>
-                                    {lesson.parts.map((p, pi) => (
-                                        <div key={p.id} className={`flex items-center justify-between rounded-lg px-3 py-2 ${isDark ? "bg-purple-900/10 border border-purple-900/20" : "bg-purple-50"}`}>
-                                            <span className={`text-xs font-medium ${isDark ? "text-purple-300" : "text-purple-700"}`}>{pi + 1}. {p.title}</span>
-                                            <button onClick={() => deletePart(lesson.id, p.id)} className="text-red-400 hover:text-red-600 transition">
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                    <div className="space-y-2">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                            <input type="text"
-                                                value={partTitle[lesson.id] ?? ""}
-                                                onChange={e => setPartTitle(prev => ({ ...prev, [lesson.id]: e.target.value }))}
-                                                placeholder="Tên phần (Ví dụ: Từ vựng)"
-                                                className={`${getInputCls(isDark)} text-xs py-2`} />
-                                            <select
-                                                value={partType[lesson.id] || LessonPartType.VOCABULARY}
-                                                onChange={e => setPartType(prev => ({ ...prev, [lesson.id]: e.target.value as LessonPartType }))}
-                                                className={`${getInputCls(isDark)} text-xs py-2`}
-                                            >
-                                                {Object.values(LessonPartType).map(t => (
-                                                    <option key={t} value={t}>{t}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <input type="text"
-                                                value={partVideoUrl[lesson.id] ?? ""}
-                                                onChange={e => setPartVideoUrl(prev => ({ ...prev, [lesson.id]: e.target.value }))}
-                                                placeholder="Link Youtube (nếu có)"
-                                                className={`${getInputCls(isDark)} text-xs py-2`} />
-                                            <button onClick={() => addPart(lesson.id)}
-                                                className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 whitespace-nowrap">
-                                                <Plus className="w-3.5 h-3.5" /> Thêm phần
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* --- Lesson Documents --- */}
-                                <div className="space-y-2">
-                                    <p className={`text-xs font-bold flex items-center gap-1.5 uppercase tracking-wider ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                                        <FileText className="w-3.5 h-3.5 text-blue-500" /> Tài liệu bài học
-                                    </p>
-                                    {lesson.docs.map((d, di) => (
-                                        <div key={d.id} className={`flex items-center justify-between rounded-lg px-3 py-2 ${isDark ? "bg-blue-900/10 border border-blue-900/20" : "bg-blue-50"}`}>
-                                            <span className={`text-xs font-medium ${isDark ? "text-blue-300" : "text-blue-700"}`}>{di + 1}. {d.title}</span>
-                                            <button onClick={() => deleteDoc(lesson.id, d.id)} className="text-red-400 hover:text-red-600 transition">
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                    <div className="space-y-2">
-                                        <input type="text"
-                                            value={docTitle[lesson.id] ?? ""}
-                                            onChange={e => setDocTitle(prev => ({ ...prev, [lesson.id]: e.target.value }))}
-                                            placeholder="Tiêu đề tài liệu"
-                                            className={`${getInputCls(isDark)} text-xs py-2`} />
-                                        <div className="flex gap-2">
-                                            <label className={`flex-1 flex items-center gap-2 px-3 py-2 border rounded-xl cursor-pointer transition text-xs ${isDark ? "bg-gray-800 border-gray-700 hover:border-blue-500 text-gray-400" : "bg-gray-50 border-gray-200 hover:border-blue-400 text-gray-500"}`}>
-                                                <FileText className="w-3.5 h-3.5 text-blue-500" />
-                                                {docFile[lesson.id] ? docFile[lesson.id]!.name : "Chọn file (PDF, DOCX, ...)"}
-                                                <input type="file" className="hidden"
-                                                    onChange={e => { const f = e.target.files?.[0]; if (f) setDocFile(prev => ({ ...prev, [lesson.id]: f })); }} />
-                                            </label>
-                                            <button onClick={() => addDoc(lesson.id)}
-                                                className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 whitespace-nowrap">
-                                                <Plus className="w-3.5 h-3.5" /> Upload
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                ))}
-            </div>
-
-            {lessonsForSection.length === 0 && (
-                <div className="text-center py-6 text-gray-400 text-sm">Chưa có bài học nào trong chương này.</div>
-            )}
-
-            <div className="flex justify-end pt-2">
-                <button onClick={onFinish} className={btnPrimary}>
-                    <CheckCircle2 className="w-4 h-4" /> Hoàn thành
-                </button>
-            </div>
-        </div>
-    );
-}
 
 /* ===================================================================
    MAIN PAGE
@@ -638,9 +227,6 @@ function Step3Lessons({ sections, onFinish, isDark }: Step3Props) {
 export default function CreateCoursePage() {
     const router = useRouter();
     const [isReady, setIsReady] = useState(false);
-    const [step, setStep] = useState(0);
-    const [courseId, setCourseId] = useState<string | null>(null);
-    const [sections, setSections] = useState<SectionResponse[]>([]);
     const { isDarkMode: isDark } = useDarkMode();
 
     useEffect(() => {
@@ -650,43 +236,28 @@ export default function CreateCoursePage() {
     if (!isReady) return null;
 
     return (
-        <main className="p-8 w-full">
+        <main className="p-8 w-full max-w-3xl mx-auto">
             {/* Title */}
-            <div className="mb-6">
-                <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-indigo-100 text-indigo-600 rounded-xl">
-                        <BookOpen className="w-6 h-6" />
+            <div className="mb-8">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-indigo-600 shadow-lg shadow-indigo-200 text-white rounded-2xl">
+                        <BookOpen className="w-7 h-7" />
                     </div>
                     <div>
-                        <h1 className={`text-2xl font-extrabold tracking-tight ${isDark ? "text-gray-100" : "text-gray-900"}`}>Tạo khóa học mới</h1>
-                        <p className={`text-sm mt-0.5 ${isDark ? "text-gray-400" : "text-gray-500"}`}>Điền đầy đủ từng bước để hoàn thiện khóa học.</p>
+                        <h1 className={`text-3xl font-black tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>Tạo khóa học mới</h1>
+                        <p className={`text-sm mt-1 font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>Điền thông tin cơ bản để bắt đầu xây dựng khóa học của bạn.</p>
                     </div>
                 </div>
             </div>
 
-            {/* Step indicator */}
-            <StepIndicator current={step} isDark={isDark} />
-
             {/* Card */}
-            <div className={`rounded-2xl border shadow-sm p-8 ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"}`}>
-                {step === 0 && (
-                    <Step1Course onCreated={(id) => { setCourseId(id); setStep(1); }} isDark={isDark} />
-                )}
-                {step === 1 && courseId && (
-                    <Step2Sections courseId={courseId} onDone={(s) => { setSections(s); setStep(2); }} isDark={isDark} />
-                )}
-                {step === 2 && (
-                    sections.length > 0 ? (
-                        <Step3Lessons sections={sections} onFinish={() => router.push("/dasboardAdmin")} isDark={isDark} />
-                    ) : (
-                        <div className="text-center space-y-4 py-6">
-                            <SuccessAlert msg="Khóa học đã được tạo thành công!" />
-                            <button onClick={() => router.push("/dasboardAdmin")} className={`${btnPrimary} mx-auto`}>
-                                Về Dashboard
-                            </button>
-                        </div>
-                    )
-                )}
+            <div className={`rounded-3xl border shadow-xl p-8 md:p-10 ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-indigo-50"}`}>
+                <Step1Course
+                    onCreated={(id) => {
+                        router.push(`/dasboardAdmin/courses/${id}`);
+                    }}
+                    isDark={isDark}
+                />
             </div>
         </main>
     );

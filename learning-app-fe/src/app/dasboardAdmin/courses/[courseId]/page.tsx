@@ -5,7 +5,6 @@ import { useDarkMode } from "@/hooks/useDarkMode";
 import { BookOpen, Layers, CheckCircle2, ChevronRight, Loader2, Plus, Trash2, ArrowLeft, Edit3, X, Save } from "lucide-react";
 import { courseService, CourseResponse } from "@/services/courseService";
 import { sectionService, SectionResponse, CreateSectionRequest, UpdateSectionRequest } from "@/services/sectionService";
-import { LessonLevel } from "@/enums/LessonLevel";
 
 export default function AdminSectionManagerPage({ params }: { params: Promise<{ courseId: string }> }) {
     const router = useRouter();
@@ -19,12 +18,10 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
 
     const [isAdding, setIsAdding] = useState(false);
     const [newTitle, setNewTitle] = useState("");
-    const [newLevel, setNewLevel] = useState<LessonLevel>(LessonLevel.N5_BEGINNER);
 
     // Edit state
     const [editingSection, setEditingSection] = useState<SectionResponse | null>(null);
     const [editTitle, setEditTitle] = useState("");
-    const [editLevel, setEditLevel] = useState<LessonLevel>(LessonLevel.N5_BEGINNER);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -60,7 +57,6 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
             const req: CreateSectionRequest = {
                 courseId,
                 title: newTitle.trim(),
-                lessonLevel: newLevel
             };
             await sectionService.create(req);
 
@@ -80,7 +76,6 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
     const handleEditClick = (section: SectionResponse) => {
         setEditingSection(section);
         setEditTitle(section.title);
-        setEditLevel(section.lessonLevel);
         setIsAdding(false); // Close add form if open
     };
 
@@ -90,13 +85,12 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
         try {
             const req: UpdateSectionRequest = {
                 title: editTitle.trim(),
-                lessonLevel: editLevel
             };
             await sectionService.update(editingSection.id, req);
 
             setSections(prev => prev.map(s =>
                 s.id === editingSection.id
-                    ? { ...s, title: editTitle.trim(), lessonLevel: editLevel }
+                    ? { ...s, title: editTitle.trim() }
                     : s
             ));
 
@@ -179,7 +173,7 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
                         )}
                     </h3>
 
-                    <div className="grid gap-6 sm:grid-cols-2">
+                    <div>
                         <div>
                             <label className={`block text-sm font-bold mb-2.5 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Tên Section <span className="text-red-500">*</span></label>
                             <input
@@ -190,27 +184,6 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
                                 placeholder="Ví dụ: Chương 1: Bảng chữ cái"
                                 className={`w-full px-5 py-3 rounded-2xl border text-base font-medium focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all duration-300 ${isDark ? "bg-gray-900/50 border-gray-700 text-white placeholder-gray-600" : "bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400"}`}
                             />
-                        </div>
-                        <div>
-                            <label className={`block text-sm font-bold mb-2.5 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Trình độ (Lesson Level) <span className="text-red-500">*</span></label>
-                            <div className="relative">
-                                <select
-                                    value={editingSection ? editLevel : newLevel}
-                                    onChange={(e) => editingSection ? setEditLevel(e.target.value as LessonLevel) : setNewLevel(e.target.value as LessonLevel)}
-                                    className={`w-full px-5 py-3 rounded-2xl border text-base font-medium appearance-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all duration-300 ${isDark ? "bg-gray-900/50 border-gray-700 text-white" : "bg-gray-50 border-gray-200 text-gray-900"}`}
-                                >
-                                    <option value={LessonLevel.N5_BEGINNER}>N5 Sơ cấp</option>
-                                    <option value={LessonLevel.N5_ELEMENTARY}>N5 Sơ trung cấp</option>
-                                    <option value={LessonLevel.N4_BEGINNER}>N4 Sơ cấp</option>
-                                    <option value={LessonLevel.N4_ELEMENTARY}>N4 Sơ trung cấp</option>
-                                    <option value={LessonLevel.N3_INTERMEDIATE}>N3 Trung cấp</option>
-                                    <option value={LessonLevel.N2_UPPER}>N2 Cao cấp</option>
-                                    <option value={LessonLevel.N1_ADVANCED}>N1 Thượng cấp</option>
-                                </select>
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
-                                    <ChevronRight className="w-5 h-5 rotate-90" />
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -277,9 +250,6 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
                                             {section.title}
                                         </h3>
                                         <div className="flex items-center gap-4 mt-2">
-                                            <span className={`px-3 py-1 rounded-full text-[10px] uppercase font-black tracking-wider border transition-colors ${isDark ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" : "bg-indigo-50 text-indigo-600 border-indigo-100"}`}>
-                                                {section.lessonLevel.replace('_', ' ')}
-                                            </span>
                                             <div className={`flex items-center gap-1.5 text-xs font-bold ${isDark ? "text-gray-500" : "text-gray-400"}`}>
                                                 <div className={`w-1 h-1 rounded-full ${isDark ? "bg-gray-700" : "bg-gray-300"}`} />
                                                 Tạo lúc: {section.createdAt ? new Date(section.createdAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : "N/A"}

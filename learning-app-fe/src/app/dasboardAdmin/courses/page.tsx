@@ -283,8 +283,12 @@ export default function AdminCourseManagerPage() {
                                     </label>
                                     <input
                                         type="number"
-                                        value={editForm.price}
-                                        onChange={(e) => setEditForm({ ...editForm, price: Number(e.target.value) })}
+                                        min={0}
+                                        value={editForm.price || ""}
+                                        onChange={(e) => {
+                                            const val = Number(e.target.value);
+                                            setEditForm({ ...editForm, price: val < 0 ? 0 : val });
+                                        }}
                                         className={`w-full px-4 py-3 rounded-xl border text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition ${isDark ? "bg-gray-900 border-gray-700 text-white" : "bg-gray-50 border-gray-200 text-gray-900"}`}
                                     />
                                 </div>

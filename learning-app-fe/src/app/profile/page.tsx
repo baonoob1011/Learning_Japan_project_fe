@@ -7,6 +7,8 @@ import Header from "@/components/Header";
 import LoadingCat from "@/components/LoadingCat";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { getAccessTokenFromStorage, getRolesFromToken } from "@/utils/jwt";
+import { JLPTLevel } from "@/enums/JLPTLevel";
+import { toast } from "@/components/ui/Toast";
 
 // ── Components chính ──
 import ProfileSideCard from "@/components/profile/Profilesidecard";
@@ -26,7 +28,7 @@ interface PasswordForm {
 export default function ProfilePage() {
   const [user, setUser] = useState<UserProfileResponse | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({ fullName: "", email: "" });
+  const [formData, setFormData] = useState({ fullName: "", email: "", level: JLPTLevel.N5 as JLPTLevel });
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordForm, setPasswordForm] = useState<PasswordForm>({
     currentPassword: "",
@@ -63,6 +65,7 @@ export default function ProfilePage() {
           setFormData({
             fullName: userData.fullName || "",
             email: userData.email || "",
+            level: userData.level || JLPTLevel.N5,
           });
         }
       } catch (error) {
@@ -80,23 +83,26 @@ export default function ProfilePage() {
       const updated = await userService.getProfile();
       setUser(updated);
     } catch {
-      alert("Lỗi upload ảnh");
+      toast.error("Lỗi upload ảnh", "Không thể tải ảnh đại diện lên. Vui lòng thử lại.");
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSaveInfo = async () => {
     try {
-      const updatedUser = await userService.updateProfile({ fullName: formData.fullName });
+      const updatedUser = await userService.updateProfile({
+        fullName: formData.fullName,
+        level: formData.level,
+      });
       setUser(updatedUser);
-      alert("Đã cập nhật thông tin thành công!");
+      toast.success("Cập nhật thành công!", "Thông tin cá nhân đã được lưu.");
       setIsEditing(false);
     } catch {
-      alert("Lỗi khi lưu thông tin");
+      toast.error("Lỗi cập nhật", "Không thể lưu thông tin. Vui lòng thử lại.");
     }
   };
 
@@ -111,11 +117,11 @@ export default function ProfilePage() {
       !passwordForm.newPassword ||
       !passwordForm.confirmPassword
     ) {
-      alert("Vui lòng nhập đầy đủ thông tin");
+      toast.warning("Thiếu thông tin", "Vui lòng nhập đầy đủ các trường mật khẩu.");
       return;
     }
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      alert("Mật khẩu mới và xác nhận không khớp!");
+      toast.warning("Không khớp", "Mật khẩu mới và xác nhận mật khẩu không trùng nhau!");
       return;
     }
     try {
@@ -123,7 +129,7 @@ export default function ProfilePage() {
         passwordForm.currentPassword,
         passwordForm.newPassword
       );
-      alert("Đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
+      toast.success("Đổi mật khẩu thành công!", "Vui lòng đăng nhập lại với mật khẩu mới.");
       setShowPasswordModal(false);
       setPasswordForm({
         currentPassword: "",
@@ -137,9 +143,9 @@ export default function ProfilePage() {
       ): err is { response?: { status?: number } } =>
         typeof err === "object" && err !== null && "response" in err;
       if (isAxiosError(error) && error.response?.status === 400) {
-        alert("Mật khẩu hiện tại không đúng!");
+        toast.error("Sai mật khẩu", "Mật khẩu hiện tại không đúng!");
       } else {
-        alert("Đổi mật khẩu thất bại. Vui lòng thử lại sau.");
+        toast.error("Đổi mật khẩu thất bại", "Vui lòng thử lại sau.");
       }
     }
   };
@@ -265,6 +271,7 @@ export default function ProfilePage() {
                     setFormData({
                       fullName: user.fullName || "",
                       email: user.email || "",
+                      level: user.level || JLPTLevel.N5,
                     });
                   }}
                   onStartEdit={() => setIsEditing(true)}

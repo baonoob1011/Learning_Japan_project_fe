@@ -25,6 +25,7 @@ export interface VocabResponse {
   translated: string;
   partOfSpeech: string;
   audioUrl?: string;
+  status?: LearningStatus;
 }
 
 /* ===================== SERVICE ===================== */

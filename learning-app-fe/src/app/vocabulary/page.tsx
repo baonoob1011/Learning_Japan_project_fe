@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import LoadingCat from "@/components/LoadingCat";
 import Flashcard from "@/components/Flashcard";
+import VocabularyList from "@/components/VocabularyList";
 
 // Main Component
 export default function VocabularyPage() {
@@ -120,15 +121,7 @@ export default function VocabularyPage() {
               {activeTab === "flashcard" && <Flashcard isDark={isDarkMode} />}
 
               {activeTab === "vocabulary" && (
-                <div className="flex flex-col items-center justify-center min-h-[500px]">
-                  <div className="text-6xl mb-4">📚</div>
-                  <p
-                    className={`text-lg ${isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                  >
-                    Vocabulary tab đang được phát triển
-                  </p>
-                </div>
+                <VocabularyList isDarkMode={isDarkMode} />
               )}
 
               {activeTab === "quiz" && (

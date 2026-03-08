@@ -6,7 +6,6 @@ import { BookOpen, BookText, CheckCircle2, ChevronRight, Loader2, Plus, Trash2, 
 import { courseService, CourseResponse } from "@/services/courseService";
 import { sectionService, SectionResponse } from "@/services/sectionService";
 import { lessonService, LessonResponse, CreateLessonRequest } from "@/services/lessonService";
-import { LessonLevel } from "@/enums/LessonLevel";
 
 export default function AdminLessonManagerPage({ params }: { params: Promise<{ courseId: string, sectionId: string }> }) {
     const router = useRouter();
@@ -21,13 +20,11 @@ export default function AdminLessonManagerPage({ params }: { params: Promise<{ c
 
     const [isAdding, setIsAdding] = useState(false);
     const [newTitle, setNewTitle] = useState("");
-    const [newLevel, setNewLevel] = useState<LessonLevel>(LessonLevel.N5_BEGINNER);
     const [newOrder, setNewOrder] = useState<number>(1);
 
     // Edit State
     const [editingLesson, setEditingLesson] = useState<LessonResponse | null>(null);
     const [editTitle, setEditTitle] = useState("");
-    const [editLevel, setEditLevel] = useState<LessonLevel>(LessonLevel.N5_BEGINNER);
     const [editOrder, setEditOrder] = useState<number>(1);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,7 +67,6 @@ export default function AdminLessonManagerPage({ params }: { params: Promise<{ c
             const req: CreateLessonRequest = {
                 sectionId,
                 title: newTitle.trim(),
-                lessonLevel: newLevel,
                 lessonOrder: newOrder
             };
             await lessonService.create(req);
@@ -94,7 +90,6 @@ export default function AdminLessonManagerPage({ params }: { params: Promise<{ c
     const handleEditClick = (lesson: LessonResponse) => {
         setEditingLesson(lesson);
         setEditTitle(lesson.title);
-        setEditLevel(lesson.lessonLevel);
         setEditOrder(lesson.lessonOrder);
         setIsAdding(false);
     };
@@ -106,7 +101,6 @@ export default function AdminLessonManagerPage({ params }: { params: Promise<{ c
             const req: CreateLessonRequest = {
                 sectionId,
                 title: editTitle.trim(),
-                lessonLevel: editLevel,
                 lessonOrder: editOrder
             };
             await lessonService.update(editingLesson.id, req);
@@ -207,7 +201,7 @@ export default function AdminLessonManagerPage({ params }: { params: Promise<{ c
                         )}
                     </h3>
 
-                    <div className="grid gap-6 sm:grid-cols-4">
+                    <div className="grid gap-6 sm:grid-cols-3">
                         <div className="sm:col-span-2">
                             <label className={`block text-sm font-black mb-2.5 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Tên Bài học <span className="text-red-500">*</span></label>
                             <input
@@ -225,26 +219,15 @@ export default function AdminLessonManagerPage({ params }: { params: Promise<{ c
                                 type="number"
                                 min="1"
                                 value={editingLesson ? editOrder : newOrder}
-                                onChange={(e) => editingLesson ? setEditOrder(Number(e.target.value)) : setNewOrder(Number(e.target.value))}
+                                onChange={(e) => {
+                                    const val = Number(e.target.value);
+                                    const finalVal = val < 1 ? 1 : val;
+                                    editingLesson ? setEditOrder(finalVal) : setNewOrder(finalVal);
+                                }}
                                 className={`w-full px-5 py-3.5 rounded-2xl border text-base font-bold focus:ring-4 focus:ring-blue-500/20 focus:border-blue-400 outline-none transition-all duration-300 ${isDark ? "bg-gray-900/50 border-gray-700 text-white" : "bg-gray-50 border-gray-200 text-gray-900"}`}
                             />
                         </div>
-                        <div className="sm:col-span-1">
-                            <label className={`block text-sm font-black mb-2.5 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Trình độ <span className="text-red-500">*</span></label>
-                            <select
-                                value={editingLesson ? editLevel : newLevel}
-                                onChange={(e) => editingLesson ? setEditLevel(e.target.value as LessonLevel) : setNewLevel(e.target.value as LessonLevel)}
-                                className={`w-full px-5 py-3.5 rounded-2xl border text-base font-bold focus:ring-4 focus:ring-blue-500/20 focus:border-blue-400 outline-none transition-all duration-300 appearance-none ${isDark ? "bg-gray-900/50 border-gray-700 text-white" : "bg-gray-50 border-gray-200 text-gray-900"}`}
-                            >
-                                <option value={LessonLevel.N5_BEGINNER}>N5 Sơ cấp</option>
-                                <option value={LessonLevel.N5_ELEMENTARY}>N5 Sơ trung cấp</option>
-                                <option value={LessonLevel.N4_BEGINNER}>N4 Sơ cấp</option>
-                                <option value={LessonLevel.N4_ELEMENTARY}>N4 Sơ trung cấp</option>
-                                <option value={LessonLevel.N3_INTERMEDIATE}>N3 Trung cấp</option>
-                                <option value={LessonLevel.N2_UPPER}>N2 Cao cấp</option>
-                                <option value={LessonLevel.N1_ADVANCED}>N1 Thượng cấp</option>
-                            </select>
-                        </div>
+
                     </div>
 
                     <div className="mt-8 flex justify-end gap-4">
@@ -306,9 +289,6 @@ export default function AdminLessonManagerPage({ params }: { params: Promise<{ c
                                     <div>
                                         <h3 className={`font-black text-xl transition-colors duration-300 group-hover:text-blue-500 ${isDark ? "text-white" : "text-gray-900"}`}>{lesson.title}</h3>
                                         <div className="flex items-center gap-3 mt-2 flex-wrap">
-                                            <span className={`px-2.5 py-0.5 rounded-lg text-[10px] uppercase font-black tracking-wider ${isDark ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" : "bg-blue-50 text-blue-600 border border-blue-100"}`}>
-                                                {lesson.lessonLevel}
-                                            </span>
                                             <div className="flex items-center gap-1.5 opacity-60">
                                                 <div className={`w-1 h-1 rounded-full ${isDark ? "bg-gray-600" : "bg-gray-400"}`} />
                                                 <span className="text-[11px] font-bold">

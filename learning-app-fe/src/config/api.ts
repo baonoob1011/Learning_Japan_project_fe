@@ -81,7 +81,7 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/course/${id}`,   // 👈 thêm dòng này
 
     GET_DETAIL: (courseId: string) => `/course/${courseId}`,
-    TOGGLE_ACTIVE: (courseId: string) => `/course/${courseId}/active`,
+    TOGGLE_ACTIVE: (courseId: string) => `/course/${courseId}/toggle`,
     GET_PROGRESS: (courseId: string) => `/courses/${courseId}/progress`,
   },
   KANJI: {

@@ -142,8 +142,8 @@ export default function UserProfileCard({
                 <button
                     disabled
                     className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold cursor-default border ${dark
-                            ? "bg-cyan-950/40 text-cyan-400 border-cyan-900/50"
-                            : "bg-cyan-50 text-cyan-500 border-cyan-200"
+                        ? "bg-cyan-950/40 text-cyan-400 border-cyan-900/50"
+                        : "bg-cyan-50 text-cyan-500 border-cyan-200"
                         }`}
                 >
                     <UserCheck size={13} />

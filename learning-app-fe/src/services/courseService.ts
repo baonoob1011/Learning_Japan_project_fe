@@ -58,11 +58,14 @@ export const courseService = {
     }
 
     try {
-      return await http.post<string>(API_ENDPOINTS.COURSE.CREATE, formData, {
+      const result = await http.post<any>(API_ENDPOINTS.COURSE.CREATE, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+
+      // If result is an object, extract id. Otherwise return as string.
+      return typeof result === "object" && result !== null ? result.id : String(result);
     } catch (error: any) {
       console.error("Course creation failed details:", error.response?.data || error.message);
       throw error;

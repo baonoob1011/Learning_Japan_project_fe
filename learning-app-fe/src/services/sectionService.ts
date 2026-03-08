@@ -7,18 +7,15 @@ import { LessonLevel } from "@/enums/LessonLevel";
 export interface CreateSectionRequest {
   courseId: string;
   title: string;
-  lessonLevel: LessonLevel;
 }
 
 export interface SectionResponse {
   id: string;
   title: string;
-  lessonLevel: LessonLevel;
   createdAt: string;
 }
 export interface UpdateSectionRequest {
   title?: string;
-  lessonLevel?: LessonLevel;
 }
 
 /* ===================== SERVICE ===================== */
@@ -27,20 +24,22 @@ export const sectionService = {
   /**
    * ✅ Tạo section
    */
-  create(request: CreateSectionRequest): Promise<string> {
-    return http.post<string>(API_ENDPOINTS.SECTION.CREATE, request);
+  async create(request: CreateSectionRequest): Promise<string> {
+    const res = await http.post<any>(API_ENDPOINTS.SECTION.CREATE, request);
+    return typeof res === 'object' && res !== null ? res.id : String(res);
   },
   /**
    * ✅ Cập nhật section (partial)
    */
-  update(
+  async update(
     sectionId: string,
     request: UpdateSectionRequest
   ): Promise<string> {
-    return http.put<string>(
+    const res = await http.put<any>(
       API_ENDPOINTS.SECTION.UPDATE(sectionId),
       request
     );
+    return typeof res === 'object' && res !== null ? res.id : String(res);
   },
   /**
    * ✅ Lấy danh sách section theo course

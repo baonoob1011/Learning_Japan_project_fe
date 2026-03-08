@@ -394,7 +394,7 @@ export default function FloatingChatButton({
             onTabChange={handleTabChange}
             onCall={() => setShowCall(true)}
             onClose={() => setIsOpen(false)}
-            showCallButton={!!selectedContact && !!currentUserId}
+            showCallButton={!!selectedContact && !!currentUserId && activeTab !== "GROUP"}
             unreadCounts={unreadCounts}
           />
 

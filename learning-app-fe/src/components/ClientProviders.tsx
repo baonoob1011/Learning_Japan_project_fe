@@ -6,6 +6,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import FloatingChatButton from "@/components/Floatingchatbutton ";
 import MaziAIChat from "@/components/NiboChatAI";
+import { ToastContainer } from "@/components/ui/Toast";
 
 export default function ClientProviders({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -22,6 +23,7 @@ export default function ClientProviders({ children }: { children: React.ReactNod
 
     return (
         <>
+            <ToastContainer />
             {children}
             {shouldShowFloating && (
                 <>

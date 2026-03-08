@@ -12,9 +12,11 @@ import {
   Save,
   ChevronRight,
   Crown,
+  BookOpen,
 } from "lucide-react";
 import { UserProfileResponse } from "@/services/userService";
 import { getAccessTokenFromStorage, getRolesFromToken } from "@/utils/jwt";
+import { JLPTLevel } from "@/enums/JLPTLevel";
 
 // ─── Password Modal ──────────────────────────────────────────────────────────
 
@@ -184,11 +186,11 @@ function PasswordModal({
 export interface ProfileInfoCardProps {
   user: UserProfileResponse;
   isDark: boolean;
-  formData: { fullName: string; email: string };
+  formData: { fullName: string; email: string; level: JLPTLevel };
   isEditing: boolean;
   passwordForm: PasswordForm;
   showPasswordModal: boolean;
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   onSave: () => void;
   onCancelEdit: () => void;
   onStartEdit: () => void;
@@ -404,6 +406,27 @@ export default function ProfileInfoCard({
                       <Shield className="w-4 h-4 text-gray-500/50" />
                     </div>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label
+                    className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${isDark ? "text-gray-500" : "text-gray-400"
+                      }`}
+                  >
+                    <BookOpen className="w-3.5 h-3.5" /> Trình độ JLPT
+                  </label>
+                  <select
+                    name="level"
+                    value={formData.level}
+                    onChange={onInputChange}
+                    className={`${inputBase} bg-white/5 border-white/10 cursor-pointer`}
+                  >
+                    {Object.values(JLPTLevel).map((lvl) => (
+                      <option key={lvl} value={lvl} className={isDark ? "bg-gray-800 text-gray-100" : "bg-white text-gray-800"}>
+                        {lvl}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

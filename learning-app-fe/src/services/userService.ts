@@ -69,7 +69,11 @@ export interface UserChatResponse {
   level?: string;
   isPremium?: boolean;
 }
+export interface UpdateUserRequest {
+  fullName: string; // Backend là fullName, không phải name
+  level: JLPTLevel;
 
+}
 export interface PageResponse<T> {
   page: number;
   totalPages: number;
@@ -89,7 +93,7 @@ export const userService = {
     return http.get(API_ENDPOINTS.USER.PROFILE); // token đi kèm trong header
   },
 
-  updateProfile(data: { fullName: string }): Promise<UserProfileResponse> {
+  updateProfile(data: UpdateUserRequest): Promise<UserProfileResponse> {
     return http.put(API_ENDPOINTS.USER.UPDATE_PROFILE, data);
   },
 

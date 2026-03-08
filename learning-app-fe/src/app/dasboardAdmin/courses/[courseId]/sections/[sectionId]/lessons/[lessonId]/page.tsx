@@ -380,7 +380,11 @@ export default function AdminLessonBuilderPage({ params }: { params: Promise<{ c
                                             type="number"
                                             min="1"
                                             value={editingPart ? editPartOrder : newPartOrder}
-                                            onChange={(e) => editingPart ? setEditPartOrder(Number(e.target.value)) : setNewPartOrder(Number(e.target.value))}
+                                            onChange={(e) => {
+                                                const val = Number(e.target.value);
+                                                const finalVal = val < 1 ? 1 : val;
+                                                editingPart ? setEditPartOrder(finalVal) : setNewPartOrder(finalVal);
+                                            }}
                                             className={`w-full px-5 py-3 rounded-2xl border text-base font-medium outline-none transition-all duration-300 ${isDark ? "bg-gray-800 border-gray-700 text-white focus:ring-4 focus:ring-teal-500/20 focus:border-teal-500" : "bg-gray-50 border-gray-200 text-gray-900 focus:ring-4 focus:ring-teal-500/20 focus:border-teal-400"}`}
                                         />
                                     </div>
@@ -498,7 +502,10 @@ export default function AdminLessonBuilderPage({ params }: { params: Promise<{ c
                                     </div>
                                     <div className="sm:col-span-1">
                                         <label className={`block text-sm font-bold mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Thứ tự <span className="text-red-500">*</span></label>
-                                        <input type="number" min="1" value={newDocOrder} onChange={(e) => setNewDocOrder(Number(e.target.value))} className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${isDark ? "bg-gray-800 border-gray-700 text-white focus:ring-2 focus:ring-orange-400" : "bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-orange-500"}`} />
+                                        <input type="number" min="1" value={newDocOrder} onChange={(e) => {
+                                            const val = Number(e.target.value);
+                                            setNewDocOrder(val < 1 ? 1 : val);
+                                        }} className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${isDark ? "bg-gray-800 border-gray-700 text-white focus:ring-2 focus:ring-orange-400" : "bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-orange-500"}`} />
                                     </div>
 
                                     <div className="sm:col-span-4 mt-2">

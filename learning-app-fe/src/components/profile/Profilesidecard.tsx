@@ -40,12 +40,9 @@ export default function ProfileSideCard({
     {
       icon: <Calendar className="w-3.5 h-3.5" />,
       label: "Tham gia",
-      value: "Jan 2024",
-    },
-    {
-      icon: <Target className="w-3.5 h-3.5" />,
-      label: "Mục tiêu",
-      value: "JLPT N2",
+      value: user.createdAt
+        ? new Date(user.createdAt).toLocaleDateString("vi-VN", { month: "short", year: "numeric" })
+        : "Jan 2024",
     },
   ];
 

@@ -5,14 +5,12 @@ import { LessonLevel } from "@/enums/LessonLevel";
 export interface CreateLessonRequest {
   sectionId: string;
   title: string;
-  lessonLevel: LessonLevel;
   lessonOrder: number;
 }
 
 export interface LessonResponse {
   id: string;
   title: string;
-  lessonLevel: LessonLevel;
   lessonOrder: number;
   createdAt: string;
 }
@@ -23,11 +21,13 @@ export const lessonService = {
   /**
    * ✅ Create lesson
    */
-  create(request: CreateLessonRequest): Promise<string> {
-    return http.post<string>(API_ENDPOINTS.LESSON.CREATE, request);
+  async create(request: CreateLessonRequest): Promise<string> {
+    const res = await http.post<any>(API_ENDPOINTS.LESSON.CREATE, request);
+    return typeof res === 'object' && res !== null ? res.id : String(res);
   },
-  update: async (id: string, data: CreateLessonRequest) => {
-    return http.put(API_ENDPOINTS.LESSON.UPDATE(id), data);
+  update: async (id: string, data: CreateLessonRequest): Promise<string> => {
+    const res = await http.put<any>(API_ENDPOINTS.LESSON.UPDATE(id), data);
+    return typeof res === "object" && res !== null ? res.id : String(res);
   },
   /**
    * ✅ Get lessons by section
