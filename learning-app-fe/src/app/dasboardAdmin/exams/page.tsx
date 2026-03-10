@@ -636,11 +636,8 @@ export default function ExamManagementPage() {
                     </button>
                     <button
                         onClick={() => { setShowUploadModal(true); setUploadType("exam"); setUploadResult(null); setUploadFile(null); }}
-                        className={`px-6 py-3.5 font-black rounded-2xl flex items-center gap-3 shadow-xl transition-all active:scale-95 text-sm border ${isDark ? "border-violet-500/30 bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 shadow-violet-500/10" : "border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100 shadow-violet-100"}`}
+                        className="px-6 py-3.5 font-black rounded-2xl flex items-center gap-3 shadow-xl transition-all active:scale-95 text-sm bg-gradient-to-r from-blue-600 to-indigo-500 text-white shadow-blue-500/20 hover:shadow-blue-500/30"
                     >
-                        <FileUp className="w-5 h-5" /> Import Excel
-                    </button>
-                    <button className="px-6 py-3.5 font-black rounded-2xl flex items-center gap-3 shadow-xl transition-all active:scale-95 text-sm bg-gradient-to-r from-blue-600 to-indigo-500 text-white shadow-blue-500/20 hover:shadow-blue-500/30">
                         <Plus className="w-5 h-5" /> Tạo Đề mới
                     </button>
                 </div>
@@ -829,7 +826,7 @@ export default function ExamManagementPage() {
                                                                                         });
 
                                                                                         return subGroups.map((sub, sIndex) => (
-                                                                                            <div key={sub.passage?.id || `no-passage-${sIndex}`}>
+                                                                                            <div key={sub.passage?.id ? `passage-${sub.passage.id}-${sIndex}` : `no-passage-${sIndex}`}>
                                                                                                 {/* Passage Card */}
                                                                                                 {sub.passage && (
                                                                                                     <div className={`rounded-2xl border overflow-hidden mb-3 group/passage ${isDark ? "border-blue-500/30 bg-blue-500/5" : "border-blue-200 bg-blue-50/30"}`}>

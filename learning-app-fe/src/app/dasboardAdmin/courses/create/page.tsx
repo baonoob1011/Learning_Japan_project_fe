@@ -254,7 +254,7 @@ export default function CreateCoursePage() {
             <div className={`rounded-3xl border shadow-xl p-8 md:p-10 ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-indigo-50"}`}>
                 <Step1Course
                     onCreated={(id) => {
-                        router.push(`/dasboardAdmin/courses/${id}`);
+                        router.push("/dasboardAdmin/courses");
                     }}
                     isDark={isDark}
                 />

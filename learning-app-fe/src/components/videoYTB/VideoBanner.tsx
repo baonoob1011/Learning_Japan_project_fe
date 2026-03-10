@@ -131,19 +131,17 @@ const VideoBanner: React.FC<VideoBannerProps> = ({
 
       {/* Title and Actions Bar */}
       <div
-        className={`${
-          isDarkMode
-            ? "bg-gray-800 border-gray-700"
-            : "bg-white border-gray-200"
-        } border-b px-6 py-4 shadow-sm transition-colors duration-300`}
+        className={`${isDarkMode
+          ? "bg-gray-800 border-gray-700"
+          : "bg-white border-gray-200"
+          } border-b px-6 py-4 shadow-sm transition-colors duration-300`}
       >
         <div className="mb-4">
           <h1
-            className={`text-2xl font-bold ${
-              isDarkMode
-                ? "text-gray-100"
-                : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
-            }`}
+            className={`text-2xl font-bold ${isDarkMode
+              ? "text-gray-100"
+              : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
+              }`}
           >
             Luyện Shadowing để dễ dàng thông qua bất kỳ video nào bạn yêu thích
           </h1>
@@ -157,21 +155,19 @@ const VideoBanner: React.FC<VideoBannerProps> = ({
             value={youtubeUrl}
             onChange={(e) => setYoutubeUrl(e.target.value)}
             disabled={isLoading}
-            className={`flex-1 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 transition ${
-              isDarkMode
-                ? "bg-gray-700 border-gray-600 text-gray-100 border"
-                : "bg-gray-50 border-gray-200 text-gray-700 border"
-            } disabled:opacity-50`}
+            className={`flex-1 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 transition ${isDarkMode
+              ? "bg-gray-700 border-gray-600 text-gray-100 border"
+              : "bg-gray-50 border-gray-200 text-gray-700 border"
+              } disabled:opacity-50`}
           />
           <select
             value={selectedTag}
             onChange={(e) => setSelectedTag(e.target.value as VideoTag)}
             disabled={isLoading}
-            className={`px-4 py-2.5 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-cyan-400 transition ${
-              isDarkMode
-                ? "bg-gray-700 border-gray-600 text-gray-100 border"
-                : "bg-gray-50 border-gray-200 text-gray-700 border"
-            } disabled:opacity-50 min-w-[150px]`}
+            className={`px-4 py-2.5 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-cyan-400 transition ${isDarkMode
+              ? "bg-gray-700 border-gray-600 text-gray-100 border"
+              : "bg-gray-50 border-gray-200 text-gray-700 border"
+              } disabled:opacity-50 min-w-[150px]`}
           >
             <option value="">Thể loại</option>
             {tagOptions.map((tag) => (
@@ -184,11 +180,10 @@ const VideoBanner: React.FC<VideoBannerProps> = ({
             value={selectedLevel}
             onChange={(e) => setSelectedLevel(e.target.value as JLPTLevel)}
             disabled={isLoading}
-            className={`px-4 py-2.5 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-cyan-400 transition ${
-              isDarkMode
-                ? "bg-gray-700 border-gray-600 text-gray-100 border"
-                : "bg-gray-50 border-gray-200 text-gray-700 border"
-            } disabled:opacity-50 min-w-[120px]`}
+            className={`px-4 py-2.5 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-cyan-400 transition ${isDarkMode
+              ? "bg-gray-700 border-gray-600 text-gray-100 border"
+              : "bg-gray-50 border-gray-200 text-gray-700 border"
+              } disabled:opacity-50 min-w-[120px]`}
           >
             <option value="">Cấp độ</option>
             {levelOptions.map((level) => (
@@ -202,11 +197,10 @@ const VideoBanner: React.FC<VideoBannerProps> = ({
             disabled={
               !youtubeUrl || !selectedLevel || !selectedTag || isLoading
             }
-            className={`px-6 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-lg font-semibold shadow-md hover:shadow-lg transition-all flex items-center gap-2 whitespace-nowrap ${
-              !youtubeUrl || !selectedLevel || !selectedTag || isLoading
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:scale-105"
-            }`}
+            className={`px-6 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-lg font-semibold shadow-md hover:shadow-lg transition-all flex items-center gap-2 whitespace-nowrap ${!youtubeUrl || !selectedLevel || !selectedTag || isLoading
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:scale-105"
+              }`}
           >
             {isLoading ? (
               <>
@@ -239,69 +233,63 @@ const VideoBanner: React.FC<VideoBannerProps> = ({
 
       {/* Categories/Tabs Section */}
       <div
-        className={`${
-          isDarkMode ? "bg-gray-800" : "bg-white"
-        } px-6 py-3 border-b ${
-          isDarkMode ? "border-gray-700" : "border-gray-200"
-        } transition-colors duration-300`}
+        className={`${isDarkMode ? "bg-gray-800" : "bg-white"
+          } px-6 py-3 border-b ${isDarkMode ? "border-gray-700" : "border-gray-200"
+          } transition-colors duration-300`}
       >
         <div className="flex flex-wrap gap-2">
           {tabs.map((tab) => (
             <button
               key={tab.label}
               onClick={() => onTabChange(tab.label)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${
-                activeTab === tab.label
-                  ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-md"
-                  : isDarkMode
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${activeTab === tab.label
+                ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-md"
+                : isDarkMode
                   ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
                   : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
-              }`}
+                }`}
             >
               <span className="text-sm">{tab.icon}</span>
               <span>{tab.label}</span>
             </button>
           ))}
         </div>
-      </div>
+      </div >
 
       {/* JLPT Level Filter Section */}
-      {onLevelChange && (
-        <div
-          className={`${
-            isDarkMode ? "bg-gray-800" : "bg-white"
-          } px-6 py-3 border-b ${
-            isDarkMode ? "border-gray-700" : "border-gray-200"
-          } transition-colors duration-300`}
-        >
-          <div className="flex items-center gap-3">
-            <span
-              className={`text-sm font-semibold ${
-                isDarkMode ? "text-gray-300" : "text-gray-700"
-              }`}
-            >
-              JLPT Level:
-            </span>
-            <div className="flex gap-2">
-              {jlptLevels.map((level) => (
-                <button
-                  key={level}
-                  onClick={() => onLevelChange(level)}
-                  className={`px-4 py-1.5 rounded-lg font-bold text-sm transition-all ${
-                    activeLevel === level
+      {
+        onLevelChange && (
+          <div
+            className={`${isDarkMode ? "bg-gray-800" : "bg-white"
+              } px-6 py-3 border-b ${isDarkMode ? "border-gray-700" : "border-gray-200"
+              } transition-colors duration-300`}
+          >
+            <div className="flex items-center gap-3">
+              <span
+                className={`text-sm font-semibold ${isDarkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+              >
+                JLPT Level:
+              </span>
+              <div className="flex gap-2">
+                {jlptLevels.map((level) => (
+                  <button
+                    key={level}
+                    onClick={() => onLevelChange(level)}
+                    className={`px-4 py-1.5 rounded-lg font-bold text-sm transition-all ${activeLevel === level
                       ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-md"
                       : isDarkMode
-                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
-                  }`}
-                >
-                  {level === "ALL" ? "Toàn bộ" : level}
-                </button>
-              ))}
+                        ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                        : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
+                      }`}
+                  >
+                    {level === "ALL" ? "Toàn bộ" : level}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div >
+        )}
     </>
   );
 };

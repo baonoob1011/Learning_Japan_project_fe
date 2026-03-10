@@ -79,31 +79,35 @@ const FEEDBACK_TYPES: {
 
 const STATUS_CONFIG: Record<
     FeedbackStatus,
-    { label: string; icon: React.ReactNode; bg: string; text: string }
+    { label: string; icon: React.ReactNode; bg: string; text: string; border: string }
 > = {
     PENDING: {
         label: "Chờ xử lý",
         icon: <Clock className="w-3.5 h-3.5" />,
-        bg: "bg-amber-100 dark:bg-amber-900/40",
-        text: "text-amber-700 dark:text-amber-300",
+        bg: "bg-amber-50 dark:bg-amber-500/10",
+        text: "text-amber-600 dark:text-amber-400",
+        border: "border-amber-200 dark:border-amber-500/20",
     },
     REVIEWING: {
         label: "Đang xem xét",
         icon: <Search className="w-3.5 h-3.5" />,
-        bg: "bg-blue-100 dark:bg-blue-900/40",
-        text: "text-blue-700 dark:text-blue-300",
+        bg: "bg-blue-50 dark:bg-blue-500/10",
+        text: "text-blue-600 dark:text-blue-400",
+        border: "border-blue-200 dark:border-blue-500/20",
     },
     RESOLVED: {
         label: "Đã giải quyết",
         icon: <CheckCircle2 className="w-3.5 h-3.5" />,
-        bg: "bg-emerald-100 dark:bg-emerald-900/40",
-        text: "text-emerald-700 dark:text-emerald-300",
+        bg: "bg-emerald-50 dark:bg-emerald-500/10",
+        text: "text-emerald-600 dark:text-emerald-400",
+        border: "border-emerald-200 dark:border-emerald-500/20",
     },
     REJECTED: {
         label: "Từ chối",
         icon: <XCircle className="w-3.5 h-3.5" />,
-        bg: "bg-red-100 dark:bg-red-900/40",
-        text: "text-red-700 dark:text-red-300",
+        bg: "bg-red-50 dark:bg-red-500/10",
+        text: "text-red-600 dark:text-red-400",
+        border: "border-red-200 dark:border-red-500/20",
     },
 };
 
@@ -430,12 +434,11 @@ export default function FeedbackPage({ isDark }: FeedbackPageProps) {
                                             </p>
                                         </div>
 
-                                        {/* Status badge */}
                                         <div
-                                            className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium shrink-0 ${statusInfo.bg} ${statusInfo.text}`}
+                                            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold shrink-0 border shadow-sm ${statusInfo.bg} ${statusInfo.text} ${statusInfo.border}`}
                                         >
                                             {statusInfo.icon}
-                                            <span className="hidden sm:inline">{statusInfo.label}</span>
+                                            <span className="hidden sm:inline uppercase tracking-tight">{statusInfo.label}</span>
                                         </div>
 
                                         {/* Expand icon */}
