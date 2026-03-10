@@ -1,5 +1,6 @@
 import SockJS from "sockjs-client";
 import { Client, IMessage } from "@stomp/stompjs";
+import { getAccessTokenFromStorage } from "@/utils/jwt";
 
 export type IncomingCallDTO = {
   type: "incoming";
@@ -14,6 +15,7 @@ export type NotificationSocketDTO = {
   id: string;
   title: string;
   content: string;
+  isRead: boolean;
   createdAt: string;
 };
 
@@ -22,25 +24,38 @@ export const connectNotificationSocket = (
   onMessage: (data: NotificationSocketDTO) => void,
   onIncomingCall?: (data: IncomingCallDTO) => void
 ) => {
-  const socket = new SockJS("http://localhost:8080/ws");
+  const token = getAccessTokenFromStorage();
+
+  // Kiểm tra URL an toàn
+  const fallbackUrl = "http://localhost:8080/ws";
+  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || fallbackUrl;
+
+  console.log(`🔌 Attempting WS connection to: ${wsUrl} for user: ${userId}`);
+
+  const socket = new SockJS(wsUrl);
+
 
   const client = new Client({
     webSocketFactory: () => socket,
+
     reconnectDelay: 5000,
     debug: (str) => console.log("STOMP:", str),
 
-    onConnect: () => {
-      console.log("🔔 WS connected");
+    // ✅ Thêm Authorization header vào STOMP connect
+    connectHeaders: token ? {
+      Authorization: `Bearer ${token}`
+    } : {},
+
+    onConnect: (frame) => {
+      console.log("🔔 WS connected | User:", userId, "| Frame:", frame.headers);
 
       // Subscribe notifications
       client.subscribe(
         `/topic/notifications/${userId}`,
         (message: IMessage) => {
-          console.log("🔥 RAW WS MESSAGE:", message);
+          console.log("📩 NEW WS MESSAGE:", message.body);
           try {
-            console.log("🔥 BODY:", message.body);
             const data: NotificationSocketDTO = JSON.parse(message.body);
-            console.log("🔥 PARSED DATA:", data);
             onMessage(data);
           } catch (err) {
             console.error("❌ Parse notification error", err, message.body);
@@ -48,14 +63,13 @@ export const connectNotificationSocket = (
         }
       );
 
-      // ✅ Subscribe incoming call trên cùng connection
+      // Subscribe incoming call trên cùng connection
       client.subscribe(
         `/topic/call/incoming/${userId}`,
         (message: IMessage) => {
-          console.log("📞 RAW INCOMING CALL:", message);
+          console.log("📞 INCOMING CALL:", message.body);
           try {
             const data: IncomingCallDTO = JSON.parse(message.body);
-            console.log("📞 PARSED INCOMING CALL:", data);
             onIncomingCall?.(data);
           } catch (err) {
             console.error("❌ Parse incoming call error", err, message.body);
@@ -80,3 +94,4 @@ export const connectNotificationSocket = (
     disconnect: () => client.deactivate(),
   };
 };
+

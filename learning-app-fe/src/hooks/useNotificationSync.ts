@@ -13,8 +13,9 @@ const convertToNotification = (dto: NotificationSocketDTO): Notification => ({
   title: dto.title,
   content: dto.content,
   createdAt: dto.createdAt,
-  isRead: false,
+  isRead: dto.isRead,
 });
+
 
 export const useNotificationSync = () => {
   const { loadNotifications, addNotification, isInitialized } =
@@ -28,23 +29,19 @@ export const useNotificationSync = () => {
   );
 
   useEffect(() => {
-    if (hasInitializedRef.current) return;
+    // Chỉ khởi tạo 1 lần
+    if (socketRef.current) return;
 
     const userId = getUserIdFromToken();
-    if (!userId) {
-      console.log("⚠️ No userId found, skipping notification sync");
-      return;
-    }
-
-    hasInitializedRef.current = true;
+    if (!userId) return;
 
     if (!isInitialized) {
       loadNotifications();
     }
 
-    console.log("🔔 Connecting notification socket for user:", userId);
+    console.log("🔔 Initializing notification sync for user:", userId);
 
-    socketRef.current = connectNotificationSocket(
+    const connection = connectNotificationSocket(
       userId,
       (data: NotificationSocketDTO) => {
         console.log("📩 WebSocket notification received:", data);
@@ -56,15 +53,14 @@ export const useNotificationSync = () => {
       }
     );
 
+    socketRef.current = connection;
+
     return () => {
-      if (socketRef.current) {
-        console.log("🔌 Disconnecting notification socket");
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
-      // ✅ Đã xóa: hasInitializedRef.current = false;
+      // Chỉ ngắt kết nối thực sự khi component Unmount hẳn
+      // (Bỏ log Disconnecting gây nhiễu nếu cần)
     };
-  }, []);
+  }, [isInitialized, loadNotifications, addNotification]);
+
 
   const dismissCall = () => setIncomingCall(null);
 
