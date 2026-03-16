@@ -42,6 +42,7 @@ import { AssessmentType } from "@/enums/assessmentType";
 import { s3Service, S3ImageResponse, S3FolderType } from "@/services/s3Service";
 import { questionService, QuestionApiResponse } from "@/services/questionService";
 import { passageService } from "@/services/passageService";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 
 interface ExamDetail {
@@ -57,13 +58,21 @@ export default function ExamManagementPage() {
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState<'exams' | 'scoring'>('exams');
     const [allAssessmentItems, setAllAssessmentItems] = useState<AssessmentItemResponse[]>([]);
-    const [filterLevel, setFilterLevel] = useState<string>('All');
+    const [filterLevel, setFilterLevel] = useState<string>('N5');
     const [scoringLoading, setScoringLoading] = useState(false);
 
     const [isRunningBatch, setIsRunningBatch] = useState(false);
     const [batchMessage, setBatchMessage] = useState<string | null>(null);
     const [showConfirm, setShowConfirm] = useState(false);
     const [pendingJob, setPendingJob] = useState<BatchJobType | null>(null);
+
+    // Delete confirm dialog state
+    const [confirmDialog, setConfirmDialog] = useState<{
+        open: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => void;
+    }>({ open: false, title: "", message: "", onConfirm: () => { } });
 
     // Upload state
     const [showUploadModal, setShowUploadModal] = useState(false);
@@ -101,7 +110,7 @@ export default function ExamManagementPage() {
     const [editQuestionAudioUrl, setEditQuestionAudioUrl] = useState("");
     const [isUpdatingQuestion, setIsUpdatingQuestion] = useState(false);
     const [showAssetsLibrary, setShowAssetsLibrary] = useState(false);
-    const [libraryTab, setLibraryTab] = useState<"images" | "audios" | "assessments">("images");
+    const [libraryTab, setLibraryTab] = useState<"images" | "audios" | "assessment">("images");
     const [s3Images, setS3Images] = useState<S3ImageResponse[]>([]);
     const [s3Audios, setS3Audios] = useState<S3ImageResponse[]>([]);
     const [s3Assessments, setS3Assessments] = useState<S3ImageResponse[]>([]);
@@ -175,6 +184,8 @@ export default function ExamManagementPage() {
         setScoringLoading(true);
         try {
             const data = await assessmentItemService.getAll();
+            console.log("📊 Assessment items from API:", data);
+            console.log("📊 Total count:", data.length);
             setAllAssessmentItems(data);
         } catch (error) {
             console.error("Failed to fetch assessment items:", error);
@@ -383,6 +394,71 @@ export default function ExamManagementPage() {
         }
     };
 
+    const handleDeleteQuestion = (examId: string, questionId: string) => {
+        setConfirmDialog({
+            open: true,
+            title: "Xóa câu hỏi",
+            message: "Bạn có chắc chắn muốn xóa câu hỏi này? Hành động này không thể hoàn tác.",
+            onConfirm: async () => {
+                setConfirmDialog(prev => ({ ...prev, open: false }));
+                try {
+                    await questionService.delete(questionId);
+
+                    const [sections, questionsWithPassage] = await Promise.all([
+                        examService.getSections(examId),
+                        questionService.getByExamId(examId),
+                    ]);
+
+                    const passageMap = new Map<string, any>();
+                    questionsWithPassage.forEach(q => {
+                        if (q.passage) passageMap.set(q.id, q.passage);
+                    });
+
+                    const sectionsWithPassage = sections.map(section => ({
+                        ...section,
+                        questions: section.questions.map(q => ({
+                            ...q,
+                            passage: passageMap.get(q.id),
+                        })),
+                    }));
+
+                    const itemsMap: Record<string, AssessmentItemResponse[]> = {};
+                    for (const section of sectionsWithPassage) {
+                        itemsMap[section.id] = await assessmentItemService.getBySection(section.id);
+                    }
+
+                    setExamDetails(prev => ({ ...prev, [examId]: { sections: sectionsWithPassage as any, assessmentItems: itemsMap } }));
+                    setUpdateMsg({ text: "Xóa câu hỏi thành công!", ok: true });
+                    setTimeout(() => setUpdateMsg(null), 3000);
+                } catch (err) {
+                    console.error(err);
+                    setUpdateMsg({ text: "Xóa câu hỏi thất bại!", ok: false });
+                }
+            },
+        });
+    };
+
+    const handleDeleteExam = (examId: string, examCode: string) => {
+        setConfirmDialog({
+            open: true,
+            title: "Xóa đề thi",
+            message: `Bạn có chắc chắn muốn xóa toàn bộ đề thi "${examCode}" và tất cả câu hỏi liên quan? Hành động này không thể hoàn tác.`,
+            onConfirm: async () => {
+                setConfirmDialog(prev => ({ ...prev, open: false }));
+                try {
+                    await examService.delete(examId);
+                    setBatchMessage("Xóa đề thi thành công!");
+                    setTimeout(() => setBatchMessage(""), 3000);
+                    fetchExams();
+                } catch (err) {
+                    console.error(err);
+                    setBatchMessage("Xóa đề thi thất bại!");
+                    setTimeout(() => setBatchMessage(""), 3000);
+                }
+            },
+        });
+    };
+
     const handleUpload = async (fileToUpload?: File, explicitType?: S3FolderType) => {
         const file = fileToUpload || uploadFile;
         const type = explicitType || uploadType;
@@ -428,11 +504,11 @@ export default function ExamManagementPage() {
         }
     };
 
-    const handleDeleteMedia = async (key: string, type: "images" | "audios" | "assessments") => {
+    const handleDeleteMedia = async (key: string, type: "images" | "audios" | "assessment") => {
         let typeVi = "file";
         if (type === "images") typeVi = "hình ảnh";
         if (type === "audios") typeVi = "âm thanh";
-        if (type === "assessments") typeVi = "bản dịch/giải thích";
+        if (type === "assessment") typeVi = "bản dịch/giải thích";
 
         if (!window.confirm(`Bạn có chắc chắn muốn xóa ${typeVi} này khỏi S3?`)) return;
         try {
@@ -591,11 +667,21 @@ export default function ExamManagementPage() {
                 </div>
             )}
 
+            {/* General Confirm Dialog */}
+            <ConfirmDialog
+                isOpen={confirmDialog.open}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+                isDark={isDark}
+            />
+
             {/* Breadcrumbs */}
-            <div className={`flex items-center gap-2 text-sm font-bold ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+            <div className={`flex items-center gap-2 text-[13px] font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>
                 <span className="hover:text-blue-500 cursor-pointer transition-colors" onClick={() => router.push('/dasboardAdmin')}>Dashboard</span>
-                <ChevronRight className="w-4 h-4" />
-                <span className={`px-3 py-1 rounded-lg ${isDark ? "bg-blue-500/10 text-blue-300" : "bg-blue-50 text-blue-700"}`}>Quản lý Đề thi</span>
+                <span className="opacity-40">/</span>
+                <span className={`px-2 py-0.5 rounded-lg ${isDark ? "bg-blue-500/10 text-blue-300" : "bg-blue-50 text-blue-700 font-bold"}`}>Quản lý Đề thi</span>
             </div>
 
             {/* Header */}
@@ -678,9 +764,9 @@ export default function ExamManagementPage() {
                                 : "bg-gray-50 border-gray-200 text-gray-700 hover:border-blue-500/30 shadow-sm"
                                 }`}
                         >
-                            {['All', 'N1', 'N2', 'N3', 'N4', 'N5'].map((lvl) => (
+                            {['N1', 'N2', 'N3', 'N4', 'N5'].map((lvl) => (
                                 <option key={lvl} value={lvl}>
-                                    {lvl === 'All' ? 'Tất cả Level' : lvl}
+                                    {lvl}
                                 </option>
                             ))}
                         </select>
@@ -749,7 +835,10 @@ export default function ExamManagementPage() {
 
                                         <div className="flex items-center gap-3">
                                             <button
-                                                onClick={(e) => { e.stopPropagation(); }}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteExam(exam.id, exam.code);
+                                                }}
                                                 className={`p-2.5 rounded-xl border transition-all duration-300 ${isDark ? "border-gray-700 hover:bg-red-500/10 hover:text-red-400 text-gray-500" : "border-gray-200 hover:bg-red-50 hover:text-red-600 text-gray-400"}`}
                                             >
                                                 <Trash2 className="w-4 h-4" />
@@ -1008,7 +1097,7 @@ export default function ExamManagementPage() {
                                                                                                                     {/* Question Header */}
                                                                                                                     <div className="flex items-start gap-3 mb-3">
                                                                                                                         <div className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm ${isDark ? "bg-cyan-500/10 text-cyan-400" : "bg-cyan-50 text-cyan-600"}`}>
-                                                                                                                            {q.questionOrder}
+                                                                                                                            {sortedQuestions.indexOf(q) + 1}
                                                                                                                         </div>
                                                                                                                         <div className="flex-1 min-w-0">
                                                                                                                             <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
@@ -1017,9 +1106,17 @@ export default function ExamManagementPage() {
                                                                                                                                     {q.audioUrl && <span className={`px-2 py-0.5 rounded-md text-[9px] font-black flex items-center gap-1 ${isDark ? "bg-purple-500/10 text-purple-400" : "bg-purple-50 text-purple-600"}`}><Volume2 className="w-3 h-3" />Audio</span>}
                                                                                                                                     {q.imageUrl && <span className={`px-2 py-0.5 rounded-md text-[9px] font-black flex items-center gap-1 ${isDark ? "bg-orange-500/10 text-orange-400" : "bg-orange-50 text-orange-600"}`}><ImageIcon className="w-3 h-3" />Image</span>}
                                                                                                                                 </div>
-                                                                                                                                <button onClick={() => startEditQuestion(q)} className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-blue-500/10 text-blue-500">
-                                                                                                                                    <Edit3 className="w-3.5 h-3.5" />
-                                                                                                                                </button>
+                                                                                                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                                                                                                                    <button onClick={() => startEditQuestion(q)} className="p-1.5 rounded-lg hover:bg-blue-500/10 text-blue-500">
+                                                                                                                                        <Edit3 className="w-3.5 h-3.5" />
+                                                                                                                                    </button>
+                                                                                                                                    <button
+                                                                                                                                        onClick={() => handleDeleteQuestion(exam.id, q.id)}
+                                                                                                                                        className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-500"
+                                                                                                                                    >
+                                                                                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                                                                                    </button>
+                                                                                                                                </div>
                                                                                                                             </div>
                                                                                                                             <p className={`text-sm font-medium leading-relaxed ${isDark ? "text-gray-300" : "text-gray-700"}`}>{q.questionText}</p>
                                                                                                                         </div>
@@ -1302,8 +1399,8 @@ export default function ExamManagementPage() {
                                 <Volume2 className="w-4 h-4" /> Âm thanh ({assets.audios.length})
                             </button>
                             <button
-                                onClick={() => setLibraryTab("assessments")}
-                                className={`px-6 py-2.5 rounded-2xl font-black text-sm transition-all flex items-center gap-2 ${libraryTab === "assessments"
+                                onClick={() => setLibraryTab("assessment")}
+                                className={`px-6 py-2.5 rounded-2xl font-black text-sm transition-all flex items-center gap-2 ${libraryTab === "assessment"
                                     ? (isDark ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" : "bg-amber-50 text-amber-700 border border-amber-100")
                                     : (isDark ? "text-gray-500 hover:bg-gray-800" : "text-gray-400 hover:bg-gray-50")
                                     }`}
@@ -1329,7 +1426,7 @@ export default function ExamManagementPage() {
                                             type="file"
                                             id="library-upload"
                                             className="hidden"
-                                            accept={libraryTab === "images" ? "image/*" : libraryTab === "audios" ? "audio/*" : ".zip,.rar,.pdf,.doc,.docx,.xls,.xlsx"}
+                                            accept={libraryTab === "images" ? "image/*" : libraryTab === "audios" ? "audio/*" : ".zip,.rar,.pdf,.doc,.docx,.xls,.xlsx,.csv"}
                                             onChange={(e) => {
                                                 const file = e.target.files?.[0];
                                                 if (file) {
@@ -1459,7 +1556,7 @@ export default function ExamManagementPage() {
                                                         <Save className="w-4 h-4" />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDeleteMedia(ass.key, "assessments")}
+                                                        onClick={() => handleDeleteMedia(ass.key, "assessment")}
                                                         className={`p-2.5 rounded-xl transition-all ${isDark ? "bg-red-500/10 hover:bg-red-500/20 text-red-500" : "bg-red-50 hover:bg-red-100 text-red-600"}`}
                                                         title="Xóa"
                                                     >

@@ -17,7 +17,9 @@ export interface QuestionApiResponse {
   imageUrl?: string;
   audioUrl?: string;
   questionOrder: number;
-  passage?: PassageResponse
+  passage?: PassageResponse;
+  passageTitle?: string;
+  passageContent?: string;
 }
 
 export interface UpdateQuestionRequest {
@@ -31,7 +33,7 @@ export interface UpdateQuestionRequest {
   imageUrl?: string;
   audioUrl?: string;
   questionOrder: number;
-  passage?: PassageResponse
+  passage?: PassageResponse;
 }
 
 export interface CreateQuestionRequest {

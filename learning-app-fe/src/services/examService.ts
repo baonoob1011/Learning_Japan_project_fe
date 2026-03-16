@@ -15,11 +15,13 @@ export interface SectionWithQuestionsResponse {
     sectionOrder: number;
     questionType: string;
     questionText: string;
-    options: string;
+    options: string[];
     answer: string;
     imageUrl: string;
     audioUrl: string;
     questionOrder: number;
+    passageTitle?: string;
+    passageContent?: string;
   }[];
 }
 
@@ -114,5 +116,9 @@ export const examService = {
       API_ENDPOINTS.EXAM.EXAM_SUBMIT,
       request
     );
+  },
+
+  delete(id: string): Promise<void> {
+    return http.delete<void>(API_ENDPOINTS.EXAM.DELETE(id));
   },
 };

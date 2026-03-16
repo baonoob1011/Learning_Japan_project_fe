@@ -25,6 +25,8 @@ interface Question {
   imageUrl?: string;
   audioUrl?: string;
   passage?: PassageResponse;
+  passageTitle?: string;
+  passageContent?: string;
 }
 
 interface Section {
@@ -159,20 +161,24 @@ function ExamContent() {
 
         const mapped = questionsData.map((q) => {
           let parsedOptions: { label: string; text: string }[] = [];
-          try {
-            const optionsArray: string[] = JSON.parse(q.options);
-            parsedOptions = optionsArray.map((text, index) => ({
-              label: String(index + 1),
-              text: text,
-            }));
-          } catch (err) {
-            console.error("Error parsing options for question:", q.id, err);
-            parsedOptions = [];
-          }
+          const optionsArray: string[] = Array.isArray(q.options) ? q.options : [];
+
+          parsedOptions = optionsArray.map((text, index) => ({
+            label: String(index + 1),
+            text: text,
+          }));
 
           // Recover sectionOrder if it's null in questionsData (backend might return null in flat list)
           const recoveredSectionOrder =
             q.sectionOrder ?? qIdToSectionOrder[q.id] ?? 1;
+
+          // If passage is missing but title/content exist (from sectionsData), reconstruct it
+          const finalPassage = q.passage || (q.passageTitle ? {
+            id: `p-${q.id}`, // dummy id for grouping
+            title: q.passageTitle,
+            content: q.passageContent || "",
+            passageOrder: "0"
+          } : undefined);
 
           return {
             id: q.id,
@@ -184,7 +190,9 @@ function ExamContent() {
             answer: q.answer,
             imageUrl: q.imageUrl,
             audioUrl: q.audioUrl,
-            passage: q.passage,
+            passage: finalPassage,
+            passageTitle: q.passageTitle,
+            passageContent: q.passageContent
           };
         });
 
@@ -339,7 +347,14 @@ function ExamContent() {
     (q) => mergedAnswers[q.id] !== undefined
   ).length;
 
-  const TOTAL_SECTIONS = sections.length;
+  const TOTAL_SECTIONS = useMemo(() => {
+    const orders = [
+      ...sections.map((s) => s.sectionOrder),
+      ...questions.map((q) => q.sectionOrder),
+    ];
+    if (orders.length === 0) return 1;
+    return Math.max(...orders);
+  }, [sections, questions]);
 
   /* ------------------ HANDLE BREAK END ------------------ */
   const handleBreakEnd = () => {
