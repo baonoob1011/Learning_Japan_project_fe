@@ -124,27 +124,97 @@ function ExamContent() {
     }
   }, []);
 
+  /* ------------------ JLPT TIMER LOGIC ------------------ */
+  const calculateInferredDuration = (
+    level: string,
+    title: string,
+    totalDuration: number,
+    numSections: number
+  ) => {
+    if (numSections <= 1) return totalDuration;
+
+    // Durations based on JLPT standard tables (in minutes)
+    // lkr: Language Knowledge & Reading (combined)
+    // vkg: Vocabulary, Kanji, Grammar (part 1)
+    // gr: Grammar & Reading (part 2)
+    // listening: Listening (part 3)
+    const standards: Record<string, { lkr?: number; vkg?: number; gr?: number; listening: number }> = {
+      N1: { lkr: 110, listening: 55 },
+      N2: { lkr: 105, listening: 50 },
+      N3: { vkg: 30, gr: 70, listening: 40 },
+      N4: { vkg: 25, gr: 55, listening: 35 },
+      N5: { vkg: 20, gr: 40, listening: 30 },
+    };
+
+    const std = standards[level] || standards["N4"];
+    const stdTotal = (std.lkr || (std.vkg! + std.gr!)) + std.listening;
+    const lowerTitle = title.toLowerCase();
+
+    // 1. Listening
+    if (lowerTitle.includes("listening") || lowerTitle.includes("nghe")) {
+      return Math.floor((std.listening / stdTotal) * totalDuration);
+    }
+
+    // 2. Vocabulary/Kanji (if separate)
+    if (lowerTitle.includes("vocabulary") || lowerTitle.includes("từ vựng") || lowerTitle.includes("chữ hán")) {
+      if (std.vkg) return Math.floor((std.vkg / stdTotal) * totalDuration);
+    }
+
+    // 3. Grammar/Reading (if separate)
+    if (lowerTitle.includes("grammar") || lowerTitle.includes("reading") || lowerTitle.includes("đọc hiểu") || lowerTitle.includes("ngữ pháp")) {
+      // If it's the combined LKR section
+      if (numSections === 2) {
+        const lkrBase = std.lkr || (std.vkg! + std.gr!);
+        return Math.ceil((lkrBase / stdTotal) * totalDuration);
+      }
+      // If it's just the Grammar/Reading part in a 3-part exam
+      if (std.gr) return Math.floor((std.gr / stdTotal) * totalDuration);
+    }
+
+    // Fallback for combined Language Knowledge & Reading
+    const lkrBase = std.lkr || (std.vkg! + std.gr!);
+    return Math.ceil((lkrBase / stdTotal) * totalDuration);
+  };
+
   /* ------------------ FETCH QUESTIONS & SECTIONS ------------------ */
   useEffect(() => {
     if (!examId) return;
 
     const fetchQuestions = async () => {
       try {
-        // Fetch sections for metadata (duration, title, order)
-        const sectionsData: SectionWithQuestionsResponse[] =
-          await examService.getSections(examId);
+        // Fetch sections and exam details in parallel
+        const [sectionsData, examInfo] = await Promise.all([
+          examService.getSections(examId),
+          examService.getById(examId)
+        ]);
 
         console.log("📦 Sections data from API:", sectionsData);
+        console.log("🏆 Exam data from API:", examInfo);
 
-        const sectionsInfo: Section[] = sectionsData.map((s) => ({
-          id: s.id,
-          examId: s.examId,
-          title: s.title,
-          sectionDuration: s.sectionDuration,
-          sectionOrder: s.sectionOrder,
-        }));
+        const sectionsInfo: Section[] = sectionsData.map((s) => {
+          let duration = s.sectionDuration;
+
+          // If duration is 0, infer it from JLPT standards
+          if (duration === 0) {
+            duration = calculateInferredDuration(
+              examInfo.level,
+              s.title,
+              examInfo.duration,
+              sectionsData.length
+            );
+          }
+
+          return {
+            id: s.id,
+            examId: s.examId,
+            title: s.title,
+            sectionDuration: duration,
+            sectionOrder: s.sectionOrder,
+          };
+        });
+
         setSections(sectionsInfo);
-        console.log("✅ Sections info:", sectionsInfo);
+        console.log("✅ Sections info (with durations):", sectionsInfo);
 
         const questionsData = await questionService.getByExamId(examId);
         console.log("📥 Raw questions data from questionService:", questionsData);
@@ -199,7 +269,7 @@ function ExamContent() {
         console.log("📝 All mapped questions ready:", mapped);
         setQuestions(mapped);
       } catch (err) {
-        console.error("Lỗi fetch questions:", err);
+        console.error("Lỗi fetch questions hoặc exam:", err);
       }
     };
 

@@ -58,7 +58,7 @@ export default function ExamManagementPage() {
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState<'exams' | 'scoring'>('exams');
     const [allAssessmentItems, setAllAssessmentItems] = useState<AssessmentItemResponse[]>([]);
-    const [filterLevel, setFilterLevel] = useState<string>('N5');
+    const [filterLevel, setFilterLevel] = useState<string>('All');
     const [scoringLoading, setScoringLoading] = useState(false);
 
     const [isRunningBatch, setIsRunningBatch] = useState(false);
@@ -764,9 +764,9 @@ export default function ExamManagementPage() {
                                 : "bg-gray-50 border-gray-200 text-gray-700 hover:border-blue-500/30 shadow-sm"
                                 }`}
                         >
-                            {['N1', 'N2', 'N3', 'N4', 'N5'].map((lvl) => (
+                            {['All', 'N1', 'N2', 'N3', 'N4', 'N5'].map((lvl) => (
                                 <option key={lvl} value={lvl}>
-                                    {lvl}
+                                    {lvl === 'All' ? 'Tất cả các Level' : lvl}
                                 </option>
                             ))}
                         </select>
@@ -1220,11 +1220,10 @@ export default function ExamManagementPage() {
                                     title: "Phần Chữ Hán - Từ vựng - Ngữ Pháp",
                                     icon: <Type className="w-5 h-5" />,
                                     color: "from-orange-500 to-red-500",
-                                    items: filtered.filter(i => [
-                                        AssessmentType.KANJI_READING, AssessmentType.KANJI_MEMORY, AssessmentType.VOCAB_CONTEXT,
-                                        AssessmentType.FILL_BLANK, AssessmentType.SENTENCE_ORDER, AssessmentType.PARAPHRASE,
-                                        AssessmentType.GRAMMAR_SELECT, AssessmentType.TEXT_COMPLETION
-                                    ].includes(i.assessmentType as AssessmentType))
+                                    items: filtered.filter(i => 
+                                        !i.assessmentType.toString().startsWith('READING') && 
+                                        !i.assessmentType.toString().startsWith('LISTENING')
+                                    )
                                 },
                                 {
                                     title: "Phần Đọc hiểu",

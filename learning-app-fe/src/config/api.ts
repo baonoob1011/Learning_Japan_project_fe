@@ -197,6 +197,7 @@ export const API_ENDPOINTS = {
     EXAM_START: "/exams/start",
     IMPORT: "/exams/import",
     GET_SECTIONS: (examId: string) => `/exams/sections/${examId}`,
+    DETAIL: (id: string) => `/exams/${id}`,
     DELETE: (id: string) => `/exams/${id}`,
   },
 

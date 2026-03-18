@@ -7,6 +7,7 @@ import { API_ENDPOINTS } from "@/config/api";
 export interface SectionWithQuestionsResponse {
   id: string;
   examId: string;
+  level?: string;
   title: string;
   sectionDuration: number;
   sectionOrder: number;
@@ -98,6 +99,10 @@ export const examService = {
     return http.get<SectionWithQuestionsResponse[]>(
       API_ENDPOINTS.EXAM.GET_SECTIONS(examId)
     );
+  },
+
+  getById(id: string): Promise<ExamResponse> {
+    return http.get<ExamResponse>(API_ENDPOINTS.EXAM.DETAIL(id));
   },
 
   getAll(): Promise<ExamResponse[]> {
