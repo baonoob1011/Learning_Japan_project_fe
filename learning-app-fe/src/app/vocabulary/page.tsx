@@ -6,12 +6,14 @@ import { useDarkMode } from "@/hooks/useDarkMode";
 import LoadingCat from "@/components/LoadingCat";
 import Flashcard from "@/components/Flashcard";
 import VocabularyList from "@/components/VocabularyList";
+import WritingPractice from "@/components/WritingPractice";
 
 // Main Component
 export default function VocabularyPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentStreak, setCurrentStreak] = useState(4);
-  const [activeTab, setActiveTab] = useState("flashcard");
+  const [activeTab, setActiveTab] = useState("vocabulary");
+  const [flashcardFilter, setFlashcardFilter] = useState<"ALL" | "KNOWN" | "UNLEARNED">("ALL");
   const { isDarkMode, toggleDarkMode, mounted } = useDarkMode();
 
   if (!mounted) {
@@ -72,17 +74,6 @@ export default function VocabularyPage() {
               {/* Tab Navigation */}
               <div className="flex gap-3 mb-6 max-w-3xl mx-auto">
                 <button
-                  onClick={() => setActiveTab("flashcard")}
-                  className={`flex-1 py-3 px-6 rounded-xl text-sm font-medium transition ${activeTab === "flashcard"
-                    ? "bg-cyan-500 text-white hover:bg-cyan-600"
-                    : isDarkMode
-                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    }`}
-                >
-                  Flashcard
-                </button>
-                <button
                   onClick={() => setActiveTab("vocabulary")}
                   className={`flex-1 py-3 px-6 rounded-xl text-sm font-medium transition ${activeTab === "vocabulary"
                     ? "bg-cyan-500 text-white hover:bg-cyan-600"
@@ -92,6 +83,17 @@ export default function VocabularyPage() {
                     }`}
                 >
                   Vocabulary
+                </button>
+                <button
+                  onClick={() => setActiveTab("flashcard")}
+                  className={`flex-1 py-3 px-6 rounded-xl text-sm font-medium transition ${activeTab === "flashcard"
+                    ? "bg-cyan-500 text-white hover:bg-cyan-600"
+                    : isDarkMode
+                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                >
+                  Flashcard
                 </button>
                 <button
                   onClick={() => setActiveTab("quiz")}
@@ -106,22 +108,30 @@ export default function VocabularyPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab("write")}
-                  className={`flex-1 py-3 px-6 rounded-xl text-sm font-medium transition ${activeTab === "write"
-                    ? "bg-cyan-500 text-white hover:bg-cyan-600"
+                  className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === "write"
+                    ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20 hover:bg-cyan-600"
                     : isDarkMode
                       ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      : "bg-gray-200/50 text-gray-700 hover:bg-gray-300"
                     }`}
                 >
-                  Write
+                  Writing
                 </button>
               </div>
 
               {/* Tab Content */}
-              {activeTab === "flashcard" && <Flashcard isDark={isDarkMode} />}
+              {activeTab === "flashcard" && (
+                <Flashcard isDark={isDarkMode} initialFilter={flashcardFilter} />
+              )}
 
               {activeTab === "vocabulary" && (
-                <VocabularyList isDarkMode={isDarkMode} />
+                <VocabularyList
+                  isDarkMode={isDarkMode}
+                  onStartLearning={(f) => {
+                    setFlashcardFilter(f);
+                    setActiveTab("flashcard");
+                  }}
+                />
               )}
 
               {activeTab === "quiz" && (
@@ -137,15 +147,7 @@ export default function VocabularyPage() {
               )}
 
               {activeTab === "write" && (
-                <div className="flex flex-col items-center justify-center min-h-[500px]">
-                  <div className="text-6xl mb-4">✍️</div>
-                  <p
-                    className={`text-lg ${isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                  >
-                    Write tab đang được phát triển
-                  </p>
-                </div>
+                <WritingPractice isDark={isDarkMode} />
               )}
             </div>
           </div>

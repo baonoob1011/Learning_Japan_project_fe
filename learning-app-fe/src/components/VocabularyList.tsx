@@ -2,30 +2,33 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
     Search,
+    Volume2,
     Edit2,
     Trash2,
     Check,
     X,
     Loader2,
-    Volume2,
     BookOpen,
-    Filter,
-    Trash
 } from "lucide-react";
 import { vocabService, VocabResponse } from "@/services/vocabService";
 import { LearningStatus } from "@/enums/LearningStatus";
+import ConfirmModal from "./ConfirmModal";
 
 interface VocabularyListProps {
     isDarkMode: boolean;
+    onStartLearning?: (filter: "ALL" | "KNOWN" | "UNLEARNED") => void;
 }
 
-export default function VocabularyList({ isDarkMode }: VocabularyListProps) {
+export default function VocabularyList({ isDarkMode, onStartLearning }: VocabularyListProps) {
     const [vocabs, setVocabs] = useState<VocabResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editValue, setEditValue] = useState("");
     const [isActionLoading, setIsActionLoading] = useState<string | null>(null);
+    const [filter, setFilter] = useState<"ALL" | "KNOWN" | "UNLEARNED">("ALL");
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [deleteVocabItem, setDeleteVocabItem] = useState<{ surface: string; id: string } | null>(null);
 
     useEffect(() => {
         loadVocabs();
@@ -43,13 +46,20 @@ export default function VocabularyList({ isDarkMode }: VocabularyListProps) {
         }
     };
 
-    const handleDelete = async (surface: string, id: string) => {
-        if (!confirm(`Bạn có chắc muốn xóa từ "${surface}"?`)) return;
+    const handleDelete = (surface: string, id: string) => {
+        setDeleteVocabItem({ surface, id });
+        setIsConfirmOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteVocabItem) return;
 
         try {
-            setIsActionLoading(id);
-            await vocabService.remove(surface);
-            setVocabs(prev => prev.filter(v => v.id !== id));
+            setIsActionLoading(deleteVocabItem.id);
+            await vocabService.remove(deleteVocabItem.surface);
+            setVocabs(prev => prev.filter(v => v.id !== deleteVocabItem.id));
+            setIsConfirmOpen(false);
+            setDeleteVocabItem(null);
         } catch (err) {
             console.error("Delete failed", err);
             alert("Xóa thất bại. Vui lòng thử lại.");
@@ -104,14 +114,25 @@ export default function VocabularyList({ isDarkMode }: VocabularyListProps) {
     };
 
     const filteredVocabs = useMemo(() => {
+        let result = vocabs;
+
+        if (filter === "KNOWN") {
+            result = result.filter(v => v.status === LearningStatus.KNOWN);
+        } else if (filter === "UNLEARNED") {
+            result = result.filter(v => v.status !== LearningStatus.KNOWN);
+        }
+
         const query = searchQuery.toLowerCase().trim();
-        if (!query) return vocabs;
-        return vocabs.filter(v =>
-            v.surface.toLowerCase().includes(query) ||
-            v.translated.toLowerCase().includes(query) ||
-            v.reading?.toLowerCase().includes(query)
-        );
-    }, [vocabs, searchQuery]);
+        if (query) {
+            result = result.filter(v =>
+                v.surface.toLowerCase().includes(query) ||
+                v.translated.toLowerCase().includes(query) ||
+                v.reading?.toLowerCase().includes(query)
+            );
+        }
+
+        return result;
+    }, [vocabs, searchQuery, filter]);
 
     if (isLoading) {
         return (
@@ -127,22 +148,63 @@ export default function VocabularyList({ isDarkMode }: VocabularyListProps) {
             {/* Search Bar */}
             <div className="mb-8 flex flex-col md:flex-row gap-4 items-center justify-between">
                 <div className="relative w-full md:max-w-md">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`} />
                     <input
                         type="text"
                         placeholder="Tìm kiếm từ vựng, ý nghĩa..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className={`w-full pl-11 pr-4 py-3 rounded-2xl outline-none transition-all ${isDarkMode
-                                ? "bg-gray-800 border-gray-700 text-white focus:ring-2 focus:ring-cyan-500/50"
-                                : "bg-white border-gray-200 text-gray-800 shadow-sm focus:ring-2 focus:ring-cyan-500/20"
+                            ? "bg-gray-800 border-gray-700 text-white focus:ring-2 focus:ring-cyan-500/50"
+                            : "bg-white border-gray-200 text-gray-800 shadow-sm focus:ring-2 focus:ring-cyan-500/20"
                             } border`}
                     />
                 </div>
-                <div className={`px-4 py-2 rounded-xl text-sm font-bold ${isDarkMode ? "bg-cyan-500/10 text-cyan-400" : "bg-cyan-50 text-cyan-600"
-                    }`}>
-                    Tổng cộng: {filteredVocabs.length} từ
+                <div className="flex items-center gap-3">
+                    <div className={`px-4 py-2 font-bold ${isDarkMode ? "text-gray-400" : "text-gray-600 text-sm"
+                        }`}>
+                        Tổng cộng: <span className={isDarkMode ? "text-cyan-400" : "text-cyan-600"}>{filteredVocabs.length}</span> từ
+                    </div>
+
+                    {filter === "UNLEARNED" && filteredVocabs.length > 0 && (
+                        <button
+                            onClick={() => onStartLearning?.("UNLEARNED")}
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 hover:scale-105 active:scale-95 whitespace-nowrap ${isDarkMode
+                                ? "bg-amber-500 text-gray-900 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40"
+                                : "bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-md hover:shadow-lg shadow-amber-200"
+                                }`}
+                        >
+                            <span>HỌC NGAY</span>
+                            <span className="animate-pulse">⚡</span>
+                        </button>
+                    )}
                 </div>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className={`flex p-1 mb-8 rounded-2xl border transition-all duration-300 max-w-md mx-auto ${isDarkMode ? "bg-gray-800/60 border-gray-700" : "bg-gray-100/50 border-gray-200"
+                }`}>
+                {[
+                    { id: "ALL", label: "Tất cả", icon: "📚" },
+                    { id: "UNLEARNED", label: "Chưa thuộc", icon: "🌱" },
+                    { id: "KNOWN", label: "Đã thuộc", icon: "🏆" },
+                ].map((tab) => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setFilter(tab.id as any)}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-bold transition-all duration-300 ${filter === tab.id
+                            ? isDarkMode
+                                ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20"
+                                : "bg-white text-cyan-600 shadow-sm"
+                            : isDarkMode
+                                ? "text-gray-400 hover:text-gray-200"
+                                : "text-gray-500 hover:text-gray-700"
+                            }`}
+                    >
+                        <span>{tab.icon}</span>
+                        {tab.label}
+                    </button>
+                ))}
             </div>
 
             {/* List Container */}
@@ -156,43 +218,60 @@ export default function VocabularyList({ isDarkMode }: VocabularyListProps) {
                     filteredVocabs.map((v) => (
                         <div
                             key={v.id}
-                            className={`group flex flex-col md:flex-row items-start md:items-center gap-4 p-5 rounded-2xl border transition-all duration-300 ${isDarkMode
-                                    ? "bg-gray-800/40 border-gray-700 hover:bg-gray-800 hover:border-gray-600 shadow-black/20"
-                                    : "bg-white border-gray-100 hover:shadow-xl hover:shadow-cyan-500/5 hover:border-cyan-100"
+                            className={`group flex flex-col md:flex-row items-stretch md:items-center gap-6 p-6 rounded-3xl border transition-all duration-500 hover:shadow-2xl ${isDarkMode
+                                ? "bg-gray-800/40 border-gray-700 hover:bg-gray-800 hover:border-cyan-500/30 shadow-black/40"
+                                : "bg-white border-gray-100 hover:shadow-cyan-100/50 hover:border-cyan-200"
                                 }`}
                         >
-                            {/* Surface & Reading */}
-                            <div className="flex-1 min-w-[200px]">
-                                <div className="flex items-center gap-3 mb-1">
-                                    <h3 className={`text-2xl font-black ${isDarkMode ? "text-white" : "text-gray-800"}`}>
+                            {/* Section 1: Japanese Word */}
+                            <div className="flex-shrink-0 w-full md:w-56 space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <h3 className={`text-2xl font-black tracking-tight ${isDarkMode ? "text-white" : "text-black"}`}>
                                         {v.surface}
                                     </h3>
                                     <button
                                         onClick={() => playSound(v.surface, v.audioUrl)}
-                                        className="p-1.5 rounded-full hover:bg-cyan-500/10 text-cyan-500 transition"
+                                        className="p-1.5 rounded-full hover:bg-cyan-500/10 text-cyan-500 transition-transform active:scale-90"
                                     >
                                         <Volume2 size={16} />
                                     </button>
-                                    {v.status === LearningStatus.KNOWN && (
-                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                                            ĐÃ THUỘC
+                                </div>
+                                <div className="flex flex-wrap gap-2 text-[11px] font-bold">
+                                    <span className={isDarkMode ? "text-gray-400" : "text-gray-600"}>
+                                        {v.reading || v.romaji}
+                                    </span>
+                                    {v.partOfSpeech && (
+                                        <span className={`px-2 py-0.5 rounded uppercase tracking-widest text-[9px] ${isDarkMode ? "bg-gray-700/50 text-gray-400 border border-gray-600" : "bg-gray-100 text-gray-500"
+                                            }`}>
+                                            {v.partOfSpeech}
                                         </span>
                                     )}
                                 </div>
-                                <div className="flex flex-wrap gap-2 text-xs opacity-60">
-                                    <span className={isDarkMode ? "text-gray-300" : "text-gray-500"}>
-                                        {v.reading || v.romaji}
-                                    </span>
-                                    <span className="px-1.5 py-0.5 rounded bg-gray-500/10 uppercase tracking-wider">
-                                        {v.partOfSpeech}
-                                    </span>
-                                </div>
                             </div>
 
-                            {/* Meaning (Editable) */}
-                            <div className="flex-[2] w-full">
+                            {/* Section 2: Learning Status */}
+                            <div className="hidden md:flex flex-shrink-0 items-center justify-center w-36 px-2">
+                                {v.status === LearningStatus.KNOWN ? (
+                                    <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 border-b-2 ${isDarkMode
+                                        ? "bg-emerald-500/20 text-emerald-400 border-emerald-400/40 shadow-emerald-500/10"
+                                        : "bg-emerald-500 text-white border-emerald-700 shadow-emerald-200"
+                                        }`}>
+                                        Đã thuộc
+                                    </div>
+                                ) : (
+                                    <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 hover:scale-110 active:scale-95 border-2 ${isDarkMode
+                                        ? "bg-transparent border-amber-500/30 text-amber-400/80"
+                                        : "bg-transparent border-amber-200 text-amber-600 shadow-sm"
+                                        }`}>
+                                        Chưa thuộc
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Section 3: Meaning (Editable) */}
+                            <div className="flex-1 min-w-0 py-2 md:py-0">
                                 {editingId === v.id ? (
-                                    <div className="flex items-center gap-2 w-full">
+                                    <div className="flex items-center gap-2">
                                         <input
                                             autoFocus
                                             type="text"
@@ -202,37 +281,46 @@ export default function VocabularyList({ isDarkMode }: VocabularyListProps) {
                                                 if (e.key === "Enter") saveEdit(v);
                                                 if (e.key === "Escape") cancelEdit();
                                             }}
-                                            className={`flex-1 px-3 py-2 rounded-lg border outline-none ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-200"
+                                            className={`flex-1 px-4 py-2.5 rounded-xl border outline-none font-medium transition-all ${isDarkMode
+                                                ? "bg-gray-700 border-gray-600 text-white focus:border-cyan-500"
+                                                : "bg-white border-gray-300 text-gray-900 shadow-inner focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/20"
                                                 }`}
                                         />
-                                        <button
-                                            onClick={() => saveEdit(v)}
-                                            disabled={isActionLoading === v.id}
-                                            className="p-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition"
-                                        >
-                                            <Check size={18} />
-                                        </button>
-                                        <button
-                                            onClick={cancelEdit}
-                                            className="p-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
-                                        >
-                                            <X size={18} />
-                                        </button>
+                                        <div className="flex gap-1">
+                                            <button
+                                                onClick={() => saveEdit(v)}
+                                                disabled={isActionLoading === v.id}
+                                                className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20"
+                                            >
+                                                <Check size={18} />
+                                            </button>
+                                            <button
+                                                onClick={cancelEdit}
+                                                className="p-2.5 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition shadow-lg shadow-gray-500/20"
+                                            >
+                                                <X size={18} />
+                                            </button>
+                                        </div>
                                     </div>
                                 ) : (
-                                    <p className={`text-lg font-medium ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>
-                                        {v.translated}
-                                    </p>
+                                    <div className="flex items-center gap-3">
+                                        <p className={`text-lg font-bold leading-tight ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>
+                                            {v.translated}
+                                        </p>
+                                        <div className="lg:hidden">
+                                            {v.status === LearningStatus.KNOWN ? "🏆" : "🌱"}
+                                        </div>
+                                    </div>
                                 )}
                             </div>
 
-                            {/* Actions */}
-                            <div className="flex items-center gap-2 ml-auto">
+                            {/* Section 4: Actions */}
+                            <div className="flex items-center gap-2 shrink-0 md:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 {editingId !== v.id && (
                                     <>
                                         <button
                                             onClick={() => startEdit(v)}
-                                            className="p-2.5 rounded-xl hover:bg-cyan-500/10 text-cyan-500 transition"
+                                            className="p-2.5 rounded-xl hover:bg-cyan-500/10 text-cyan-500 transition-all hover:scale-110 active:scale-90"
                                             title="Sửa nghĩa"
                                         >
                                             <Edit2 size={18} />
@@ -240,7 +328,7 @@ export default function VocabularyList({ isDarkMode }: VocabularyListProps) {
                                         <button
                                             onClick={() => handleDelete(v.surface, v.id)}
                                             disabled={isActionLoading === v.id}
-                                            className="p-2.5 rounded-xl hover:bg-red-500/10 text-red-500 transition"
+                                            className="p-2.5 rounded-xl hover:bg-red-500/10 text-red-500 transition-all hover:scale-110 active:scale-90"
                                             title="Xóa từ"
                                         >
                                             {isActionLoading === v.id ? (
@@ -256,6 +344,16 @@ export default function VocabularyList({ isDarkMode }: VocabularyListProps) {
                     ))
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={confirmDelete}
+                title="Xác nhận xóa"
+                message={`Bạn có chắc muốn xóa từ "${deleteVocabItem?.surface}"? Hành động này không thể hoàn tác.`}
+                isDark={isDarkMode}
+                isLoading={isActionLoading === deleteVocabItem?.id}
+            />
         </div>
     );
 }

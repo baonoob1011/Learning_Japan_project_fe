@@ -13,9 +13,10 @@ import { LearningStatus } from "@/enums/LearningStatus";
 
 interface FlashcardProps {
   isDark: boolean;
+  initialFilter?: "ALL" | "KNOWN" | "UNLEARNED";
 }
 
-const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
+const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) => {
   const [vocabs, setVocabs] = useState<VocabResponse[]>([]);
   const [currentCard, setCurrentCard] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -29,8 +30,12 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
   );
   const [isLoadingStatus, setIsLoadingStatus] = useState(false);
   const [isMarkingVocab, setIsMarkingVocab] = useState(false);
-  const [filter, setFilter] = useState<"ALL" | "KNOWN" | "UNLEARNED">("ALL");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [filter, setFilter] = useState<"ALL" | "KNOWN" | "UNLEARNED">(initialFilter);
+
+  // Sync filter with initialFilter prop
+  useEffect(() => {
+    setFilter(initialFilter);
+  }, [initialFilter]);
 
   // Load danh sách vocabs khi component mount
   useEffect(() => {
@@ -45,14 +50,7 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
       (filter === "KNOWN" && v.status === LearningStatus.KNOWN) ||
       (filter === "UNLEARNED" && v.status !== LearningStatus.KNOWN);
 
-    // Filter by search query
-    const query = searchQuery.toLowerCase();
-    const matchesSearch =
-      v.surface.toLowerCase().includes(query) ||
-      v.translated.toLowerCase().includes(query) ||
-      (v.reading && v.reading.toLowerCase().includes(query));
-
-    return matchesStatus && matchesSearch;
+    return matchesStatus;
   });
 
   const card = filteredVocabs[currentCard];
@@ -81,7 +79,7 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
   useEffect(() => {
     setCurrentCard(0);
     setIsFlipped(false);
-  }, [filter, searchQuery]);
+  }, [filter]);
 
   // Custom scrollbar styles
   useEffect(() => {
@@ -644,17 +642,6 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
             {/* Các nút phụ */}
             <div className="flex items-center justify-between px-1">
               <button
-                onClick={handleShuffle}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 text-xs font-medium border ${isDark
-                  ? "border-cyan-500/30 text-cyan-400/80 hover:bg-cyan-500/10 hover:border-cyan-400/50 hover:text-cyan-300"
-                  : "border-cyan-300/60 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-400"
-                  }`}
-              >
-                <span className="text-sm">🔀</span>
-                <span>Xáo trộn</span>
-              </button>
-
-              <button
                 onClick={() => setSoundEnabled(!soundEnabled)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 text-xs font-medium border ${soundEnabled
                   ? isDark
@@ -671,81 +658,6 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark }) => {
             </div>
           </div>
         )}
-      </div>
-
-      {/* ── VOCABULARY LIST SECTION ───────────────────────────────────── */}
-      <div className={`mt-16 pt-12 border-t ${isDark ? "border-gray-800" : "border-gray-200"}`}>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h2 className={`text-2xl font-black ${isDark ? "text-white" : "text-gray-800"}`}>
-              Danh sách từ vựng
-            </h2>
-            <p className={`text-sm mt-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-              Đang hiển thị {filteredVocabs.length} từ vựng
-            </p>
-          </div>
-
-          <div className="relative max-w-xs w-full">
-            <input
-              type="text"
-              placeholder="Tìm kiếm từ vựng..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full pl-4 pr-10 py-2.5 rounded-2xl text-sm border outline-none transition-all ${isDark
-                ? "bg-gray-800 border-gray-700 text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50"
-                : "bg-white border-gray-200 text-gray-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/20"
-                }`}
-            />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40">
-              🔍
-            </div>
-          </div>
-        </div>
-
-        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`}>
-          {filteredVocabs.map((v, index) => {
-            const isCurrent = card?.id === v.id;
-            const statusStyle = v.status === LearningStatus.KNOWN
-              ? isDark ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-emerald-50 text-emerald-600 border-emerald-200"
-              : isDark ? "bg-amber-500/10 text-amber-400 border-amber-500/20" : "bg-amber-50 text-amber-600 border-amber-200";
-
-            return (
-              <div
-                key={v.id}
-                onClick={() => {
-                  setCurrentCard(index);
-                  setIsFlipped(false);
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-                className={`group p-4 rounded-2xl border transition-all duration-300 cursor-pointer hover:shadow-xl ${isCurrent
-                  ? isDark
-                    ? "bg-cyan-500/10 border-cyan-500 shadow-lg shadow-cyan-500/10"
-                    : "bg-cyan-50 border-cyan-400 shadow-lg shadow-cyan-500/5"
-                  : isDark
-                    ? "bg-gray-800/40 border-gray-700 hover:border-gray-600 hover:bg-gray-800"
-                    : "bg-white border-gray-100 hover:border-cyan-200 hover:bg-cyan-50/10"
-                  }`}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div className={`text-lg font-bold ${isDark ? "text-white" : "text-gray-800"}`}>
-                    {v.surface}
-                  </div>
-                  <div className={`px-2 py-0.5 rounded text-[10px] font-bold border ${statusStyle}`}>
-                    {v.status === LearningStatus.KNOWN ? "ĐÃ THUỘC" : "ĐANG HỌC"}
-                  </div>
-                </div>
-                <div className={`text-sm mb-1 ${isDark ? "text-gray-300" : "text-gray-600"}`}>
-                  {v.translated}
-                </div>
-                {v.reading && (
-                  <div className={`text-[11px] opacity-60 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                    {v.reading}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
       </div>
     </div>
   );
