@@ -8,6 +8,7 @@ import { useDarkMode } from "@/hooks/useDarkMode";
 import Header from "@/components/Header";
 import LoadingCat from "@/components/LoadingCat";
 import { Search, Book, AlertCircle, Layers } from "lucide-react";
+import MaziAIChat from "@/components/NiboChatAI";
 
 // Types
 interface KanjiCardProps {
@@ -70,7 +71,6 @@ const KanjiCard: React.FC<KanjiCardProps> = ({ kanji, isDark, onClick }) => {
         <div className="flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white text-xs font-bold rounded-full">
           <Layers className="w-3 h-3" />
           <span>{kanji.svgStrokes?.length || 0} nét</span>
-          {/* ✅ đổi strokes → svgStrokes */}
         </div>
 
         {/* Readings (if available) */}
@@ -157,39 +157,24 @@ export default function KanjiListPage() {
         .custom-scrollbar::-webkit-scrollbar {
           width: 10px;
         }
-
         .custom-scrollbar::-webkit-scrollbar-track {
           background: #f3f4f6;
           border-radius: 5px;
         }
-
         .custom-scrollbar::-webkit-scrollbar-thumb {
           background: #d1d5db;
           border-radius: 5px;
-          transition: background 0.2s;
         }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #9ca3af;
-        }
-
         .custom-scrollbar-dark::-webkit-scrollbar {
           width: 10px;
         }
-
         .custom-scrollbar-dark::-webkit-scrollbar-track {
           background: #1f2937;
           border-radius: 5px;
         }
-
         .custom-scrollbar-dark::-webkit-scrollbar-thumb {
           background: #4b5563;
           border-radius: 5px;
-          transition: background 0.2s;
-        }
-
-        .custom-scrollbar-dark::-webkit-scrollbar-thumb:hover {
-          background: #6b7280;
         }
       `}</style>
 
@@ -218,7 +203,7 @@ export default function KanjiListPage() {
               } border-b px-6 py-6`}
           >
             <div className="max-w-7xl mx-auto">
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 bg-gradient-to-br from-cyan-400 to-cyan-500 rounded-xl">
                   <Book className="w-6 h-6 text-white" />
                 </div>
@@ -238,44 +223,26 @@ export default function KanjiListPage() {
                 </div>
               </div>
 
-              {/* Search Bar */}
-              <div className="relative">
-                <Search
-                  className={`absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 ${isDarkMode ? "text-gray-400" : "text-gray-500"
-                    }`}
-                />
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm kanji theo chữ, nghĩa, âm đọc..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full pl-12 pr-4 py-3 rounded-xl border ${isDarkMode
-                    ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
-                    : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
-                    } focus:outline-none focus:ring-2 focus:ring-cyan-400 transition`}
-                />
-              </div>
-
-              {/* Stats */}
-              <div className="mt-4 flex gap-4">
-                <div
-                  className={`px-4 py-2 rounded-lg ${isDarkMode ? "bg-gray-700" : "bg-gray-100"
-                    }`}
-                >
-                  <span
-                    className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"
+              {/* Action Bar */}
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search
+                    className={`absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 ${isDarkMode ? "text-gray-400" : "text-gray-500"
                       }`}
-                  >
-                    Tổng số:{" "}
-                  </span>
-                  <span
-                    className={`font-bold ${isDarkMode ? "text-cyan-400" : "text-cyan-600"
-                      }`}
-                  >
-                    {kanjis.length}
-                  </span>
+                  />
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm kanji theo chữ, nghĩa, âm đọc..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className={`w-full pl-12 pr-4 py-3 rounded-xl border ${isDarkMode
+                      ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
+                      : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
+                      } focus:outline-none focus:ring-2 focus:ring-cyan-400 transition`}
+                  />
                 </div>
-                {searchQuery && (
+
+                <div className="flex items-center gap-4">
                   <div
                     className={`px-4 py-2 rounded-lg ${isDarkMode ? "bg-gray-700" : "bg-gray-100"
                       }`}
@@ -284,16 +251,16 @@ export default function KanjiListPage() {
                       className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"
                         }`}
                     >
-                      Kết quả:{" "}
+                      Tổng số:{" "}
                     </span>
                     <span
                       className={`font-bold ${isDarkMode ? "text-cyan-400" : "text-cyan-600"
                         }`}
                     >
-                      {filteredKanjis.length}
+                      {kanjis.length}
                     </span>
                   </div>
-                )}
+                </div>
               </div>
             </div>
           </div>
@@ -372,6 +339,7 @@ export default function KanjiListPage() {
         </div>
       </div>
 
+      <MaziAIChat isDarkMode={isDarkMode} />
     </>
   );
 }

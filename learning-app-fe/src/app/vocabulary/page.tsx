@@ -7,6 +7,8 @@ import LoadingCat from "@/components/LoadingCat";
 import Flashcard from "@/components/Flashcard";
 import VocabularyList from "@/components/VocabularyList";
 import WritingPractice from "@/components/WritingPractice";
+import AIPractice from "@/components/AIPractice";
+import VocabMemoryGame from "@/components/vocab/VocabMemoryGame";
 
 // Main Component
 export default function VocabularyPage() {
@@ -97,14 +99,14 @@ export default function VocabularyPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab("quiz")}
-                  className={`flex-1 py-3 px-6 rounded-xl text-sm font-medium transition ${activeTab === "quiz"
-                    ? "bg-cyan-500 text-white hover:bg-cyan-600"
+                  className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === "quiz"
+                    ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20 hover:bg-cyan-600"
                     : isDarkMode
                       ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      : "bg-gray-200/50 text-gray-700 hover:bg-gray-300"
                     }`}
                 >
-                  Quiz
+                  AI Quiz
                 </button>
                 <button
                   onClick={() => setActiveTab("write")}
@@ -116,6 +118,17 @@ export default function VocabularyPage() {
                     }`}
                 >
                   Writing
+                </button>
+                <button
+                  onClick={() => setActiveTab("game")}
+                  className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === "game"
+                    ? "bg-gradient-to-r from-orange-400 to-red-500 text-white shadow-lg shadow-orange-500/20"
+                    : isDarkMode
+                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      : "bg-gray-200/50 text-gray-700 hover:bg-gray-300"
+                    }`}
+                >
+                  Game
                 </button>
               </div>
 
@@ -135,19 +148,15 @@ export default function VocabularyPage() {
               )}
 
               {activeTab === "quiz" && (
-                <div className="flex flex-col items-center justify-center min-h-[500px]">
-                  <div className="text-6xl mb-4">❓</div>
-                  <p
-                    className={`text-lg ${isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                  >
-                    Quiz tab đang được phát triển
-                  </p>
-                </div>
+                <AIPractice isDark={isDarkMode} />
               )}
 
               {activeTab === "write" && (
                 <WritingPractice isDark={isDarkMode} />
+              )}
+
+              {activeTab === "game" && (
+                <VocabMemoryGame isDarkMode={isDarkMode} />
               )}
             </div>
           </div>
