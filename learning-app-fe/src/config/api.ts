@@ -1,7 +1,8 @@
-// API Configuration
+﻿// API Configuration
+const API_BASE_URL = "http://13.250.109.181:8080/api/v1"; // đổi sang endpoint HTTPS thực tế
+
 export const API_CONFIG = {
-  BASE_URL:
-    "http://13.250.109.181:8080/api/v1",
+  BASE_URL: API_BASE_URL,
   TIMEOUT: 10000, // 10 giây
 } as const;
 
@@ -37,7 +38,7 @@ export const API_ENDPOINTS = {
     UPLOAD_AVATAR: "/users/upload-avatar",
     CHANGE_PASSWORD: "/users/change-password",
     ALL_USERS: "/admin/users",
-    SEARCH: "/users/search", // ✅ thêm dòng này
+    SEARCH: "/users/search", // âœ… thÃªm dÃ²ng nÃ y
   },
   ORDER: {
     MY_ORDERS: "/orders/me",
@@ -59,9 +60,9 @@ export const API_ENDPOINTS = {
   },
 
   CHAT_ROOM: {
-    MY_GROUP_ROOMS: "/chat-room/my-group-rooms", // 👈 thêm dòng này
+    MY_GROUP_ROOMS: "/chat-room/my-group-rooms", // ðŸ‘ˆ thÃªm dÃ²ng nÃ y
     MY_ROOMS: "/chat-room/my-rooms",
-    CREATE_GROUP: "/chat-room/group", // 👈 thêm dòng này
+    CREATE_GROUP: "/chat-room/group", // ðŸ‘ˆ thÃªm dÃ²ng nÃ y
     CREATE_PRIVATE: "/chat-room/private",
     GET_BY_ID: (roomId: string) => `/chat-room/${roomId}`,
     MESSAGES: (roomId: string, page: number, size: number) =>
@@ -77,7 +78,7 @@ export const API_ENDPOINTS = {
     CREATE: "/course",
     GET_MY_PROGRESS: "/courses/my-progress",
     GET_ALL: "/course",
-    UPDATE: (id: string) => `/course/${id}`, // 👈 thêm dòng này
+    UPDATE: (id: string) => `/course/${id}`, // ðŸ‘ˆ thÃªm dÃ²ng nÃ y
 
     GET_DETAIL: (courseId: string) => `/course/${courseId}`,
     TOGGLE_ACTIVE: (courseId: string) => `/course/${courseId}/toggle`,
@@ -273,11 +274,11 @@ export const API_ENDPOINTS = {
     ACCEPT: (requestId: string) => `/friends/accept/${requestId}`,
     REJECT: (requestId: string) => `/friends/reject/${requestId}`,
     UNFRIEND: (userId: string) => `/friends/${userId}`,
-    GET_PENDING: "/friends/pending", // ✅ thêm dòng này
+    GET_PENDING: "/friends/pending", // âœ… thÃªm dÃ²ng nÃ y
   },
 } as const;
 
-// Helper function để lấy full endpoint URL
+// Helper function Ä‘á»ƒ láº¥y full endpoint URL
 export const getEndpoint = (endpointKey: keyof typeof API_ENDPOINTS) => {
   return `${API_CONFIG.BASE_URL}${API_ENDPOINTS[endpointKey]}`;
 };
