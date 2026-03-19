@@ -53,11 +53,12 @@ export interface ChatGroupBasicResponse {
 }
 export interface ChatRoomResponse {
   id: string;
-  roomType: RoomType; // PRIVATE | GROUP
+  roomType: RoomType | string; // PRIVATE | GROUP
   createdAt: string; // ISO string
   memberIds: string[];
-  name: string; // ISO string
-  avatarUrl: string; // ISO string
+  name: string;
+  avatarUrl?: string;
+  avatar?: string;
 
   // display
   otherUserName?: string;

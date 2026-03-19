@@ -120,7 +120,7 @@ export default function AdminLessonManagerPage({ params }: { params: Promise<{ c
 
     const handleDeleteLesson = async (e: React.MouseEvent, lessonId: string) => {
         e.stopPropagation();
-        if (!confirm("Bạn có chắc muốn xóa Lesson này? Mọi file đính kèm/nội dung bên trong sẽ bị mất.")) return;
+        if (!confirm("Bạn có chắc muốn xóa phần này? Mọi file đính kèm/nội dung bên trong sẽ bị mất.")) return;
 
         try {
             await lessonService.delete(lessonId);
@@ -166,10 +166,10 @@ export default function AdminLessonManagerPage({ params }: { params: Promise<{ c
                                 <div className={`p-2.5 rounded-2xl ${isDark ? "bg-blue-500/10" : "bg-blue-50"}`}>
                                     <BookText className={`w-8 h-8 ${isDark ? "text-blue-400" : "text-blue-600"}`} />
                                 </div>
-                                Bài giảng (Lessons)
+                                Nội dung bài học
                             </h1>
                             <p className={`text-sm mt-2 font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                                Quản lý cấu trúc bài học cho chương: <span className={`px-2 py-0.5 rounded font-black ${isDark ? "bg-blue-500/10 text-blue-300" : "bg-blue-50 text-blue-700"}`}>{section?.title}</span>
+                                Quản lý nội dung chi tiết bài học: <span className={`px-2 py-0.5 rounded font-black ${isDark ? "bg-blue-500/10 text-blue-300" : "bg-blue-50 text-blue-700"}`}>{section?.title}</span>
                             </p>
                         </div>
                     </div>
@@ -184,7 +184,7 @@ export default function AdminLessonManagerPage({ params }: { params: Promise<{ c
                         ? (isDark ? "bg-gray-700 text-white" : "bg-gray-200 text-gray-700")
                         : "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-blue-500/20"}`}
                 >
-                    {isAdding ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />} {isAdding ? "Hủy" : "Tạo Lesson mới"}
+                    {isAdding ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />} {isAdding ? "Hủy" : "Tạo phần học mới"}
                 </button>
             </div>
 
@@ -195,9 +195,9 @@ export default function AdminLessonManagerPage({ params }: { params: Promise<{ c
 
                     <h3 className={`text-2xl font-black mb-6 flex items-center gap-3 ${isDark ? "text-white" : "text-gray-900"}`}>
                         {editingLesson ? (
-                            <><Edit3 className="w-7 h-7 text-teal-400" /> Chỉnh sửa Bài Giảng</>
+                            <><Edit3 className="w-7 h-7 text-teal-400" /> Chỉnh sửa phần học</>
                         ) : (
-                            <><Plus className="w-7 h-7 text-blue-600" /> Thêm Bài Giảng Mới</>
+                            <><Plus className="w-7 h-7 text-blue-600" /> Thêm phần học mới</>
                         )}
                     </h3>
 
@@ -262,13 +262,13 @@ export default function AdminLessonManagerPage({ params }: { params: Promise<{ c
                     {lessons.length === 0 ? (
                         <div className={`p-12 text-center rounded-2xl border border-dashed flex flex-col items-center opacity-80 ${isDark ? "border-gray-700 bg-gray-800/20" : "border-gray-300 bg-gray-50"}`}>
                             <BookText className={`w-12 h-12 mx-auto mb-3 opacity-20 ${isDark ? "text-gray-400" : "text-gray-500"}`} />
-                            <h3 className={`font-bold text-lg ${isDark ? "text-gray-300" : "text-gray-700"}`}>Chưa có Bài học (Lesson) nào</h3>
-                            <p className={`text-sm mt-1 px-4 ${isDark ? "text-gray-500" : "text-gray-500"}`}>Sau khi thêm lesson, bạn có thể bấm vào Lesson để thêm bài tập luyện tập, documents, hay vocab.</p>
+                            <h3 className={`font-bold text-lg ${isDark ? "text-gray-300" : "text-gray-700"}`}>Chưa có nội dung nào</h3>
+                            <p className={`text-sm mt-1 px-4 ${isDark ? "text-gray-500" : "text-gray-500"}`}>Sau khi thêm phần học, bạn có thể bấm vào đó để thêm bài tập, tài liệu, hoặc từ vựng.</p>
                             <button
                                 onClick={() => setIsAdding(true)}
                                 className="mt-4 px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:hover:bg-blue-900/60 font-bold text-sm rounded-lg transition-colors"
                             >
-                                Tạo Bài học đầu tiên
+                                Tạo phần học đầu tiên
                             </button>
                         </div>
                     ) : (
@@ -302,24 +302,24 @@ export default function AdminLessonManagerPage({ params }: { params: Promise<{ c
                                 <div className="flex items-center gap-3 mt-4 sm:mt-0 justify-end w-full sm:w-auto relative z-10">
                                     <button
                                         onClick={() => router.push(`/dasboardAdmin/courses/${courseId}/sections/${sectionId}/lessons/${lesson.id}`)}
-                                        className={`px-5 py-2 rounded-xl border font-black text-[12px] tracking-tight transition-all duration-300 shadow-sm hover:shadow-md active:scale-95 ${isDark
+                                        className={`px-5 py-2.5 rounded-2xl border font-black text-[13px] tracking-tight transition-all duration-300 shadow-sm hover:shadow-lg active:scale-95 ${isDark
                                             ? "border-blue-500/30 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20"
-                                            : "border-blue-200 text-blue-600 bg-blue-50 hover:bg-blue-100"}`}
+                                            : "border-blue-100 text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white"}`}
                                     >
-                                        Cấu trúc Bài học
+                                        Cấu trúc bài
                                     </button>
 
-                                    <div className="flex items-center bg-gray-50/50 dark:bg-gray-900/40 p-1 rounded-xl border border-transparent group-hover:border-gray-200 dark:group-hover:border-gray-700 transition-all duration-500">
+                                    <div className="flex items-center gap-1.5 ml-2">
                                         <button
                                             onClick={() => handleEditClick(lesson)}
-                                            className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${isDark ? "hover:bg-teal-500/20 text-gray-500 hover:text-teal-400" : "hover:bg-teal-50 text-gray-400 hover:text-teal-600"}`}
+                                            className={`p-2.5 rounded-xl transition-all duration-300 hover:scale-110 shadow-sm ${isDark ? "bg-gray-700/50 hover:bg-teal-500/20 text-teal-400 border border-gray-600" : "bg-gray-50 hover:bg-teal-50 text-teal-600 border border-gray-100"}`}
                                             title="Chỉnh sửa bài học"
                                         >
                                             <Edit3 className="w-5 h-5" />
                                         </button>
                                         <button
                                             onClick={(e) => handleDeleteLesson(e, lesson.id)}
-                                            className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${isDark ? "hover:bg-red-500/20 text-gray-500 hover:text-red-400" : "hover:bg-red-50 text-gray-400 hover:text-red-500"}`}
+                                            className={`p-2.5 rounded-xl transition-all duration-300 hover:scale-110 shadow-sm ${isDark ? "bg-gray-700/50 hover:bg-red-500/20 text-red-400 border border-gray-600" : "bg-gray-50 hover:bg-red-50 text-red-500 border border-gray-100"}`}
                                             title="Xóa bài học"
                                         >
                                             <Trash2 className="w-5 h-5" />

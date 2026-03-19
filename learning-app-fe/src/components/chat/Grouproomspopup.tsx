@@ -9,6 +9,7 @@ import {
   ArrowLeft,
   Check,
   Camera,
+  UserPlus,
 } from "lucide-react";
 import {
   roomService,
@@ -23,6 +24,7 @@ interface GroupRoomsPopupProps {
   onSelectRoom?: (room: ChatGroupBasicResponse) => void;
   initialView?: View;
   existingRoomId?: string;
+  initialSelectedId?: string; // 👈 Thêm prop này
 }
 
 type View = "list" | "create" | "add";
@@ -33,6 +35,7 @@ export default function GroupRoomsPopup({
   onSelectRoom,
   initialView = "list",
   existingRoomId,
+  initialSelectedId, // 👈 Thêm prop này
 }: GroupRoomsPopupProps) {
   const [view, setView] = useState<View>(initialView);
 
@@ -70,12 +73,40 @@ export default function GroupRoomsPopup({
   useEffect(() => {
     if (view !== "create" && view !== "add") return;
     setLoadingUsers(true);
-    roomService
-      .getMyChatUsers()
-      .then((users) => setChatUsers(users))
-      .catch(() => setChatUsers([]))
-      .finally(() => setLoadingUsers(false));
-  }, [view]);
+
+    const fetchData = async () => {
+      try {
+        // 1. Lấy danh sách bạn bè đã chat
+        const users = await roomService.getMyChatUsers();
+
+        let filteredUsers = users;
+
+        // 2. Nếu là view "add", lọc bỏ những người đã ở trong nhóm
+        if (view === "add" && existingRoomId) {
+          try {
+            const groupDetail = await roomService.getGroupDetail(existingRoomId);
+            const memberIds = new Set(groupDetail.members.map(m => m.userId));
+            filteredUsers = users.filter(u => !memberIds.has(u.userId));
+          } catch (err) {
+            console.error("Failed to fetch group members:", err);
+          }
+        }
+
+        setChatUsers(filteredUsers);
+
+        // 3. Auto-select nếu có initialSelectedId (chỉ khi create)
+        if (view === "create" && initialSelectedId) {
+          setSelectedIds([initialSelectedId]);
+        }
+      } catch {
+        setChatUsers([]);
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    fetchData();
+  }, [view, existingRoomId, initialSelectedId]);
 
   // Close on outside click
   useEffect(() => {
@@ -209,7 +240,7 @@ export default function GroupRoomsPopup({
             />
           </div>
           <span className="font-semibold text-sm">
-            {view === "list" ? "Nhóm của tôi" : "Tạo nhóm mới"}
+            {view === "list" ? "Nhóm của tôi" : view === "add" ? "Thêm thành viên" : "Tạo nhóm mới"}
           </span>
         </div>
         <button

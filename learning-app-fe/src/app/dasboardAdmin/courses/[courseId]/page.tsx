@@ -105,7 +105,7 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
 
     const handleDeleteSection = async (e: React.MouseEvent, sectionId: string) => {
         e.stopPropagation();
-        if (!confirm("Bạn có chắc muốn xóa section này? Mọi dữ liệu (lessons, documents) bên trong có thể bị mất.")) return;
+        if (!confirm("Bạn có chắc muốn xóa bài này? Mọi dữ liệu (bài giảng, tài liệu) bên trong có thể bị mất.")) return;
 
         try {
             await sectionService.delete(sectionId);
@@ -137,7 +137,7 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
                             <div className={`p-2 rounded-xl ${isDark ? "bg-purple-500/10" : "bg-purple-50"}`}>
                                 <Layers className={`w-8 h-8 ${isDark ? "text-purple-400" : "text-purple-600"}`} />
                             </div>
-                            Chương (Sections)
+                            Quản lý Bài
                         </h1>
                         <p className={`text-sm mt-1.5 font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>
                             Quản lý cấu trúc của khóa học: <span className={`px-2 py-0.5 rounded-lg ${isDark ? "bg-purple-500/10 text-purple-300" : "bg-purple-50 text-purple-700"}`}>{course?.title}</span>
@@ -155,7 +155,7 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
                     {isAdding ? (
                         <><X className="w-5 h-5" /> Hủy Thêm</>
                     ) : (
-                        <><Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" /> Tạo Section mới</>
+                        <><Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" /> Tạo bài mới</>
                     )}
                 </button>
             </div>
@@ -169,19 +169,19 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
                         {editingSection ? (
                             <><Edit3 className="w-6 h-6 text-amber-500" /> Chỉnh sửa: <span className="text-amber-500">{editingSection.title}</span></>
                         ) : (
-                            <><Plus className="w-6 h-6 text-purple-600" /> Thêm Chương (Section) Mới</>
+                            <><Plus className="w-6 h-6 text-purple-600" /> Thêm Bài Mới</>
                         )}
                     </h3>
 
                     <div>
                         <div>
-                            <label className={`block text-sm font-bold mb-2.5 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Tên Section <span className="text-red-500">*</span></label>
+                            <label className={`block text-sm font-bold mb-2.5 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Tên Bài học <span className="text-red-500">*</span></label>
                             <input
                                 type="text"
                                 autoFocus
                                 value={editingSection ? editTitle : newTitle}
                                 onChange={(e) => editingSection ? setEditTitle(e.target.value) : setNewTitle(e.target.value)}
-                                placeholder="Ví dụ: Chương 1: Bảng chữ cái"
+                                placeholder="Ví dụ: Bài 1: Bảng chữ cái"
                                 className={`w-full px-5 py-3 rounded-2xl border text-base font-medium focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all duration-300 ${isDark ? "bg-gray-900/50 border-gray-700 text-white placeholder-gray-600" : "bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400"}`}
                             />
                         </div>
@@ -222,13 +222,13 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
                     {sections.length === 0 ? (
                         <div className={`p-12 text-center rounded-2xl border border-dashed ${isDark ? "border-gray-700 bg-gray-800/30" : "border-gray-300 bg-gray-50"}`}>
                             <Layers className={`w-12 h-12 mx-auto mb-3 opacity-20 ${isDark ? "text-gray-400" : "text-gray-500"}`} />
-                            <h3 className={`font-bold text-lg ${isDark ? "text-gray-300" : "text-gray-700"}`}>Chưa có Chương (Section) nào</h3>
-                            <p className={`text-sm mt-1 ${isDark ? "text-gray-500" : "text-gray-500"}`}>Hãy tạo section đầu tiên để xây dựng cấu trúc khóa học.</p>
+                            <h3 className={`font-bold text-lg ${isDark ? "text-gray-300" : "text-gray-700"}`}>Chưa có bài nào</h3>
+                            <p className={`text-sm mt-1 ${isDark ? "text-gray-500" : "text-gray-500"}`}>Hãy tạo bài đầu tiên để xây dựng cấu trúc khóa học.</p>
                             <button
                                 onClick={() => setIsAdding(true)}
                                 className="mt-4 px-4 py-2 bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50 font-bold text-sm rounded-lg transition-colors"
                             >
-                                Tạo Section ngay
+                                Tạo bài học ngay
                             </button>
                         </div>
                     ) : (
@@ -266,14 +266,14 @@ export default function AdminSectionManagerPage({ params }: { params: Promise<{ 
                                                 handleEditClick(section);
                                             }}
                                             className={`p-2.5 rounded-xl transition-all duration-300 hover:scale-110 ${isDark ? "hover:bg-amber-500/20 text-amber-500" : "hover:bg-amber-50 text-amber-600"}`}
-                                            title="Sửa section"
+                                            title="Sửa bài học"
                                         >
                                             <Edit3 className="w-5 h-5" />
                                         </button>
                                         <button
                                             onClick={(e) => handleDeleteSection(e, section.id)}
                                             className={`p-2.5 rounded-xl transition-all duration-300 hover:scale-110 ${isDark ? "hover:bg-red-500/20 text-red-500" : "hover:bg-red-50 text-red-600"}`}
-                                            title="Xóa section"
+                                            title="Xóa bài học"
                                         >
                                             <Trash2 className="w-5 h-5" />
                                         </button>

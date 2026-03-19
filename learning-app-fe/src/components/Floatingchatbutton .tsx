@@ -444,6 +444,7 @@ export default function FloatingChatButton({
                   isDarkMode={isDarkMode}
                   initialView={groupPopupView}
                   existingRoomId={selectedContact?.id}
+                  initialSelectedId={selectedContact?.userId}
                   onClose={() => setShowGroupPopup(false)}
                   onSelectRoom={(room: ChatGroupBasicResponse) => {
                     // Update state to the new/selected room

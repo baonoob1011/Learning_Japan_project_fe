@@ -6,6 +6,7 @@ import { BookOpen, Map, ChevronRight, Loader2, Library, EyeOff, LayoutGrid, Sear
 import { courseService, CourseResponse, UpdateCourseRequest } from "@/services/courseService";
 import { JLPTLevel } from "@/enums/JLPTLevel";
 import { LessonProcess } from "@/enums/LessonProcess";
+import Notification from "@/components/notification";
 
 export default function AdminCourseManagerPage() {
     const router = useRouter();
@@ -24,6 +25,11 @@ export default function AdminCourseManagerPage() {
         lessonProcess: LessonProcess.JUNBI,
         price: 0
     });
+
+    const [notification, setNotification] = useState<{
+        type: "success" | "error" | "warning";
+        message: string;
+    } | null>(null);
 
     useEffect(() => {
         const fetchCourses = async () => {
@@ -44,8 +50,10 @@ export default function AdminCourseManagerPage() {
         try {
             await courseService.toggleActive(courseId);
             setCourses(prev => prev.map(c => c.id === courseId ? { ...c, isActive: !c.isActive } : c));
-        } catch (error) {
+            setNotification({ type: "success", message: "Đã thay đổi trạng thái hiển thị!" });
+        } catch (error: any) {
             console.error("Failed to toggle course active status:", error);
+            setNotification({ type: "error", message: error.message || "Không thể thay đổi trạng thái" });
         }
     };
 
@@ -76,11 +84,11 @@ export default function AdminCourseManagerPage() {
         try {
             await courseService.update(editingCourse.id, editForm);
             setCourses(prev => prev.map(c => c.id === editingCourse.id ? { ...c, ...editForm } : c));
+            setNotification({ type: "success", message: "Cập nhật khóa học thành công!" });
             setEditingCourse(null);
-            alert("Cập nhật khóa học thành công!");
         } catch (error: any) {
             console.error("Failed to update course:", error);
-            alert(error.message || "Cập nhật khóa học thất bại");
+            setNotification({ type: "error", message: error.message || "Cập nhật khóa học thất bại" });
         } finally {
             setIsUpdating(false);
         }
@@ -88,6 +96,13 @@ export default function AdminCourseManagerPage() {
 
     return (
         <main className="p-8 space-y-8">
+            {notification && (
+                <Notification
+                    type={notification.type}
+                    message={notification.message}
+                    onClose={() => setNotification(null)}
+                />
+            )}
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -231,14 +246,14 @@ export default function AdminCourseManagerPage() {
                         onClick={() => setEditingCourse(null)}
                     ></div>
                     <div className={`relative w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"}`}>
-                        <div className="p-8 space-y-8">
-                            <div className="flex items-center justify-between">
+                        <div className="p-8 space-y-6">
+                            <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-700/50">
                                 <div>
-                                    <h3 className={`text-2xl font-extrabold mb-1 ${isDark ? "text-white" : "text-gray-900"}`}>
-                                        Chỉnh sửa Khóa học
+                                    <h3 className={`text-2xl font-black mb-1 ${isDark ? "text-white" : "text-gray-900"}`}>
+                                        Cập nhật Khóa học
                                     </h3>
-                                    <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                                        Cập nhật thông tin chi tiết của khóa học này.
+                                    <p className={`text-xs font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                                        Chỉnh sửa thông tin chi tiết của khóa học
                                     </p>
                                 </div>
                                 <button

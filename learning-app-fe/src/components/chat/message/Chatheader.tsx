@@ -132,6 +132,8 @@ export default function ChatHeader({
                   <div className="absolute top-full mt-2 right-0 z-50">
                     <GroupRoomsPopup
                       isDarkMode={isDarkMode}
+                      initialView="create"
+                      initialSelectedId={selectedContact.otherUserId ?? selectedContact.id}
                       onClose={() => setShowGroupPopup(false)}
                       onSelectRoom={(room) => {
                         onSelectRoom?.(room);

@@ -32,6 +32,7 @@ import {
     ListOrdered,
     Upload,
     FileUp,
+    Search,
 } from "lucide-react";
 import { examService, ExamResponse, SectionWithQuestionsResponse } from "@/services/examService";
 import { assessmentItemService, AssessmentItemResponse, UpdateAssessmentItemRequest } from "@/services/assessmentItemService";
@@ -59,7 +60,15 @@ export default function ExamManagementPage() {
     const [viewMode, setViewMode] = useState<'exams' | 'scoring'>('exams');
     const [allAssessmentItems, setAllAssessmentItems] = useState<AssessmentItemResponse[]>([]);
     const [filterLevel, setFilterLevel] = useState<string>('All');
+    const [searchQuery, setSearchQuery] = useState("");
+    const [examLevelFilter, setExamLevelFilter] = useState("All");
     const [scoringLoading, setScoringLoading] = useState(false);
+
+    const filteredExamsForList = exams.filter(exam => {
+        const matchesLevel = examLevelFilter === 'All' || exam.level === examLevelFilter;
+        const matchesSearch = exam.code.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesLevel && matchesSearch;
+    });
 
     const [isRunningBatch, setIsRunningBatch] = useState(false);
     const [batchMessage, setBatchMessage] = useState<string | null>(null);
@@ -152,17 +161,7 @@ export default function ExamManagementPage() {
                 examService.getSections(examId),
                 questionService.getByExamId(examId),
             ]);
-            const passageMap = new Map<string, any>();
-            questionsWithPassage.forEach(q => {
-                if (q.passage) passageMap.set(q.id, q.passage);
-            });
-            const sectionsWithPassage = sections.map(section => ({
-                ...section,
-                questions: section.questions.map(q => ({
-                    ...q,
-                    passage: passageMap.get(q.id),
-                })),
-            }));
+            const sectionsWithPassage = mergeSectionsWithLatestQuestions(sections, questionsWithPassage);
             const itemsMap: Record<string, any[]> = {};
             for (const section of sectionsWithPassage) {
                 itemsMap[section.id] = await assessmentItemService.getBySection(section.id);
@@ -261,20 +260,7 @@ export default function ExamManagementPage() {
                 questionService.getByExamId(examId),
             ]);
 
-            // Build a map of questionId -> passage from the questionService response
-            const passageMap = new Map<string, typeof questionsWithPassage[0]['passage']>();
-            questionsWithPassage.forEach(q => {
-                if (q.passage) passageMap.set(q.id, q.passage);
-            });
-
-            // Merge passage data into section questions
-            const sectionsWithPassage = sections.map(section => ({
-                ...section,
-                questions: section.questions.map(q => ({
-                    ...q,
-                    passage: passageMap.get(q.id),
-                })),
-            }));
+            const sectionsWithPassage = mergeSectionsWithLatestQuestions(sections, questionsWithPassage);
 
             const itemsMap: Record<string, AssessmentItemResponse[]> = {};
             for (const section of sectionsWithPassage) {
@@ -296,8 +282,48 @@ export default function ExamManagementPage() {
         setExpandedSections(prev => ({ ...prev, [sectionId]: !prev[sectionId] }));
     };
 
-    const parseOptions = (optionsJson: string): string[] => {
-        try { return JSON.parse(optionsJson); } catch { return []; }
+    const parseOptions = (input: any): string[] => {
+        if (Array.isArray(input)) return input;
+        try {
+            if (!input || typeof input !== "string") return [];
+            return JSON.parse(input);
+        } catch {
+            return [];
+        }
+    };
+
+    const mergeSectionsWithLatestQuestions = (
+        sections: SectionWithQuestionsResponse[],
+        latestQuestions: QuestionApiResponse[],
+    ) => {
+        const latestByQuestionId = new Map<string, QuestionApiResponse>();
+        latestQuestions.forEach((question) => {
+            latestByQuestionId.set(question.id, question);
+        });
+
+        return sections.map((section) => ({
+            ...section,
+            questions: section.questions
+                .map((question: any) => {
+                    const latest = latestByQuestionId.get(question.id);
+                    if (!latest) {
+                        return question;
+                    }
+                    return {
+                        ...question,
+                        sectionOrder: latest.sectionOrder ?? question.sectionOrder,
+                        questionType: latest.questionType ?? question.questionType,
+                        questionText: latest.questionText ?? question.questionText,
+                        options: latest.options ?? question.options,
+                        answer: latest.answer ?? question.answer,
+                        imageUrl: latest.imageUrl ?? question.imageUrl,
+                        audioUrl: latest.audioUrl ?? question.audioUrl,
+                        questionOrder: latest.questionOrder ?? question.questionOrder,
+                        passage: latest.passage ?? question.passage,
+                    };
+                })
+                .sort((a: any, b: any) => (a.questionOrder ?? 0) - (b.questionOrder ?? 0)),
+        }));
     };
 
     const startEditItem = (item: AssessmentItemResponse) => {
@@ -389,7 +415,7 @@ export default function ExamManagementPage() {
                 id: editingQuestionId,
                 questionText: editQuestionText,
                 answer: editQuestionAnswer,
-                options: JSON.stringify(editQuestionOptions),
+                options: editQuestionOptions,
                 questionType: editQuestionType,
                 questionOrder: editQuestionOrder,
                 imageUrl: editQuestionImageUrl,
@@ -398,12 +424,25 @@ export default function ExamManagementPage() {
             await questionService.updateQuestion(req);
 
             // Refresh exam details
-            const sections = await examService.getSections(examId);
+            const [sections, questionsWithPassage] = await Promise.all([
+                examService.getSections(examId),
+                questionService.getByExamId(examId),
+            ]);
+
+            const sectionsWithPassage = mergeSectionsWithLatestQuestions(sections, questionsWithPassage);
+
             const itemsMap: Record<string, AssessmentItemResponse[]> = {};
-            for (const section of sections) {
+            for (const section of sectionsWithPassage) {
                 itemsMap[section.id] = await assessmentItemService.getBySection(section.id);
             }
-            setExamDetails(prev => ({ ...prev, [examId]: { sections, assessmentItems: itemsMap } }));
+
+            setExamDetails(prev => ({ 
+                ...prev, 
+                [examId]: { 
+                    sections: sectionsWithPassage as any, 
+                    assessmentItems: itemsMap 
+                } 
+            }));
 
             setEditingQuestionId(null);
             setUpdateMsg({ text: "Cập nhật câu hỏi thành công!", ok: true });
@@ -431,18 +470,7 @@ export default function ExamManagementPage() {
                         questionService.getByExamId(examId),
                     ]);
 
-                    const passageMap = new Map<string, any>();
-                    questionsWithPassage.forEach(q => {
-                        if (q.passage) passageMap.set(q.id, q.passage);
-                    });
-
-                    const sectionsWithPassage = sections.map(section => ({
-                        ...section,
-                        questions: section.questions.map(q => ({
-                            ...q,
-                            passage: passageMap.get(q.id),
-                        })),
-                    }));
+                    const sectionsWithPassage = mergeSectionsWithLatestQuestions(sections, questionsWithPassage);
 
                     const itemsMap: Record<string, AssessmentItemResponse[]> = {};
                     for (const section of sectionsWithPassage) {
@@ -933,6 +961,47 @@ export default function ExamManagementPage() {
                 </div>
             )}
 
+            {/* Filter and Search for Exam List View */}
+            {viewMode === 'exams' && !loading && exams.length > 0 && (
+                <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
+                    <div className="flex-1 relative w-full">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Tìm kiếm theo mã đề..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className={`w-full pl-11 pr-4 py-3 rounded-2xl text-sm font-bold transition-all border outline-none ${
+                                isDark
+                                    ? "bg-gray-800/60 border-gray-700 text-white focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5"
+                                    : "bg-white border-gray-200 text-gray-900 focus:border-blue-500/30 focus:ring-4 focus:ring-blue-500/5 shadow-sm"
+                            }`}
+                        />
+                    </div>
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? "text-gray-500" : "text-gray-400"}`}>Level:</span>
+                        <div className="relative flex-1 md:w-40">
+                            <select
+                                value={examLevelFilter}
+                                onChange={(e) => setExamLevelFilter(e.target.value)}
+                                className={`appearance-none w-full pl-4 pr-10 py-3 rounded-2xl font-black text-xs transition-all outline-none border cursor-pointer ${
+                                    isDark
+                                        ? "bg-gray-800 border-gray-700 text-white hover:border-blue-500/50"
+                                        : "bg-white border-gray-200 text-gray-700 hover:border-blue-500/30 shadow-sm"
+                                }`}
+                            >
+                                {['All', 'N1', 'N2', 'N3', 'N4', 'N5'].map((lvl) => (
+                                    <option key={lvl} value={lvl}>
+                                        {lvl === 'All' ? 'Tất cả Level' : lvl}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-50" />
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Main Content Area */}
             {viewMode === 'exams' ? (
                 /* Exam List View */
@@ -947,9 +1016,23 @@ export default function ExamManagementPage() {
                         <h3 className={`text-2xl font-black mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>Chưa có dữ liệu bài thi</h3>
                         <p className={`max-w-md mx-auto text-sm ${isDark ? "text-gray-500" : "text-gray-400"} font-medium`}>Nhấn "Tạo Đề mới" hoặc chạy Batch Update để đồng bộ dữ liệu.</p>
                     </div>
+                ) : filteredExamsForList.length === 0 ? (
+                    <div className={`p-20 text-center rounded-[40px] border-2 border-dashed flex flex-col items-center justify-center ${isDark ? "border-gray-800 bg-gray-800/20" : "border-gray-200 bg-gray-50"}`}>
+                        <Search className={`w-16 h-16 mb-4 ${isDark ? "text-gray-700" : "text-gray-200"}`} />
+                        <h3 className={`text-2xl font-black mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>Không tìm thấy kết quả</h3>
+                        <p className={`max-w-md mx-auto text-sm ${isDark ? "text-gray-500" : "text-gray-400"} font-medium`}>
+                            Không có đề thi nào khớp với bộ lọc của bạn.
+                        </p>
+                        <button 
+                            onClick={() => { setSearchQuery(""); setExamLevelFilter("All"); }}
+                            className="mt-6 px-6 py-2 rounded-xl bg-blue-500 text-white font-bold text-sm hover:bg-blue-600 transition-colors"
+                        >
+                            Xóa bộ lọc
+                        </button>
+                    </div>
                 ) : (
                     <div className="space-y-4">
-                        {exams.map((exam) => {
+                        {filteredExamsForList.map((exam) => {
                             const isOpen = expandedExamId === exam.id;
                             const detail = examDetails[exam.id];
                             return (
@@ -957,6 +1040,7 @@ export default function ExamManagementPage() {
                                     ? (isDark ? "border-blue-500/50 shadow-xl shadow-blue-500/10" : "border-blue-200 shadow-xl shadow-blue-100")
                                     : (isDark ? "border-gray-700 hover:border-gray-500" : "border-gray-100 hover:border-blue-200")
                                     } ${isDark ? "bg-gray-800/40" : "bg-white"}`}>
+
 
                                     {/* Exam Header Row */}
                                     <div
@@ -1179,12 +1263,29 @@ export default function ExamManagementPage() {
                                                                                                                             </div>
                                                                                                                             <div className="grid grid-cols-2 gap-3">
                                                                                                                                 <div className="space-y-1">
-                                                                                                                                    <label className="text-[10px] font-black uppercase text-gray-500">Image URL</label>
-                                                                                                                                    <input type="text" value={editQuestionImageUrl} onChange={e => setEditQuestionImageUrl(e.target.value)} className={`w-full px-3 py-2 rounded-xl border bg-transparent font-bold text-xs outline-none ${isDark ? "border-gray-700 focus:border-blue-500 text-white" : "border-gray-200 focus:border-blue-400 text-gray-900"}`} placeholder="https://..." />
+                                                                                                                                     <label className="text-[10px] font-black uppercase text-gray-500">Image URL</label>
+                                                                                                                                     <input type="text" value={editQuestionImageUrl} onChange={e => setEditQuestionImageUrl(e.target.value)} className={`w-full px-3 py-2 rounded-xl border bg-transparent font-bold text-xs outline-none ${isDark ? "border-gray-700 focus:border-blue-500 text-white" : "border-gray-200 focus:border-blue-400 text-gray-900"}`} placeholder="https://..." />
+                                                                                                                                     {editQuestionImageUrl && (
+                                                                                                                                         <div className="mt-2 relative group w-fit">
+                                                                                                                                             <img 
+                                                                                                                                                 src={editQuestionImageUrl} 
+                                                                                                                                                 alt="Preview" 
+                                                                                                                                                 className="max-h-24 w-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-md transition-all group-hover:scale-[1.02]"
+                                                                                                                                                 onError={(e) => {(e.currentTarget as HTMLImageElement).style.opacity = '0.5'}}
+                                                                                                                                             />
+                                                                                                                                         </div>
+                                                                                                                                     )}
                                                                                                                                 </div>
                                                                                                                                 <div className="space-y-1">
                                                                                                                                     <label className="text-[10px] font-black uppercase text-gray-500">Audio URL</label>
-                                                                                                                                    <input type="text" value={editQuestionAudioUrl} onChange={e => setEditQuestionAudioUrl(e.target.value)} className={`w-full px-3 py-2 rounded-xl border bg-transparent font-bold text-xs outline-none ${isDark ? "border-gray-700 focus:border-blue-500 text-white" : "border-gray-200 focus:border-blue-400 text-gray-900"}`} placeholder="https://..." />
+                                                                                                                                                                                                                                                                         <input type="text" value={editQuestionAudioUrl} onChange={e => setEditQuestionAudioUrl(e.target.value)} className={`w-full px-3 py-2 rounded-xl border bg-transparent font-bold text-xs outline-none ${isDark ? "border-gray-700 focus:border-blue-500 text-white" : "border-gray-200 focus:border-blue-400 text-gray-900"}`} placeholder="https://..." />
+                                                                                                                                     {editQuestionAudioUrl && (
+                                                                                                                                         <div className="mt-2">
+                                                                                                                                             <audio controls key={editQuestionAudioUrl} className="h-8 w-full max-w-[150px]">
+                                                                                                                                                 <source src={editQuestionAudioUrl} type="audio/mpeg" />
+                                                                                                                                             </audio>
+                                                                                                                                         </div>
+                                                                                                                                     )}
                                                                                                                                 </div>
                                                                                                                             </div>
                                                                                                                         </div>
