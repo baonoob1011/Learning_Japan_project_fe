@@ -1,7 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
   BASE_URL:
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://13.250.109.181:8080/api/v1",
+    "http://13.250.109.181:8080/api/v1",
   TIMEOUT: 10000, // 10 giây
 } as const;
 
