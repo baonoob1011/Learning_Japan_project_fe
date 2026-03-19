@@ -27,9 +27,11 @@ export const API_ENDPOINTS = {
     GET_IMAGES_FILES: "/s3/images/urls",
     GET_AUDIOS_FILES: "/s3/audios/urls",
     GET_ASSESSEMENT_FILES: "/s3/assessment/urls",
+    GET_PROCESSED_EXAM_FILES: "/s3/exam-processed/urls",
     DELETE_AUDIO: "/s3/audio",
     DELETE_ASSESSEMENT: "/s3/assessment",
     DELETE_IMAGE: "/s3/image",
+    DELETE_PROCESSED_EXAM: "/s3/exam-processed",
   },
   USER: {
     GET_USER_BY_ID: (id: string) => `/users/chat/${id}`,
@@ -198,6 +200,7 @@ export const API_ENDPOINTS = {
     IMPORT: "/exams/import",
     GET_SECTIONS: (examId: string) => `/exams/sections/${examId}`,
     DETAIL: (id: string) => `/exams/${id}`,
+    UPDATE: (id: string) => `/exams/${id}`,
     DELETE: (id: string) => `/exams/${id}`,
   },
 
@@ -232,6 +235,12 @@ export const API_ENDPOINTS = {
     BY_MONTH: (year: number, month: number) =>
       `/admin/revenue/month?year=${year}&month=${month}`,
     SUCCESS_COUNT: "/admin/revenue/success-count",
+    COURSE: "/admin/revenue/course",
+    PRODUCT: "/admin/revenue/product",
+    MONTHLY: (year: number) => `/admin/revenue/monthly?year=${year}`,
+    YEARLY: (startYear: number, endYear: number) => `/admin/revenue/yearly?startYear=${startYear}&endYear=${endYear}`,
+    RECENT: "/admin/revenue/recent",
+    CHART_30DAYS: "/admin/revenue/chart-30days",
   },
   ENROLLMENT: {
     CHECK: (courseId: string) =>

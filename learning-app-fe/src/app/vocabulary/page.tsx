@@ -9,6 +9,8 @@ import VocabularyList from "@/components/VocabularyList";
 import WritingPractice from "@/components/WritingPractice";
 import AIPractice from "@/components/AIPractice";
 import VocabMemoryGame from "@/components/vocab/VocabMemoryGame";
+import UpgradePlusModal from "@/components/payment/Upgradeplusmodal ";
+import { getAccessTokenFromStorage, getRolesFromToken } from "@/utils/jwt";
 
 // Main Component
 export default function VocabularyPage() {
@@ -16,6 +18,7 @@ export default function VocabularyPage() {
   const [currentStreak, setCurrentStreak] = useState(4);
   const [activeTab, setActiveTab] = useState("vocabulary");
   const [flashcardFilter, setFlashcardFilter] = useState<"ALL" | "KNOWN" | "UNLEARNED">("ALL");
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { isDarkMode, toggleDarkMode, mounted } = useDarkMode();
 
   if (!mounted) {
@@ -98,7 +101,15 @@ export default function VocabularyPage() {
                   Flashcard
                 </button>
                 <button
-                  onClick={() => setActiveTab("quiz")}
+                  onClick={() => {
+                    const token = getAccessTokenFromStorage();
+                    const roles = token ? getRolesFromToken(token) : [];
+                    if (roles.includes("USER_VIP")) {
+                      setActiveTab("quiz");
+                    } else {
+                      setShowUpgradeModal(true);
+                    }
+                  }}
                   className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === "quiz"
                     ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20 hover:bg-cyan-600"
                     : isDarkMode
@@ -106,7 +117,7 @@ export default function VocabularyPage() {
                       : "bg-gray-200/50 text-gray-700 hover:bg-gray-300"
                     }`}
                 >
-                  AI Quiz
+                  Quiz
                 </button>
                 <button
                   onClick={() => setActiveTab("write")}
@@ -120,7 +131,15 @@ export default function VocabularyPage() {
                   Writing
                 </button>
                 <button
-                  onClick={() => setActiveTab("game")}
+                  onClick={() => {
+                    const token = getAccessTokenFromStorage();
+                    const roles = token ? getRolesFromToken(token) : [];
+                    if (roles.includes("USER_VIP")) {
+                      setActiveTab("game");
+                    } else {
+                      setShowUpgradeModal(true);
+                    }
+                  }}
                   className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === "game"
                     ? "bg-gradient-to-r from-orange-400 to-red-500 text-white shadow-lg shadow-orange-500/20"
                     : isDarkMode
@@ -163,6 +182,11 @@ export default function VocabularyPage() {
         </div>
       </div>
 
+      <UpgradePlusModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        isDarkMode={isDarkMode}
+      />
     </>
   );
 }

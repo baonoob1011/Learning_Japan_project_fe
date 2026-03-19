@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { MoreVertical, Phone, Video, Plus } from "lucide-react";
+import { MoreVertical, Phone, Video, Plus, UserPlus } from "lucide-react";
 import GroupRoomsPopup from "@/components/chat/Grouproomspopup";
 import { CallModal } from "@/components/chat/CallModal";
 import { ChatGroupBasicResponse } from "@/services/roomService";
@@ -14,14 +14,15 @@ interface Contact {
   online: boolean;
   unread?: number;
   timestamp: string;
+  roomType?: "PRIVATE" | "GROUP";
 }
 
 interface ChatHeaderProps {
   selectedContact: Contact;
   isDarkMode: boolean;
   currentUserId?: string;
-  currentUserName?: string; // ✅ thêm
-  currentUserAvatar?: string; // ✅ thêm
+  currentUserName?: string;
+  currentUserAvatar?: string;
   onSelectRoom?: (room: ChatGroupBasicResponse) => void;
 }
 
@@ -29,25 +30,25 @@ export default function ChatHeader({
   selectedContact,
   isDarkMode,
   currentUserId,
-  currentUserName, // ✅ thêm vào đây
-  currentUserAvatar, // ✅ thêm vào đây
+  currentUserName,
+  currentUserAvatar,
   onSelectRoom,
 }: ChatHeaderProps) {
   console.log("👤 [ChatHeader] selectedContact full object:", selectedContact);
-  console.log("👤 [ChatHeader] otherUserId:", selectedContact.otherUserId);
   const [showGroupPopup, setShowGroupPopup] = useState(false);
+  const [showAddMemberPopup, setShowAddMemberPopup] = useState(false);
   const [showCall, setShowCall] = useState(false);
 
   const canCall = !!currentUserId;
+  const isGroup = selectedContact.roomType === "GROUP";
 
   return (
     <>
       <div
-        className={`p-4 border-b shadow-sm transition-colors duration-300 ${
-          isDarkMode
-            ? "bg-gray-800/90 border-gray-700"
-            : "bg-white/90 border-cyan-200/60"
-        }`}
+        className={`p-4 border-b shadow-sm transition-colors duration-300 ${isDarkMode
+          ? "bg-gray-800/90 border-gray-700"
+          : "bg-white/90 border-cyan-200/60"
+          }`}
       >
         <div className="flex items-center justify-between">
           {/* Left: avatar + name */}
@@ -64,9 +65,8 @@ export default function ChatHeader({
             </div>
             <div>
               <h2
-                className={`font-semibold ${
-                  isDarkMode ? "text-gray-100" : "text-cyan-900"
-                }`}
+                className={`font-semibold ${isDarkMode ? "text-gray-100" : "text-cyan-900"
+                  }`}
               >
                 {selectedContact.name}
               </h2>
@@ -78,76 +78,102 @@ export default function ChatHeader({
 
           {/* Right: action buttons */}
           <div className="flex items-center gap-2">
-            {/* + Group popup */}
-            <div className="relative">
-              <button
-                onClick={() => setShowGroupPopup((prev) => !prev)}
-                className={`p-2.5 rounded-full transition-all hover:scale-110 ${
-                  isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-50"
-                } ${
-                  showGroupPopup
-                    ? isDarkMode
-                      ? "bg-gray-700 text-cyan-300"
-                      : "bg-cyan-50 text-cyan-700"
-                    : isDarkMode
-                    ? "text-cyan-400"
-                    : "text-cyan-600"
-                }`}
-              >
-                <Plus className="w-5 h-5" />
-              </button>
+            {/* Thêm thành viên (chỉ hiện khi là group) */}
+            {isGroup && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowAddMemberPopup((prev) => !prev)}
+                  title="Thêm thành viên"
+                  className={`p-2.5 rounded-full transition-all hover:scale-110 ${isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-50"
+                    } ${showAddMemberPopup
+                      ? isDarkMode
+                        ? "bg-gray-700 text-cyan-300"
+                        : "bg-cyan-50 text-cyan-700"
+                      : isDarkMode
+                        ? "text-cyan-400"
+                        : "text-cyan-600"
+                    }`}
+                >
+                  <UserPlus className="w-5 h-5" />
+                </button>
 
-              {showGroupPopup && (
-                <div className="absolute top-full mt-2 right-0 z-50">
-                  <GroupRoomsPopup
-                    isDarkMode={isDarkMode}
-                    onClose={() => setShowGroupPopup(false)}
-                    onSelectRoom={(room) => {
-                      onSelectRoom?.(room);
-                      setShowGroupPopup(false);
-                    }}
-                  />
-                </div>
-              )}
-            </div>
+                {showAddMemberPopup && (
+                  <div className="absolute top-full mt-2 right-0 z-50">
+                    <GroupRoomsPopup
+                      isDarkMode={isDarkMode}
+                      initialView="add"
+                      existingRoomId={selectedContact.id}
+                      onClose={() => setShowAddMemberPopup(false)}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* + Group popup (hiện khi là private để mời vào nhóm hoặc xem danh sách nhóm) */}
+            {!isGroup && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowGroupPopup((prev) => !prev)}
+                  className={`p-2.5 rounded-full transition-all hover:scale-110 ${isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-50"
+                    } ${showGroupPopup
+                      ? isDarkMode
+                        ? "bg-gray-700 text-cyan-300"
+                        : "bg-cyan-50 text-cyan-700"
+                      : isDarkMode
+                        ? "text-cyan-400"
+                        : "text-cyan-600"
+                    }`}
+                >
+                  <Plus className="w-5 h-5" />
+                </button>
+
+                {showGroupPopup && (
+                  <div className="absolute top-full mt-2 right-0 z-50">
+                    <GroupRoomsPopup
+                      isDarkMode={isDarkMode}
+                      onClose={() => setShowGroupPopup(false)}
+                      onSelectRoom={(room) => {
+                        onSelectRoom?.(room);
+                        setShowGroupPopup(false);
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Phone button */}
             <button
               onClick={() => setShowCall(true)}
               title="Gọi thoại"
-              className={`p-2.5 rounded-full transition-all hover:scale-110 ${
-                isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-50"
-              }`}
+              className={`p-2.5 rounded-full transition-all hover:scale-110 ${isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-50"
+                }`}
             >
               <Phone
-                className={`w-5 h-5 ${
-                  isDarkMode ? "text-cyan-400" : "text-cyan-600"
-                }`}
+                className={`w-5 h-5 ${isDarkMode ? "text-cyan-400" : "text-cyan-600"
+                  }`}
               />
             </button>
 
             {/* Video (placeholder — extend later) */}
             <button
-              className={`p-2.5 rounded-full transition-all hover:scale-110 ${
-                isDarkMode ? "hover:bg-gray-700" : "hover:bg-blue-50"
-              }`}
+              className={`p-2.5 rounded-full transition-all hover:scale-110 ${isDarkMode ? "hover:bg-gray-700" : "hover:bg-blue-50"
+                }`}
             >
               <Video
-                className={`w-5 h-5 ${
-                  isDarkMode ? "text-cyan-400" : "text-blue-600"
-                }`}
+                className={`w-5 h-5 ${isDarkMode ? "text-cyan-400" : "text-blue-600"
+                  }`}
               />
             </button>
 
             <button
-              className={`p-2.5 rounded-full transition-colors ${
-                isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-100"
-              }`}
+              className={`p-2.5 rounded-full transition-colors ${isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-100"
+                }`}
             >
               <MoreVertical
-                className={`w-5 h-5 ${
-                  isDarkMode ? "text-gray-300" : "text-cyan-600"
-                }`}
+                className={`w-5 h-5 ${isDarkMode ? "text-gray-300" : "text-cyan-600"
+                  }`}
               />
             </button>
           </div>
@@ -156,9 +182,8 @@ export default function ChatHeader({
 
       {showCall && currentUserId && (
         <CallModal
-          roomId={`call-${currentUserId}-${
-            selectedContact.otherUserId ?? selectedContact.id
-          }`}
+          roomId={`call-${currentUserId}-${selectedContact.otherUserId ?? selectedContact.id
+            }`}
           callerName={currentUserName} // ✅ thêm
           callerAvatar={currentUserAvatar} // ✅ thêm
           isCaller={true}

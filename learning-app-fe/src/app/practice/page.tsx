@@ -86,7 +86,7 @@ const ExamCard: React.FC<ExamCardProps> = ({
               className={`text-sm ${isDark ? "text-gray-300" : "text-gray-700"
                 }`}
             >
-              {participants} người đã thi
+              {participants} lượt thi
             </span>
           )}
         </div>

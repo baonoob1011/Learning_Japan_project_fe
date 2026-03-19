@@ -145,24 +145,17 @@ function ChatPageInner() {
   useEffect(() => {
     const roomId = searchParams.get("roomId");
     const shareMsg = searchParams.get("shareMsg");
-
     if (!roomId) return;
-
-    // Fill shareMsg vào input ngay
     if (shareMsg) {
       setMessage(decodeURIComponent(shareMsg));
     }
-
     // Tìm room info để set selectedContact
     async function resolveContact() {
       try {
-        // Thử lấy từ cả private rooms lẫn group rooms
         const [roomsResult, groupsResult] = await Promise.allSettled([
           roomService.getMyRooms(),
           roomService.getMyGroupRooms(),
         ]);
-
-        // Tìm trong group rooms trước để lấy đúng tên/avatar nhóm
         if (groupsResult.status === "fulfilled") {
           const group = groupsResult.value.find((g) => g.id === roomId);
           if (group) {
@@ -176,11 +169,9 @@ function ChatPageInner() {
               roomType: "GROUP",
             });
             setContactsTabKey("GROUP");
-            return; // đã tìm thấy, dừng
+            return;
           }
         }
-
-        // Fallback: tìm trong private rooms (chỉ lấy PRIVATE)
         if (roomsResult.status === "fulfilled") {
           const room = roomsResult.value.find(
             (r) => r.id === roomId && (r.roomType as string) !== "GROUP"
@@ -199,10 +190,7 @@ function ChatPageInner() {
           }
         }
       } catch {
-        // Nếu lỗi thì bỏ qua, user tự chọn contact
       }
-
-      // Xóa params khỏi URL sau khi xử lý xong
       const params = new URLSearchParams(searchParams.toString());
       params.delete("roomId");
       params.delete("shareMsg");
@@ -211,10 +199,21 @@ function ChatPageInner() {
         : pathname;
       router.replace(newUrl, { scroll: false });
     }
-
     resolveContact();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // chỉ chạy 1 lần khi mount
+  }, []);
+
+  const handleSelectRoom = (room: any) => {
+    setSelectedContact({
+      id: room.id,
+      name: room.name || "Unknown",
+      lastMessage: room.lastMessage || "",
+      avatar: room.avatarUrl || "/default-avatar.png",
+      online: false,
+      timestamp: room.lastMessageTime || room.createdAt || "",
+      roomType: "GROUP",
+    });
+    setContactsTabKey("GROUP");
+  };
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleSelectContact = (contact: Contact) => {
@@ -334,11 +333,10 @@ function ChatPageInner() {
       `}</style>
 
       <div
-        className={`flex h-screen ${
-          isDarkMode
+        className={`flex h-screen ${isDarkMode
             ? "bg-gray-900"
             : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
-        }`}
+          }`}
       >
         <Sidebar
           sidebarOpen={sidebarOpen}
@@ -358,8 +356,9 @@ function ChatPageInner() {
               isConnected={isConnected}
               searchQuery=""
               isDarkMode={isDarkMode}
-              onSearchChange={() => {}}
+              onSearchChange={() => { }}
               onSelectContact={handleSelectContact}
+              onSelectRoom={handleSelectRoom}
               initialTab={contactsTabKey as "INBOX" | "GROUP"}
             />
             {incomingCall && (
@@ -392,6 +391,7 @@ function ChatPageInner() {
               onToggleEmojiPicker={() => setShowEmojiPicker((v) => !v)}
               onFileSelect={handleFileSelect}
               onClearAttachment={() => setAttachmentPreview(null)}
+              onSelectRoom={handleSelectRoom}
             />
           </div>
         </div>

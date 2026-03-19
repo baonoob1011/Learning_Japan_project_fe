@@ -435,10 +435,15 @@ export default function FeedbackPage({ isDark }: FeedbackPageProps) {
                                         </div>
 
                                         <div
-                                            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold shrink-0 border shadow-sm ${statusInfo.bg} ${statusInfo.text} ${statusInfo.border}`}
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold shrink-0 border
+                                                ${fb.status === "PENDING" ? isDark ? "bg-amber-500/20 text-amber-300 border-amber-500/40" : "bg-amber-100 text-amber-800 border-amber-400" : ""}
+                                                ${fb.status === "REVIEWING" ? isDark ? "bg-blue-500/20 text-blue-300 border-blue-500/40" : "bg-blue-100 text-blue-800 border-blue-400" : ""}
+                                                ${fb.status === "RESOLVED" ? isDark ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" : "bg-emerald-100 text-emerald-800 border-emerald-400" : ""}
+                                                ${fb.status === "REJECTED" ? isDark ? "bg-red-500/20 text-red-300 border-red-500/40" : "bg-red-100 text-red-800 border-red-400" : ""}
+                                            `}
                                         >
                                             {statusInfo.icon}
-                                            <span className="hidden sm:inline uppercase tracking-tight">{statusInfo.label}</span>
+                                            <span className="uppercase tracking-tight">{statusInfo.label}</span>
                                         </div>
 
                                         {/* Expand icon */}

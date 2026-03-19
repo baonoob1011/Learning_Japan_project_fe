@@ -13,6 +13,8 @@ import PronunciationPractice from "@/components/PronunciationPractice";
 import VocabularySidebar from "@/components/videoYTB/VocabularySidebar";
 import { JLPTLevel, VideoTag } from "@/types/video";
 import VideoExercise from "@/components/videoYTB/Videoexercise";
+import { getAccessTokenFromStorage, getRolesFromToken } from "@/utils/jwt";
+import UpgradePlusModal from "@/components/payment/Upgradeplusmodal ";
 
 import {
   Video,
@@ -53,6 +55,7 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
   const [vocabRefreshTrigger, setVocabRefreshTrigger] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Tracking states
   const [isPlaying, setIsPlaying] = useState(false);
@@ -349,7 +352,15 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
               </button>
 
               <button
-                onClick={() => setViewMode("pronunciation")}
+                onClick={() => {
+                  const token = getAccessTokenFromStorage();
+                  const roles = token ? getRolesFromToken(token) : [];
+                  if (roles.includes("USER_VIP")) {
+                    setViewMode("pronunciation");
+                  } else {
+                    setShowUpgradeModal(true);
+                  }
+                }}
                 className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all ${viewMode === "pronunciation"
                   ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg"
                   : isDarkMode
@@ -705,6 +716,12 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
           }
         `}</style>
       </div>
+
+      <UpgradePlusModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        isDarkMode={isDarkMode}
+      />
     </>
   );
 }

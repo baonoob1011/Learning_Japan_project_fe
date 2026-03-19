@@ -133,7 +133,7 @@ const LevelAccordion = React.memo(
               className={`text-sm font-semibold ${isDark ? "text-gray-200" : "text-gray-700"
                 }`}
             >
-              {level.totalExamsTaken} bài · {level.accuracy.toFixed(1)}% chính
+              {level.totalExamsTaken} lượt thi · {level.accuracy.toFixed(1)}% chính
               xác
             </span>
           </div>
@@ -171,7 +171,7 @@ const LevelAccordion = React.memo(
           >
             {[
               {
-                label: "Số bài thi",
+                label: "Số lượt thi",
                 value: level.totalExamsTaken,
                 color: "#06b6d4",
               },
@@ -625,7 +625,7 @@ export default function LearningStats({ isDark }: LearningStatsProps) {
                 dataKey="exams"
                 fill="#06b6d4"
                 radius={[6, 6, 0, 0]}
-                name="Số bài thi"
+                name="Số lượt thi"
               />
             </BarChart>
           </ResponsiveContainer>

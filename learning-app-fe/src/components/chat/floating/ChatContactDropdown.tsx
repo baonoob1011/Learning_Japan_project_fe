@@ -1,6 +1,6 @@
 "use client";
 import { useRef, useEffect } from "react";
-import { ChevronDown, Users, MessageCircle, Phone, X } from "lucide-react";
+import { ChevronDown, Users, MessageCircle, Phone, X, Plus, UserPlus } from "lucide-react";
 
 interface Contact {
     id: string;
@@ -26,6 +26,8 @@ interface ChatContactDropdownProps {
     onTabChange: (tab: Tab) => void;
     onCall: () => void;
     onClose: () => void;
+    onAddMember?: () => void;
+    onCreateGroup?: () => void;
     showCallButton: boolean;
     unreadCounts?: Record<string, number>;
 }
@@ -42,6 +44,8 @@ export default function ChatContactDropdown({
     onTabChange,
     onCall,
     onClose,
+    onAddMember,
+    onCreateGroup,
     showCallButton,
     unreadCounts = {},
 }: ChatContactDropdownProps) {
@@ -61,7 +65,7 @@ export default function ChatContactDropdown({
     return (
         <div className={`shrink-0 bg-gradient-to-r ${dark ? "from-gray-800 to-gray-900 border-b border-gray-700/50" : "from-cyan-400 to-cyan-500"
             }`}>
-            <div className="flex items-center gap-2 px-3 pt-3 pb-2">
+            <div className="flex items-center gap-1.5 px-3 pt-3 pb-2">
                 {/* Contact selector */}
                 <div className="flex-1 relative" ref={dropdownRef}>
                     <button
@@ -78,22 +82,22 @@ export default function ChatContactDropdown({
                                     }}
                                     className="w-6 h-6 rounded-full object-cover shrink-0 ring-1 ring-white/20"
                                 />
-                                <span className="text-white font-semibold text-sm truncate flex-1 text-left">
+                                <span className="text-white font-semibold text-xs truncate flex-1 text-left">
                                     {selectedContact.name}
                                 </span>
                                 {selectedContact.isGroup && (
-                                    <span className="text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-1.5 py-0.5 rounded-full shrink-0">
-                                        Nhóm
+                                    <span className="text-[8px] bg-white/20 text-white px-1.5 py-0.5 rounded-full shrink-0">
+                                        N
                                     </span>
                                 )}
                             </>
                         ) : (
-                            <span className={`${dark ? "text-gray-400" : "text-cyan-100"} text-sm flex-1 text-left`}>
-                                {isLoadingContacts ? "Đang tải..." : "Chọn cuộc trò chuyện"}
+                            <span className={`${dark ? "text-gray-400" : "text-cyan-100"} text-xs flex-1 text-left`}>
+                                {isLoadingContacts ? "Đang tải..." : "Chọn Chat"}
                             </span>
                         )}
                         <ChevronDown
-                            size={14}
+                            size={12}
                             className={`${dark ? "text-gray-400" : "text-white"} shrink-0 transition-transform ${showContactDropdown ? "rotate-180" : ""
                                 }`}
                         />
@@ -116,18 +120,18 @@ export default function ChatContactDropdown({
                                     <button
                                         key={tab}
                                         onClick={() => onTabChange(tab)}
-                                        className={`flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 border-b-2 transition ${activeTab === tab
+                                        className={`flex-1 py-2.5 text-[10px] font-semibold flex items-center justify-center gap-1 border-b-2 transition ${activeTab === tab
                                             ? "text-cyan-400 border-cyan-400"
                                             : `border-transparent ${dark ? "text-gray-500 hover:text-gray-300" : "text-gray-400 hover:text-gray-600"}`
                                             }`}
                                     >
                                         {tab === "GROUP" ? (
                                             <>
-                                                <Users size={12} /> Nhóm
+                                                <Users size={11} /> Nhóm
                                             </>
                                         ) : (
                                             <>
-                                                <MessageCircle size={12} /> Bạn bè
+                                                <MessageCircle size={11} /> Bạn bè
                                             </>
                                         )}
                                     </button>
@@ -207,6 +211,25 @@ export default function ChatContactDropdown({
                     )}
                 </div>
 
+                {/* Group Actions */}
+                {selectedContact?.isGroup ? (
+                    <button
+                        onClick={onAddMember}
+                        title="Thêm thành viên"
+                        className="hover:bg-white/20 rounded-full p-1.5 transition-colors shrink-0"
+                    >
+                        <UserPlus size={15} className="text-white" />
+                    </button>
+                ) : (
+                    <button
+                        onClick={onCreateGroup}
+                        title="Tạo nhóm/Mời vào nhóm"
+                        className="hover:bg-white/20 rounded-full p-1.5 transition-colors shrink-0"
+                    >
+                        <Plus size={16} className="text-white" />
+                    </button>
+                )}
+
                 {/* Call button */}
                 {showCallButton && (
                     <button
@@ -214,7 +237,7 @@ export default function ChatContactDropdown({
                         title="Gọi thoại"
                         className="hover:bg-white/20 rounded-full p-1.5 transition-colors shrink-0"
                     >
-                        <Phone size={15} className="text-white" />
+                        <Phone size={14} className="text-white" />
                     </button>
                 )}
 
@@ -223,7 +246,7 @@ export default function ChatContactDropdown({
                     onClick={onClose}
                     className="hover:bg-white/20 rounded-full p-1 transition-colors shrink-0"
                 >
-                    <X size={16} className="text-white" />
+                    <X size={15} className="text-white" />
                 </button>
             </div>
             <div className="px-3 pb-2 flex items-center gap-1.5" />

@@ -12,6 +12,10 @@ export interface CreateChatMessageRequest {
   content: string;
 }
 
+export interface AddGroupMembersRequest {
+  memberIds: string[];
+}
+
 /* ================= RESPONSE ================= */
 
 export interface ChatMessageResponse {
@@ -190,6 +194,18 @@ export const roomService = {
   ): Promise<PageResponse<ChatMessageResponse>> {
     return http.get<PageResponse<ChatMessageResponse>>(
       API_ENDPOINTS.CHAT_ROOM.MESSAGES(roomId, page, size)
+    );
+  },
+  /**
+   * ➕ Thêm thành viên vào nhóm hiện tại
+   */
+  addGroupMembers(
+    roomId: string,
+    request: AddGroupMembersRequest
+  ): Promise<ChatRoomResponse> {
+    return http.post<ChatRoomResponse>(
+      API_ENDPOINTS.CHAT_ROOM.ADD_MEMBERS(roomId),
+      request
     );
   },
 };

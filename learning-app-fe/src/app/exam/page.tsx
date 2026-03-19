@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   examService,
@@ -27,6 +27,8 @@ interface Question {
   passage?: PassageResponse;
   passageTitle?: string;
   passageContent?: string;
+  sectionId?: string; // Link to specific section
+  displayOrder?: number; // Sequential order for UI
 }
 
 interface Section {
@@ -147,7 +149,7 @@ function ExamContent() {
     };
 
     const std = standards[level] || standards["N4"];
-    const stdTotal = (std.lkr || (std.vkg! + std.gr!)) + std.listening;
+    const stdTotal = (std.lkr || ((std.vkg || 0) + (std.gr || 0))) + std.listening;
     const lowerTitle = title.toLowerCase();
 
     // 1. Listening
@@ -162,17 +164,11 @@ function ExamContent() {
 
     // 3. Grammar/Reading (if separate)
     if (lowerTitle.includes("grammar") || lowerTitle.includes("reading") || lowerTitle.includes("đọc hiểu") || lowerTitle.includes("ngữ pháp")) {
-      // If it's the combined LKR section
-      if (numSections === 2) {
-        const lkrBase = std.lkr || (std.vkg! + std.gr!);
-        return Math.ceil((lkrBase / stdTotal) * totalDuration);
-      }
-      // If it's just the Grammar/Reading part in a 3-part exam
       if (std.gr) return Math.floor((std.gr / stdTotal) * totalDuration);
     }
 
     // Fallback for combined Language Knowledge & Reading
-    const lkrBase = std.lkr || (std.vkg! + std.gr!);
+    const lkrBase = std.lkr || ((std.vkg || 0) + (std.gr || 0));
     return Math.ceil((lkrBase / stdTotal) * totalDuration);
   };
 
@@ -216,35 +212,41 @@ function ExamContent() {
         setSections(sectionsInfo);
         console.log("✅ Sections info (with durations):", sectionsInfo);
 
-        const questionsData = await questionService.getByExamId(examId);
-        console.log("📥 Raw questions data from questionService:", questionsData);
-
-        // Build a lookup map from sectionsData to recover missing sectionOrder
-        const qIdToSectionOrder: Record<string, number> = {};
+        const allQuestions: any[] = [];
         sectionsData.forEach((section) => {
           if (section.questions) {
-            section.questions.forEach((sq) => {
-              qIdToSectionOrder[sq.id] = section.sectionOrder;
+            section.questions.forEach((q: any) => {
+              allQuestions.push({
+                ...q,
+                sectionId: section.id,
+                sectionOrder: section.sectionOrder
+              });
             });
           }
         });
 
-        const mapped = questionsData.map((q) => {
+        const rawQuestions = allQuestions.length > 0 ? allQuestions : await questionService.getByExamId(examId);
+
+        const mapped = rawQuestions.map((q, index) => {
           let parsedOptions: { label: string; text: string }[] = [];
           const optionsArray: string[] = Array.isArray(q.options) ? q.options : [];
 
-          parsedOptions = optionsArray.map((text, index) => ({
-            label: String(index + 1),
-            text: text,
-          }));
+          parsedOptions = optionsArray.map((text, idx) => {
+            let cleanedText = text || "";
+            if (typeof cleanedText === "string") {
+              // Remove [ at start and ] at end
+              cleanedText = cleanedText.replace(/^\[|\]$/g, "").trim();
+            }
+            return {
+              label: String(idx + 1),
+              text: cleanedText,
+            };
+          });
 
-          // Recover sectionOrder if it's null in questionsData (backend might return null in flat list)
-          const recoveredSectionOrder =
-            q.sectionOrder ?? qIdToSectionOrder[q.id] ?? 1;
+          const recoveredSectionOrder = q.sectionOrder || 1;
 
-          // If passage is missing but title/content exist (from sectionsData), reconstruct it
           const finalPassage = q.passage || (q.passageTitle ? {
-            id: `p-${q.id}`, // dummy id for grouping
+            id: `p-${q.id}`,
             title: q.passageTitle,
             content: q.passageContent || "",
             passageOrder: "0"
@@ -252,8 +254,9 @@ function ExamContent() {
 
           return {
             id: q.id,
+            sectionId: q.sectionId,
             sectionOrder: recoveredSectionOrder,
-            questionOrder: q.questionOrder,
+            questionOrder: q.questionOrder || (index + 1),
             questionType: q.questionType,
             text: q.questionText,
             options: parsedOptions,
@@ -276,6 +279,23 @@ function ExamContent() {
     fetchQuestions();
   }, [examId]);
 
+  /* ------------------ TIMER BLOCKS (SHARED TIMER) ------------------ */
+  const getBlockOriginOrder = useCallback((sectionsList: Section[], currentOrder: number) => {
+    if (sectionsList.length === 0) return currentOrder;
+    let origin = currentOrder;
+    // Walk back to find the first section with same duration (shared timer block)
+    for (let i = currentOrder - 1; i >= 1; i--) {
+      const prev = sectionsList.find((s) => s.sectionOrder === i);
+      const curr = sectionsList.find((s) => s.sectionOrder === i + 1);
+      if (prev && curr && prev.sectionDuration === curr.sectionDuration) {
+        origin = i;
+      } else {
+        break;
+      }
+    }
+    return origin;
+  }, []);
+
   /* ------------------ TIMER - Reset khi đổi section ------------------ */
   useEffect(() => {
     if (sections.length === 0) return;
@@ -285,9 +305,11 @@ function ExamContent() {
     );
     if (!currentSection) return;
 
-    const savedTime = localStorage.getItem(
-      `examTimeLeft_section_${currentSectionOrder}`
-    );
+    // Use block origin as the persistent key for shared timer
+    const blockOrigin = getBlockOriginOrder(sections, currentSectionOrder);
+    const storageKey = `examTimeLeft_block_${blockOrigin}`;
+
+    const savedTime = localStorage.getItem(storageKey);
     const savedParticipantId = localStorage.getItem("examParticipantId");
 
     const isNewExam =
@@ -304,33 +326,30 @@ function ExamContent() {
     }
 
     if (isNewExam || !savedTime) {
-      localStorage.setItem(
-        `examTimeLeft_section_${currentSectionOrder}`,
-        initialTime.toString()
-      );
+      localStorage.setItem(storageKey, initialTime.toString());
     }
 
     setTimeLeft(initialTime);
     setMounted(true);
-  }, [sections, currentSectionOrder, participantId]);
+  }, [sections, currentSectionOrder, participantId, getBlockOriginOrder]);
 
   /* ------------------ COUNTDOWN TIMER ------------------ */
   useEffect(() => {
-    if (!mounted || isSubmitting) return;
+    if (!mounted || isSubmitting || sections.length === 0) return;
+
+    const blockOrigin = getBlockOriginOrder(sections, currentSectionOrder);
+    const storageKey = `examTimeLeft_block_${blockOrigin}`;
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         const t = prev > 0 ? prev - 1 : 0;
-        localStorage.setItem(
-          `examTimeLeft_section_${currentSectionOrder}`,
-          t.toString()
-        );
+        localStorage.setItem(storageKey, t.toString());
         return t;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [mounted, isSubmitting, currentSectionOrder]);
+  }, [mounted, isSubmitting, currentSectionOrder, sections, getBlockOriginOrder]);
 
   const formatTime = (s: number) =>
     `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(
@@ -338,17 +357,23 @@ function ExamContent() {
     ).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   /* ------------------ CURRENT QUESTIONS - SORTED BY questionOrder ------------------ */
+  /* ------------------ CURRENT QUESTIONS - With Sequential displayOrder ------------------ */
   const currentQuestions = useMemo(() => {
+    const activeSection = sections.find(s => s.sectionOrder === currentSectionOrder);
+    if (!activeSection) return [];
+
     const filtered = questions.filter(
-      (q) => q.sectionOrder === currentSectionOrder
+      (q) => (q.sectionId ? q.sectionId === activeSection.id : q.sectionOrder === currentSectionOrder)
     );
-    const sorted = filtered.sort((a, b) => a.questionOrder - b.questionOrder);
-    console.log(
-      `🔍 Questions for section ${currentSectionOrder} sorted by questionOrder:`,
-      sorted.map((q) => ({ order: q.questionOrder, type: q.questionType }))
-    );
-    return sorted;
-  }, [questions, currentSectionOrder]);
+
+    const sorted = [...filtered].sort((a, b) => a.questionOrder - b.questionOrder);
+
+    // Assign sequential displayOrder (1, 2, 3...) for current section
+    return sorted.map((q, idx) => ({
+      ...q,
+      displayOrder: idx + 1
+    }));
+  }, [questions, currentSectionOrder, sections]);
 
   /* ------------------ GROUP QUESTIONS - Maintain questionOrder ------------------ */
   const groupedQuestions = useMemo((): QuestionGroup[] => {
@@ -369,11 +394,16 @@ function ExamContent() {
     let mondaiIndex = 1;
 
     currentQuestions.forEach((question) => {
-      const assessmentType = typeToAssessmentMap.get(question.questionType);
+      let assessmentType = typeToAssessmentMap.get(question.questionType);
 
       if (!assessmentType) {
         console.warn(`Unknown question type: ${question.questionType}`);
-        return;
+        // Cố gắng ánh xạ trực tiếp nếu khớp với enum
+        if (Object.values(AssessmentType).includes(question.questionType as AssessmentType)) {
+          assessmentType = question.questionType as AssessmentType;
+        } else {
+          assessmentType = AssessmentType.VOCAB_CONTEXT;
+        }
       }
 
       if (
@@ -462,7 +492,26 @@ function ExamContent() {
     localStorage.setItem("examAllAnswers", JSON.stringify(merged));
     setAllAnswers(merged);
 
-    if (currentSectionOrder < TOTAL_SECTIONS) {
+    const nextOrder = currentSectionOrder + 1;
+    const currentBlockOrigin = getBlockOriginOrder(sections, currentSectionOrder);
+    const nextBlockOrigin =
+      nextOrder <= TOTAL_SECTIONS
+        ? getBlockOriginOrder(sections, nextOrder)
+        : -1;
+
+    if (nextOrder <= TOTAL_SECTIONS && nextBlockOrigin === currentBlockOrigin) {
+      // Cùng block -> Chuyển trực tiếp không nghỉ
+      localStorage.setItem(
+        "examCompletedSection",
+        currentSectionOrder.toString()
+      );
+      setCurrentSectionOrder(nextOrder);
+      setAnswers({});
+      router.replace(
+        `/exam?participantId=${participantId}&section=${nextOrder}&examId=${examId}`
+      );
+      window.scrollTo(0, 0);
+    } else if (currentSectionOrder < TOTAL_SECTIONS) {
       localStorage.setItem(
         "examCompletedSection",
         currentSectionOrder.toString()
@@ -593,7 +642,7 @@ function ExamContent() {
                   });
 
                   return subGroups.map((sub, sIndex) => (
-                    <div key={sub.passage?.id || `no-passage-${sIndex}`} className="mb-4">
+                    <div key={sub.passage?.id ? `sub-group-${sub.passage.id}-${sIndex}` : `no-passage-${sIndex}`} className="mb-4">
                       {sub.passage && (
                         <div className="bg-white border-2 border-cyan-100 p-8 rounded-lg mb-4 shadow-sm relative italic leading-relaxed text-gray-800 animate-in fade-in slide-in-from-top-2 duration-500">
                           {sub.passage.title && (
@@ -623,7 +672,7 @@ function ExamContent() {
                             {/* Question Text */}
                             <div className="mb-5">
                               <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-full text-base font-bold mb-3 shadow-md">
-                                {q.questionOrder}
+                                {q.displayOrder || q.questionOrder}
                               </div>
                               <h3 className="text-lg font-normal text-gray-900 leading-relaxed">
                                 {q.text}
@@ -761,7 +810,14 @@ function ExamContent() {
               </h2>
               <p className="text-gray-600 text-base">
                 {currentSectionOrder < TOTAL_SECTIONS
-                  ? `Bạn có chắc chắn muốn nộp Phần ${currentSectionOrder} và chuyển sang thời gian nghỉ?`
+                  ? (() => {
+                    const nextOrder = currentSectionOrder + 1;
+                    const currentBlockOrigin = getBlockOriginOrder(sections, currentSectionOrder);
+                    const nextBlockOrigin = getBlockOriginOrder(sections, nextOrder);
+                    return nextBlockOrigin === currentBlockOrigin
+                      ? `Bạn có chắc chắn muốn nộp Phần ${currentSectionOrder} và chuyển sang phần tiếp theo?`
+                      : `Bạn có chắc chắn muốn nộp Phần ${currentSectionOrder} và chuyển sang thời gian nghỉ?`;
+                  })()
                   : "Bạn có chắc chắn muốn nộp bài thi? Sau khi nộp bạn sẽ không thể chỉnh sửa câu trả lời."}
               </p>
               {unansweredCount > 0 && (

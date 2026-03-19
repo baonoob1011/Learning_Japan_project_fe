@@ -29,38 +29,38 @@ import {
 import { FeedbackType } from "@/enums/FeedbackType";
 import { FeedbackStatus } from "@/enums/FeedbackStatus";
 
-const STATUS_CONFIG: Record<
-    FeedbackStatus,
-    { label: string; icon: React.ReactNode; bg: string; text: string; border: string }
-> = {
-    PENDING: {
-        label: "Chờ xử lý",
-        icon: <Clock className="w-3.5 h-3.5" />,
-        bg: "bg-amber-100 dark:bg-amber-900/40",
-        text: "text-amber-700 dark:text-amber-300",
-        border: "border-amber-200 dark:border-amber-800/50",
-    },
-    REVIEWING: {
-        label: "Đang xem xét",
-        icon: <Search className="w-3.5 h-3.5" />,
-        bg: "bg-blue-100 dark:bg-blue-900/40",
-        text: "text-blue-700 dark:text-blue-300",
-        border: "border-blue-200 dark:border-blue-800/50",
-    },
-    RESOLVED: {
-        label: "Đã giải quyết",
-        icon: <CheckCircle2 className="w-3.5 h-3.5" />,
-        bg: "bg-emerald-100 dark:bg-emerald-900/40",
-        text: "text-emerald-700 dark:text-emerald-300",
-        border: "border-emerald-200 dark:border-emerald-800/50",
-    },
-    REJECTED: {
-        label: "Từ chối",
-        icon: <XCircle className="w-3.5 h-3.5" />,
-        bg: "bg-red-100 dark:bg-red-900/40",
-        text: "text-red-700 dark:text-red-300",
-        border: "border-red-200 dark:border-red-800/50",
-    },
+const getStatusStyles = (status: FeedbackStatus, isDark: boolean) => {
+    const config = {
+        PENDING: {
+            label: "Chờ xử lý",
+            icon: <Clock className="w-3.5 h-3.5" />,
+            bg: isDark ? "bg-amber-900/40" : "bg-amber-50",
+            text: isDark ? "text-amber-300" : "text-amber-700",
+            border: isDark ? "border-amber-800/50" : "border-amber-200",
+        },
+        REVIEWING: {
+            label: "Đang xem xét",
+            icon: <Search className="w-3.5 h-3.5" />,
+            bg: isDark ? "bg-blue-900/40" : "bg-blue-50",
+            text: isDark ? "text-blue-300" : "text-blue-700",
+            border: isDark ? "border-blue-800/50" : "border-blue-200",
+        },
+        RESOLVED: {
+            label: "Đã giải quyết",
+            icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+            bg: isDark ? "bg-emerald-900/40" : "bg-emerald-50",
+            text: isDark ? "text-emerald-300" : "text-emerald-700",
+            border: isDark ? "border-emerald-800/50" : "border-emerald-200",
+        },
+        REJECTED: {
+            label: "Từ chối",
+            icon: <XCircle className="w-3.5 h-3.5" />,
+            bg: isDark ? "bg-red-900/40" : "bg-red-50",
+            text: isDark ? "text-red-300" : "text-red-700",
+            border: isDark ? "border-red-800/50" : "border-red-200",
+        },
+    };
+    return config[status];
 };
 
 const FEEDBACK_TYPES: Record<
@@ -215,7 +215,7 @@ export default function AdminFeedbackPage() {
                                         : "bg-gray-100 text-gray-600 hover:bg-gray-200 border border-transparent"
                                     }`}
                             >
-                                {status === "ALL" ? "Tất cả" : STATUS_CONFIG[status as FeedbackStatus].label}
+                                {status === "ALL" ? "Tất cả" : getStatusStyles(status as FeedbackStatus, isDark).label}
                             </button>
                         ))}
                     </div>
@@ -244,7 +244,7 @@ export default function AdminFeedbackPage() {
                 <div className="space-y-4">
                     {filteredFeedbacks.map((fb) => {
                         const typeInfo = FEEDBACK_TYPES[fb.type] || FEEDBACK_TYPES.OTHER;
-                        const statusInfo = STATUS_CONFIG[fb.status];
+                        const statusInfo = getStatusStyles(fb.status, isDark);
                         const isExpanded = expandedId === fb.id;
                         const isSubmitting = submittingIds.has(fb.id);
 
@@ -341,7 +341,7 @@ export default function AdminFeedbackPage() {
                                                                     }`}
                                                             >
                                                                 {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                                                                {STATUS_CONFIG[status].label}
+                                                                {getStatusStyles(status, isDark).label}
                                                             </button>
                                                         ))}
                                                     </div>

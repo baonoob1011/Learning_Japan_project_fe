@@ -5,6 +5,7 @@ import ChatHeader from "./message/Chatheader";
 import MessagesArea from "./message/Messagesarea";
 import MessageInput from "./message/Messageinput";
 import {
+  ChatGroupBasicResponse,
   ChatMessageResponse,
   GroupMemberInfo,
   roomService,
@@ -48,6 +49,7 @@ interface ChatAreaProps {
   onToggleEmojiPicker: () => void;
   onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onClearAttachment: () => void;
+  onSelectRoom?: (room: ChatGroupBasicResponse) => void;
 }
 
 export default function ChatArea({
@@ -70,6 +72,7 @@ export default function ChatArea({
   onToggleEmojiPicker,
   onFileSelect,
   onClearAttachment,
+  onSelectRoom,
 }: ChatAreaProps) {
   const [groupMembers, setGroupMembers] = useState<GroupMemberInfo[]>([]);
 
@@ -94,35 +97,30 @@ export default function ChatArea({
   if (!selectedContact) {
     return (
       <div
-        className={`flex-1 flex items-center justify-center ${
-          isDarkMode ? "bg-gray-900/40" : "bg-white/40"
-        }`}
+        className={`flex-1 flex items-center justify-center ${isDarkMode ? "bg-gray-900/40" : "bg-white/40"
+          }`}
       >
         <div className="text-center space-y-4">
           <div
-            className={`w-24 h-24 mx-auto rounded-full flex items-center justify-center shadow-xl ${
-              isDarkMode
+            className={`w-24 h-24 mx-auto rounded-full flex items-center justify-center shadow-xl ${isDarkMode
                 ? "bg-gradient-to-br from-gray-700 to-gray-800"
                 : "bg-gradient-to-br from-cyan-100 to-blue-100"
-            }`}
+              }`}
           >
             <Send
-              className={`w-12 h-12 ${
-                isDarkMode ? "text-cyan-400" : "text-cyan-600"
-              }`}
+              className={`w-12 h-12 ${isDarkMode ? "text-cyan-400" : "text-cyan-600"
+                }`}
             />
           </div>
           <h3
-            className={`text-2xl font-bold ${
-              isDarkMode ? "text-gray-100" : "text-cyan-900"
-            }`}
+            className={`text-2xl font-bold ${isDarkMode ? "text-gray-100" : "text-cyan-900"
+              }`}
           >
             Chọn một cuộc trò chuyện
           </h3>
           <p
-            className={`max-w-md ${
-              isDarkMode ? "text-gray-400" : "text-cyan-600"
-            }`}
+            className={`max-w-md ${isDarkMode ? "text-gray-400" : "text-cyan-600"
+              }`}
           >
             Chọn một liên hệ từ danh sách để bắt đầu chat
           </p>
@@ -133,9 +131,8 @@ export default function ChatArea({
 
   return (
     <div
-      className={`flex-1 flex flex-col ${
-        isDarkMode ? "bg-gray-900/40" : "bg-white/40"
-      }`}
+      className={`flex-1 flex flex-col ${isDarkMode ? "bg-gray-900/40" : "bg-white/40"
+        }`}
     >
       <ChatHeader
         currentUserName={currentUserName} // ✅ thêm
@@ -143,6 +140,7 @@ export default function ChatArea({
         selectedContact={selectedContact}
         isDarkMode={isDarkMode}
         currentUserId={currentUserId ?? undefined}
+        onSelectRoom={onSelectRoom}
       />
 
       <MessagesArea

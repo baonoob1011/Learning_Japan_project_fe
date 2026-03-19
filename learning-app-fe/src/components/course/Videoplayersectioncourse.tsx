@@ -481,9 +481,8 @@ export default function VideoPlayerSection({
       `}</style>
 
       <div
-        className={`flex-1 overflow-y-auto custom-scrollbar ${
-          isDarkMode ? "bg-gray-800" : "bg-white"
-        }`}
+        className={`flex-1 overflow-y-auto custom-scrollbar ${isDarkMode ? "bg-gray-800" : "bg-white"
+          }`}
       >
         {/* Video Player */}
         <div className={`${isDarkMode ? "bg-black" : "bg-gray-900"} relative`}>
@@ -560,35 +559,31 @@ export default function VideoPlayerSection({
 
         {/* Video Info */}
         <div
-          className={`p-6 border-b ${
-            isDarkMode ? "border-gray-700" : "border-gray-200"
-          }`}
+          className={`p-6 border-b ${isDarkMode ? "border-gray-700" : "border-gray-200"
+            }`}
         >
           <h2
-            className={`text-xl font-bold mb-2 ${
-              isDarkMode ? "text-gray-100" : "text-gray-800"
-            }`}
+            className={`text-xl font-bold mb-2 ${isDarkMode ? "text-gray-100" : "text-gray-800"
+              }`}
           >
             {selectedPart?.title || selectedLesson?.title || course.title}
           </h2>
 
           <div className="flex items-center gap-4">
             <button
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-                isDarkMode
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${isDarkMode
                   ? "hover:bg-gray-700 text-gray-300"
                   : "hover:bg-gray-100 text-gray-700"
-              }`}
+                }`}
             >
               <Heart className="w-5 h-5" />
               <span className="text-sm">Yêu thích</span>
             </button>
             <button
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-                isDarkMode
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${isDarkMode
                   ? "hover:bg-gray-700 text-gray-300"
                   : "hover:bg-gray-100 text-gray-700"
-              }`}
+                }`}
             >
               <MessageSquare className="w-5 h-5" />
               <span className="text-sm">Báo cáo</span>
@@ -598,27 +593,22 @@ export default function VideoPlayerSection({
 
         {/* Tabs */}
         <div
-          className={`border-b ${
-            isDarkMode ? "border-gray-700" : "border-gray-200"
-          }`}
+          className={`border-b ${isDarkMode ? "border-gray-700" : "border-gray-200"
+            }`}
         >
           <div className="flex px-6">
             {[
               { id: "materials" as const, label: "Tài liệu" },
-              { id: "discussion" as const, label: "Bình luận" },
-              { id: "toc" as const, label: "Mục lục" },
-              { id: "notes" as const, label: "Ghi chú" },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 border-b-2 transition ${
-                  activeTab === tab.id
+                className={`px-4 py-3 border-b-2 transition ${activeTab === tab.id
                     ? "border-cyan-500 text-cyan-500"
                     : isDarkMode
-                    ? "border-transparent text-gray-400 hover:text-gray-300"
-                    : "border-transparent text-gray-600 hover:text-gray-800"
-                }`}
+                      ? "border-transparent text-gray-400 hover:text-gray-300"
+                      : "border-transparent text-gray-600 hover:text-gray-800"
+                  }`}
               >
                 {tab.label}
               </button>
@@ -645,20 +635,18 @@ export default function VideoPlayerSection({
                       href={doc.documentUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`flex items-center gap-3 p-4 rounded-lg border transition ${
-                        isDarkMode
+                      className={`flex items-center gap-3 p-4 rounded-lg border transition ${isDarkMode
                           ? "border-gray-700 hover:bg-gray-700 hover:border-cyan-500"
                           : "border-gray-200 hover:bg-gray-50 hover:border-cyan-500"
-                      }`}
+                        }`}
                     >
                       <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center flex-shrink-0">
                         <FileText className="w-5 h-5 text-cyan-500" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p
-                          className={`font-medium truncate ${
-                            isDarkMode ? "text-gray-200" : "text-gray-800"
-                          }`}
+                          className={`font-medium truncate ${isDarkMode ? "text-gray-200" : "text-gray-800"
+                            }`}
                         >
                           {doc.title}
                         </p>
@@ -688,40 +676,6 @@ export default function VideoPlayerSection({
                 </p>
               )}
 
-              <div className="flex gap-4">
-                <button className="px-6 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition flex items-center gap-2">
-                  <BookOpen className="w-4 h-4" />
-                  Thêm Flashcard
-                </button>
-                <button className="px-6 py-2 border border-cyan-500 text-cyan-500 rounded-lg hover:bg-cyan-50 dark:hover:bg-cyan-900/20 transition">
-                  Ghi chú
-                </button>
-              </div>
-            </div>
-          )}
-          {activeTab === "discussion" && (
-            <div
-              className={`text-center py-8 ${
-                isDarkMode ? "text-gray-400" : "text-gray-600"
-              }`}
-            >
-              <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Chưa có bình luận nào</p>
-            </div>
-          )}
-          {activeTab === "toc" && (
-            <div className={isDarkMode ? "text-gray-300" : "text-gray-700"}>
-              <p>Xem danh sách bài học ở cột bên phải</p>
-            </div>
-          )}
-          {activeTab === "notes" && (
-            <div
-              className={`text-center py-8 ${
-                isDarkMode ? "text-gray-400" : "text-gray-600"
-              }`}
-            >
-              <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Chưa có ghi chú nào</p>
             </div>
           )}
         </div>

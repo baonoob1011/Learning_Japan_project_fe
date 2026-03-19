@@ -336,13 +336,13 @@ export default function MyCoursesPage() {
                   </div>
                   <div>
                     <p
-                      className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                      className={`text-sm font-medium ${isDarkMode ? "text-gray-400" : "text-gray-700"
                         }`}
                     >
                       Tổng khóa học
                     </p>
                     <p
-                      className={`text-2xl font-bold ${isDarkMode ? "text-gray-100" : "text-gray-800"
+                      className={`text-2xl font-black ${isDarkMode ? "text-gray-100" : "text-gray-900"
                         }`}
                     >
                       {stats.total}
@@ -361,13 +361,13 @@ export default function MyCoursesPage() {
                   </div>
                   <div>
                     <p
-                      className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                      className={`text-sm font-medium ${isDarkMode ? "text-gray-400" : "text-gray-700"
                         }`}
                     >
                       Đang học
                     </p>
                     <p
-                      className={`text-2xl font-bold ${isDarkMode ? "text-gray-100" : "text-gray-800"
+                      className={`text-2xl font-black ${isDarkMode ? "text-gray-100" : "text-gray-900"
                         }`}
                     >
                       {stats.inProgress}
@@ -386,13 +386,13 @@ export default function MyCoursesPage() {
                   </div>
                   <div>
                     <p
-                      className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                      className={`text-sm font-medium ${isDarkMode ? "text-gray-400" : "text-gray-800"
                         }`}
                     >
                       Hoàn thành
                     </p>
                     <p
-                      className={`text-2xl font-bold ${isDarkMode ? "text-gray-100" : "text-gray-800"
+                      className={`text-2xl font-black ${isDarkMode ? "text-gray-100" : "text-gray-900"
                         }`}
                     >
                       {stats.completed}

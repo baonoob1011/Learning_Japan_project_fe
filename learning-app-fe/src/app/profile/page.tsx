@@ -249,10 +249,13 @@ export default function ProfilePage() {
                   isDark={isDarkMode}
                   onUploadAvatar={handleUploadAvatar}
                 />
-                <SkillAnalysisCard isDark={isDarkMode} />
-                <JLPTRoadmapCard isDark={isDarkMode} />
-                <VocabProgressCard isDark={isDarkMode} />{" "}
-                {/* ✅ nằm dưới JLPTRoadmapCard */}
+                {isVip && (
+                  <>
+                    <SkillAnalysisCard isDark={isDarkMode} />
+                    <JLPTRoadmapCard isDark={isDarkMode} />
+                    <VocabProgressCard isDark={isDarkMode} />
+                  </>
+                )}
               </div>
 
               {/* Cột phải */}
@@ -281,7 +284,7 @@ export default function ProfilePage() {
                   onSubmitPassword={handleSubmitPassword}
                 />
                 <BillingHistoryCard isDark={isDarkMode} />
-                <LearningStats isDark={isDarkMode} />
+                {isVip && <LearningStats isDark={isDarkMode} />}
               </div>
             </div>
           </div>

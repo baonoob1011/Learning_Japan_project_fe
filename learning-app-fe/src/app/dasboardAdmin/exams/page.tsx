@@ -14,7 +14,6 @@ import {
     Trophy,
     Calendar,
     Users as UsersIcon,
-    ArrowLeft,
     Zap,
     AlertCircle,
     BookOpen,
@@ -43,6 +42,7 @@ import { s3Service, S3ImageResponse, S3FolderType } from "@/services/s3Service";
 import { questionService, QuestionApiResponse } from "@/services/questionService";
 import { passageService } from "@/services/passageService";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import Notification from "@/components/notification";
 
 
 interface ExamDetail {
@@ -110,10 +110,11 @@ export default function ExamManagementPage() {
     const [editQuestionAudioUrl, setEditQuestionAudioUrl] = useState("");
     const [isUpdatingQuestion, setIsUpdatingQuestion] = useState(false);
     const [showAssetsLibrary, setShowAssetsLibrary] = useState(false);
-    const [libraryTab, setLibraryTab] = useState<"images" | "audios" | "assessment">("images");
+    const [libraryTab, setLibraryTab] = useState<"images" | "audios" | "assessment" | "processed_exam">("images");
     const [s3Images, setS3Images] = useState<S3ImageResponse[]>([]);
     const [s3Audios, setS3Audios] = useState<S3ImageResponse[]>([]);
     const [s3Assessments, setS3Assessments] = useState<S3ImageResponse[]>([]);
+    const [s3ProcessedExams, setS3ProcessedExams] = useState<S3ImageResponse[]>([]);
     const [isLoadingS3, setIsLoadingS3] = useState(false);
 
     // Passage edit state
@@ -122,6 +123,13 @@ export default function ExamManagementPage() {
     const [editPassageContent, setEditPassageContent] = useState("");
     const [editPassageOrder, setEditPassageOrder] = useState(0);
     const [isUpdatingPassage, setIsUpdatingPassage] = useState(false);
+
+    // Exam metadata edit state
+    const [showUpdateModal, setShowUpdateModal] = useState(false);
+    const [editingExam, setEditingExam] = useState<ExamResponse | null>(null);
+    const [isUpdatingExam, setIsUpdatingExam] = useState(false);
+
+    const [notification, setNotification] = useState<{ type: "success" | "error" | "warning"; message: string } | null>(null);
 
     const startEditPassage = (passage: any) => {
         setEditingPassageId(passage.id);
@@ -163,7 +171,7 @@ export default function ExamManagementPage() {
             setEditingPassageId(null);
         } catch (err) {
             console.error("Failed to update passage:", err);
-            alert("Cập nhật bài đọc thất bại!");
+            setNotification({ type: "error", message: "Cập nhật bài đọc thất bại!" });
         } finally {
             setIsUpdatingPassage(false);
         }
@@ -211,12 +219,26 @@ export default function ExamManagementPage() {
         setBatchMessage(null);
         try {
             await batchService.runJob(pendingJob);
-            setBatchMessage(`Batch job ${pendingJob} đã được kích hoạt thành công!`);
-            setTimeout(() => setBatchMessage(null), 5000);
-            if (pendingJob === BatchJobType.EXAM) fetchExams();
+            setBatchMessage(`Batch job ${pendingJob} đã được thực hiện thành công!`);
+
+            // Reload data
+            if (pendingJob === BatchJobType.EXAM) {
+                fetchExams();
+            } else if (pendingJob === BatchJobType.SECTION_ASSESSMENT) {
+                fetchScoringData();
+            } else {
+                fetchExams();
+                fetchScoringData();
+            }
+
+            setTimeout(() => {
+                setBatchMessage(null);
+                // The user specifically asked to "tự load lại trang" (reload the page)
+                window.location.reload();
+            }, 1500);
         } catch (error) {
             console.error("Batch job failed:", error);
-            alert("Kích hoạt batch job thất bại!");
+            setNotification({ type: "error", message: "Kích hoạt batch job thất bại!" });
         } finally {
             setIsRunningBatch(false);
             setPendingJob(null);
@@ -459,6 +481,35 @@ export default function ExamManagementPage() {
         });
     };
 
+    const handleEditExam = (exam: ExamResponse) => {
+        setEditingExam({ ...exam });
+        setShowUpdateModal(true);
+    };
+
+    const handleUpdateExamMetadata = async () => {
+        if (!editingExam) return;
+        setIsUpdatingExam(true);
+        try {
+            await examService.update(editingExam.id, {
+                code: editingExam.code,
+                level: editingExam.level,
+                duration: editingExam.duration,
+                numSections: editingExam.numSections,
+                numQuestions: editingExam.numQuestions,
+            } as any);
+
+            setBatchMessage("Cập nhật đề thi thành công!");
+            setTimeout(() => setBatchMessage(""), 3000);
+            setShowUpdateModal(false);
+            fetchExams();
+        } catch (err) {
+            console.error("Failed to update exam:", err);
+            setNotification({ type: "error", message: "Cập nhật đề thi thất bại!" });
+        } finally {
+            setIsUpdatingExam(false);
+        }
+    };
+
     const handleUpload = async (fileToUpload?: File, explicitType?: S3FolderType) => {
         const file = fileToUpload || uploadFile;
         const type = explicitType || uploadType;
@@ -489,14 +540,16 @@ export default function ExamManagementPage() {
     const fetchS3Media = async () => {
         setIsLoadingS3(true);
         try {
-            const [images, audios, assessments] = await Promise.all([
+            const [images, audios, assessments, processedExams] = await Promise.all([
                 s3Service.getImagesUrls(),
                 s3Service.getAudiosUrls(),
-                s3Service.getAssessmentUrls()
+                s3Service.getAssessmentUrls(),
+                s3Service.getProcessedExamsUrls(),
             ]);
             setS3Images(images);
             setS3Audios(audios);
             setS3Assessments(assessments);
+            setS3ProcessedExams(processedExams);
         } catch (err) {
             console.error(`Failed to fetch S3 media:`, err);
         } finally {
@@ -504,27 +557,38 @@ export default function ExamManagementPage() {
         }
     };
 
-    const handleDeleteMedia = async (key: string, type: "images" | "audios" | "assessment") => {
+    const handleDeleteMedia = (key: string, type: "images" | "audios" | "assessment" | "processed_exam") => {
         let typeVi = "file";
         if (type === "images") typeVi = "hình ảnh";
         if (type === "audios") typeVi = "âm thanh";
         if (type === "assessment") typeVi = "bản dịch/giải thích";
+        if (type === "processed_exam") typeVi = "đề thi đã xử lý";
 
-        if (!window.confirm(`Bạn có chắc chắn muốn xóa ${typeVi} này khỏi S3?`)) return;
-        try {
-            if (type === "images") {
-                await s3Service.deleteImage(key);
-            } else if (type === "audios") {
-                await s3Service.deleteAudio(key);
-            } else {
-                await s3Service.deleteAssessment(key);
-            }
-            alert("Xóa thành công!");
-            fetchS3Media(); // Refresh list
-        } catch (err) {
-            console.error(`Failed to delete ${type}:`, err);
-            alert("Xóa thất bại!");
-        }
+        setConfirmDialog({
+            open: true,
+            title: `Xóa ${typeVi}`,
+            message: `Bạn có chắc chắn muốn xóa ${typeVi} này khỏi S3? Hành động này không thể hoàn tác.`,
+            onConfirm: async () => {
+                setConfirmDialog(prev => ({ ...prev, open: false }));
+                try {
+                    if (type === "images") {
+                        await s3Service.deleteImage(key);
+                    } else if (type === "audios") {
+                        await s3Service.deleteAudio(key);
+                    } else if (type === "assessment") {
+                        await s3Service.deleteAssessment(key);
+                    } else {
+                        await s3Service.deleteProcessedExam(key);
+                    }
+                    setBatchMessage("Xóa thành công!");
+                    setTimeout(() => setBatchMessage(""), 3000);
+                    fetchS3Media();
+                } catch (err) {
+                    console.error(`Failed to delete ${type}:`, err);
+                    setNotification({ type: "error", message: "Xóa thất bại!" });
+                }
+            },
+        });
     };
 
     useEffect(() => {
@@ -667,6 +731,96 @@ export default function ExamManagementPage() {
                 </div>
             )}
 
+            {/* Update Exam Metadata Modal */}
+            {showUpdateModal && editingExam && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowUpdateModal(false)} />
+                    <div className={`relative w-full max-w-md p-8 rounded-[40px] shadow-2xl border animate-in zoom-in-95 duration-300 ${isDark ? "bg-gray-900 border-gray-800 text-white" : "bg-white border-gray-100 text-gray-900"}`}>
+                        <div className="flex justify-between items-center mb-8">
+                            <h3 className={`text-2xl font-black tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>Cập nhật Đề thi</h3>
+                            <button onClick={() => setShowUpdateModal(false)} className={`p-2 rounded-xl transition-colors ${isDark ? "hover:bg-gray-800 text-gray-500" : "hover:bg-gray-100 text-gray-400"}`}>
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-5">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Mã đề thi</label>
+                                <input
+                                    type="text"
+                                    value={editingExam.code}
+                                    onChange={e => setEditingExam({ ...editingExam, code: e.target.value })}
+                                    className={`w-full px-4 py-3 rounded-2xl border bg-transparent font-bold text-sm outline-none transition-all ${isDark ? "border-gray-700 focus:border-blue-500 text-white" : "border-gray-200 focus:border-blue-400 text-gray-900"}`}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Cấp độ (Level)</label>
+                                    <select
+                                        value={editingExam.level}
+                                        onChange={e => setEditingExam({ ...editingExam, level: e.target.value })}
+                                        className={`w-full px-4 py-3 rounded-2xl border bg-transparent font-bold text-sm outline-none cursor-pointer ${isDark ? "border-gray-700 focus:border-blue-500 text-white bg-gray-900" : "border-gray-200 focus:border-blue-400 text-gray-900 bg-white"}`}
+                                    >
+                                        {['N1', 'N2', 'N3', 'N4', 'N5'].map(lvl => (
+                                            <option key={lvl} value={lvl}>{lvl}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Thời gian (Phút)</label>
+                                    <input
+                                        type="number"
+                                        value={editingExam.duration}
+                                        onChange={e => setEditingExam({ ...editingExam, duration: parseInt(e.target.value) })}
+                                        className={`w-full px-4 py-3 rounded-2xl border bg-transparent font-bold text-sm outline-none ${isDark ? "border-gray-700 focus:border-blue-500 text-white" : "border-gray-200 focus:border-blue-400 text-gray-900"}`}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Số phần (Sections)</label>
+                                    <input
+                                        type="number"
+                                        value={editingExam.numSections}
+                                        onChange={e => setEditingExam({ ...editingExam, numSections: parseInt(e.target.value) })}
+                                        className={`w-full px-4 py-3 rounded-2xl border bg-transparent font-bold text-sm outline-none ${isDark ? "border-gray-700 focus:border-blue-500 text-white" : "border-gray-200 focus:border-blue-400 text-gray-900"}`}
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Tổng số câu</label>
+                                    <input
+                                        type="number"
+                                        value={editingExam.numQuestions}
+                                        onChange={e => setEditingExam({ ...editingExam, numQuestions: parseInt(e.target.value) })}
+                                        className={`w-full px-4 py-3 rounded-2xl border bg-transparent font-bold text-sm outline-none ${isDark ? "border-gray-700 focus:border-blue-500 text-white" : "border-gray-200 focus:border-blue-400 text-gray-900"}`}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 pt-4">
+                                <button
+                                    onClick={() => setShowUpdateModal(false)}
+                                    disabled={isUpdatingExam}
+                                    className={`flex-1 py-4 rounded-2xl font-black text-sm transition-all ${isDark ? "bg-gray-800 hover:bg-gray-700 text-gray-300" : "bg-gray-100 hover:bg-gray-200 text-gray-600"} disabled:opacity-40`}
+                                >
+                                    Hủy
+                                </button>
+                                <button
+                                    onClick={handleUpdateExamMetadata}
+                                    disabled={isUpdatingExam}
+                                    className={`flex-1 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all active:scale-95 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 disabled:opacity-50`}
+                                >
+                                    {isUpdatingExam ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                    Lưu thay đổi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* General Confirm Dialog */}
             <ConfirmDialog
                 isOpen={confirmDialog.open}
@@ -687,9 +841,6 @@ export default function ExamManagementPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-5">
-                    <button onClick={() => router.push('/dasboardAdmin')} className={`p-3 rounded-2xl border transition-all ${isDark ? "border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-300" : "border-gray-200 bg-white hover:bg-gray-50 text-gray-600"}`}>
-                        <ArrowLeft className="w-6 h-6" />
-                    </button>
                     <div>
                         <h1 className={`text-4xl font-black tracking-tight flex items-center gap-4 ${isDark ? "text-white" : "text-gray-900"}`}>
                             <div className={`p-3 rounded-2xl bg-gradient-to-br ${isDark ? "from-indigo-900/40 to-blue-900/40" : "from-indigo-50 to-blue-50"}`}>
@@ -802,7 +953,7 @@ export default function ExamManagementPage() {
                             const isOpen = expandedExamId === exam.id;
                             const detail = examDetails[exam.id];
                             return (
-                                <div key={exam.id} className={`rounded-[28px] border overflow-hidden transition-all duration-500 ${isOpen
+                                <div key={exam.id} className={`rounded-[28px] border overflow-hidden transition-all duration-500 group ${isOpen
                                     ? (isDark ? "border-blue-500/50 shadow-xl shadow-blue-500/10" : "border-blue-200 shadow-xl shadow-blue-100")
                                     : (isDark ? "border-gray-700 hover:border-gray-500" : "border-gray-100 hover:border-blue-200")
                                     } ${isDark ? "bg-gray-800/40" : "bg-white"}`}>
@@ -834,15 +985,27 @@ export default function ExamManagementPage() {
                                         </div>
 
                                         <div className="flex items-center gap-3">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDeleteExam(exam.id, exam.code);
-                                                }}
-                                                className={`p-2.5 rounded-xl border transition-all duration-300 ${isDark ? "border-gray-700 hover:bg-red-500/10 hover:text-red-400 text-gray-500" : "border-gray-200 hover:bg-red-50 hover:text-red-600 text-gray-400"}`}
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
+                                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEditExam(exam);
+                                                    }}
+                                                    className={`p-2.5 rounded-xl border transition-all duration-300 ${isDark ? "border-gray-700 hover:bg-blue-500/10 hover:text-blue-400 text-gray-500" : "border-gray-200 hover:bg-blue-50 hover:text-blue-600 text-gray-400"}`}
+                                                    title="Sửa thông tin đề thi"
+                                                >
+                                                    <Edit3 className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteExam(exam.id, exam.code);
+                                                    }}
+                                                    className={`p-2.5 rounded-xl border transition-all duration-300 ${isDark ? "border-gray-700 hover:bg-red-500/10 hover:text-red-400 text-gray-500" : "border-gray-200 hover:bg-red-50 hover:text-red-600 text-gray-400"}`}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                             <div className={`p-2.5 rounded-xl border transition-all duration-300 ${isOpen ? (isDark ? "bg-blue-500/20 border-blue-500/40 text-blue-400" : "bg-blue-50 border-blue-200 text-blue-600") : (isDark ? "border-gray-700 text-gray-500" : "border-gray-200 text-gray-400")}`}>
                                                 <ChevronDown className={`w-5 h-5 transition-transform duration-500 ${isOpen ? "rotate-180" : ""}`} />
                                             </div>
@@ -1220,8 +1383,8 @@ export default function ExamManagementPage() {
                                     title: "Phần Chữ Hán - Từ vựng - Ngữ Pháp",
                                     icon: <Type className="w-5 h-5" />,
                                     color: "from-orange-500 to-red-500",
-                                    items: filtered.filter(i => 
-                                        !i.assessmentType.toString().startsWith('READING') && 
+                                    items: filtered.filter(i =>
+                                        !i.assessmentType.toString().startsWith('READING') &&
                                         !i.assessmentType.toString().startsWith('LISTENING')
                                     )
                                 },
@@ -1406,6 +1569,15 @@ export default function ExamManagementPage() {
                             >
                                 <Zap className="w-4 h-4" /> Bản dịch/Giải thích ({s3Assessments.length})
                             </button>
+                            <button
+                                onClick={() => setLibraryTab("processed_exam")}
+                                className={`px-6 py-2.5 rounded-2xl font-black text-sm transition-all flex items-center gap-2 ${libraryTab === "processed_exam"
+                                    ? (isDark ? "bg-violet-500/10 text-violet-400 border border-violet-500/20" : "bg-violet-50 text-violet-700 border border-violet-100")
+                                    : (isDark ? "text-gray-500 hover:bg-gray-800" : "text-gray-400 hover:bg-gray-50")
+                                    }`}
+                            >
+                                <FileUp className="w-4 h-4" /> Đề đã import ({s3ProcessedExams.length})
+                            </button>
                         </div>
 
                         {/* Content */}
@@ -1469,7 +1641,7 @@ export default function ExamManagementPage() {
                                                 <img src={img.url} alt="Library Item" className="w-full h-full object-cover transition-all" referrerPolicy="no-referrer" />
                                                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center p-4 gap-2">
                                                     <button
-                                                        onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(img.url); alert("Đã copy URL!"); }}
+                                                        onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(img.url); setNotification({ type: "success", message: "Đã sao chép liên kết hình ảnh!" }); }}
                                                         className="px-4 py-2 rounded-xl bg-white text-gray-900 font-black text-xs shadow-xl active:scale-95 transition-all w-full"
                                                     >
                                                         Copy URL
@@ -1493,7 +1665,7 @@ export default function ExamManagementPage() {
                                 <div className="space-y-3 pb-20">
                                     {assets.audios.length > 0 ? (
                                         assets.audios.map((aud: { url: string; key?: string }, iIdx: number) => (
-                                            <div key={iIdx} className={`p-4 rounded-2xl border flex items-center justify-between gap-4 ${isDark ? "bg-gray-800/40 border-gray-700" : "bg-white border-gray-100 shadow-sm"}`}>
+                                            <div key={iIdx} className={`p-4 rounded-2xl border flex items-center justify-between gap-4 group transition-all duration-300 ${isDark ? "bg-gray-800/40 border-gray-700 hover:bg-gray-800/60" : "bg-white border-gray-100 shadow-sm hover:shadow-md hover:border-blue-100"}`}>
                                                 <div className="flex items-center gap-3 flex-1 min-w-0">
                                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDark ? "bg-purple-500/10 text-purple-400" : "bg-purple-50 text-purple-700"}`}>
                                                         <Volume2 className="w-5 h-5" />
@@ -1503,9 +1675,9 @@ export default function ExamManagementPage() {
                                                 <audio controls className="h-8 w-48 shrink-0">
                                                     <source src={aud.url} type="audio/mpeg" />
                                                 </audio>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
                                                     <button
-                                                        onClick={() => { navigator.clipboard.writeText(aud.url); alert("Đã copy URL!"); }}
+                                                        onClick={() => { navigator.clipboard.writeText(aud.url); setNotification({ type: "success", message: "Đã sao chép liên kết âm thanh!" }); }}
                                                         className={`p-2 rounded-xl transition-all ${isDark ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-700"}`}
                                                         title="Copy URL"
                                                     >
@@ -1527,18 +1699,18 @@ export default function ExamManagementPage() {
                                         <div className="py-20 text-center opacity-40">Chưa có âm thanh nào</div>
                                     )}
                                 </div>
-                            ) : (
+                            ) : libraryTab === "assessment" ? (
                                 <div className="space-y-3 pb-20">
                                     {s3Assessments.length > 0 ? (
                                         s3Assessments.map((ass, iIdx) => (
-                                            <div key={iIdx} className={`p-4 rounded-2xl border flex items-center justify-between gap-4 ${isDark ? "bg-gray-800/40 border-gray-700" : "bg-white border-gray-100 shadow-sm"}`}>
+                                            <div key={iIdx} className={`p-4 rounded-2xl border flex items-center justify-between gap-4 group transition-all duration-300 ${isDark ? "bg-gray-800/40 border-gray-700 hover:bg-gray-800/60" : "bg-white border-gray-100 shadow-sm hover:shadow-md hover:border-blue-100"}`}>
                                                 <div className="flex items-center gap-3 flex-1 min-w-0">
                                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDark ? "bg-amber-500/10 text-amber-400" : "bg-amber-50 text-amber-700"}`}>
                                                         <Zap className="w-5 h-5" />
                                                     </div>
                                                     <p className="text-xs font-bold truncate opacity-60 text-blue-500 underline uppercase">{ass.key.split('/').pop()}</p>
                                                 </div>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
                                                     <a
                                                         href={ass.url}
                                                         target="_blank"
@@ -1548,7 +1720,7 @@ export default function ExamManagementPage() {
                                                         Xem file
                                                     </a>
                                                     <button
-                                                        onClick={() => { navigator.clipboard.writeText(ass.url); alert("Đã copy URL!"); }}
+                                                        onClick={() => { navigator.clipboard.writeText(ass.url); setNotification({ type: "success", message: "Đã sao chép liên kết tài liệu!" }); }}
                                                         className={`p-2.5 rounded-xl transition-all ${isDark ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-700"}`}
                                                         title="Copy URL"
                                                     >
@@ -1568,6 +1740,51 @@ export default function ExamManagementPage() {
                                         <div className="py-20 text-center opacity-40">Chưa có bản dịch/giải thích nào</div>
                                     )}
                                 </div>
+                            ) : (
+                                /* PROCESSED EXAMS TAB */
+                                <div className="space-y-3 pb-20">
+                                    {s3ProcessedExams.length > 0 ? (
+                                        s3ProcessedExams.map((ex, iIdx) => (
+                                            <div key={iIdx} className={`p-4 rounded-2xl border flex items-center justify-between gap-4 group transition-all duration-300 ${isDark ? "bg-gray-800/40 border-gray-700 hover:bg-gray-800/60" : "bg-white border-gray-100 shadow-sm hover:shadow-md hover:border-violet-100"}`}>
+                                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDark ? "bg-violet-500/10 text-violet-400" : "bg-violet-50 text-violet-700"}`}>
+                                                        <FileUp className="w-5 h-5" />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="text-xs font-bold truncate text-blue-500 underline uppercase">{ex.key.split('/').pop()}</p>
+                                                        <p className={`text-[10px] font-bold mt-0.5 ${isDark ? "text-gray-600" : "text-gray-400"}`}>{ex.key}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                                    <a
+                                                        href={ex.url}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className={`p-2.5 rounded-[12px] font-black text-[10px] uppercase tracking-wider transition-all ${isDark ? "bg-violet-500/20 text-violet-400 hover:bg-violet-500/30" : "bg-violet-50 text-violet-600 hover:bg-violet-100"} shadow-lg`}
+                                                    >
+                                                        Xem file
+                                                    </a>
+                                                    <button
+                                                        onClick={() => { navigator.clipboard.writeText(ex.url); setNotification({ type: "success", message: "Đã sao chép liên kết đề thi!" }); }}
+                                                        className={`p-2.5 rounded-xl transition-all ${isDark ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-700"}`}
+                                                        title="Copy URL"
+                                                    >
+                                                        <Save className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteMedia(ex.key, "processed_exam")}
+                                                        className={`p-2.5 rounded-xl transition-all ${isDark ? "bg-red-500/10 hover:bg-red-500/20 text-red-500" : "bg-red-50 hover:bg-red-100 text-red-600"}`}
+                                                        title="Xóa khỏi S3"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="py-20 text-center opacity-40">Chưa có đề thi nào được import</div>
+                                    )}
+                                </div>
                             )}
                         </div>
 
@@ -1585,6 +1802,13 @@ export default function ExamManagementPage() {
                         </div>
                     </div>
                 </div>
+            )}
+            {notification && (
+                <Notification
+                    type={notification.type}
+                    message={notification.message}
+                    onClose={() => setNotification(null)}
+                />
             )}
         </main>
     );

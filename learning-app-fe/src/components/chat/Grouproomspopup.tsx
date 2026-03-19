@@ -21,23 +21,27 @@ interface GroupRoomsPopupProps {
   isDarkMode: boolean;
   onClose: () => void;
   onSelectRoom?: (room: ChatGroupBasicResponse) => void;
+  initialView?: View;
+  existingRoomId?: string;
 }
 
-type View = "list" | "create";
+type View = "list" | "create" | "add";
 
 export default function GroupRoomsPopup({
   isDarkMode,
   onClose,
   onSelectRoom,
+  initialView = "list",
+  existingRoomId,
 }: GroupRoomsPopupProps) {
-  const [view, setView] = useState<View>("list");
+  const [view, setView] = useState<View>(initialView);
 
   // --- List view state ---
   const [rooms, setRooms] = useState<ChatGroupBasicResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // --- Create view state ---
+  // --- Create/Add view state ---
   const [groupName, setGroupName] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -54,16 +58,17 @@ export default function GroupRoomsPopup({
 
   // Fetch group rooms
   useEffect(() => {
+    if (view !== "list") return;
     roomService
       .getMyGroupRooms()
       .then((data) => setRooms(data))
       .catch(() => setError("Không thể tải danh sách nhóm"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [view]);
 
-  // Fetch chat users khi chuyển sang view create
+  // Fetch chat users khi chuyển sang view create hoặc add
   useEffect(() => {
-    if (view !== "create") return;
+    if (view !== "create" && view !== "add") return;
     setLoadingUsers(true);
     roomService
       .getMyChatUsers()
@@ -108,6 +113,22 @@ export default function GroupRoomsPopup({
     );
   };
 
+  const handleAddMembers = async () => {
+    if (!existingRoomId || selectedIds.length === 0) return;
+    setCreating(true);
+    setCreateError(null);
+    try {
+      await roomService.addGroupMembers(existingRoomId, {
+        memberIds: selectedIds,
+      });
+      onClose();
+    } catch {
+      setCreateError("Thêm thành viên thất bại");
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const handleCreateGroup = async () => {
     if (!groupName.trim() || selectedIds.length === 0) return;
     setCreating(true);
@@ -145,26 +166,23 @@ export default function GroupRoomsPopup({
     }
   };
 
-  const inputClass = `w-full px-3 py-2 rounded-xl text-sm border focus:outline-none focus:ring-2 transition-all ${
-    isDarkMode
-      ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-cyan-500/40 focus:border-cyan-500/40"
-      : "bg-cyan-50/50 border-cyan-200 text-gray-900 placeholder-cyan-400 focus:ring-cyan-500/40 focus:border-cyan-500/40"
-  }`;
+  const inputClass = `w-full px-3 py-2 rounded-xl text-sm border focus:outline-none focus:ring-2 transition-all ${isDarkMode
+    ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-cyan-500/40 focus:border-cyan-500/40"
+    : "bg-cyan-50/50 border-cyan-200 text-gray-900 placeholder-cyan-400 focus:ring-cyan-500/40 focus:border-cyan-500/40"
+    }`;
 
   return (
     <div
       ref={popupRef}
-      className={`w-72 rounded-2xl shadow-2xl border overflow-hidden transition-all duration-200 animate-in fade-in slide-in-from-top-2 ${
-        isDarkMode
-          ? "bg-gray-800 border-gray-700 text-gray-100"
-          : "bg-white border-cyan-200 text-gray-900"
-      }`}
+      className={`w-72 rounded-2xl shadow-2xl border overflow-hidden transition-all duration-200 animate-in fade-in slide-in-from-top-2 ${isDarkMode
+        ? "bg-gray-800 border-gray-700 text-gray-100"
+        : "bg-white border-cyan-200 text-gray-900"
+        }`}
     >
       {/* ───────────── HEADER ───────────── */}
       <div
-        className={`flex items-center justify-between px-4 py-3 border-b ${
-          isDarkMode ? "border-gray-700" : "border-cyan-100"
-        }`}
+        className={`flex items-center justify-between px-4 py-3 border-b ${isDarkMode ? "border-gray-700" : "border-cyan-100"
+          }`}
       >
         <div className="flex items-center gap-2">
           {view === "create" && (
@@ -173,24 +191,21 @@ export default function GroupRoomsPopup({
                 setView("list");
                 resetCreate();
               }}
-              className={`p-1 rounded-full transition-colors mr-1 ${
-                isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-50"
-              }`}
+              className={`p-1 rounded-full transition-colors mr-1 ${isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-50"
+                }`}
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
           )}
           <div
-            className={`p-1.5 rounded-lg ${
-              isDarkMode
-                ? "bg-cyan-500/20"
-                : "bg-gradient-to-br from-cyan-100 to-blue-100"
-            }`}
+            className={`p-1.5 rounded-lg ${isDarkMode
+              ? "bg-cyan-500/20"
+              : "bg-gradient-to-br from-cyan-100 to-blue-100"
+              }`}
           >
             <Users
-              className={`w-4 h-4 ${
-                isDarkMode ? "text-cyan-400" : "text-cyan-600"
-              }`}
+              className={`w-4 h-4 ${isDarkMode ? "text-cyan-400" : "text-cyan-600"
+                }`}
             />
           </div>
           <span className="font-semibold text-sm">
@@ -199,9 +214,8 @@ export default function GroupRoomsPopup({
         </div>
         <button
           onClick={onClose}
-          className={`p-1 rounded-full transition-colors ${
-            isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-50"
-          }`}
+          className={`p-1 rounded-full transition-colors ${isDarkMode ? "hover:bg-gray-700" : "hover:bg-cyan-50"
+            }`}
         >
           <X className="w-4 h-4" />
         </button>
@@ -214,9 +228,8 @@ export default function GroupRoomsPopup({
             {loading && (
               <div className="flex items-center justify-center py-10">
                 <Loader2
-                  className={`w-6 h-6 animate-spin ${
-                    isDarkMode ? "text-cyan-400" : "text-cyan-500"
-                  }`}
+                  className={`w-6 h-6 animate-spin ${isDarkMode ? "text-cyan-400" : "text-cyan-500"
+                    }`}
                 />
               </div>
             )}
@@ -228,20 +241,17 @@ export default function GroupRoomsPopup({
             {!loading && !error && rooms.length === 0 && (
               <div className="px-4 py-8 text-center space-y-2">
                 <div
-                  className={`w-12 h-12 mx-auto rounded-full flex items-center justify-center ${
-                    isDarkMode ? "bg-gray-700" : "bg-cyan-50"
-                  }`}
+                  className={`w-12 h-12 mx-auto rounded-full flex items-center justify-center ${isDarkMode ? "bg-gray-700" : "bg-cyan-50"
+                    }`}
                 >
                   <Hash
-                    className={`w-6 h-6 ${
-                      isDarkMode ? "text-gray-500" : "text-cyan-300"
-                    }`}
+                    className={`w-6 h-6 ${isDarkMode ? "text-gray-500" : "text-cyan-300"
+                      }`}
                   />
                 </div>
                 <p
-                  className={`text-sm ${
-                    isDarkMode ? "text-gray-400" : "text-cyan-400"
-                  }`}
+                  className={`text-sm ${isDarkMode ? "text-gray-400" : "text-cyan-400"
+                    }`}
                 >
                   Chưa có nhóm nào
                 </p>
@@ -256,9 +266,8 @@ export default function GroupRoomsPopup({
                     onSelectRoom?.(room);
                     onClose();
                   }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 transition-colors text-left ${
-                    isDarkMode ? "hover:bg-gray-700/60" : "hover:bg-cyan-50"
-                  }`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 transition-colors text-left ${isDarkMode ? "hover:bg-gray-700/60" : "hover:bg-cyan-50"
+                    }`}
                 >
                   {room.avatarUrl ? (
                     <img
@@ -284,9 +293,8 @@ export default function GroupRoomsPopup({
                       {room.name || "Nhóm không tên"}
                     </p>
                     <p
-                      className={`text-xs truncate ${
-                        isDarkMode ? "text-gray-400" : "text-cyan-500"
-                      }`}
+                      className={`text-xs truncate ${isDarkMode ? "text-gray-400" : "text-cyan-500"
+                        }`}
                     >
                       {room.memberCount
                         ? `${room.memberCount} thành viên`
@@ -300,17 +308,15 @@ export default function GroupRoomsPopup({
 
           {/* Footer */}
           <div
-            className={`border-t px-4 py-2.5 ${
-              isDarkMode ? "border-gray-700" : "border-cyan-100"
-            }`}
+            className={`border-t px-4 py-2.5 ${isDarkMode ? "border-gray-700" : "border-cyan-100"
+              }`}
           >
             <button
               onClick={() => setView("create")}
-              className={`w-full flex items-center gap-2 text-sm font-medium py-1.5 px-2 rounded-lg transition-colors ${
-                isDarkMode
-                  ? "text-cyan-400 hover:bg-gray-700"
-                  : "text-cyan-600 hover:bg-cyan-50"
-              }`}
+              className={`w-full flex items-center gap-2 text-sm font-medium py-1.5 px-2 rounded-lg transition-colors ${isDarkMode
+                ? "text-cyan-400 hover:bg-gray-700"
+                : "text-cyan-600 hover:bg-cyan-50"
+                }`}
             >
               <Plus className="w-4 h-4" />
               Tạo nhóm mới
@@ -319,84 +325,82 @@ export default function GroupRoomsPopup({
         </>
       )}
 
-      {/* ───────────── CREATE VIEW ───────────── */}
-      {view === "create" && (
+      {/* ───────────── CREATE/ADD VIEW ───────────── */}
+      {(view === "create" || view === "add") && (
         <div className="flex flex-col">
-          {/* Avatar + Tên nhóm */}
-          <div className="px-4 pt-4 pb-3 flex items-center gap-3">
-            <div className="relative flex-shrink-0">
-              <button
-                type="button"
-                onClick={() => avatarInputRef.current?.click()}
-                className={`w-14 h-14 rounded-full flex items-center justify-center overflow-hidden border-2 transition-all ${
-                  isDarkMode
+          {/* Avatar + Tên nhóm (Chỉ hiện khi create) */}
+          {view === "create" && (
+            <div className="px-4 pt-4 pb-3 flex items-center gap-3">
+              <div className="relative flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={() => avatarInputRef.current?.click()}
+                  className={`w-14 h-14 rounded-full flex items-center justify-center overflow-hidden border-2 transition-all ${isDarkMode
                     ? "border-gray-600 hover:border-cyan-500 bg-gray-700"
                     : "border-cyan-200 hover:border-cyan-400 bg-cyan-50"
-                }`}
-              >
-                {avatarPreview ? (
-                  <img
-                    src={avatarPreview}
-                    alt="preview"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Camera
-                    className={`w-6 h-6 ${
-                      isDarkMode ? "text-gray-400" : "text-cyan-400"
                     }`}
-                  />
-                )}
-              </button>
-              <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-cyan-500 flex items-center justify-center shadow pointer-events-none">
-                <Camera className="w-2.5 h-2.5 text-white" />
+                >
+                  {avatarPreview ? (
+                    <img
+                      src={avatarPreview}
+                      alt="preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Camera
+                      className={`w-6 h-6 ${isDarkMode ? "text-gray-400" : "text-cyan-400"
+                        }`}
+                    />
+                  )}
+                </button>
+                <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-cyan-500 flex items-center justify-center shadow pointer-events-none">
+                  <Camera className="w-2.5 h-2.5 text-white" />
+                </div>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                />
               </div>
               <input
-                ref={avatarInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarChange}
-                className="hidden"
+                type="text"
+                placeholder="Tên nhóm..."
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
+                className={inputClass}
+                autoFocus
               />
             </div>
-            <input
-              type="text"
-              placeholder="Tên nhóm..."
-              value={groupName}
-              onChange={(e) => setGroupName(e.target.value)}
-              className={inputClass}
-              autoFocus
-            />
-          </div>
+          )}
 
           {/* Member label */}
           <div
-            className={`px-4 pb-1 text-xs font-semibold uppercase tracking-wide ${
-              isDarkMode ? "text-gray-400" : "text-cyan-500"
-            }`}
+            className={`px-4 ${view === "create" ? "pb-1" : "py-3"
+              } text-xs font-semibold uppercase tracking-wide ${isDarkMode ? "text-gray-400" : "text-cyan-500"
+              }`}
           >
-            Chọn thành viên{" "}
-            {selectedIds.length > 0 && `(${selectedIds.length})`}
+            {view === "create" ? "Chọn thành viên" : "Thêm thành viên mới"}
+            {selectedIds.length > 0 && ` (${selectedIds.length})`}
           </div>
 
           {/* Member list */}
-          <div className="max-h-44 overflow-y-auto custom-scrollbar px-2 pb-2">
+          <div className="max-h-60 overflow-y-auto custom-scrollbar px-2 pb-2">
             {loadingUsers && (
-              <div className="flex items-center justify-center py-6">
+              <div className="flex items-center justify-center py-10">
                 <Loader2
-                  className={`w-5 h-5 animate-spin ${
-                    isDarkMode ? "text-cyan-400" : "text-cyan-500"
-                  }`}
+                  className={`w-6 h-6 animate-spin ${isDarkMode ? "text-cyan-400" : "text-cyan-500"
+                    }`}
                 />
               </div>
             )}
             {!loadingUsers && chatUsers.length === 0 && (
               <p
-                className={`text-xs text-center py-6 ${
-                  isDarkMode ? "text-gray-400" : "text-cyan-400"
-                }`}
+                className={`text-xs text-center py-10 ${isDarkMode ? "text-gray-400" : "text-cyan-400"
+                  }`}
               >
-                Không có người dùng nào
+                Không có người dùng khả dụng
               </p>
             )}
             {!loadingUsers &&
@@ -406,38 +410,36 @@ export default function GroupRoomsPopup({
                   <button
                     key={user.userId}
                     onClick={() => toggleUser(user.userId)}
-                    className={`w-full flex items-center gap-3 px-2 py-2 rounded-xl transition-colors text-left ${
-                      selected
-                        ? isDarkMode
-                          ? "bg-cyan-500/20"
-                          : "bg-cyan-50"
-                        : isDarkMode
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left ${selected
+                      ? isDarkMode
+                        ? "bg-cyan-500/20"
+                        : "bg-cyan-50"
+                      : isDarkMode
                         ? "hover:bg-gray-700/60"
                         : "hover:bg-cyan-50/60"
-                    }`}
+                      }`}
                   >
                     {user.avatarUrl ? (
                       <img
                         src={user.avatarUrl}
                         alt={user.fullName}
-                        className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                        className="w-10 h-10 rounded-full object-cover flex-shrink-0 shadow-sm"
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white text-xs font-bold bg-gradient-to-br from-cyan-500 to-blue-600">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white text-sm font-bold bg-gradient-to-br from-cyan-500 to-blue-600 shadow-sm">
                         {user.fullName.charAt(0).toUpperCase()}
                       </div>
                     )}
-                    <span className="flex-1 text-sm truncate">
+                    <span className="flex-1 text-sm font-medium truncate">
                       {user.fullName}
                     </span>
                     <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                        selected
-                          ? "bg-cyan-500 border-cyan-500"
-                          : isDarkMode
-                          ? "border-gray-500"
-                          : "border-cyan-300"
-                      }`}
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${selected
+                        ? "bg-cyan-500 border-cyan-500 scale-110 shadow-md"
+                        : isDarkMode
+                          ? "border-gray-500 hover:border-cyan-400"
+                          : "border-cyan-300 hover:border-cyan-500"
+                        }`}
                     >
                       {selected && <Check className="w-3 h-3 text-white" />}
                     </div>
@@ -447,47 +449,63 @@ export default function GroupRoomsPopup({
           </div>
 
           {createError && (
-            <p className="text-xs text-red-400 px-4 pb-1">{createError}</p>
+            <p className="text-xs text-red-500 px-4 pb-2 font-medium">
+              {createError}
+            </p>
           )}
 
           {/* Actions */}
           <div
-            className={`border-t px-4 py-3 flex gap-2 ${
-              isDarkMode ? "border-gray-700" : "border-cyan-100"
-            }`}
+            className={`border-t px-4 py-3.5 flex gap-2 ${isDarkMode ? "border-gray-700" : "border-cyan-100"
+              }`}
           >
             <button
               onClick={() => {
-                setView("list");
-                resetCreate();
+                if (initialView === "add") {
+                  onClose();
+                } else {
+                  setView("list");
+                  resetCreate();
+                }
               }}
-              className={`flex-1 py-2 text-sm rounded-xl border transition-colors ${
-                isDarkMode
-                  ? "border-gray-600 text-gray-300 hover:bg-gray-700"
-                  : "border-cyan-200 text-cyan-600 hover:bg-cyan-50"
-              }`}
+              className={`flex-1 py-2.5 text-sm font-medium rounded-xl border transition-all hover:shadow-md active:scale-95 ${isDarkMode
+                ? "border-gray-600 text-gray-300 hover:bg-gray-700"
+                : "border-cyan-200 text-cyan-600 hover:bg-cyan-50"
+                }`}
             >
               Hủy
             </button>
             <button
-              onClick={handleCreateGroup}
+              onClick={view === "create" ? handleCreateGroup : handleAddMembers}
               disabled={
-                !groupName.trim() || selectedIds.length === 0 || creating
+                (view === "create" && !groupName.trim()) ||
+                selectedIds.length === 0 ||
+                creating
               }
-              className={`flex-1 py-2 text-sm rounded-xl font-semibold flex items-center justify-center gap-1.5 transition-colors ${
-                !groupName.trim() || selectedIds.length === 0 || creating
-                  ? isDarkMode
-                    ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                    : "bg-cyan-200 text-white cursor-not-allowed"
-                  : "bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-600 hover:to-blue-600"
-              }`}
+              className={`flex-1 py-2.5 text-sm rounded-xl font-bold flex items-center justify-center gap-2 transition-all hover:shadow-lg active:scale-95 ${((view === "create" && !groupName.trim()) ||
+                selectedIds.length === 0 ||
+                creating)
+                ? isDarkMode
+                  ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+                  : "bg-cyan-100 text-cyan-400 cursor-not-allowed"
+                : "bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 text-white"
+                }`}
             >
               {creating ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin text-white" />
               ) : (
                 <>
-                  <Plus className="w-4 h-4" />
-                  Tạo nhóm
+                  {view === "create" ? (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      Tạo nhóm
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-4 h-4" />
+                      Xác nhận thêm
+                    </>
+                  )}
                 </>
               )}
             </button>

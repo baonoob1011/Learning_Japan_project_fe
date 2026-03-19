@@ -68,4 +68,13 @@ export const s3Service = {
             params: { key },
         });
     },
+
+    getProcessedExamsUrls(): Promise<S3ImageResponse[]> {
+        return http.get<S3ImageResponse[]>(API_ENDPOINTS.S3.GET_PROCESSED_EXAM_FILES);
+    },
+    deleteProcessedExam(key: string): Promise<void> {
+        return http.delete<void>(API_ENDPOINTS.S3.DELETE_PROCESSED_EXAM, {
+            params: { key },
+        });
+    },
 }

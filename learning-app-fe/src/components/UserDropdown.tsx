@@ -5,6 +5,7 @@ import { userService, UserProfileResponse } from "@/services/userService";
 import { logout } from "@/services/authService";
 import { useRouter } from "next/navigation";
 import { getAccessTokenFromStorage, getRolesFromToken } from "@/utils/jwt";
+import UpgradePlusModal from "./payment/Upgradeplusmodal ";
 
 interface UserDropdownProps {
   isDark: boolean;
@@ -20,6 +21,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
   const [user, setUser] = useState<UserProfileResponse | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isVip, setIsVip] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -280,6 +282,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
               ) : (
                 /* ===== NON-VIP: upgrade button ===== */
                 <button
+                  onClick={() => { setIsOpen(false); setShowUpgradeModal(true); }}
                   className={`w-full flex items-center gap-2 px-3 py-2 ${isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"
                     } rounded-lg transition`}
                 >
@@ -301,7 +304,15 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
               )}
 
               <button
-                onClick={() => { setIsOpen(false); router.push("/feedback"); }}
+                onClick={() => {
+                  if (isVip) {
+                    setIsOpen(false);
+                    router.push("/feedback");
+                  } else {
+                    setIsOpen(false);
+                    setShowUpgradeModal(true);
+                  }
+                }}
                 className={`w-full flex items-center gap-2 px-3 py-2 ${isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"
                   } rounded-lg transition mt-1`}
               >
@@ -351,6 +362,12 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
           </div>
         )}
       </div>
+      {/* Modal nâng cấp Plus */}
+      <UpgradePlusModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        isDarkMode={isDark}
+      />
     </>
   );
 };

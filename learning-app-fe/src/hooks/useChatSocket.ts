@@ -94,20 +94,20 @@ export const useChatSocket = (roomId: string | null): UseChatSocketReturn => {
     subRef.current?.unsubscribe();
     subRef.current = null;
 
+    // 🛑 RESET MESSAGES when switching rooms to avoid leakage
+    setMessages([]);
+
     if (!roomId || !isConnected || !client?.connected) return;
 
-    subRef.current = client.subscribe(
-      `/topic/room/${roomId}`,
-      (message) => {
-        try {
-          const raw: ChatMessageResponse = JSON.parse(message.body);
-          const normalized = normalizeMessage(raw);
-          setMessages((prev) => [...prev, normalized]);
-        } catch (error) {
-          console.error("[ChatSocket] Failed to parse message:", error);
-        }
+    subRef.current = client.subscribe(`/topic/room/${roomId}`, (message) => {
+      try {
+        const raw: ChatMessageResponse = JSON.parse(message.body);
+        const normalized = normalizeMessage(raw);
+        setMessages((prev) => [...prev, normalized]);
+      } catch (error) {
+        console.error("[ChatSocket] Failed to parse message:", error);
       }
-    );
+    });
 
     return () => {
       subRef.current?.unsubscribe();

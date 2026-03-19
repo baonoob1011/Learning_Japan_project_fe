@@ -19,6 +19,8 @@ import {
   ChatMessageList,
   ChatInputBar,
 } from "@/components/chat/floating";
+import GroupRoomsPopup from "@/components/chat/Grouproomspopup";
+import { ChatGroupBasicResponse } from "@/services/roomService";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -75,6 +77,8 @@ export default function FloatingChatButton({
   const [historyMessages, setHistoryMessages] = useState<Message[]>([]);
   const [showContactDropdown, setShowContactDropdown] = useState(false);
   const [showCall, setShowCall] = useState(false);
+  const [showGroupPopup, setShowGroupPopup] = useState(false);
+  const [groupPopupView, setGroupPopupView] = useState<"create" | "add">("create");
   const [currentUserName, setCurrentUserName] = useState("");
   const [currentUserAvatar, setCurrentUserAvatar] = useState("");
   const [senderNameMap, setSenderNameMap] = useState<Record<string, string>>({});
@@ -394,6 +398,14 @@ export default function FloatingChatButton({
             onTabChange={handleTabChange}
             onCall={() => setShowCall(true)}
             onClose={() => setIsOpen(false)}
+            onAddMember={() => {
+              setGroupPopupView("add");
+              setShowGroupPopup(true);
+            }}
+            onCreateGroup={() => {
+              setGroupPopupView("create");
+              setShowGroupPopup(true);
+            }}
             showCallButton={!!selectedContact && !!currentUserId && activeTab !== "GROUP"}
             unreadCounts={unreadCounts}
           />
@@ -423,6 +435,41 @@ export default function FloatingChatButton({
             onChange={setInputMessage}
             onSend={handleSend}
           />
+
+          {/* Group Rooms Popup Overlay */}
+          {showGroupPopup && (
+            <div className={`absolute inset-0 z-[60] flex flex-col p-2 animate-slide-up ${isDarkMode ? "bg-gray-900/90" : "bg-white/90"} backdrop-blur-sm`}>
+              <div className="flex-1 overflow-hidden rounded-2xl border shadow-2xl relative">
+                <GroupRoomsPopup
+                  isDarkMode={isDarkMode}
+                  initialView={groupPopupView}
+                  existingRoomId={selectedContact?.id}
+                  onClose={() => setShowGroupPopup(false)}
+                  onSelectRoom={(room: ChatGroupBasicResponse) => {
+                    // Update state to the new/selected room
+                    const contact: Contact = {
+                      id: room.id,
+                      name: room.name ?? "Tên nhóm",
+                      avatar: room.avatarUrl || room.avatar || "/group-avatar.png",
+                      lastMessage: room.lastMessage ?? "",
+                      timestamp: room.lastMessageTime ?? room.createdAt ?? "",
+                      isGroup: true
+                    };
+
+                    // Add to groupContacts if not already there
+                    setGroupContacts(prev => {
+                      if (prev.find(c => c.id === contact.id)) return prev;
+                      return [contact, ...prev];
+                    });
+
+                    setSelectedContact(contact);
+                    setActiveTab("GROUP");
+                    setShowGroupPopup(false);
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
 

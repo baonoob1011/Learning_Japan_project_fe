@@ -116,6 +116,10 @@ export const examService = {
     );
   },
 
+  update(id: string, request: Partial<ExamResponse>): Promise<ExamResponse> {
+    return http.put<ExamResponse>(API_ENDPOINTS.EXAM.UPDATE(id), request);
+  },
+
   submitExam(request: SubmitExamRequest): Promise<SubmitExamResponse> {
     return http.post<SubmitExamResponse>(
       API_ENDPOINTS.EXAM.EXAM_SUBMIT,
