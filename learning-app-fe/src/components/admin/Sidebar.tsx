@@ -147,7 +147,7 @@ export default function AdminSidebar({ isDark = false }: SidebarProps) {
             </nav>
 
             {/* Footer / Logout */}
-            <div className={`p-3 border-t ${footerBorder} italic font-medium`}>
+            <div className={`p-3 border-t ${footerBorder}`}>
                 <button
                     onClick={handleLogout}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group ${isDark ? "text-red-400 hover:bg-red-500/10 hover:text-red-300" : "text-red-500 hover:bg-red-50 hover:text-red-600"
