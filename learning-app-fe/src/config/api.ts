@@ -1,5 +1,5 @@
 ﻿// API Configuration
-const API_BASE_URL = "http://13.250.109.181:8080/api/v1"; // đổi sang endpoint HTTPS thực tế
+const API_BASE_URL = "https://api.nibojapan.cloud/api/v1"; // đổi sang endpoint HTTPS thực tế
 
 export const API_CONFIG = {
   BASE_URL: API_BASE_URL,
