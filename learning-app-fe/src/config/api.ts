@@ -1,21 +1,18 @@
 // API Configuration
 export const API_CONFIG = {
   BASE_URL:
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1",
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://13.250.109.181:8080/api/v1",
   TIMEOUT: 10000, // 10 giây
 } as const;
 
 // API Endpoints (flat)
 export const API_ENDPOINTS = {
   ASSESSMENT_ITEM: {
-    BY_SECTION: (sectionId: string) =>
-      `/assessment-items/section/${sectionId}`,
+    BY_SECTION: (sectionId: string) => `/assessment-items/section/${sectionId}`,
     GET_ALL: "/assessment-items",
-    DETAIL: (id: string) =>
-      `/assessment-items/${id}`,
+    DETAIL: (id: string) => `/assessment-items/${id}`,
 
-    UPDATE: (id: string) =>
-      `/assessment-items/${id}`,
+    UPDATE: (id: string) => `/assessment-items/${id}`,
   },
   PASSAGE: {
     GET_BY_ID: (id: string) => `/passages/${id}`,
@@ -44,8 +41,7 @@ export const API_ENDPOINTS = {
   },
   ORDER: {
     MY_ORDERS: "/orders/me",
-    MY_ORDER_DETAIL: (orderCode: string) =>
-      `/orders/me/${orderCode}`,
+    MY_ORDER_DETAIL: (orderCode: string) => `/orders/me/${orderCode}`,
   },
   VIDEO_EXERCISE: {
     GET_BY_VIDEO: (videoId: string) => `/video-exercises/video/${videoId}`,
@@ -81,7 +77,7 @@ export const API_ENDPOINTS = {
     CREATE: "/course",
     GET_MY_PROGRESS: "/courses/my-progress",
     GET_ALL: "/course",
-    UPDATE: (id: string) => `/course/${id}`,   // 👈 thêm dòng này
+    UPDATE: (id: string) => `/course/${id}`, // 👈 thêm dòng này
 
     GET_DETAIL: (courseId: string) => `/course/${courseId}`,
     TOGGLE_ACTIVE: (courseId: string) => `/course/${courseId}/toggle`,
@@ -100,8 +96,7 @@ export const API_ENDPOINTS = {
     GET_BY_COURSE: (courseId: string) => `/section/course/${courseId}`,
     GET_DETAIL: (sectionId: string) => `/section/${sectionId}`,
     DELETE: (sectionId: string) => `/section/${sectionId}`,
-    UPDATE: (sectionId: string) =>
-      `/section/${sectionId}`,
+    UPDATE: (sectionId: string) => `/section/${sectionId}`,
   },
   // config/api.ts
 
@@ -119,7 +114,6 @@ export const API_ENDPOINTS = {
     GET_DETAIL: (lessonId: string) => `/lesson/${lessonId}`,
     DELETE: (lessonId: string) => `/lesson/${lessonId}`,
     UPDATE: (id: string) => `/lesson/${id}`,
-
   },
 
   /* ===================== SECTION DOCUMENT ===================== */
@@ -133,8 +127,7 @@ export const API_ENDPOINTS = {
     GET_BY_LESSON: (lessonId: string) => `/lesson-part/lesson/${lessonId}`,
     GET_DETAIL: (id: string) => `/lesson-part/${id}`,
     DELETE: (id: string) => `/lesson-part/${id}`,
-    UPDATE: (id: string) =>
-      `/lesson-part/${id}`,
+    UPDATE: (id: string) => `/lesson-part/${id}`,
   },
 
   /* ===================== ADMIN ===================== */
@@ -175,17 +168,13 @@ export const API_ENDPOINTS = {
     SEARCH: "/videos/search",
     VIEW_BY_VOCAB: "/youtube/vocab",
     COMMENTS: "/youtube/comments",
-    GET_COMMENTS: (videoId: string) =>
-      `/youtube/comments/${videoId}`,
-    DELETE_COMMENT: (commentId: string) =>
-      `/youtube/comments/${commentId}`,
+    GET_COMMENTS: (videoId: string) => `/youtube/comments/${videoId}`,
+    DELETE_COMMENT: (commentId: string) => `/youtube/comments/${commentId}`,
     UPDATE: (videoId: string) => `/youtube/${videoId}`,
 
     RATINGS: "/youtube/ratings",
-    GET_RATING: (videoId: string) =>
-      `/youtube/ratings/${videoId}`,
-    DELETE_RATING: (videoId: string) =>
-      `/youtube/ratings/${videoId}`,
+    GET_RATING: (videoId: string) => `/youtube/ratings/${videoId}`,
+    DELETE_RATING: (videoId: string) => `/youtube/ratings/${videoId}`,
   },
 
   LEARNING_PROGRESS: {
@@ -231,23 +220,21 @@ export const API_ENDPOINTS = {
   },
   REVENUE: {
     SUMMARY: "/admin/revenue/summary",
-    BY_DAY: (date: string) =>
-      `/admin/revenue/day?date=${date}`,
+    BY_DAY: (date: string) => `/admin/revenue/day?date=${date}`,
     BY_MONTH: (year: number, month: number) =>
       `/admin/revenue/month?year=${year}&month=${month}`,
     SUCCESS_COUNT: "/admin/revenue/success-count",
     COURSE: "/admin/revenue/course",
     PRODUCT: "/admin/revenue/product",
     MONTHLY: (year: number) => `/admin/revenue/monthly?year=${year}`,
-    YEARLY: (startYear: number, endYear: number) => `/admin/revenue/yearly?startYear=${startYear}&endYear=${endYear}`,
+    YEARLY: (startYear: number, endYear: number) =>
+      `/admin/revenue/yearly?startYear=${startYear}&endYear=${endYear}`,
     RECENT: "/admin/revenue/recent",
     CHART_30DAYS: "/admin/revenue/chart-30days",
   },
   ENROLLMENT: {
-    CHECK: (courseId: string) =>
-      `/enrollments/check/${courseId}`,
+    CHECK: (courseId: string) => `/enrollments/check/${courseId}`,
     MY_COURSES: "/enrollments/my-courses",
-
   },
   FEEDBACK: {
     CREATE: "/feedbacks",
