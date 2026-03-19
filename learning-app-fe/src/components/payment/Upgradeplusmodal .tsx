@@ -4,11 +4,12 @@ import {
   X,
   Check,
   Crown,
-  Zap,
+  BrainCircuit,
+  MessageCircle,
+  Mic,
   Video,
-  Clock,
-  Shield,
-  HeadphonesIcon,
+  Gamepad2,
+  Trophy,
   Loader2,
   AlertCircle,
 } from "lucide-react";
@@ -59,26 +60,27 @@ function formatVND(price: number): string {
 
 const FEATURES = [
   {
-    icon: <Video className="w-5 h-5" />,
-    text: "Không giới hạn số lượng thêm video",
+    icon: <Mic className="w-5 h-5" />,
+    text: "Luyện phát âm AI (Pronunciation) không giới hạn",
   },
   {
-    icon: <Video className="w-5 h-5" />,
-    text: "Truy cập toàn bộ video trong kho",
-  },
-  { icon: <Clock className="w-5 h-5" />, text: "Hỗ trợ video dài đến 2 giờ" },
-  {
-    icon: <Zap className="w-5 h-5" />,
-    text: "Luyện phát âm với AI thông minh",
+    icon: <Trophy className="w-5 h-5" />,
+    text: "Thi thử JLPT không giới hạn (Free: tối đa 3 lần/ngày)",
   },
   {
-    icon: <Crown className="w-5 h-5" />,
-    text: "Mở khóa các tính năng kết hợp AI",
+    icon: <BrainCircuit className="w-5 h-5" />,
+    text: "Mở khóa Quiz từ vựng (AI Practice)",
   },
-  { icon: <Video className="w-5 h-5" />, text: "Tải video lên: 30 giờ/tháng" },
-  { icon: <Shield className="w-5 h-5" />, text: "Không quảng cáo" },
-  { icon: <HeadphonesIcon className="w-5 h-5" />, text: "Hỗ trợ 24/7" },
-  { icon: <Check className="w-5 h-5" />, text: "Và nhiều hơn nữa..." },
+  {
+    icon: <Gamepad2 className="w-5 h-5" />,
+    text: "Mở khóa Game từ vựng",
+  },
+  {
+    icon: <MessageCircle className="w-5 h-5" />,
+    text: "Mở khóa NIBO AI Chat Assistant",
+  },
+  { icon: <Video className="w-5 h-5" />, text: "Ưu tiên truy cập các tính năng AI mới" },
+  { icon: <Check className="w-5 h-5" />, text: "Quyền lợi VIP cập nhật theo hệ thống" },
 ];
 
 /* ── component ── */
@@ -142,9 +144,7 @@ export default function UpgradePlusModal({
   const handlePaymentSuccess = () => {
     setShowPayment(false);
     onClose();
-    alert(
-      "Nâng cấp thành công! Tài khoản của bạn đã được nâng cấp lên NIBO Plus."
-    );
+    alert("Nâng cấp thành công! Tài khoản của bạn đã được nâng cấp lên NIBO Plus.");
   };
 
   /* ── render helpers ── */
@@ -169,8 +169,6 @@ export default function UpgradePlusModal({
           <span>{error}</span>
           <button
             onClick={() => {
-              // re-trigger by toggling a dummy state — easier: just close+reopen
-              // Instead, expose a retry by re-running the effect via a key
               setError(null);
               setLoading(true);
               vipService
@@ -278,7 +276,6 @@ export default function UpgradePlusModal({
           </span>
         </div>
 
-        {/* Duration info for non-lifetime */}
         {selectedPackage.durationDays !== null && (
           <p
             className={`text-sm ${
@@ -301,13 +298,12 @@ export default function UpgradePlusModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
       <div
         className={`modal-scroll relative w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl animate-slide-up ${
           isDarkMode ? "bg-gray-800 text-white" : "bg-white text-gray-900"
         }`}
       >
-        {/* Close Button */}
         <button
           onClick={onClose}
           className={`absolute top-6 right-6 p-2 rounded-full transition-all hover:rotate-90 z-10 ${
@@ -319,7 +315,6 @@ export default function UpgradePlusModal({
           <X className="w-5 h-5" />
         </button>
 
-        {/* Header */}
         <div className="p-8 pb-6 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-full bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-500">
             <Crown className="w-8 h-8 text-white" />
@@ -350,7 +345,6 @@ export default function UpgradePlusModal({
         </div>
 
         {showPayment ? (
-          /* ── Payment View ── */
           <div className="px-8 pb-8">
             <div className="max-w-2xl mx-auto">
               <VNPayCheckout
@@ -369,14 +363,10 @@ export default function UpgradePlusModal({
             </div>
           </div>
         ) : (
-          /* ── Plan Selection View ── */
           <>
-            {/* Plan Tabs */}
             <div className="px-8 mb-6">{renderPlanTabs()}</div>
 
-            {/* Content Grid */}
             <div className="grid md:grid-cols-2 gap-8 px-8 pb-8">
-              {/* Left: Plan Details */}
               <div>
                 <div
                   className={`rounded-2xl p-6 ${
@@ -385,7 +375,6 @@ export default function UpgradePlusModal({
                       : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 border border-cyan-100"
                   }`}
                 >
-                  {/* Plan Icon & Name */}
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-500 flex items-center justify-center">
                       <Crown className="w-6 h-6 text-white" />
@@ -406,10 +395,8 @@ export default function UpgradePlusModal({
                     </div>
                   </div>
 
-                  {/* Price */}
                   {renderPriceBlock()}
 
-                  {/* CTA Button */}
                   <button
                     onClick={handleUpgradeClick}
                     disabled={loading || !!error || !selectedPackage}
@@ -427,7 +414,6 @@ export default function UpgradePlusModal({
                 </div>
               </div>
 
-              {/* Right: Features List */}
               <div>
                 <h3
                   className={`text-lg font-semibold mb-4 ${
@@ -493,7 +479,6 @@ export default function UpgradePlusModal({
           animation: slide-up 0.3s ease-out;
         }
 
-        /* Scrollbar dark mode */
         .modal-scroll::-webkit-scrollbar {
           width: 6px;
         }
@@ -508,7 +493,6 @@ export default function UpgradePlusModal({
         .modal-scroll::-webkit-scrollbar-thumb:hover {
           background: ${isDarkMode ? "#06b6d4" : "#94a3b8"};
         }
-        /* Firefox */
         .modal-scroll {
           scrollbar-width: thin;
           scrollbar-color: ${isDarkMode

@@ -4,6 +4,8 @@ import { X, Video, Star, Tag, Sparkles, Loader2 } from "lucide-react";
 import { youtubeService } from "@/services/videoService";
 import LoadingCat from "@/components/LoadingCat";
 import { JLPTLevel, VideoTag } from "@/types/video";
+import { getAccessTokenFromStorage, getRolesFromToken } from "@/utils/jwt";
+import UpgradePlusModal from "@/components/payment/Upgradeplusmodal ";
 
 export interface VideoUploadData {
   youtubeUrl: string;
@@ -31,6 +33,7 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -77,6 +80,20 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
   const handleSubmit = async () => {
     if (!formData.youtubeUrl || !formData.level || !formData.tag) {
       return;
+    }
+
+    const token = getAccessTokenFromStorage();
+    if (token) {
+      const roles = getRolesFromToken(token);
+      if (
+        roles.includes("USER") &&
+        !roles.includes("USER_VIP") &&
+        !roles.includes("ADMIN") &&
+        !roles.includes("ROLE_ADMIN")
+      ) {
+        setIsUpgradeModalOpen(true);
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -340,6 +357,14 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
           </button>
         </div>
       </div>
+
+      {isUpgradeModalOpen && (
+        <UpgradePlusModal
+          isOpen={isUpgradeModalOpen}
+          isDarkMode={isDark}
+          onClose={() => setIsUpgradeModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

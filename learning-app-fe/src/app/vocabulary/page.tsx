@@ -75,9 +75,9 @@ export default function VocabularyPage() {
 
           {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto">
-            <div className="w-full max-w-4xl mx-auto pt-6 pb-8 px-4">
+            <div className="w-full pt-6 pb-8 px-6">
               {/* Tab Navigation */}
-              <div className="flex gap-3 mb-6 max-w-3xl mx-auto">
+              <div className="flex gap-3 mb-6">
                 <button
                   onClick={() => setActiveTab("vocabulary")}
                   className={`flex-1 py-3 px-6 rounded-xl text-sm font-medium transition ${activeTab === "vocabulary"

@@ -3,6 +3,8 @@ import { Video, Upload, Loader2 } from "lucide-react";
 import { youtubeService } from "@/services/videoService";
 import { JLPTLevel, VideoTag } from "@/types/video";
 import LoadingCat from "@/components/LoadingCat";
+import { getAccessTokenFromStorage, getRolesFromToken } from "@/utils/jwt";
+import UpgradePlusModal from "@/components/payment/Upgradeplusmodal ";
 
 type JLPTLevelType = "N1" | "N2" | "N3" | "N4" | "N5";
 
@@ -32,6 +34,7 @@ const VideoBanner: React.FC<VideoBannerProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   const tabs = [
     { icon: "✨", label: "Toàn bộ" },
@@ -87,6 +90,21 @@ const VideoBanner: React.FC<VideoBannerProps> = ({
 
   const handleUpload = async () => {
     if (!youtubeUrl || !selectedLevel || !selectedTag) return;
+
+    // Check user role: if standard USER (not VIP/ADMIN), route to upgrade Plus
+    const token = getAccessTokenFromStorage();
+    if (token) {
+      const roles = getRolesFromToken(token);
+      if (
+        roles.includes("USER") &&
+        !roles.includes("USER_VIP") &&
+        !roles.includes("ADMIN") &&
+        !roles.includes("ROLE_ADMIN")
+      ) {
+        setIsUpgradeModalOpen(true);
+        return; // Prevent further action
+      }
+    }
 
     setIsLoading(true);
     setError("");
@@ -290,6 +308,15 @@ const VideoBanner: React.FC<VideoBannerProps> = ({
             </div>
           </div >
         )}
+
+      {/* Upgrade VIP Modal */}
+      {isUpgradeModalOpen && (
+        <UpgradePlusModal
+          isOpen={isUpgradeModalOpen}
+          isDarkMode={isDarkMode}
+          onClose={() => setIsUpgradeModalOpen(false)}
+        />
+      )}
     </>
   );
 };

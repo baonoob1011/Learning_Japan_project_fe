@@ -144,27 +144,58 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
     }
 
     return (
-        <div className="w-full max-w-5xl mx-auto px-2">
-            {/* Search Bar */}
-            <div className="mb-8 flex flex-col md:flex-row gap-4 items-center justify-between">
-                <div className="relative w-full md:max-w-md">
-                    <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`} />
-                    <input
-                        type="text"
-                        placeholder="Tìm kiếm từ vựng, ý nghĩa..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className={`w-full pl-11 pr-4 py-3 rounded-2xl outline-none transition-all ${isDarkMode
-                            ? "bg-gray-800 border-gray-700 text-white focus:ring-2 focus:ring-cyan-500/50"
-                            : "bg-white border-gray-200 text-gray-800 shadow-sm focus:ring-2 focus:ring-cyan-500/20"
-                            } border`}
-                    />
+        <div className="w-full">
+            {/* Search Bar - Full Width */}
+            <div className="relative w-full mb-4">
+                <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
+                <input
+                    type="text"
+                    placeholder="Tìm kiếm từ vựng, ý nghĩa..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className={`w-full pl-11 pr-4 py-3 rounded-2xl outline-none transition-all ${isDarkMode
+                        ? "bg-gray-800 border-gray-700 text-white focus:ring-2 focus:ring-cyan-500/50"
+                        : "bg-white border-gray-200 text-gray-800 shadow-sm focus:ring-2 focus:ring-cyan-500/20"
+                        } border`}
+                />
+            </div>
+
+            {/* Filter Tabs Row — left: tabs, right: count + button */}
+            <div className="flex items-center justify-between mb-6 gap-4">
+                {/* Filter Tabs */}
+                <div className={`inline-flex p-1 rounded-2xl border transition-all duration-300 ${isDarkMode ? "bg-gray-800/60 border-gray-700" : "bg-gray-100/50 border-gray-200"}`}>
+                    {[
+                        { id: "ALL", label: "Tất cả", icon: "📚" },
+                        { id: "UNLEARNED", label: "Chưa thuộc", icon: "🌱" },
+                        { id: "KNOWN", label: "Đã thuộc", icon: "🏆" },
+                    ].map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setFilter(tab.id as any)}
+                            className={`flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl text-sm font-bold whitespace-nowrap transition-all duration-300 ${filter === tab.id
+                                ? isDarkMode
+                                    ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20"
+                                    : "bg-white text-cyan-600 shadow-sm"
+                                : isDarkMode
+                                    ? "text-gray-400 hover:text-gray-200"
+                                    : "text-gray-500 hover:text-gray-700"
+                                }`}
+                        >
+                            <span>{tab.icon}</span>
+                            {tab.label}
+                        </button>
+                    ))}
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className={`px-4 py-2 font-bold ${isDarkMode ? "text-gray-400" : "text-gray-600 text-sm"
-                        }`}>
-                        Tổng cộng: <span className={isDarkMode ? "text-cyan-400" : "text-cyan-600"}>{filteredVocabs.length}</span> từ
-                    </div>
+
+                {/* Count + Learn button */}
+                <div className="flex items-center gap-3 shrink-0">
+                    <span className={`text-sm font-bold ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                        Tổng cộng:{" "}
+                        <span className={`text-base ${isDarkMode ? "text-cyan-400" : "text-cyan-600"}`}>
+                            {filteredVocabs.length}
+                        </span>{" "}
+                        từ
+                    </span>
 
                     {filter === "UNLEARNED" && filteredVocabs.length > 0 && (
                         <button
@@ -179,32 +210,6 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                         </button>
                     )}
                 </div>
-            </div>
-
-            {/* Filter Tabs */}
-            <div className={`flex p-1 mb-8 rounded-2xl border transition-all duration-300 max-w-md mx-auto ${isDarkMode ? "bg-gray-800/60 border-gray-700" : "bg-gray-100/50 border-gray-200"
-                }`}>
-                {[
-                    { id: "ALL", label: "Tất cả", icon: "📚" },
-                    { id: "UNLEARNED", label: "Chưa thuộc", icon: "🌱" },
-                    { id: "KNOWN", label: "Đã thuộc", icon: "🏆" },
-                ].map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setFilter(tab.id as any)}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-bold transition-all duration-300 ${filter === tab.id
-                            ? isDarkMode
-                                ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20"
-                                : "bg-white text-cyan-600 shadow-sm"
-                            : isDarkMode
-                                ? "text-gray-400 hover:text-gray-200"
-                                : "text-gray-500 hover:text-gray-700"
-                            }`}
-                    >
-                        <span>{tab.icon}</span>
-                        {tab.label}
-                    </button>
-                ))}
             </div>
 
             {/* List Container */}
