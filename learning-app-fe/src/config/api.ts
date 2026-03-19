@@ -1,21 +1,19 @@
-// API Configuration
+﻿// API Configuration
+const API_BASE_URL = "https://api.nibojapan.cloud/api/v1"; // đổi sang endpoint HTTPS thực tế
+
 export const API_CONFIG = {
-  BASE_URL:
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1",
+  BASE_URL: API_BASE_URL,
   TIMEOUT: 10000, // 10 giây
 } as const;
 
 // API Endpoints (flat)
 export const API_ENDPOINTS = {
   ASSESSMENT_ITEM: {
-    BY_SECTION: (sectionId: string) =>
-      `/assessment-items/section/${sectionId}`,
+    BY_SECTION: (sectionId: string) => `/assessment-items/section/${sectionId}`,
     GET_ALL: "/assessment-items",
-    DETAIL: (id: string) =>
-      `/assessment-items/${id}`,
+    DETAIL: (id: string) => `/assessment-items/${id}`,
 
-    UPDATE: (id: string) =>
-      `/assessment-items/${id}`,
+    UPDATE: (id: string) => `/assessment-items/${id}`,
   },
   PASSAGE: {
     GET_BY_ID: (id: string) => `/passages/${id}`,
@@ -40,12 +38,11 @@ export const API_ENDPOINTS = {
     UPLOAD_AVATAR: "/users/upload-avatar",
     CHANGE_PASSWORD: "/users/change-password",
     ALL_USERS: "/admin/users",
-    SEARCH: "/users/search", // ✅ thêm dòng này
+    SEARCH: "/users/search", // âœ… thÃªm dÃ²ng nÃ y
   },
   ORDER: {
     MY_ORDERS: "/orders/me",
-    MY_ORDER_DETAIL: (orderCode: string) =>
-      `/orders/me/${orderCode}`,
+    MY_ORDER_DETAIL: (orderCode: string) => `/orders/me/${orderCode}`,
   },
   VIDEO_EXERCISE: {
     GET_BY_VIDEO: (videoId: string) => `/video-exercises/video/${videoId}`,
@@ -63,9 +60,9 @@ export const API_ENDPOINTS = {
   },
 
   CHAT_ROOM: {
-    MY_GROUP_ROOMS: "/chat-room/my-group-rooms", // 👈 thêm dòng này
+    MY_GROUP_ROOMS: "/chat-room/my-group-rooms", // ðŸ‘ˆ thÃªm dÃ²ng nÃ y
     MY_ROOMS: "/chat-room/my-rooms",
-    CREATE_GROUP: "/chat-room/group", // 👈 thêm dòng này
+    CREATE_GROUP: "/chat-room/group", // ðŸ‘ˆ thÃªm dÃ²ng nÃ y
     CREATE_PRIVATE: "/chat-room/private",
     GET_BY_ID: (roomId: string) => `/chat-room/${roomId}`,
     MESSAGES: (roomId: string, page: number, size: number) =>
@@ -81,7 +78,7 @@ export const API_ENDPOINTS = {
     CREATE: "/course",
     GET_MY_PROGRESS: "/courses/my-progress",
     GET_ALL: "/course",
-    UPDATE: (id: string) => `/course/${id}`,   // 👈 thêm dòng này
+    UPDATE: (id: string) => `/course/${id}`, // ðŸ‘ˆ thÃªm dÃ²ng nÃ y
 
     GET_DETAIL: (courseId: string) => `/course/${courseId}`,
     TOGGLE_ACTIVE: (courseId: string) => `/course/${courseId}/toggle`,
@@ -100,8 +97,7 @@ export const API_ENDPOINTS = {
     GET_BY_COURSE: (courseId: string) => `/section/course/${courseId}`,
     GET_DETAIL: (sectionId: string) => `/section/${sectionId}`,
     DELETE: (sectionId: string) => `/section/${sectionId}`,
-    UPDATE: (sectionId: string) =>
-      `/section/${sectionId}`,
+    UPDATE: (sectionId: string) => `/section/${sectionId}`,
   },
   // config/api.ts
 
@@ -119,7 +115,6 @@ export const API_ENDPOINTS = {
     GET_DETAIL: (lessonId: string) => `/lesson/${lessonId}`,
     DELETE: (lessonId: string) => `/lesson/${lessonId}`,
     UPDATE: (id: string) => `/lesson/${id}`,
-
   },
 
   /* ===================== SECTION DOCUMENT ===================== */
@@ -133,8 +128,7 @@ export const API_ENDPOINTS = {
     GET_BY_LESSON: (lessonId: string) => `/lesson-part/lesson/${lessonId}`,
     GET_DETAIL: (id: string) => `/lesson-part/${id}`,
     DELETE: (id: string) => `/lesson-part/${id}`,
-    UPDATE: (id: string) =>
-      `/lesson-part/${id}`,
+    UPDATE: (id: string) => `/lesson-part/${id}`,
   },
 
   /* ===================== ADMIN ===================== */
@@ -175,17 +169,13 @@ export const API_ENDPOINTS = {
     SEARCH: "/videos/search",
     VIEW_BY_VOCAB: "/youtube/vocab",
     COMMENTS: "/youtube/comments",
-    GET_COMMENTS: (videoId: string) =>
-      `/youtube/comments/${videoId}`,
-    DELETE_COMMENT: (commentId: string) =>
-      `/youtube/comments/${commentId}`,
+    GET_COMMENTS: (videoId: string) => `/youtube/comments/${videoId}`,
+    DELETE_COMMENT: (commentId: string) => `/youtube/comments/${commentId}`,
     UPDATE: (videoId: string) => `/youtube/${videoId}`,
 
     RATINGS: "/youtube/ratings",
-    GET_RATING: (videoId: string) =>
-      `/youtube/ratings/${videoId}`,
-    DELETE_RATING: (videoId: string) =>
-      `/youtube/ratings/${videoId}`,
+    GET_RATING: (videoId: string) => `/youtube/ratings/${videoId}`,
+    DELETE_RATING: (videoId: string) => `/youtube/ratings/${videoId}`,
   },
 
   LEARNING_PROGRESS: {
@@ -231,23 +221,21 @@ export const API_ENDPOINTS = {
   },
   REVENUE: {
     SUMMARY: "/admin/revenue/summary",
-    BY_DAY: (date: string) =>
-      `/admin/revenue/day?date=${date}`,
+    BY_DAY: (date: string) => `/admin/revenue/day?date=${date}`,
     BY_MONTH: (year: number, month: number) =>
       `/admin/revenue/month?year=${year}&month=${month}`,
     SUCCESS_COUNT: "/admin/revenue/success-count",
     COURSE: "/admin/revenue/course",
     PRODUCT: "/admin/revenue/product",
     MONTHLY: (year: number) => `/admin/revenue/monthly?year=${year}`,
-    YEARLY: (startYear: number, endYear: number) => `/admin/revenue/yearly?startYear=${startYear}&endYear=${endYear}`,
+    YEARLY: (startYear: number, endYear: number) =>
+      `/admin/revenue/yearly?startYear=${startYear}&endYear=${endYear}`,
     RECENT: "/admin/revenue/recent",
     CHART_30DAYS: "/admin/revenue/chart-30days",
   },
   ENROLLMENT: {
-    CHECK: (courseId: string) =>
-      `/enrollments/check/${courseId}`,
+    CHECK: (courseId: string) => `/enrollments/check/${courseId}`,
     MY_COURSES: "/enrollments/my-courses",
-
   },
   FEEDBACK: {
     CREATE: "/feedbacks",
@@ -286,11 +274,11 @@ export const API_ENDPOINTS = {
     ACCEPT: (requestId: string) => `/friends/accept/${requestId}`,
     REJECT: (requestId: string) => `/friends/reject/${requestId}`,
     UNFRIEND: (userId: string) => `/friends/${userId}`,
-    GET_PENDING: "/friends/pending", // ✅ thêm dòng này
+    GET_PENDING: "/friends/pending", // âœ… thÃªm dÃ²ng nÃ y
   },
 } as const;
 
-// Helper function để lấy full endpoint URL
+// Helper function Ä‘á»ƒ láº¥y full endpoint URL
 export const getEndpoint = (endpointKey: keyof typeof API_ENDPOINTS) => {
   return `${API_CONFIG.BASE_URL}${API_ENDPOINTS[endpointKey]}`;
 };

@@ -6,9 +6,9 @@ import { QuestionTypeOrder } from "./questionTypeOrder";
  */
 export const LISTENING_TYPE_ORDER: QuestionTypeOrder[] = [
   {
-    key: "LISTENING_INSTANT",
+    key: "LISTENING_UNDERSTAND_KEY",
     label: "問題",
-    assessmentType: AssessmentType.LISTENING_INSTANT,
+    assessmentType: AssessmentType.LISTENING_UNDERSTAND_KEY,
   },
   {
     key: "LISTENING_TASK",
@@ -16,9 +16,9 @@ export const LISTENING_TYPE_ORDER: QuestionTypeOrder[] = [
     assessmentType: AssessmentType.LISTENING_TASK,
   },
   {
-    key: "LISTENING_CHOICE_PREVIEW",
+    key: "LISTENING_MAIN_POINT",
     label: "問題",
-    assessmentType: AssessmentType.LISTENING_CHOICE_PREVIEW,
+    assessmentType: AssessmentType.LISTENING_MAIN_POINT,
   },
   {
     key: "LISTENING_MAIN_IDEA",
@@ -26,13 +26,13 @@ export const LISTENING_TYPE_ORDER: QuestionTypeOrder[] = [
     assessmentType: AssessmentType.LISTENING_MAIN_IDEA,
   },
   {
-    key: "LISTENING_RESPONSE",
+    key: "LISTENING_CORRECT_RESPONSE",
     label: "問題",
-    assessmentType: AssessmentType.LISTENING_RESPONSE,
+    assessmentType: AssessmentType.LISTENING_CORRECT_RESPONSE,
   },
   {
-    key: "LISTENING_LONG",
+    key: "LISTENING_COMPREHENSIVE",
     label: "問題",
-    assessmentType: AssessmentType.LISTENING_LONG,
+    assessmentType: AssessmentType.LISTENING_COMPREHENSIVE,
   },
 ];

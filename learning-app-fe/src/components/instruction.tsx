@@ -10,7 +10,7 @@ interface AssessmentInstructionProps {
   type: AssessmentType;
 }
 
-const instructionMap: Record<AssessmentType, string> = {
+const instructionMap: Partial<Record<AssessmentType, string>> = {
   [AssessmentType.FILL_BLANK]:
     "問題1___の言葉の読み方として最もよいものを、1から一つ選びなさい。",
   [AssessmentType.VOCAB_CONTEXT]:
@@ -34,15 +34,15 @@ const instructionMap: Record<AssessmentType, string> = {
     "問題11 漢字の意味や書き順を思い出して答えなさい。",
   [AssessmentType.LISTENING_TASK]:
     "問題1 音声を聞いて、課題を理解し最適な答えを1から一つ選びなさい。",
-  [AssessmentType.LISTENING_CHOICE_PREVIEW]:
+  [AssessmentType.LISTENING_MAIN_POINT]:
     "問題2 音声を聞き、重要なポイントに基づいて答えを選びなさい。",
   [AssessmentType.LISTENING_MAIN_IDEA]:
     "問題3 音声全体の要旨を理解し、最も適切な答えを選びなさい。",
-  [AssessmentType.LISTENING_RESPONSE]:
+  [AssessmentType.LISTENING_CORRECT_RESPONSE]:
     "問題4 会話の内容に基づき、最も適切な応答を選びなさい。",
-  [AssessmentType.LISTENING_INSTANT]:
+  [AssessmentType.LISTENING_UNDERSTAND_KEY]:
     "問題X 音声を聞いて即座に答えを選びなさい。",
-  [AssessmentType.LISTENING_LONG]:
+  [AssessmentType.LISTENING_COMPREHENSIVE]:
     "問題5 長めの音声を聞き、内容を理解して答えを選びなさい。",
   [AssessmentType.PARAPHRASE]:
     "問題 次の（　）の言葉の意味が最も近いものを、1・2・3・4から一つ選びなさい。",

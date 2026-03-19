@@ -17,6 +17,7 @@ import {
   ChatGroupBasicResponse,
   ChatRoomResponse,
 } from "@/services/roomService";
+import { RoomType } from "@/enums/RoomType";
 
 interface GroupRoomsPopupProps {
   isDarkMode: boolean;
@@ -176,7 +177,10 @@ export default function GroupRoomsPopup({
       // Map ChatRoomResponse -> ChatGroupBasicResponse để thêm vào list
       const newGroupBasic: ChatGroupBasicResponse = {
         id: newRoom.id,
-        roomType: newRoom.roomType,
+        roomType:
+          newRoom.roomType === RoomType.PRIVATE
+            ? RoomType.PRIVATE
+            : RoomType.GROUP,
         createdAt: newRoom.createdAt,
         name: newRoom.name ?? groupName.trim(),
         avatarUrl: newRoom.avatarUrl,
