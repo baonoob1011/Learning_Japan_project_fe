@@ -47,6 +47,7 @@ export const API_ENDPOINTS = {
   VIDEO_EXERCISE: {
     GET_BY_VIDEO: (videoId: string) => `/video-exercises/video/${videoId}`,
   },
+  //ok
   PAYMENT: {
     VNPAY_CREATE: `/payments/vnpay/create`,
 
