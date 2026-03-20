@@ -18,8 +18,8 @@ interface Props {
   receiverId?: string;
   contactName: string;
   contactAvatar: string;
-  callerName?: string; // ✅ tên của caller (người gọi)
-  callerAvatar?: string; // ✅ avatar của caller (người gọi)
+  callerName?: string;
+  callerAvatar?: string;
   isDarkMode?: boolean;
   onClose: () => void;
 }
@@ -33,8 +33,8 @@ export const CallModal = ({
   receiverId,
   contactName,
   contactAvatar,
-  callerName, // ✅
-  callerAvatar, // ✅
+  callerName,
+  callerAvatar,
   isDarkMode = false,
   onClose,
 }: Props) => {
@@ -52,7 +52,7 @@ export const CallModal = ({
   const [isMuted, setIsMuted] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
 
-  // ✅ Phát chuông khi receiver nhận cuộc gọi
+  // ── Ring audio for receiver ──────────────────────────────────────────────
   useEffect(() => {
     if (callState === "ringing" && !isCaller) {
       const audio = new Audio(
@@ -76,6 +76,7 @@ export const CallModal = ({
     };
   }, [callState, isCaller]);
 
+  // ── Call timer ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (callState !== "in-call") return;
     const timer = setInterval(() => setCallDuration((d) => d + 1), 1000);
@@ -100,11 +101,13 @@ export const CallModal = ({
     setTimeout(onClose, 800);
   }, [roomId, currentUserId, onClose]);
 
+  // ── Receiver accepts the call ────────────────────────────────────────────
   const handleAccept = useCallback(async () => {
     const peer = peerLocalRef.current;
     const stomp = stompRef.current;
     if (!peer || !stomp?.connected) return;
 
+    // ✅ Get stream & add tracks BEFORE createAnswer
     const stream = await getLocalStream();
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = stream;
@@ -127,6 +130,7 @@ export const CallModal = ({
     }
   };
 
+  // ── WebRTC + STOMP setup ─────────────────────────────────────────────────
   useEffect(() => {
     let subscription: StompSubscription | undefined;
     const backendUrl =
@@ -146,8 +150,9 @@ export const CallModal = ({
           }
         };
 
+        // ✅ FIX: always update remote stream, not just first time
         peer.ontrack = (event: RTCTrackEvent) => {
-          if (remoteVideoRef.current && !remoteVideoRef.current.srcObject) {
+          if (remoteVideoRef.current) {
             remoteVideoRef.current.srcObject = event.streams[0];
           }
           setCallState("in-call");
@@ -207,8 +212,8 @@ export const CallModal = ({
             sendIncomingNotification(client, {
               roomId,
               callerId: currentUserId,
-              callerName: callerName ?? contactName, // ✅ dùng callerName
-              callerAvatar: callerAvatar ?? contactAvatar, // ✅ dùng callerAvatar
+              callerName: callerName ?? contactName,
+              callerAvatar: callerAvatar ?? contactAvatar,
               receiverId,
             });
           } else {
@@ -216,12 +221,17 @@ export const CallModal = ({
           }
 
           await new Promise((resolve) => setTimeout(resolve, 800));
+
+          // ✅ FIX CHÍNH: Lấy stream và add tracks VÀO PEER TRƯỚC khi tạo offer.
+          // WebRTC chỉ negotiate audio/video nếu tracks được add trước createOffer().
+          // Nếu add sau, remote peer sẽ không nhận được bất kỳ stream nào.
           const stream = await getLocalStream();
           if (localVideoRef.current) {
             localVideoRef.current.srcObject = stream;
           }
           addTracksToPeer();
 
+          // Chỉ tạo offer SAU KHI đã có đủ tracks
           const offer = await peer.createOffer();
           await peer.setLocalDescription(offer);
           sendOffer(client, roomId, offer, currentUserId);
@@ -243,7 +253,7 @@ export const CallModal = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ✅ Hiển thị đúng avatar và tên theo từng phía
+  // ── Display logic ────────────────────────────────────────────────────────
   const displayName = isCaller ? contactName : callerName ?? contactName;
   const displayAvatar = isCaller
     ? contactAvatar
@@ -260,8 +270,8 @@ export const CallModal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div
         className={`relative w-80 md:w-[600px] rounded-3xl shadow-2xl overflow-hidden flex flex-col items-center py-10 px-8 gap-6 transition-colors ${isDarkMode
-            ? "bg-gray-900 border border-gray-700"
-            : "bg-white border border-cyan-100"
+          ? "bg-gray-900 border border-gray-700"
+          : "bg-white border border-cyan-100"
           }`}
       >
         {(callState === "ringing" || callState === "connecting") && (
@@ -271,7 +281,7 @@ export const CallModal = ({
         <div className="relative">
           {callState !== "in-call" ? (
             <img
-              src={displayAvatar || "/default-avatar.png"} // ✅ dùng displayAvatar
+              src={displayAvatar || "/default-avatar.png"}
               alt={displayName}
               className="w-24 h-24 rounded-full object-cover ring-4 ring-cyan-400 shadow-xl"
             />
@@ -307,14 +317,14 @@ export const CallModal = ({
             className={`text-xl font-bold ${isDarkMode ? "text-gray-100" : "text-gray-800"
               }`}
           >
-            {displayName} {/* ✅ dùng displayName */}
+            {displayName}
           </h2>
           <p
             className={`text-sm mt-1 ${callState === "in-call"
-                ? "text-emerald-500 font-mono font-semibold"
-                : isDarkMode
-                  ? "text-gray-400"
-                  : "text-gray-500"
+              ? "text-emerald-500 font-mono font-semibold"
+              : isDarkMode
+                ? "text-gray-400"
+                : "text-gray-500"
               }`}
           >
             {stateLabel[callState]}
@@ -339,10 +349,10 @@ export const CallModal = ({
               <button
                 onClick={toggleMute}
                 className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow ${isMuted
-                    ? "bg-yellow-500 hover:bg-yellow-600"
-                    : isDarkMode
-                      ? "bg-gray-700 hover:bg-gray-600"
-                      : "bg-gray-100 hover:bg-gray-200"
+                  ? "bg-yellow-500 hover:bg-yellow-600"
+                  : isDarkMode
+                    ? "bg-gray-700 hover:bg-gray-600"
+                    : "bg-gray-100 hover:bg-gray-200"
                   }`}
               >
                 {isMuted ? (
