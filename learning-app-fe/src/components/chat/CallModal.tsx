@@ -1,9 +1,10 @@
 "use client";
+// Forced rebuild to pick up callService exports
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Client, StompSubscription } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
-import { Mic, MicOff, Phone, PhoneOff, Volume2 } from "lucide-react";
+import { Camera, CameraOff, Mic, MicOff, Phone, PhoneOff, Volume2 } from "lucide-react";
 import { useWebRTC } from "@/hooks/useWebRTC";
 import {
   sendAnswer,
@@ -11,6 +12,7 @@ import {
   sendIncomingNotification,
   sendOffer,
 } from "@/services/callService";
+import { callService } from "@/services/callService";
 
 interface Props {
   roomId: string;
@@ -23,6 +25,7 @@ interface Props {
   callerAvatar?: string;
   isDarkMode?: boolean;
   onClose: () => void;
+  type?: "VIDEO" | "VOICE";
 }
 
 type CallState = "connecting" | "ringing" | "in-call" | "ended";
@@ -38,19 +41,21 @@ export const CallModal = ({
   callerAvatar,
   isDarkMode = false,
   onClose,
+  type = "VIDEO",
 }: Props) => {
   const { createPeerConnection, getLocalStream, addTracksToPeer, localStreamRef } =
     useWebRTC();
   const ringAudioRef = useRef<HTMLAudioElement | null>(null);
   const stompRef = useRef<Client | null>(null);
   const peerRef = useRef<RTCPeerConnection | null>(null);
-  const remoteStreamRef = useRef<MediaStream | null>(null);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const hasSentOfferRef = useRef(false);
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
+  const [isVideoOff, setIsVideoOff] = useState(type === "VOICE");
   const [callState, setCallState] = useState<CallState>(
     isCaller ? "connecting" : "ringing"
   );
@@ -139,13 +144,28 @@ export const CallModal = ({
   useEffect(() => {
     if (callState !== "in-call") return;
 
-    if (localStreamRef.current) {
-      attachStreamToVideo(localVideoRef.current, localStreamRef.current, true);
+    const attachWithRetry = () => {
+      if (localStreamRef.current && localVideoRef.current) {
+          attachStreamToVideo(localVideoRef.current, localStreamRef.current, true);
+      }
+      if (remoteStream && remoteVideoRef.current) {
+          attachStreamToVideo(remoteVideoRef.current, remoteStream, false);
+      }
+    };
+
+    // Attach immediately
+    attachWithRetry();
+
+    // Sometimes the ref is null for a few ms after state change, so retry once
+    const timeout = setTimeout(attachWithRetry, 300);
+
+    // If voice call, make sure local video is off in tracks
+    if (type === "VOICE" && localStreamRef.current) {
+        localStreamRef.current.getVideoTracks().forEach(t => t.enabled = false);
     }
-    if (remoteStreamRef.current) {
-      attachStreamToVideo(remoteVideoRef.current, remoteStreamRef.current, false);
-    }
-  }, [attachStreamToVideo, callState, localStreamRef]);
+    
+    return () => clearTimeout(timeout);
+  }, [attachStreamToVideo, callState, localStreamRef, remoteStream, isVideoOff, type]);
 
   const formatDuration = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -156,7 +176,7 @@ export const CallModal = ({
   const cleanupMedia = useCallback(() => {
     localStreamRef.current?.getTracks().forEach((track) => track.stop());
     localStreamRef.current = null;
-    remoteStreamRef.current = null;
+    setRemoteStream(null);
     pendingIceCandidatesRef.current = [];
 
     if (localVideoRef.current) {
@@ -169,7 +189,29 @@ export const CallModal = ({
     }
   }, [localStreamRef]);
 
-  const handleEndCall = useCallback(() => {
+  const saveCallRecord = useCallback(async (status: "COMPLETED" | "MISSED" | "REJECTED" | "CANCELLED", durationSec: number) => {
+    try {
+      if (!receiverId && !isCaller) {
+        // If we don't have receiverId (caller), we need to know who we were calling
+      }
+      
+      const actualCallerId = isCaller ? currentUserId : (receiverId || ""); 
+      const actualReceiverId = isCaller ? (receiverId || "") : currentUserId;
+
+      await callService.saveCall({
+        callerId: isCaller ? currentUserId : (receiverId || ""), 
+        receiverId: isCaller ? (receiverId || "") : currentUserId,
+        type: type, // Use the provided type
+        status,
+        duration: durationSec,
+        roomId,
+      });
+    } catch (err) {
+      console.error("[CallModal] Failed to auto-save call record:", err);
+    }
+  }, [currentUserId, isCaller, receiverId, roomId]);
+
+  const handleEndCall = useCallback((isTimeout = false) => {
     if (stompRef.current?.connected) {
       stompRef.current.publish({
         destination: "/app/call.end",
@@ -177,11 +219,22 @@ export const CallModal = ({
       });
     }
 
+    let finalStatus: "COMPLETED" | "MISSED" | "REJECTED" | "CANCELLED" = "COMPLETED";
+    if (callState !== "in-call") {
+      if (isTimeout) {
+        finalStatus = "MISSED";
+      } else {
+        finalStatus = isCaller ? "CANCELLED" : "REJECTED";
+      }
+    }
+
+    saveCallRecord(finalStatus, callDuration);
+
     peerRef.current?.close();
     cleanupMedia();
     setCallState("ended");
     setTimeout(onClose, 800);
-  }, [cleanupMedia, currentUserId, onClose, roomId]);
+  }, [callDuration, callState, cleanupMedia, currentUserId, isCaller, onClose, roomId, saveCallRecord]);
 
   const handleAccept = useCallback(async () => {
     const peer = peerRef.current;
@@ -195,7 +248,18 @@ export const CallModal = ({
     sendAnswer(stomp, roomId, answer, currentUserId);
     await flushPendingIceCandidates();
     setCallState("in-call");
+    // History will be saved when ended
   }, [currentUserId, ensureLocalMedia, flushPendingIceCandidates, roomId]);
+
+  // Timeout for MISSED call
+  useEffect(() => {
+    if (callState === "ringing" && isCaller) {
+      const timeout = setTimeout(() => {
+        handleEndCall(true); // isTimeout = true
+      }, 30000); // 30s timeout
+      return () => clearTimeout(timeout);
+    }
+  }, [callState, handleEndCall, isCaller]);
 
   const toggleMute = () => {
     const sender = peerRef.current
@@ -240,7 +304,7 @@ export const CallModal = ({
   useEffect(() => {
     let subscription: StompSubscription | undefined;
     const backendUrl =
-      process.env.NEXT_PUBLIC_API_URL || "https://api.nibojapan.cloud";
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081";
 
     const client = new Client({
       webSocketFactory: () => new SockJS(`${backendUrl}/ws`),
@@ -256,38 +320,38 @@ export const CallModal = ({
         };
 
         peer.onconnectionstatechange = () => {
+          console.log("[CallModal] ConnectionState:", peer.connectionState);
           if (peer.connectionState === "connected") {
             setCallState("in-call");
+          } else if (peer.connectionState === "failed" || peer.connectionState === "disconnected") {
+            console.error("[CallModal] RTC Connection failed or disconnected");
+            // Optionally handle reconnect or end call
           }
         };
 
         peer.ontrack = async (event) => {
-          if (!remoteStreamRef.current) {
-            remoteStreamRef.current = new MediaStream();
-          }
+          console.log("[CallModal] Incoming track:", event.track.kind);
+          
+          setRemoteStream(prev => {
+            const targetStream = prev || new MediaStream();
+            const incomingStream = event.streams[0];
 
-          const targetStream = remoteStreamRef.current;
-          const incomingStream = event.streams[0];
-
-          if (incomingStream) {
-            incomingStream.getTracks().forEach((track) => {
-              const exists = targetStream
-                .getTracks()
-                .some((existingTrack) => existingTrack.id === track.id);
-              if (!exists) {
-                targetStream.addTrack(track);
-              }
-            });
-          } else {
-            const exists = targetStream
-              .getTracks()
-              .some((track) => track.id === event.track.id);
-            if (!exists) {
-              targetStream.addTrack(event.track);
+            if (incomingStream) {
+              incomingStream.getTracks().forEach((track) => {
+                if (!targetStream.getTracks().some(t => t.id === track.id)) {
+                  targetStream.addTrack(track);
+                }
+              });
+            } else {
+               if (!targetStream.getTracks().some(t => t.id === event.track.id)) {
+                 targetStream.addTrack(event.track);
+               }
             }
-          }
+            
+            // Return a NEW MediaStream object to trigger React state update
+            return new MediaStream(targetStream);
+          });
 
-          await attachStreamToVideo(remoteVideoRef.current, targetStream, false);
           setCallState("in-call");
         };
 
@@ -360,6 +424,7 @@ export const CallModal = ({
             callerName: callerName ?? contactName,
             callerAvatar: callerAvatar ?? contactAvatar,
             receiverId,
+            type, // Add type here
           });
         } else {
           console.warn("[CallModal] isCaller=true but receiverId is missing");
@@ -409,153 +474,179 @@ export const CallModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div
-        className={`relative w-80 md:w-[600px] rounded-3xl shadow-2xl overflow-hidden flex flex-col items-center py-10 px-8 gap-6 transition-colors ${
-          isDarkMode
-            ? "bg-gray-900 border border-gray-700"
-            : "bg-white border border-cyan-100"
-        }`}
-      >
-        {(callState === "ringing" || callState === "connecting") && (
-          <span className="absolute inset-0 rounded-3xl animate-ping opacity-10 bg-cyan-400 pointer-events-none" />
-        )}
+    <div className="fixed inset-0 z-[10001] flex items-center justify-center bg-[#09090b]/95 backdrop-blur-xl animate-fade-in">
+      {/* Background Decor */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px] animate-pulse-slow" />
+      </div>
 
-        <div className="relative w-full max-w-sm">
-          {callState !== "in-call" ? (
-            <img
-              src={displayAvatar || "/default-avatar.png"}
-              alt={displayName}
-              className="w-24 h-24 mx-auto rounded-full object-cover ring-4 ring-cyan-400 shadow-xl"
-            />
-          ) : (
-            <div className="relative aspect-video bg-black rounded-xl overflow-hidden shadow-lg">
-              <video
-                ref={remoteVideoRef}
-                autoPlay
-                playsInline
-                className="w-full h-full object-cover"
+      <div className="relative w-full h-full flex flex-col items-center justify-between py-12 px-6">
+        {/* Header Info */}
+        <div className="z-20 text-center animate-slide-down">
+          {(callState === "ringing" || callState === "connecting" || callState === "ended") && (
+            <div className="relative inline-block mb-6">
+              <img
+                src={displayAvatar || "/default-avatar.png"}
+                alt={displayName}
+                className={`w-32 h-32 rounded-full object-cover ring-4 ring-cyan-500/30 shadow-[0_0_50px_rgba(6,182,212,0.3)] ${
+                  callState === "ringing" ? "animate-pulse" : ""
+                }`}
               />
-
-              <div className="absolute bottom-4 right-4 w-1/4 min-w-[80px] aspect-video bg-gray-800 rounded-lg overflow-hidden border-2 border-white shadow-xl z-10">
-                <video
-                  ref={localVideoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              {callState === "ringing" && (
+                <span className="absolute inset-0 rounded-full animate-ping border-4 border-cyan-500/50" />
+              )}
             </div>
           )}
-          {callState === "in-call" && (
-            <span className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white" />
-          )}
-        </div>
-
-        <div className="text-center">
-          <h2
-            className={`text-xl font-bold ${
-              isDarkMode ? "text-gray-100" : "text-gray-800"
-            }`}
-          >
+          
+          <h2 className="text-3xl font-black text-white tracking-tight mb-2 drop-shadow-md">
             {displayName}
           </h2>
-          <p
-            className={`text-sm mt-1 ${
-              callState === "in-call"
-                ? "text-emerald-500 font-mono font-semibold"
-                : isDarkMode
-                  ? "text-gray-400"
-                  : "text-gray-500"
-            }`}
-          >
-            {stateLabel[callState]}
-          </p>
+          <div className="flex items-center justify-center gap-2">
+            {callState === "in-call" && (
+              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+            )}
+            <p className={`text-sm font-semibold uppercase tracking-widest ${
+              callState === "in-call" ? "text-emerald-400 font-mono" : "text-gray-400"
+            }`}>
+              {stateLabel[callState]}
+            </p>
+          </div>
         </div>
 
-        {callState === "in-call" && (
-          <div className="flex items-end gap-1 h-6">
-            {[3, 6, 9, 6, 3, 8, 4].map((height, index) => (
-              <div
-                key={index}
-                className="w-1 bg-cyan-400 rounded-full animate-pulse"
-                style={{
-                  height: `${height * 3}px`,
-                  animationDelay: `${index * 0.1}s`,
-                }}
-              />
-            ))}
-          </div>
-        )}
-
-        {callState !== "ended" && (
-          <div className="flex items-center gap-5 mt-2">
-            {callState === "in-call" && (
-              <button
-                onClick={toggleMute}
-                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow ${
-                  isMuted
-                    ? "bg-yellow-500 hover:bg-yellow-600"
-                    : isDarkMode
-                      ? "bg-gray-700 hover:bg-gray-600"
-                      : "bg-gray-100 hover:bg-gray-200"
-                }`}
-              >
-                {isMuted ? (
-                  <MicOff className="w-5 h-5 text-white" />
-                ) : (
-                  <Mic
-                    className={`w-5 h-5 ${
-                      isDarkMode ? "text-gray-300" : "text-gray-600"
-                    }`}
-                  />
-                )}
-              </button>
-            )}
-
-            {callState === "ringing" && !isCaller && (
-              <div
-                className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                  isDarkMode ? "bg-gray-700" : "bg-gray-100"
-                }`}
-              >
-                <Volume2
-                  className={`w-5 h-5 ${
-                    isDarkMode ? "text-gray-400" : "text-gray-500"
-                  }`}
+        {/* Video Stage */}
+        <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center pointer-events-none">
+          {callState === "in-call" ? (
+             <div className="relative w-full h-full pointer-events-auto overflow-hidden">
+                {/* Remote Video (Full Screen) */}
+                <video
+                  ref={remoteVideoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-cover"
                 />
-              </div>
-            )}
 
-            <button
-              onClick={handleEndCall}
-              className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-lg transition-all hover:scale-105 active:scale-95"
-            >
-              <PhoneOff className="w-6 h-6 text-white" />
-            </button>
+                {/* Local Video (Floating PIP) */}
+                <div className={`absolute top-8 right-8 w-44 md:w-60 aspect-video rounded-3xl overflow-hidden border-2 border-white/20 shadow-2xl z-30 group transition-all duration-300 hover:scale-[1.05] ${
+                  isVideoOff ? "bg-gray-900" : "bg-black"
+                }`}>
+                  {isVideoOff ? (
+                    <div className="w-full h-full flex items-center justify-center">
+                       <img src={callerAvatar || "/default-avatar.png"} alt="me" className="w-12 h-12 rounded-full opacity-50" />
+                    </div>
+                  ) : (
+                    <video
+                      ref={localVideoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                  {/* Local Mute Indicator */}
+                  {isMuted && (
+                    <div className="absolute bottom-2 left-2 p-1.5 bg-red-500/80 rounded-full backdrop-blur-md">
+                      <MicOff size={10} className="text-white" />
+                    </div>
+                  )}
+                </div>
+             </div>
+          ) : null}
+        </div>
 
-            {callState === "ringing" && !isCaller && (
+        {/* Controls Bar */}
+        <div className="z-30 mb-8 animate-slide-up">
+           <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-full px-8 py-5 flex items-center gap-6 shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+              {callState === "in-call" && (
+                <>
+                  <button
+                    onClick={toggleMute}
+                    className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 ${
+                      isMuted ? "bg-red-500 text-white shadow-lg shadow-red-500/20" : "bg-white/10 text-white hover:bg-white/20"
+                    }`}
+                  >
+                    {isMuted ? <MicOff size={24} /> : <Mic size={24} />}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                        if (localStreamRef.current) {
+                            const videoTrack = localStreamRef.current.getVideoTracks()[0];
+                            if (videoTrack) {
+                                videoTrack.enabled = isVideoOff;
+                                setIsVideoOff(!isVideoOff);
+                            }
+                        }
+                    }}
+                    className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 ${
+                      isVideoOff ? "bg-red-500 text-white shadow-lg shadow-red-500/20" : "bg-white/10 text-white hover:bg-white/20"
+                    }`}
+                  >
+                    {isVideoOff ? <CameraOff size={24} /> : <Camera size={24} />}
+                  </button>
+                  
+                  <div className="w-[1px] h-8 bg-white/20 mx-2" />
+                </>
+              )}
+
+              {/* End Call Button */}
               <button
-                onClick={handleAccept}
-                className="w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 flex items-center justify-center shadow-lg transition-all hover:scale-105 active:scale-95"
+                onClick={handleEndCall}
+                className="w-16 h-16 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center text-white shadow-2xl shadow-red-600/30 transition-all duration-300 hover:scale-110 active:scale-95 hover:rotate-12"
               >
-                <Phone className="w-6 h-6 text-white" />
+                <PhoneOff size={28} />
               </button>
-            )}
-          </div>
-        )}
 
+              {/* Accept Button (Only for ringing receiver) */}
+              {callState === "ringing" && !isCaller && (
+                <button
+                  onClick={handleAccept}
+                  className="w-16 h-16 rounded-full bg-emerald-500 hover:bg-emerald-600 flex items-center justify-center text-white shadow-2xl shadow-emerald-500/30 transition-all duration-300 hover:scale-110 active:scale-95 animate-bounce-custom"
+                >
+                  <Phone size={28} />
+                </button>
+              )}
+           </div>
+        </div>
+
+        {/* Ended Pulse */}
         {callState === "ended" && (
-          <p
-            className={`text-sm animate-pulse ${
-              isDarkMode ? "text-gray-500" : "text-gray-400"
-            }`}
-          >
-            Dang dong...
-          </p>
+          <div className="absolute inset-0 flex items-center justify-center z-50 animate-fade-out">
+            <div className="bg-red-500/20 backdrop-blur-md rounded-full p-8">
+               <PhoneOff size={48} className="text-red-500 animate-bounce" />
+            </div>
+          </div>
         )}
       </div>
+
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes fade-out {
+          from { opacity: 1; }
+          to { opacity: 0; }
+        }
+        @keyframes slide-down {
+          from { opacity: 0; transform: translateY(-40px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slide-up {
+          from { opacity: 0; transform: translateY(40px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bounce-custom {
+          0%, 100% { transform: translateY(0) scale(1.1); }
+          50% { transform: translateY(-10px) scale(1.1); }
+        }
+        .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
+        .animate-fade-out { animation: fade-out 0.8s ease-in forwards; }
+        .animate-slide-down { animation: slide-down 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-slide-up { animation: slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-bounce-custom { animation: bounce-custom 1s infinite ease-in-out; }
+        .animate-pulse-slow { animation: pulse 6s infinite; }
+      `}</style>
     </div>
   );
 };

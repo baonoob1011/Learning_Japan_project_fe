@@ -24,11 +24,6 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Trạng thái học tập hiện tại (load từ backend)
-  const [currentStatus, setCurrentStatus] = useState<LearningStatus | null>(
-    null
-  );
-  const [isLoadingStatus, setIsLoadingStatus] = useState(false);
   const [isMarkingVocab, setIsMarkingVocab] = useState(false);
   const [filter, setFilter] = useState<"ALL" | "KNOWN" | "UNLEARNED">(initialFilter);
 
@@ -55,27 +50,15 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
 
   const card = filteredVocabs[currentCard];
 
-  // Load status của vocab hiện tại từ backend
+  // Clamp currentCard khi filteredVocabs thay đổi (tránh index out-of-bounds)
   useEffect(() => {
-    const loadStatus = async () => {
-      if (!card) return;
+    if (filteredVocabs.length > 0 && currentCard >= filteredVocabs.length) {
+      setCurrentCard(filteredVocabs.length - 1);
+      setIsFlipped(false);
+    }
+  }, [filteredVocabs.length, currentCard]);
 
-      try {
-        setIsLoadingStatus(true);
-        const res = await vocabService.getStatus(card.id);
-        setCurrentStatus(res.status);
-      } catch (err) {
-        console.error("Load vocab status failed", err);
-        setCurrentStatus(null);
-      } finally {
-        setIsLoadingStatus(false);
-      }
-    };
 
-    loadStatus();
-  }, [card]);
-
-  // Reset current card when filter changes
   useEffect(() => {
     setCurrentCard(0);
     setIsFlipped(false);
@@ -129,7 +112,7 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
    * @param remembered - true: đã thuộc, false: đã quên
    */
   const markVocab = async (remembered: boolean) => {
-    const card = vocabs[currentCard];
+    const card = filteredVocabs[currentCard];
     if (!card) return;
 
     try {
@@ -141,9 +124,30 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
         remembered,
       });
 
-      // Load lại status từ backend để đảm bảo đồng bộ
-      const res = await vocabService.getStatus(card.id);
-      setCurrentStatus(res.status);
+      const newStatus = remembered ? LearningStatus.KNOWN : LearningStatus.FORGOTTEN;
+      
+      // LOG: Kiểm tra trạng thái mới
+      console.log(`[Flashcard] vocab: ${card.surface}, newStatus: ${newStatus}`);
+
+      // Cập nhật mảng chính - dùng toString() để so sánh an toàn
+      setVocabs((prev) =>
+        prev.map((v) =>
+          v.id.toString() === card.id.toString() ? { ...v, status: newStatus } : v
+        )
+      );
+
+      // Reset card lật
+      setIsFlipped(false);
+
+      // Nếu "Đã thuộc", chuyển sang card tiếp theo sau hiệu ứng
+      if (remembered) {
+          setTimeout(() => {
+              setCurrentCard(prev => {
+                  if (prev < filteredVocabs.length - 1) return prev + 1;
+                  return prev;
+              });
+          }, 300);
+      }
     } catch (err) {
       console.error("Mark vocab failed:", err);
       alert("Có lỗi xảy ra khi đánh dấu từ vựng. Vui lòng thử lại.");
@@ -153,17 +157,19 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
   };
 
   const handleNext = () => {
-    if (currentCard < filteredVocabs.length - 1) {
-      setCurrentCard(currentCard + 1);
-      setIsFlipped(false);
-    }
+    setCurrentCard((prev) => {
+      if (prev < filteredVocabs.length - 1) return prev + 1;
+      return prev;
+    });
+    setIsFlipped(false);
   };
 
   const handlePrev = () => {
-    if (currentCard > 0) {
-      setCurrentCard(currentCard - 1);
-      setIsFlipped(false);
-    }
+    setCurrentCard((prev) => {
+      if (prev > 0) return prev - 1;
+      return prev;
+    });
+    setIsFlipped(false);
   };
 
   const handleFlip = () => {
@@ -198,58 +204,33 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
 
   /**
    * Lấy thông tin hiển thị theo trạng thái học tập
+   * Đọc thẳng từ card.status trong mảng vocabs (single source of truth)
    */
   const getStatusInfo = () => {
-    if (isLoadingStatus || currentStatus === null) {
+    if (isMarkingVocab) {
       return {
-        label: "Đang tải...",
+        label: "Đang lưu...",
         icon: "⏳",
         bgClass: "bg-gray-300/20 text-gray-400",
         isKnown: false,
       };
     }
 
-    switch (currentStatus) {
-      case LearningStatus.NEW:
-        return {
-          label: "Từ mới",
-          icon: "🆕",
-          bgClass: "bg-blue-400/20 text-blue-400",
-          isKnown: false,
-        };
-
-      case LearningStatus.LEARNING:
-        return {
-          label: "Đang học",
-          icon: "📖",
-          bgClass: "bg-amber-400/20 text-amber-400",
-          isKnown: false,
-        };
-
-      case LearningStatus.KNOWN:
-        return {
-          label: "Đã thuộc",
-          icon: "✓",
-          bgClass: "bg-emerald-400/20 text-emerald-400",
-          isKnown: true,
-        };
-
-      case LearningStatus.FORGOTTEN:
-        return {
-          label: "Đã quên",
-          icon: "⚠",
-          bgClass: "bg-red-400/20 text-red-400",
-          isKnown: false,
-        };
-
-      default:
-        return {
-          label: "Chưa xác định",
-          icon: "❓",
-          bgClass: "bg-gray-300/20 text-gray-400",
-          isKnown: false,
-        };
+    if (card?.status === LearningStatus.KNOWN) {
+      return {
+        label: "Đã thuộc",
+        icon: "✓",
+        bgClass: "bg-emerald-400/20 text-emerald-400",
+        isKnown: true,
+      };
     }
+
+    return {
+      label: "Chưa thuộc",
+      icon: "🌱",
+      bgClass: "bg-amber-400/20 text-amber-400",
+      isKnown: false,
+    };
   };
 
   // Loading state

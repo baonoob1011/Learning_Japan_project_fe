@@ -28,7 +28,7 @@ export const useIncomingCall = (currentUserId: string | null) => {
     }
 
     const backendUrl =
-      process.env.NEXT_PUBLIC_API_URL || "https://api.nibojapan.cloud";
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081";
     console.log("[useIncomingCall] Connecting to:", backendUrl);
 
     const client = new Client({

@@ -6,8 +6,10 @@ import { API_ENDPOINTS } from "@/config/api";
 
 export interface NotificationResponse {
   id: string;
+  type?: "REVIEW_REMINDER" | "MISSED_REVIEW" | "SYSTEM";
   title: string;
   content: string;
+  metadata?: string | null;
   isRead: boolean;
   createdAt: string;
 }
@@ -16,11 +18,13 @@ export interface NotificationResponse {
  * Response phân trang (Spring Page)
  */
 export interface PageResponse<T> {
-  content: T[];
+  data?: T[];
+  content?: T[];
   totalElements: number;
   totalPages: number;
   size: number;
-  number: number; // page hiện tại
+  number?: number; // Spring Page (legacy)
+  page?: number; // Custom PageResponse
 }
 /* ===================== SERVICE ===================== */
 
@@ -37,6 +41,12 @@ export const notificationService = {
       {
         params: { page, size },
       }
+    );
+  },
+
+  getUnreadCount(): Promise<{ unreadCount: number }> {
+    return http.get<{ unreadCount: number }>(
+      API_ENDPOINTS.NOTIFICATION.UNREAD_COUNT
     );
   },
 
@@ -62,4 +72,12 @@ export const notificationService = {
   delete(notificationId: string): Promise<void> {
     return http.delete<void>(API_ENDPOINTS.NOTIFICATION.DELETE(notificationId));
   },
+
+  /**
+   * 🗑️ Xóa tất cả notification
+   */
+  deleteAll(): Promise<void> {
+    return http.delete<void>(API_ENDPOINTS.NOTIFICATION.DELETE_ALL);
+  },
 };
+

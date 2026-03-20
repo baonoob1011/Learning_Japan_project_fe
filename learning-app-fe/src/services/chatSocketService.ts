@@ -40,7 +40,7 @@ class ChatSocketService {
       return;
     }
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.nibojapan.cloud";
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081";
     const socket = new SockJS(`${backendUrl}/ws`);
 
     this.stompClient = new Client({

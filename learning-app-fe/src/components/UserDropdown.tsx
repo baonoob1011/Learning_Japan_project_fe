@@ -305,13 +305,8 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
 
               <button
                 onClick={() => {
-                  if (isVip) {
-                    setIsOpen(false);
-                    router.push("/feedback");
-                  } else {
-                    setIsOpen(false);
-                    setShowUpgradeModal(true);
-                  }
+                  setIsOpen(false);
+                  router.push("/feedback");
                 }}
                 className={`w-full flex items-center gap-2 px-3 py-2 ${isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"
                   } rounded-lg transition mt-1`}

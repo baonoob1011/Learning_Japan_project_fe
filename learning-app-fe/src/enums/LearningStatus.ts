@@ -1,7 +1,9 @@
-// src/enums/LearningStatus.ts
 export enum LearningStatus {
   NEW = "NEW",
   LEARNING = "LEARNING",
+  REVIEW = "REVIEW",
+  RELEARNING = "RELEARNING",
+  OVERDUE = "OVERDUE",
   KNOWN = "KNOWN",
   FORGOTTEN = "FORGOTTEN",
 }

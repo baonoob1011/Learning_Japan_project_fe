@@ -1,6 +1,6 @@
 "use client";
 import { useRef, useEffect } from "react";
-import { ChevronDown, Users, MessageCircle, Phone, X, Plus, UserPlus } from "lucide-react";
+import { ChevronDown, Users, MessageCircle, Phone, X, Plus, UserPlus, Video } from "lucide-react";
 
 interface Contact {
     id: string;
@@ -24,7 +24,8 @@ interface ChatContactDropdownProps {
     isLoadingContacts: boolean;
     onSelectContact: (c: Contact) => void;
     onTabChange: (tab: Tab) => void;
-    onCall: () => void;
+    onVideoCall: () => void;
+    onVoiceCall: () => void;
     onClose: () => void;
     onAddMember?: () => void;
     onCreateGroup?: () => void;
@@ -42,7 +43,8 @@ export default function ChatContactDropdown({
     isLoadingContacts,
     onSelectContact,
     onTabChange,
-    onCall,
+    onVideoCall,
+    onVoiceCall,
     onClose,
     onAddMember,
     onCreateGroup,
@@ -171,7 +173,7 @@ export default function ChatContactDropdown({
                                                     onError={(e) => {
                                                         (e.target as HTMLImageElement).src = c.isGroup
                                                             ? "/group-avatar.png"
-                                                            : "/default-avatar.png";
+                                                                : "/default-avatar.png";
                                                     }}
                                                     className={`w-9 h-9 rounded-full object-cover ring-2 ${selectedContact?.id === c.id ? "ring-cyan-500" : "ring-transparent"}`}
                                                 />
@@ -230,15 +232,24 @@ export default function ChatContactDropdown({
                     </button>
                 )}
 
-                {/* Call button */}
+                {/* Call buttons */}
                 {showCallButton && (
-                    <button
-                        onClick={onCall}
-                        title="Gọi thoại"
-                        className="hover:bg-white/20 rounded-full p-1.5 transition-colors shrink-0"
-                    >
-                        <Phone size={14} className="text-white" />
-                    </button>
+                    <>
+                        <button
+                            onClick={onVideoCall}
+                            title="Gọi Video"
+                            className="hover:bg-white/20 rounded-full p-1.5 transition-colors shrink-0"
+                        >
+                            <Video size={14} className="text-white" />
+                        </button>
+                        <button
+                            onClick={onVoiceCall}
+                            title="Gọi thoại"
+                            className="hover:bg-white/20 rounded-full p-1.5 transition-colors shrink-0"
+                        >
+                            <Phone size={14} className="text-white" />
+                        </button>
+                    </>
                 )}
 
                 {/* Close button */}

@@ -102,6 +102,32 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
         }
     };
 
+    const handleToggleStatus = async (vocab: VocabResponse) => {
+        const isCurrentlyKnown = vocab.status === LearningStatus.KNOWN;
+        const willMarkAsKnown = !isCurrentlyKnown;
+        const newStatus = willMarkAsKnown ? LearningStatus.KNOWN : LearningStatus.FORGOTTEN;
+        
+        try {
+            setIsActionLoading(vocab.id);
+            // Gọi API markVocab đồng bộ với Flashcard
+            await vocabService.markVocab({
+                vocabId: vocab.id,
+                remembered: willMarkAsKnown
+            });
+            
+            console.log(`[VocabList] Toggling ${vocab.surface} to ${newStatus}`);
+            
+            setVocabs(prev => prev.map(v =>
+                v.id.toString() === vocab.id.toString() ? { ...v, status: newStatus } : v
+            ));
+        } catch (err) {
+            console.error("Status update failed", err);
+            alert("Cập nhật trạng thái thất bại.");
+        } finally {
+            setIsActionLoading(null);
+        }
+    };
+
     const playSound = (surface: string, audioUrl?: string) => {
         if (audioUrl) {
             const audio = new Audio(audioUrl);
@@ -256,21 +282,27 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
 
                             {/* Section 2: Learning Status */}
                             <div className="hidden md:flex flex-shrink-0 items-center justify-center w-36 px-2">
-                                {v.status === LearningStatus.KNOWN ? (
-                                    <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 border-b-2 ${isDarkMode
-                                        ? "bg-emerald-500/20 text-emerald-400 border-emerald-400/40 shadow-emerald-500/10"
-                                        : "bg-emerald-500 text-white border-emerald-700 shadow-emerald-200"
-                                        }`}>
-                                        Đã thuộc
-                                    </div>
-                                ) : (
-                                    <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 hover:scale-110 active:scale-95 border-2 ${isDarkMode
-                                        ? "bg-transparent border-amber-500/30 text-amber-400/80"
-                                        : "bg-transparent border-amber-200 text-amber-600 shadow-sm"
-                                        }`}>
-                                        Chưa thuộc
-                                    </div>
-                                )}
+                                <button
+                                    onClick={() => handleToggleStatus(v)}
+                                    disabled={isActionLoading === v.id}
+                                    className="focus:outline-none"
+                                >
+                                    {v.status === LearningStatus.KNOWN ? (
+                                        <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 border-b-2 ${isDarkMode
+                                            ? "bg-emerald-500/20 text-emerald-400 border-emerald-400/40 shadow-emerald-500/10"
+                                            : "bg-emerald-500 text-white border-emerald-700 shadow-emerald-200"
+                                            }`}>
+                                            Đã thuộc
+                                        </div>
+                                    ) : (
+                                        <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 hover:scale-110 active:scale-95 border-2 ${isDarkMode
+                                            ? "bg-transparent border-amber-500/30 text-amber-400/80"
+                                            : "bg-transparent border-amber-200 text-amber-600 shadow-sm"
+                                            }`}>
+                                            Chưa thuộc
+                                        </div>
+                                    )}
+                                </button>
                             </div>
 
                             {/* Section 3: Meaning (Editable) */}

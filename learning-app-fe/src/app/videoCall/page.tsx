@@ -67,7 +67,7 @@ export default function WebRTCPage() {
   // Initialize STOMP client and connect to WebSocket
   const connectWebSocket = () => {
     const backendUrl =
-      process.env.NEXT_PUBLIC_API_URL || "https://api.nibojapan.cloud";
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081";
     const socket = new SockJS(`${backendUrl}/ws`);
     const client = new Client({
       webSocketFactory: () => socket,

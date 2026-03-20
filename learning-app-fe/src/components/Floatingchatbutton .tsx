@@ -12,6 +12,7 @@ import {
 } from "@/services/roomService";
 import { userService } from "@/services/userService";
 import { CallModal } from "@/components/chat/CallModal";
+import { IncomingCallToast } from "@/components/chat/IncomingCallToast";
 import { useNotificationSync } from "@/hooks/useNotificationSync";
 import { useNotificationStore } from "@/stores/notificationStore";
 import { buildCallRoomId } from "@/utils/call";
@@ -80,7 +81,18 @@ export default function FloatingChatButton({
   const [historyMessages, setHistoryMessages] = useState<Message[]>([]);
   const [showContactDropdown, setShowContactDropdown] = useState(false);
   const [showCall, setShowCall] = useState(false);
+  const [callType, setCallType] = useState<"VIDEO" | "VOICE">("VIDEO");
   const [showGroupPopup, setShowGroupPopup] = useState(false);
+
+  const onStartVideoCall = () => {
+    setCallType("VIDEO");
+    setShowCall(true);
+  };
+
+  const onStartVoiceCall = () => {
+    setCallType("VOICE");
+    setShowCall(true);
+  };
   const [groupPopupView, setGroupPopupView] = useState<"create" | "add">(
     "create",
   );
@@ -110,6 +122,22 @@ export default function FloatingChatButton({
   );
 
   const { incomingCall, dismissCall } = useNotificationSync();
+  const [isIncomingCallAccepted, setIsIncomingCallAccepted] = useState(false);
+
+  useEffect(() => {
+    if (!incomingCall) {
+      setIsIncomingCallAccepted(false);
+    }
+  }, [incomingCall]);
+
+  const handleAcceptIncoming = () => {
+    setIsIncomingCallAccepted(true);
+  };
+
+  const handleDeclineIncoming = () => {
+    dismissCall();
+    setIsIncomingCallAccepted(false);
+  };
 
   // ── Load current user profile ────────────────────────────────────────────
   useEffect(() => {
@@ -416,7 +444,8 @@ export default function FloatingChatButton({
             isLoadingContacts={isLoadingContacts}
             onSelectContact={handleSelectContact}
             onTabChange={handleTabChange}
-            onCall={() => setShowCall(true)}
+            onVideoCall={onStartVideoCall}
+            onVoiceCall={onStartVoiceCall}
             onClose={() => setIsOpen(false)}
             onAddMember={() => {
               setGroupPopupView("add");
@@ -515,11 +544,24 @@ export default function FloatingChatButton({
           callerAvatar={currentUserAvatar}
           isDarkMode={isDarkMode}
           onClose={() => setShowCall(false)}
+          type={callType}
         />
       )}
 
-      {/* ── CallModal (receiver / incoming) ─────────────────────────────── */}
-      {incomingCall && currentUserId && !pathname?.startsWith("/chat") && (
+      {/* ── Incoming Call Toast ────────────────────────────────────────── */}
+      {incomingCall && !isIncomingCallAccepted && (
+        <IncomingCallToast
+          callerName={incomingCall.callerName}
+          callerAvatar={incomingCall.callerAvatar}
+          onAccept={handleAcceptIncoming}
+          onDecline={handleDeclineIncoming}
+          isDarkMode={isDarkMode}
+          type={incomingCall.type?.toUpperCase() === "VOICE" ? "VOICE" : "VIDEO"}
+        />
+      )}
+
+      {/* ── CallModal (receiver / accepted) ─────────────────────────────── */}
+      {incomingCall && isIncomingCallAccepted && currentUserId && !pathname?.startsWith("/chat") && (
         <CallModal
           roomId={incomingCall.roomId}
           isCaller={false}
@@ -529,7 +571,11 @@ export default function FloatingChatButton({
           callerName={incomingCall.callerName}
           callerAvatar={incomingCall.callerAvatar}
           isDarkMode={isDarkMode}
-          onClose={() => dismissCall()}
+          onClose={() => {
+            setIsIncomingCallAccepted(false);
+            dismissCall();
+          }}
+          type={incomingCall.type?.toUpperCase() === "VOICE" ? "VOICE" : "VIDEO"}
         />
       )}
 

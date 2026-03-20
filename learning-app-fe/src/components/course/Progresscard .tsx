@@ -68,11 +68,11 @@ const ProgressCard: React.FC<ProgressCardProps> = ({
 
   const getLevelBadgeColor = (level: string) => {
     const levelColors: Record<string, string> = {
-      N5: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-      N4: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-      N3: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-      N2: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-      N1: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
+      N5: isDark ? "bg-emerald-900/40 text-emerald-300" : "bg-emerald-500 text-white shadow-sm",
+      N4: isDark ? "bg-blue-900/40 text-blue-300" : "bg-blue-500 text-white shadow-sm",
+      N3: isDark ? "bg-purple-900/40 text-purple-300" : "bg-purple-500 text-white shadow-sm",
+      N2: isDark ? "bg-orange-900/40 text-orange-300" : "bg-orange-500 text-white shadow-sm",
+      N1: isDark ? "bg-cyan-900/40 text-cyan-300" : "bg-cyan-500 text-white shadow-sm",
     };
     return levelColors[level] || levelColors.N5;
   };
@@ -135,14 +135,14 @@ const ProgressCard: React.FC<ProgressCardProps> = ({
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <span
-                className={`text-xs font-bold px-2 py-1 rounded ${getLevelBadgeColor(
+                className={`text-[10px] font-black tracking-widest px-2.5 py-1 rounded-md uppercase ${getLevelBadgeColor(
                   course.level
                 )}`}
               >
                 GIAI ĐOẠN {index + 1}
               </span>
               <span
-                className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"
+                className={`text-xs font-bold ${isDark ? "text-gray-500" : "text-gray-400"
                   }`}
               >
                 {course.level}

@@ -7,122 +7,182 @@ import {
 
 interface NotificationState {
   notifications: Notification[];
+  unreadCount: number;
   isLoading: boolean;
   isInitialized: boolean;
-
-  // Actions
+  recentlyMarkedRead: Set<string>;
   loadNotifications: () => Promise<void>;
+  reloadNotifications: () => Promise<void>;
   addNotification: (notification: Notification) => void;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
-
-  // Getters
+  clearAll: () => Promise<void>;
   getUnreadCount: () => number;
 }
 
 const convertToNotification = (dto: NotificationResponse): Notification => ({
   id: dto.id,
+  type: dto.type,
   title: dto.title,
   content: dto.content,
+  metadata: dto.metadata,
   createdAt: dto.createdAt,
   isRead: dto.isRead,
 });
 
+const sortByCreatedAtDesc = (items: Notification[]): Notification[] =>
+  [...items].sort(
+    (a, b) =>
+      new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+  );
+
+const getNotificationItems = (
+  response: { data?: NotificationResponse[]; content?: NotificationResponse[] }
+): NotificationResponse[] => {
+  if (Array.isArray(response?.data)) return response.data;
+  if (Array.isArray(response?.content)) return response.content;
+  return [];
+};
+
 export const useNotificationStore = create<NotificationState>((set, get) => ({
   notifications: [],
+  unreadCount: 0,
   isLoading: false,
   isInitialized: false,
+  recentlyMarkedRead: new Set<string>(),
 
-  // 📥 Load từ DB
   loadNotifications: async () => {
     const state = get();
     if (state.isInitialized) {
-      console.log("⚠️ Notifications already loaded, skipping...");
       return;
     }
 
     set({ isLoading: true });
     try {
-      console.log("📥 Loading notifications from DB...");
-      const response = await notificationService.getMyNotifications(0, 50);
-      const notifications = response.content.map(convertToNotification);
+      const response = await notificationService.getMyNotifications(0, 10);
+      const items = getNotificationItems(response);
+      const recentlyRead = get().recentlyMarkedRead;
+      const notifications = sortByCreatedAtDesc(
+        items.map(dto => ({
+          ...convertToNotification(dto),
+          isRead: convertToNotification(dto).isRead || recentlyRead.has(dto.id)
+        }))
+      );
 
       set({
         notifications,
+        unreadCount: (await notificationService.getUnreadCount()).unreadCount,
         isLoading: false,
         isInitialized: true,
       });
-
-      console.log(`✅ Loaded ${notifications.length} notifications`);
     } catch (error) {
-      console.error("❌ Failed to load notifications:", error);
+      console.error("Failed to load notifications:", error);
       set({ isLoading: false });
     }
   },
 
-  // ➕ Thêm notification mới (từ WebSocket)
+  reloadNotifications: async () => {
+    set({ isLoading: true });
+    try {
+      const response = await notificationService.getMyNotifications(0, 10);
+      const items = getNotificationItems(response);
+      const recentlyRead = get().recentlyMarkedRead;
+      const notifications = sortByCreatedAtDesc(
+        items.map(dto => ({
+          ...convertToNotification(dto),
+          isRead: convertToNotification(dto).isRead || recentlyRead.has(dto.id)
+        }))
+      );
+
+      set({
+        notifications,
+        unreadCount: (await notificationService.getUnreadCount()).unreadCount,
+        isLoading: false,
+        isInitialized: true,
+      });
+    } catch (error) {
+      console.error("Failed to reload notifications:", error);
+      set({ isLoading: false });
+    }
+  },
+
   addNotification: (notification) =>
     set((state) => {
-      // ✅ Kiểm tra duplicate
-      const exists = state.notifications.some((n) => n.id === notification.id);
-      if (exists) {
-        console.log("⚠️ Duplicate notification ignored:", notification.id);
-        return state;
-      }
-
-      console.log("📩 New notification added:", notification.title);
+      const withoutSameId = state.notifications.filter(
+        (n) => n.id !== notification.id
+      );
+      // Even if pushed via WS, check if we just marked it as read locally
+      const updatedNotification = {
+        ...notification,
+        isRead: notification.isRead || state.recentlyMarkedRead.has(notification.id)
+      };
+      const merged = sortByCreatedAtDesc([updatedNotification, ...withoutSameId]);
       return {
-        notifications: [notification, ...state.notifications],
+        notifications: merged,
+        unreadCount: merged.filter((n) => !n.isRead).length,
       };
     }),
 
-  // ✅ Đánh dấu đã đọc
   markAsRead: async (id) => {
-    try {
-      await notificationService.markAsRead(id);
-      set((state) => ({
+    // Optimistic update + Add to recentlyMarkedRead
+    set((state) => {
+      const newRecentlyRead = new Set(state.recentlyMarkedRead);
+      newRecentlyRead.add(id);
+
+      return {
+        recentlyMarkedRead: newRecentlyRead,
+        unreadCount: Math.max(0, state.unreadCount - (state.notifications.find((n) => n.id === id && !n.isRead) ? 1 : 0)),
         notifications: state.notifications.map((n) =>
           n.id === id ? { ...n, isRead: true } : n
         ),
-      }));
-      console.log("✅ Marked as read:", id);
+      };
+    });
+
+    try {
+      await notificationService.markAsRead(id);
     } catch (error) {
-      console.error("❌ Failed to mark as read:", error);
+      console.error("Failed to mark as read:", error);
+      // Rollback nếu cần, nhưng thường thì không cần vì sẽ có reload/sync sau đó
       throw error;
     }
   },
 
-  // ✅ Đánh dấu tất cả đã đọc
   markAllAsRead: async () => {
     try {
       await notificationService.markAllAsRead();
       set((state) => ({
+        unreadCount: 0,
         notifications: state.notifications.map((n) => ({ ...n, isRead: true })),
       }));
-      console.log("✅ All notifications marked as read");
     } catch (error) {
-      console.error("❌ Failed to mark all as read:", error);
+      console.error("Failed to mark all as read:", error);
       throw error;
     }
   },
 
-  // 🗑️ Xóa notification
   deleteNotification: async (id) => {
     try {
       await notificationService.delete(id);
       set((state) => ({
+        unreadCount: state.notifications.find((n) => n.id === id && !n.isRead) ? Math.max(0, state.unreadCount - 1) : state.unreadCount,
         notifications: state.notifications.filter((n) => n.id !== id),
       }));
-      console.log("🗑️ Notification deleted:", id);
     } catch (error) {
-      console.error("❌ Failed to delete notification:", error);
+      console.error("Failed to delete notification:", error);
       throw error;
     }
   },
 
-  // 📊 Đếm số unread
-  getUnreadCount: () => {
-    return get().notifications.filter((n) => !n.isRead).length;
+  clearAll: async () => {
+    try {
+      await notificationService.deleteAll();
+      set({ notifications: [], unreadCount: 0 });
+    } catch (error) {
+      console.error("Failed to clear all notifications:", error);
+      throw error;
+    }
   },
+
+  getUnreadCount: () => get().unreadCount,
 }));

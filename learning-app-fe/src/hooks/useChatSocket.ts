@@ -53,7 +53,7 @@ export const useChatSocket = (roomId: string | null): UseChatSocketReturn => {
     }
 
     const backendUrl =
-      process.env.NEXT_PUBLIC_API_URL || "https://api.nibojapan.cloud";
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081";
 
     const client = new Client({
       webSocketFactory: () => new SockJS(`${backendUrl}/ws`),

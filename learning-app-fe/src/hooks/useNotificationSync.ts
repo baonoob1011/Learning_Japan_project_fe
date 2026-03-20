@@ -8,12 +8,15 @@ import {
 import { getUserIdFromToken } from "@/utils/jwt";
 import { Notification } from "@/types/notification";
 
-const convertToNotification = (dto: NotificationSocketDTO): Notification => ({
-  id: dto.id,
-  title: dto.title,
-  content: dto.content,
-  createdAt: dto.createdAt,
-  isRead: dto.isRead,
+const convertToNotification = (dto: Partial<NotificationSocketDTO>): Notification => ({
+  // Some test WS payloads only contain title/content.
+  id:
+    dto.id ??
+    `ws-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  title: dto.title ?? "Thong bao",
+  content: dto.content ?? "",
+  createdAt: dto.createdAt ?? new Date().toISOString(),
+  isRead: typeof dto.isRead === "boolean" ? dto.isRead : false,
 });
 
 type SharedConnection = ReturnType<typeof connectNotificationSocket>;
@@ -44,7 +47,7 @@ const ensureSharedSocket = (userId: string) => {
 };
 
 export const useNotificationSync = () => {
-  const { loadNotifications, addNotification, isInitialized } =
+  const { loadNotifications, reloadNotifications, addNotification, isInitialized } =
     useNotificationStore();
   const [incomingCall, setIncomingCall] = useState<IncomingCallDTO | null>(null);
 
@@ -56,8 +59,18 @@ export const useNotificationSync = () => {
       loadNotifications();
     }
 
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+
     const handleNotification = (data: NotificationSocketDTO) => {
       addNotification(convertToNotification(data));
+
+      // Keep FE state authoritative with DB history and exact createdAt.
+      if (refreshTimer) {
+        clearTimeout(refreshTimer);
+      }
+      refreshTimer = setTimeout(() => {
+        reloadNotifications();
+      }, 500);
     };
 
     const handleIncomingCall = (callData: IncomingCallDTO) => {
@@ -68,11 +81,21 @@ export const useNotificationSync = () => {
     incomingCallListeners.add(handleIncomingCall);
     ensureSharedSocket(userId);
 
+    // Fallback: force-refresh from REST in case WS frame is missed.
+    reloadNotifications();
+    const timer = setInterval(() => {
+      reloadNotifications();
+    }, 15000);
+
     return () => {
+      clearInterval(timer);
+      if (refreshTimer) {
+        clearTimeout(refreshTimer);
+      }
       notificationListeners.delete(handleNotification);
       incomingCallListeners.delete(handleIncomingCall);
     };
-  }, [addNotification, isInitialized, loadNotifications]);
+  }, [addNotification, isInitialized, loadNotifications, reloadNotifications]);
 
   const dismissCall = () => setIncomingCall(null);
 

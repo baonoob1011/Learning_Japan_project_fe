@@ -1,5 +1,5 @@
-﻿// API Configuration
-const API_BASE_URL = "https://api.nibojapan.cloud/api/v1"; // đổi sang endpoint HTTPS thực tế
+// API Configuration
+const API_BASE_URL = "http://localhost:8081/api/v1";
 
 export const API_CONFIG = {
   BASE_URL: API_BASE_URL,
@@ -146,9 +146,11 @@ export const API_ENDPOINTS = {
 
   NOTIFICATION: {
     GET_MY: "/notifications",
+    UNREAD_COUNT: "/notifications/unread-count",
     MARK_AS_READ: (id: string) => `/notifications/${id}/read`,
     MARK_ALL_AS_READ: "/notifications/read-all",
     DELETE: (id: string) => `/notifications/${id}`,
+    DELETE_ALL: "/notifications/all",
   },
 
   FORGOT_PASSWORD: "/users/forgot-password",
@@ -255,6 +257,20 @@ export const API_ENDPOINTS = {
     DELETE: (surface: string) => `/vocab/${encodeURIComponent(surface)}`,
     GET_STATUS: (vocabId: string) => `/vocab/${vocabId}/status`,
     GET_PROGRESS: "/learning/vocab/progress",
+  },
+  REVIEW: {
+    TODAY: "/reviews/today",
+    GRADE: (wordProgressId: string) => `/reviews/${wordProgressId}/grade`,
+    HISTORY: "/reviews/history",
+  },
+  REVIEW_SESSION: {
+    TODAY: "/review-sessions/today",
+    HISTORY: "/review-sessions/history",
+  },
+  WORDS: {
+    CREATE: "/words",
+    OVERDUE: "/words/overdue",
+    STATS: "/words/stats",
   },
   // src/config/api.ts
   SKILL_PROGRESS: {

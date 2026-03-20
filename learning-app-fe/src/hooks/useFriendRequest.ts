@@ -38,7 +38,7 @@ export function useFriendRequest(currentUserId: string | null) {
         const token = getAccessToken();
         if (!token) return;
 
-        const backendUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.nibojapan.cloud";
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081";
 
         const client = new Client({
             webSocketFactory: () => new SockJS(`${backendUrl}/ws`),

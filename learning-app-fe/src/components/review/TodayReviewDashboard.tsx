@@ -1,0 +1,273 @@
+"use client";
+
+import { useMemo, useState, useEffect } from "react";
+import { reviewService, ReviewGrade, TodayReviewResponse } from "@/services/reviewService";
+import { BookOpen, RefreshCw, CheckCircle2, Zap, Brain, Clock, Flame } from "lucide-react";
+
+type Props = {
+  isDarkMode?: boolean;
+};
+
+const gradeButtons: Array<{
+  grade: ReviewGrade;
+  label: string;
+  emoji: string;
+  bg: string;
+  text: string;
+  border: string;
+  shadow: string;
+}> = [
+  {
+    grade: "AGAIN",
+    label: "Quên rồi",
+    emoji: "😵",
+    bg: "bg-red-500 hover:bg-red-600",
+    text: "text-white",
+    border: "border-red-600",
+    shadow: "shadow-red-500/30",
+  },
+  {
+    grade: "HARD",
+    label: "Khó",
+    emoji: "😓",
+    bg: "bg-amber-500 hover:bg-amber-600",
+    text: "text-white",
+    border: "border-amber-600",
+    shadow: "shadow-amber-500/30",
+  },
+  {
+    grade: "GOOD",
+    label: "Ổn rồi",
+    emoji: "😊",
+    bg: "bg-cyan-500 hover:bg-cyan-600",
+    text: "text-white",
+    border: "border-cyan-600",
+    shadow: "shadow-cyan-500/30",
+  },
+  {
+    grade: "EASY",
+    label: "Dễ thôi",
+    emoji: "🏆",
+    bg: "bg-emerald-500 hover:bg-emerald-600",
+    text: "text-white",
+    border: "border-emerald-600",
+    shadow: "shadow-emerald-500/30",
+  },
+];
+
+export default function TodayReviewDashboard({ isDarkMode = false }: Props) {
+  const [data, setData] = useState<TodayReviewResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [grading, setGrading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showAnswer, setShowAnswer] = useState(false);
+
+  const load = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await reviewService.getToday();
+      setData(res);
+      setShowAnswer(false);
+    } catch (e) {
+      console.error(e);
+      setError("Không tải được phiên ôn hôm nay.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const current = useMemo(() => data?.todayQueue.find((x) => !x.completed), [data]);
+  const completedCount = useMemo(() => data?.todayQueue.filter((x) => x.completed).length ?? 0, [data]);
+  const totalCount = data?.todayQueue.length ?? 0;
+  const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+  const onGrade = async (grade: ReviewGrade) => {
+    if (!current) return;
+    try {
+      setGrading(true);
+      await reviewService.grade(current.wordProgressId, grade);
+      await load();
+    } catch (e) {
+      console.error(e);
+      setError("Chấm điểm thất bại.");
+    } finally {
+      setGrading(false);
+    }
+  };
+
+  const card = isDarkMode
+    ? "bg-gray-800 border-gray-700"
+    : "bg-white border-gray-200";
+
+  const subText = isDarkMode ? "text-gray-400" : "text-gray-500";
+
+  return (
+    <div className="space-y-4">
+      {/* Header Row */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-xl bg-cyan-500/15 flex items-center justify-center">
+            <Brain size={18} className="text-cyan-500" />
+          </div>
+          <div>
+            <h2 className={`text-lg font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}>
+              Ôn tập hôm nay
+            </h2>
+            <p className={`text-xs ${subText}`}>Hệ thống lặp lại theo khoảng cách (SRS)</p>
+          </div>
+        </div>
+        <button
+          onClick={load}
+          disabled={loading}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all ${
+            isDarkMode ? "bg-gray-700 text-gray-300 hover:bg-gray-600" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+          Làm mới
+        </button>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+          ⚠️ {error}
+        </div>
+      )}
+
+      {/* Loading */}
+      {loading && (
+        <div className={`rounded-2xl border ${card} p-8 flex items-center justify-center`}>
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+            <p className={`text-sm ${subText}`}>Đang tải danh sách ôn tập...</p>
+          </div>
+        </div>
+      )}
+
+      {!loading && data && (
+        <>
+          {/* Stats Row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { label: "Từ mới", value: data.summary.newCount, icon: <BookOpen size={16} />, color: "text-blue-500", bg: "bg-blue-500/10" },
+              { label: "Đến hạn", value: data.summary.dueCount, icon: <Clock size={16} />, color: "text-amber-500", bg: "bg-amber-500/10" },
+              { label: "Quá hạn", value: data.summary.overdueCount, icon: <Flame size={16} />, color: "text-red-500", bg: "bg-red-500/10" },
+              { label: "Hàng đợi", value: data.summary.todayQueueCount, icon: <Zap size={16} />, color: "text-cyan-500", bg: "bg-cyan-500/10" },
+            ].map((stat) => (
+              <div key={stat.label} className={`rounded-2xl border p-3.5 ${card}`}>
+                <div className={`w-7 h-7 rounded-lg ${stat.bg} flex items-center justify-center ${stat.color} mb-2`}>
+                  {stat.icon}
+                </div>
+                <p className={`text-2xl font-black ${isDarkMode ? "text-white" : "text-gray-800"}`}>{stat.value}</p>
+                <p className={`text-xs mt-0.5 ${subText}`}>{stat.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Progress Bar */}
+          {totalCount > 0 && (
+            <div className={`rounded-2xl border p-4 ${card}`}>
+              <div className="flex justify-between items-center mb-2">
+                <span className={`text-sm font-semibold ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
+                  Tiến độ hôm nay
+                </span>
+                <span className={`text-sm font-bold ${progress === 100 ? "text-emerald-500" : isDarkMode ? "text-cyan-400" : "text-cyan-600"}`}>
+                  {completedCount}/{totalCount} từ ({progress}%)
+                </span>
+              </div>
+              <div className={`h-2.5 rounded-full ${isDarkMode ? "bg-gray-700" : "bg-gray-100"}`}>
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${progress === 100 ? "bg-emerald-500" : "bg-gradient-to-r from-cyan-500 to-blue-500"}`}
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Recovery Message */}
+          {data.recoveryMessage && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400">
+              💬 {data.recoveryMessage}
+            </div>
+          )}
+
+          {/* Current Word Card */}
+          {current ? (
+            <div className={`rounded-2xl border ${card} overflow-hidden`}>
+              {/* Card Header */}
+              <div className={`px-5 pt-5 pb-3 border-b ${isDarkMode ? "border-gray-700" : "border-gray-100"}`}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className={`text-xs font-bold uppercase tracking-widest ${subText}`}>
+                    {current.type === "KNOWN" ? "🏆 Đã thuộc · Ôn lại" : "📖 Chưa thuộc · Học mới"}
+                  </span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${isDarkMode ? "bg-gray-700 text-gray-400" : "bg-gray-100 text-gray-500"}`}>
+                    {completedCount + 1}/{totalCount}
+                  </span>
+                </div>
+                <p className={`text-4xl font-black tracking-tight mt-2 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                  {current.word}
+                </p>
+              </div>
+
+              {/* Answer Area */}
+              <div className="px-5 py-4">
+                {showAnswer ? (
+                  <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <p className={`text-lg font-semibold mb-4 ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>
+                      {current.meaning}
+                    </p>
+                    <p className={`text-xs mb-4 ${subText}`}>Bạn nhớ từ này ở mức nào?</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {gradeButtons.map((btn) => (
+                        <button
+                          key={btn.grade}
+                          disabled={grading}
+                          onClick={() => onGrade(btn.grade)}
+                          className={`${btn.bg} ${btn.text} rounded-xl px-3 py-3 text-sm font-bold shadow-lg ${btn.shadow} transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                          <span className="text-lg block mb-0.5">{btn.emoji}</span>
+                          {btn.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowAnswer(true)}
+                    className="w-full py-3 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-95 shadow-lg shadow-cyan-500/20"
+                  >
+                    👀 Xem nghĩa
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* All Done */
+            <div className={`rounded-2xl border ${card} p-10 text-center`}>
+              <div className="w-16 h-16 mx-auto mb-4 bg-emerald-500/15 rounded-full flex items-center justify-center">
+                <CheckCircle2 size={32} className="text-emerald-500" />
+              </div>
+              <h3 className={`text-xl font-black mb-1 ${isDarkMode ? "text-white" : "text-gray-800"}`}>
+                Hoàn thành rồi! 🎉
+              </h3>
+              <p className={`text-sm ${subText}`}>
+                Bạn đã ôn xong <strong>{totalCount}</strong> từ hôm nay. Thật tuyệt vời!
+              </p>
+            </div>
+          )}
+        </>
+      )}
+
+      {!loading && !data && !error && (
+        <div className={`rounded-2xl border ${card} p-10 text-center`}>
+          <BookOpen size={40} className={`mx-auto mb-3 opacity-30 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
+          <p className={`text-sm ${subText}`}>Chưa có dữ liệu ôn tập.</p>
+        </div>
+      )}
+    </div>
+  );
+}

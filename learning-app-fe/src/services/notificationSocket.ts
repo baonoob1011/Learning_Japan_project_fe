@@ -13,8 +13,10 @@ export type IncomingCallDTO = {
 
 export type NotificationSocketDTO = {
   id: string;
+  type?: "REVIEW_REMINDER" | "MISSED_REVIEW" | "SYSTEM";
   title: string;
   content: string;
+  metadata?: string | null;
   isRead: boolean;
   createdAt: string;
 };
@@ -27,7 +29,7 @@ export const connectNotificationSocket = (
   const token = getAccessTokenFromStorage();
 
   // Kiểm tra URL an toàn
-  const fallbackUrl = "https://api.nibojapan.cloud/ws";
+  const fallbackUrl = "http://localhost:8081/ws";
   const wsUrl = process.env.NEXT_PUBLIC_WS_URL || fallbackUrl;
 
   console.log(`🔌 Attempting WS connection to: ${wsUrl} for user: ${userId}`);
