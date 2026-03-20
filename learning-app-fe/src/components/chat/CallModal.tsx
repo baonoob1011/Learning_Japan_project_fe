@@ -46,6 +46,7 @@ export const CallModal = ({
   const peerRef = useRef<RTCPeerConnection | null>(null);
   const remoteStreamRef = useRef<MediaStream | null>(null);
   const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
+  const hasSentOfferRef = useRef(false);
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -207,6 +208,35 @@ export const CallModal = ({
     setIsMuted((value) => !value);
   };
 
+  const sendReadySignal = useCallback(
+    (client: Client) => {
+      client.publish({
+        destination: "/app/call.answer",
+        body: JSON.stringify({
+          type: "ready",
+          roomId,
+          senderId: currentUserId,
+        }),
+      });
+    },
+    [currentUserId, roomId]
+  );
+
+  const createAndSendOffer = useCallback(
+    async (client: Client, peer: RTCPeerConnection) => {
+      if (hasSentOfferRef.current) return;
+
+      hasSentOfferRef.current = true;
+      await ensureLocalMedia();
+
+      const offer = await peer.createOffer();
+      await peer.setLocalDescription(offer);
+      sendOffer(client, roomId, offer, currentUserId);
+      setCallState("ringing");
+    },
+    [currentUserId, ensureLocalMedia, roomId]
+  );
+
   useEffect(() => {
     let subscription: StompSubscription | undefined;
     const backendUrl =
@@ -265,7 +295,7 @@ export const CallModal = ({
           const signal = JSON.parse(message.body) as {
             roomId: string;
             senderId: string;
-            type: "offer" | "answer" | "ice" | "end";
+            type: "offer" | "answer" | "ice" | "end" | "ready";
             data?: RTCSessionDescriptionInit | RTCIceCandidateInit;
           };
 
@@ -288,6 +318,11 @@ export const CallModal = ({
                 );
                 await flushPendingIceCandidates();
                 setCallState("in-call");
+              }
+              break;
+            case "ready":
+              if (isCaller) {
+                await createAndSendOffer(client, peer);
               }
               break;
             case "ice":
@@ -313,7 +348,10 @@ export const CallModal = ({
           }
         });
 
-        if (!isCaller) return;
+        if (!isCaller) {
+          sendReadySignal(client);
+          return;
+        }
 
         if (receiverId) {
           sendIncomingNotification(client, {
@@ -326,14 +364,6 @@ export const CallModal = ({
         } else {
           console.warn("[CallModal] isCaller=true but receiverId is missing");
         }
-
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        await ensureLocalMedia();
-
-        const offer = await peer.createOffer();
-        await peer.setLocalDescription(offer);
-        sendOffer(client, roomId, offer, currentUserId);
-        setCallState("ringing");
       },
       onStompError: (frame) => console.error("STOMP error:", frame),
     });
@@ -354,6 +384,7 @@ export const CallModal = ({
     cleanupMedia,
     contactAvatar,
     contactName,
+    createAndSendOffer,
     createPeerConnection,
     currentUserId,
     ensureLocalMedia,
@@ -362,6 +393,7 @@ export const CallModal = ({
     onClose,
     receiverId,
     roomId,
+    sendReadySignal,
   ]);
 
   const displayName = isCaller ? contactName : callerName ?? contactName;
