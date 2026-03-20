@@ -35,7 +35,7 @@ export default function AdminLayout({
     if (!isReady) return null;
 
     return (
-        <div className={`flex min-h-screen font-sans transition-colors duration-300 ${isDark ? "bg-gray-900" : "bg-[#F3F4F6]"}`}>
+        <div className={`flex min-h-screen transition-colors duration-300 ${isDark ? "bg-gray-900" : "bg-[#F3F4F6]"}`}>
             <Sidebar isDark={isDark} />
 
             <div className={`flex-1 ml-64 flex flex-col transition-colors duration-300 ${isDark ? "text-gray-100" : "text-gray-900"}`}>
