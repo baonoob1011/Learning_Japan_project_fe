@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useChatSocket } from "@/hooks/useChatSocket";
 import { useUnreadCounts } from "@/hooks/useUnreadCounts";
 import { getUserIdFromToken } from "@/utils/jwt";
@@ -11,8 +12,9 @@ import {
 } from "@/services/roomService";
 import { userService } from "@/services/userService";
 import { CallModal } from "@/components/chat/CallModal";
-import { useIncomingCall } from "@/hooks/Useincomingcall";
+import { useNotificationSync } from "@/hooks/useNotificationSync";
 import { useNotificationStore } from "@/stores/notificationStore";
+import { buildCallRoomId } from "@/utils/call";
 
 import {
   ChatContactDropdown,
@@ -66,6 +68,7 @@ export default function FloatingChatButton({
   isDarkMode = false,
 }: FloatingChatButtonProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("GROUP");
   const [inboxContacts, setInboxContacts] = useState<Contact[]>([]);
@@ -106,9 +109,7 @@ export default function FloatingChatButton({
     currentUserId,
   );
 
-  const { incomingCall, dismissCall } = useIncomingCall(
-    currentUserId ? String(currentUserId) : null,
-  );
+  const { incomingCall, dismissCall } = useNotificationSync();
 
   // ── Load current user profile ────────────────────────────────────────────
   useEffect(() => {
@@ -501,7 +502,10 @@ export default function FloatingChatButton({
       {/* ── CallModal (caller) ───────────────────────────────────────────── */}
       {showCall && selectedContact && currentUserId && (
         <CallModal
-          roomId={`call-${currentUserId}-${selectedContact.userId ?? selectedContact.id}`}
+          roomId={buildCallRoomId(
+            String(currentUserId),
+            selectedContact.userId ?? selectedContact.id,
+          )}
           isCaller={true}
           currentUserId={String(currentUserId)}
           receiverId={selectedContact.userId ?? selectedContact.id}
@@ -515,7 +519,7 @@ export default function FloatingChatButton({
       )}
 
       {/* ── CallModal (receiver / incoming) ─────────────────────────────── */}
-      {incomingCall && currentUserId && (
+      {incomingCall && currentUserId && !pathname?.startsWith("/chat") && (
         <CallModal
           roomId={incomingCall.roomId}
           isCaller={false}
