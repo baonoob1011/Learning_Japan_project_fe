@@ -27,9 +27,26 @@ export const useWebRTC = () => {
   };
 
   const getLocalStream = async () => {
+    if (localStreamRef.current) {
+      const hasLiveTrack = localStreamRef.current
+        .getTracks()
+        .some((track) => track.readyState === "live");
+      if (hasLiveTrack) {
+        return localStreamRef.current;
+      }
+    }
+
     const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: true,
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+      video: {
+        facingMode: "user",
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
     });
 
     localStreamRef.current = stream;

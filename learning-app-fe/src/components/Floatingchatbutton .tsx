@@ -78,11 +78,17 @@ export default function FloatingChatButton({
   const [showContactDropdown, setShowContactDropdown] = useState(false);
   const [showCall, setShowCall] = useState(false);
   const [showGroupPopup, setShowGroupPopup] = useState(false);
-  const [groupPopupView, setGroupPopupView] = useState<"create" | "add">("create");
+  const [groupPopupView, setGroupPopupView] = useState<"create" | "add">(
+    "create",
+  );
   const [currentUserName, setCurrentUserName] = useState("");
   const [currentUserAvatar, setCurrentUserAvatar] = useState("");
-  const [senderNameMap, setSenderNameMap] = useState<Record<string, string>>({});
-  const [senderAvatarMap, setSenderAvatarMap] = useState<Record<string, string>>({});
+  const [senderNameMap, setSenderNameMap] = useState<Record<string, string>>(
+    {},
+  );
+  const [senderAvatarMap, setSenderAvatarMap] = useState<
+    Record<string, string>
+  >({});
   const fetchingAvatars = useRef<Set<string>>(new Set());
 
   const hasFetchedInbox = useRef(false);
@@ -92,16 +98,16 @@ export default function FloatingChatButton({
   // ── Collect all room IDs for unread tracking ─────────────────────────
   const allRoomIds = useMemo(
     () => [...inboxContacts, ...groupContacts].map((c) => c.id),
-    [inboxContacts, groupContacts]
+    [inboxContacts, groupContacts],
   );
 
   const { unreadCounts, clearUnread, totalUnread } = useUnreadCounts(
     allRoomIds,
-    currentUserId
+    currentUserId,
   );
 
   const { incomingCall, dismissCall } = useIncomingCall(
-    currentUserId ? String(currentUserId) : null
+    currentUserId ? String(currentUserId) : null,
   );
 
   // ── Load current user profile ────────────────────────────────────────────
@@ -111,15 +117,20 @@ export default function FloatingChatButton({
       .getUserById(currentUserId)
       .then((profile) => {
         setCurrentUserName(profile.fullName);
-        setCurrentUserAvatar(profile.avatarUrl || profile.avatar || "/default-avatar.png");
+        setCurrentUserAvatar(
+          profile.avatarUrl || profile.avatar || "/default-avatar.png",
+        );
       })
       .catch(console.error);
   }, [currentUserId]);
 
   // ── Socket ───────────────────────────────────────────────────────────────
-  const { messages: socketMessages, isConnected, sendMessage, sendToRoom } = useChatSocket(
-    selectedContact?.id || null
-  );
+  const {
+    messages: socketMessages,
+    isConnected,
+    sendMessage,
+    sendToRoom,
+  } = useChatSocket(selectedContact?.id || null);
 
   // ── Track socket message length for dedup only ───────────────────────
   const prevSocketLengthRef = useRef(0);
@@ -130,7 +141,7 @@ export default function FloatingChatButton({
   // ── Memoize to avoid unnecessary re-renders ─────────────────────────────
   const socketMapped = useMemo(
     () => socketMessages.map(mapApiMsg),
-    [socketMessages]
+    [socketMessages],
   );
   const messages = useMemo(() => {
     const historyIds = new Set(historyMessages.map((m) => m.id));
@@ -156,17 +167,18 @@ export default function FloatingChatButton({
         .then((profile) => {
           setSenderAvatarMap((prev) => ({
             ...prev,
-            [senderId]: profile.avatarUrl || profile.avatar || "/default-avatar.png",
+            [senderId]:
+              profile.avatarUrl || profile.avatar || "/default-avatar.png",
           }));
           if (profile.fullName) {
             setSenderNameMap((prev) =>
-              prev[senderId] ? prev : { ...prev, [senderId]: profile.fullName }
+              prev[senderId] ? prev : { ...prev, [senderId]: profile.fullName },
             );
           }
         })
-        .catch(() => { });
+        .catch(() => {});
     },
-    [currentUserId, senderAvatarMap]
+    [currentUserId, senderAvatarMap],
   );
 
   useEffect(() => {
@@ -180,35 +192,38 @@ export default function FloatingChatButton({
   }, [messages.length, selectedContact?.id]);
 
   // ── Fetch inbox ──────────────────────────────────────────────────────────
-  const fetchInbox = useCallback(async (isManual = false) => {
-    if (!isOpen && !isManual) return;
-    if (hasFetchedInbox.current && !isManual) return;
+  const fetchInbox = useCallback(
+    async (isManual = false) => {
+      if (!isOpen && !isManual) return;
+      if (hasFetchedInbox.current && !isManual) return;
 
-    let cancelled = false;
-    setIsLoadingContacts(true);
-    try {
-      const data: PrivateChatPreviewResponse[] =
-        await roomService.getMyChatUsers();
-      if (cancelled) return [];
-      const mapped: Contact[] = data.map((p) => ({
-        id: p.roomId,
-        userId: p.userId,
-        name: p.fullName,
-        avatar: p.avatarUrl || p.avatar || "/default-avatar.png",
-        lastMessage: p.lastMessage ?? "",
-        timestamp: p.lastMessageTime ?? "",
-        isGroup: false,
-      }));
-      setInboxContacts(mapped);
-      hasFetchedInbox.current = true;
-      return mapped;
-    } catch {
-      if (!cancelled) setInboxContacts([]);
-      return [];
-    } finally {
-      if (!cancelled) setIsLoadingContacts(false);
-    }
-  }, [isOpen]);
+      let cancelled = false;
+      setIsLoadingContacts(true);
+      try {
+        const data: PrivateChatPreviewResponse[] =
+          await roomService.getMyChatUsers();
+        if (cancelled) return [];
+        const mapped: Contact[] = data.map((p) => ({
+          id: p.roomId,
+          userId: p.userId,
+          name: p.fullName,
+          avatar: p.avatarUrl || p.avatar || "/default-avatar.png",
+          lastMessage: p.lastMessage ?? "",
+          timestamp: p.lastMessageTime ?? "",
+          isGroup: false,
+        }));
+        setInboxContacts(mapped);
+        hasFetchedInbox.current = true;
+        return mapped;
+      } catch {
+        if (!cancelled) setInboxContacts([]);
+        return [];
+      } finally {
+        if (!cancelled) setIsLoadingContacts(false);
+      }
+    },
+    [isOpen],
+  );
 
   useEffect(() => {
     fetchInbox();
@@ -299,7 +314,9 @@ export default function FloatingChatButton({
       }
     }
     run();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen]);
 
   // ── Fetch message history ─────────────────────────────────────────────────
@@ -333,7 +350,9 @@ export default function FloatingChatButton({
       }
     }
     run();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [selectedContact?.id]);
 
   // ── Reset on close ────────────────────────────────────────────────────────
@@ -370,8 +389,7 @@ export default function FloatingChatButton({
     setSelectedContact(list.length > 0 ? list[0] : null);
   };
 
-  const currentContacts =
-    activeTab === "INBOX" ? inboxContacts : groupContacts;
+  const currentContacts = activeTab === "INBOX" ? inboxContacts : groupContacts;
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
@@ -379,10 +397,11 @@ export default function FloatingChatButton({
       {/* ── Chat Panel ──────────────────────────────────────────────────── */}
       {isOpen && (
         <div
-          className={`absolute bottom-16 right-0 w-85 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border flex flex-col overflow-hidden animate-slide-up ${isDarkMode
-            ? "bg-[#0f172a] border-gray-800 shadow-cyan-900/20"
-            : "bg-white border-cyan-100"
-            }`}
+          className={`absolute bottom-16 right-0 w-85 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border flex flex-col overflow-hidden animate-slide-up ${
+            isDarkMode
+              ? "bg-[#0f172a] border-gray-800 shadow-cyan-900/20"
+              : "bg-white border-cyan-100"
+          }`}
           style={{ height: "550px", width: "340px" }}
         >
           {/* Header / Contact Dropdown */}
@@ -406,7 +425,9 @@ export default function FloatingChatButton({
               setGroupPopupView("create");
               setShowGroupPopup(true);
             }}
-            showCallButton={!!selectedContact && !!currentUserId && activeTab !== "GROUP"}
+            showCallButton={
+              !!selectedContact && !!currentUserId && activeTab !== "GROUP"
+            }
             unreadCounts={unreadCounts}
           />
 
@@ -438,7 +459,9 @@ export default function FloatingChatButton({
 
           {/* Group Rooms Popup Overlay */}
           {showGroupPopup && (
-            <div className={`absolute inset-0 z-[60] flex flex-col p-2 animate-slide-up ${isDarkMode ? "bg-gray-900/90" : "bg-white/90"} backdrop-blur-sm`}>
+            <div
+              className={`absolute inset-0 z-[60] flex flex-col p-2 animate-slide-up ${isDarkMode ? "bg-gray-900/90" : "bg-white/90"} backdrop-blur-sm`}
+            >
               <div className="flex-1 overflow-hidden rounded-2xl border shadow-2xl relative">
                 <GroupRoomsPopup
                   isDarkMode={isDarkMode}
@@ -451,15 +474,16 @@ export default function FloatingChatButton({
                     const contact: Contact = {
                       id: room.id,
                       name: room.name ?? "Tên nhóm",
-                      avatar: room.avatarUrl || room.avatar || "/group-avatar.png",
+                      avatar:
+                        room.avatarUrl || room.avatar || "/group-avatar.png",
                       lastMessage: room.lastMessage ?? "",
                       timestamp: room.lastMessageTime ?? room.createdAt ?? "",
-                      isGroup: true
+                      isGroup: true,
                     };
 
                     // Add to groupContacts if not already there
-                    setGroupContacts(prev => {
-                      if (prev.find(c => c.id === contact.id)) return prev;
+                    setGroupContacts((prev) => {
+                      if (prev.find((c) => c.id === contact.id)) return prev;
                       return [contact, ...prev];
                     });
 
@@ -511,8 +535,11 @@ export default function FloatingChatButton({
         className="group relative transition-all duration-300 hover:scale-110"
         title="Chat Room"
       >
-        <div className={`absolute inset-0 rounded-full opacity-20 animate-ping ${isDarkMode ? "bg-cyan-400" : "bg-purple-400"
-          }`} />
+        <div
+          className={`absolute inset-0 rounded-full opacity-20 animate-ping ${
+            isDarkMode ? "bg-cyan-400" : "bg-purple-400"
+          }`}
+        />
         <div className="relative w-11 h-11 drop-shadow-2xl animate-bounce-slow">
           <img
             src="/message.png"
@@ -530,45 +557,99 @@ export default function FloatingChatButton({
 
         {/* Tooltip */}
         <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none translate-x-2 group-hover:translate-x-0">
-          <div className={`${isDarkMode ? "bg-gray-800 text-cyan-400 border border-gray-700 shadow-cyan-900/40" : "bg-gray-900 text-white shadow-xl shadow-gray-200/50"
-            } text-[11px] font-bold tracking-wide uppercase px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl relative`}>
+          <div
+            className={`${
+              isDarkMode
+                ? "bg-gray-800 text-cyan-400 border border-gray-700 shadow-cyan-900/40"
+                : "bg-gray-900 text-white shadow-xl shadow-gray-200/50"
+            } text-[11px] font-bold tracking-wide uppercase px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl relative`}
+          >
             Phòng Chat
-            <span className={`absolute left-full top-1/2 -translate-y-1/2 border-6 border-transparent ${isDarkMode ? "border-l-gray-800" : "border-l-gray-900"
-              }`} />
+            <span
+              className={`absolute left-full top-1/2 -translate-y-1/2 border-6 border-transparent ${
+                isDarkMode ? "border-l-gray-800" : "border-l-gray-900"
+              }`}
+            />
           </div>
         </div>
       </button>
 
       <style jsx global>{`
         @keyframes slide-up {
-          from { opacity: 0; transform: translateY(16px) scale(0.97); }
-          to   { opacity: 1; transform: translateY(0) scale(1); }
+          from {
+            opacity: 0;
+            transform: translateY(16px) scale(0.97);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
         }
-        .animate-slide-up { animation: slide-up 0.22s ease-out; }
+        .animate-slide-up {
+          animation: slide-up 0.22s ease-out;
+        }
 
         @keyframes bounce-slow {
-          0%, 100% { transform: translateY(0); }
-          50%       { transform: translateY(-10px); }
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
         }
-        .animate-bounce-slow { animation: bounce-slow 2s ease-in-out infinite; }
+        .animate-bounce-slow {
+          animation: bounce-slow 2s ease-in-out infinite;
+        }
 
         @keyframes bounce-send {
-          0%, 100% { transform: translateY(0) scale(1); }
-          30%      { transform: translateY(-5px) scale(1.08); }
-          60%      { transform: translateY(0) scale(0.96); }
-          80%      { transform: translateY(-2px) scale(1.03); }
+          0%,
+          100% {
+            transform: translateY(0) scale(1);
+          }
+          30% {
+            transform: translateY(-5px) scale(1.08);
+          }
+          60% {
+            transform: translateY(0) scale(0.96);
+          }
+          80% {
+            transform: translateY(-2px) scale(1.03);
+          }
         }
-        .animate-bounce-send { animation: bounce-send 0.8s ease-in-out infinite; }
+        .animate-bounce-send {
+          animation: bounce-send 0.8s ease-in-out infinite;
+        }
 
-        .scrollbar-dark::-webkit-scrollbar        { width: 4px; }
-        .scrollbar-dark::-webkit-scrollbar-track  { background: #111827; border-radius: 999px; }
-        .scrollbar-dark::-webkit-scrollbar-thumb  { background: #374151; border-radius: 999px; }
-        .scrollbar-dark::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+        .scrollbar-dark::-webkit-scrollbar {
+          width: 4px;
+        }
+        .scrollbar-dark::-webkit-scrollbar-track {
+          background: #111827;
+          border-radius: 999px;
+        }
+        .scrollbar-dark::-webkit-scrollbar-thumb {
+          background: #374151;
+          border-radius: 999px;
+        }
+        .scrollbar-dark::-webkit-scrollbar-thumb:hover {
+          background: #4b5563;
+        }
 
-        .scrollbar-light::-webkit-scrollbar        { width: 4px; }
-        .scrollbar-light::-webkit-scrollbar-track  { background: #f0fdfe; border-radius: 999px; }
-        .scrollbar-light::-webkit-scrollbar-thumb  { background: #a5f3fc; border-radius: 999px; }
-        .scrollbar-light::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+        .scrollbar-light::-webkit-scrollbar {
+          width: 4px;
+        }
+        .scrollbar-light::-webkit-scrollbar-track {
+          background: #f0fdfe;
+          border-radius: 999px;
+        }
+        .scrollbar-light::-webkit-scrollbar-thumb {
+          background: #a5f3fc;
+          border-radius: 999px;
+        }
+        .scrollbar-light::-webkit-scrollbar-thumb:hover {
+          background: #06b6d4;
+        }
       `}</style>
     </div>
   );
