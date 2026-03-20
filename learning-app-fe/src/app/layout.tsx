@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Learning Japan",
+  title: "Nibo Japanese Learning",
   description: "Ứng dụng học tiếng Nhật thông minh và sáng tạo",
   icons: {
     icon: "/logo-cat.png",
