@@ -27,7 +27,7 @@ export const connectNotificationSocket = (
   const token = getAccessTokenFromStorage();
 
   // Kiểm tra URL an toàn
-  const fallbackUrl = "http://localhost:8080/ws";
+  const fallbackUrl = "https://api.nibojapan.cloud/ws";
   const wsUrl = process.env.NEXT_PUBLIC_WS_URL || fallbackUrl;
 
   console.log(`🔌 Attempting WS connection to: ${wsUrl} for user: ${userId}`);
@@ -94,4 +94,3 @@ export const connectNotificationSocket = (
     disconnect: () => client.deactivate(),
   };
 };
-

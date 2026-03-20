@@ -35,10 +35,7 @@ export default function AdminLayout({
     if (!isReady) return null;
 
     return (
-        <div
-            className={`flex min-h-screen transition-colors duration-300 ${isDark ? "bg-gray-900" : "bg-[#F3F4F6]"}`}
-            style={{ fontFamily: "var(--font-geist-sans, var(--font-sans, system-ui, sans-serif))" }}
-        >
+        <div className={`flex min-h-screen transition-colors duration-300 ${isDark ? "bg-gray-900" : "bg-[#F3F4F6]"}`}>
             <Sidebar isDark={isDark} />
 
             <div

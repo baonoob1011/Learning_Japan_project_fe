@@ -8,8 +8,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-nunito);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,44 +18,15 @@
   }
 }
 
-/* Ensure Geist font is applied globally to all elements */
-html,
-body,
-*,
-*::before,
-*::after {
-  font-family: var(--font-geist-sans), var(--font-sans), system-ui, -apple-system,
-    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+html {
+  font-family: var(--font-nunito), system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-}
-
-/* ─── Admin Dashboard Typography Normalization ────────────────────────────── */
-/* Ensures all text inside the admin area renders with consistent font weight
-   and anti-aliasing so headings / body text feel uniform across all pages.    */
-.admin-content h1,
-.admin-content h2,
-.admin-content h3,
-.admin-content h4,
-.admin-content h5,
-.admin-content h6 {
-  letter-spacing: -0.015em;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-.admin-content p,
-.admin-content span,
-.admin-content label,
-.admin-content input,
-.admin-content textarea,
-.admin-content select,
-.admin-content button {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: inherit;
 }
 
 /* Global Scrollbar Styling */

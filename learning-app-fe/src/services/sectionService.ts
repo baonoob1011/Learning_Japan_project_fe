@@ -7,15 +7,18 @@ import { LessonLevel } from "@/enums/LessonLevel";
 export interface CreateSectionRequest {
   courseId: string;
   title: string;
+  lessonLevel?: LessonLevel;
 }
 
 export interface SectionResponse {
   id: string;
   title: string;
+  lessonLevel: LessonLevel | string;
   createdAt: string;
 }
 export interface UpdateSectionRequest {
   title?: string;
+  lessonLevel?: LessonLevel;
 }
 
 /* ===================== SERVICE ===================== */

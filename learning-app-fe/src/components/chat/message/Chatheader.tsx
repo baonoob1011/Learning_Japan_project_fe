@@ -4,6 +4,7 @@ import { MoreVertical, Phone, Video, Plus, UserPlus } from "lucide-react";
 import GroupRoomsPopup from "@/components/chat/Grouproomspopup";
 import { CallModal } from "@/components/chat/CallModal";
 import { ChatGroupBasicResponse } from "@/services/roomService";
+import { buildCallRoomId } from "@/utils/call";
 
 interface Contact {
   id: string;
@@ -184,8 +185,10 @@ export default function ChatHeader({
 
       {showCall && currentUserId && (
         <CallModal
-          roomId={`call-${currentUserId}-${selectedContact.otherUserId ?? selectedContact.id
-            }`}
+          roomId={buildCallRoomId(
+            currentUserId,
+            selectedContact.otherUserId ?? selectedContact.id
+          )}
           callerName={currentUserName} // ✅ thêm
           callerAvatar={currentUserAvatar} // ✅ thêm
           isCaller={true}

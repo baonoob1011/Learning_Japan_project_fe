@@ -6,7 +6,7 @@ import { refreshToken as refreshTokenApi } from "@/services/authService";
 // ----- Axios public (không auth) -----
 export const axiosPublic = axios.create({
   baseURL:
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1",
+    process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.nibojapan.cloud/api/v1",
   timeout: 10000,
   headers: {
     Authorization: undefined,
@@ -16,14 +16,14 @@ export const axiosPublic = axios.create({
 // ----- Axios client (cần auth) -----
 export const axiosClient = axios.create({
   baseURL:
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1",
+    process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.nibojapan.cloud/api/v1",
   timeout: 60000, // 👈 tăng lên 60s cho AI
 });
 
 // ----- Axios client cho upload (timeout 10 phút) -----
 export const axiosUpload = axios.create({
   baseURL:
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1",
+    process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.nibojapan.cloud/api/v1",
   timeout: 600000, // 10 phút (600,000ms)
 });
 

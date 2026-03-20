@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNotificationStore } from "@/stores/notificationStore";
 import {
   connectNotificationSocket,
-  NotificationSocketDTO,
   IncomingCallDTO,
+  NotificationSocketDTO,
 } from "@/services/notificationSocket";
 import { getUserIdFromToken } from "@/utils/jwt";
 import { Notification } from "@/types/notification";
@@ -16,22 +16,39 @@ const convertToNotification = (dto: NotificationSocketDTO): Notification => ({
   isRead: dto.isRead,
 });
 
+type SharedConnection = ReturnType<typeof connectNotificationSocket>;
+
+let sharedSocket: SharedConnection | null = null;
+let sharedUserId: string | null = null;
+const notificationListeners = new Set<(data: NotificationSocketDTO) => void>();
+const incomingCallListeners = new Set<(data: IncomingCallDTO) => void>();
+
+const ensureSharedSocket = (userId: string) => {
+  if (sharedSocket && sharedUserId === userId) {
+    return sharedSocket;
+  }
+
+  sharedSocket?.disconnect();
+  sharedUserId = userId;
+  sharedSocket = connectNotificationSocket(
+    userId,
+    (data) => {
+      notificationListeners.forEach((listener) => listener(data));
+    },
+    (callData) => {
+      incomingCallListeners.forEach((listener) => listener(callData));
+    }
+  );
+
+  return sharedSocket;
+};
 
 export const useNotificationSync = () => {
   const { loadNotifications, addNotification, isInitialized } =
     useNotificationStore();
-  const socketRef = useRef<ReturnType<typeof connectNotificationSocket> | null>(
-    null
-  );
-  const hasInitializedRef = useRef(false);
-  const [incomingCall, setIncomingCall] = useState<IncomingCallDTO | null>(
-    null
-  );
+  const [incomingCall, setIncomingCall] = useState<IncomingCallDTO | null>(null);
 
   useEffect(() => {
-    // Chỉ khởi tạo 1 lần
-    if (socketRef.current) return;
-
     const userId = getUserIdFromToken();
     if (!userId) return;
 
@@ -39,28 +56,23 @@ export const useNotificationSync = () => {
       loadNotifications();
     }
 
-    console.log("🔔 Initializing notification sync for user:", userId);
+    const handleNotification = (data: NotificationSocketDTO) => {
+      addNotification(convertToNotification(data));
+    };
 
-    const connection = connectNotificationSocket(
-      userId,
-      (data: NotificationSocketDTO) => {
-        console.log("📩 WebSocket notification received:", data);
-        addNotification(convertToNotification(data));
-      },
-      (callData: IncomingCallDTO) => {
-        console.log("📞 Incoming call received:", callData);
-        setIncomingCall(callData);
-      }
-    );
+    const handleIncomingCall = (callData: IncomingCallDTO) => {
+      setIncomingCall(callData);
+    };
 
-    socketRef.current = connection;
+    notificationListeners.add(handleNotification);
+    incomingCallListeners.add(handleIncomingCall);
+    ensureSharedSocket(userId);
 
     return () => {
-      // Chỉ ngắt kết nối thực sự khi component Unmount hẳn
-      // (Bỏ log Disconnecting gây nhiễu nếu cần)
+      notificationListeners.delete(handleNotification);
+      incomingCallListeners.delete(handleIncomingCall);
     };
-  }, [isInitialized, loadNotifications, addNotification]);
-
+  }, [addNotification, isInitialized, loadNotifications]);
 
   const dismissCall = () => setIncomingCall(null);
 
