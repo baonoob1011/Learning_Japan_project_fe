@@ -84,6 +84,12 @@ export default function TodayReviewDashboard({ isDarkMode = false }: Props) {
   const totalCount = data?.todayQueue.length ?? 0;
   const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
+  const queueTypeLabel = (type: "NEW" | "DUE_TODAY" | "OVERDUE") => {
+    if (type === "DUE_TODAY") return "Den han hom nay - On tap";
+    if (type === "OVERDUE") return "Qua han - Uu tien on";
+    return "Chua thuoc - Hoc moi";
+  };
+
   const onGrade = async (grade: ReviewGrade) => {
     if (!current) return;
     try {
@@ -103,6 +109,30 @@ export default function TodayReviewDashboard({ isDarkMode = false }: Props) {
     : "bg-white border-gray-200";
 
   const subText = isDarkMode ? "text-gray-400" : "text-gray-500";
+
+  // Estimate next interval based on current word progress
+  const estimateNextInterval = (grade: ReviewGrade, interval: number) => {
+    const currentInterval = interval || 0;
+    if (grade === "AGAIN") return "8 giờ";
+    if (grade === "HARD") {
+      if (currentInterval <= 1) return "3 ngày";
+      return `${Math.max(currentInterval + 1, Math.ceil(currentInterval * 1.2))} ngày`;
+    }
+    if (grade === "GOOD") {
+      if (currentInterval <= 0) return "1 ngày";
+      if (currentInterval === 1) return "3 ngày";
+      if (currentInterval === 3) return "7 ngày";
+      if (currentInterval === 7) return "14 ngày";
+      if (currentInterval === 14) return "30 ngày";
+      return `${Math.max(currentInterval + 1, Math.round(currentInterval * 2.5))} ngày`;
+    }
+    if (grade === "EASY") {
+      if (currentInterval <= 0) return "4 ngày";
+      if (currentInterval <= 3) return "7 ngày";
+      return `${Math.max(currentInterval + 2, Math.round(currentInterval * 2.5 * 1.3))} ngày`;
+    }
+    return "";
+  };
 
   return (
     <div className="space-y-4">
@@ -202,7 +232,7 @@ export default function TodayReviewDashboard({ isDarkMode = false }: Props) {
               <div className={`px-5 pt-5 pb-3 border-b ${isDarkMode ? "border-gray-700" : "border-gray-100"}`}>
                 <div className="flex items-center justify-between mb-1">
                   <span className={`text-xs font-bold uppercase tracking-widest ${subText}`}>
-                    {current.type === "KNOWN" ? "🏆 Đã thuộc · Ôn lại" : "📖 Chưa thuộc · Học mới"}
+                    {queueTypeLabel(current.type)}
                   </span>
                   <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${isDarkMode ? "bg-gray-700 text-gray-400" : "bg-gray-100 text-gray-500"}`}>
                     {completedCount + 1}/{totalCount}
@@ -216,26 +246,29 @@ export default function TodayReviewDashboard({ isDarkMode = false }: Props) {
               {/* Answer Area */}
               <div className="px-5 py-4">
                 {showAnswer ? (
-                  <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <p className={`text-lg font-semibold mb-4 ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>
-                      {current.meaning}
-                    </p>
-                    <p className={`text-xs mb-4 ${subText}`}>Bạn nhớ từ này ở mức nào?</p>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {gradeButtons.map((btn) => (
-                        <button
-                          key={btn.grade}
-                          disabled={grading}
-                          onClick={() => onGrade(btn.grade)}
-                          className={`${btn.bg} ${btn.text} rounded-xl px-3 py-3 text-sm font-bold shadow-lg ${btn.shadow} transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed`}
-                        >
-                          <span className="text-lg block mb-0.5">{btn.emoji}</span>
-                          {btn.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
+                      <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <p className={`text-lg font-semibold mb-3 ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>
+                          {current.meaning}
+                        </p>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
+                          {gradeButtons.map((btn) => (
+                            <button
+                              key={btn.grade}
+                              disabled={grading}
+                              onClick={() => onGrade(btn.grade)}
+                              className={`${btn.bg} ${btn.text} rounded-xl px-2 py-3 shadow-lg ${btn.shadow} transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 flex flex-col items-center justify-center`}
+                            >
+                              <span className="text-xl block mb-0.5">{btn.emoji}</span>
+                              <span className="font-black text-xs uppercase tracking-tighter">{btn.label}</span>
+                              <span className="text-[10px] opacity-70 font-medium mt-1 bg-black/10 px-1.5 py-0.5 rounded-full">
+                                {estimateNextInterval(btn.grade, current.intervalDays)}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
                   <button
                     onClick={() => setShowAnswer(true)}
                     className="w-full py-3 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-95 shadow-lg shadow-cyan-500/20"
@@ -246,7 +279,7 @@ export default function TodayReviewDashboard({ isDarkMode = false }: Props) {
               </div>
             </div>
           ) : (
-            /* All Done */
+            /* All Done or Empty */
             <div className={`rounded-2xl border ${card} p-10 text-center`}>
               <div className="w-16 h-16 mx-auto mb-4 bg-emerald-500/15 rounded-full flex items-center justify-center">
                 <CheckCircle2 size={32} className="text-emerald-500" />
@@ -255,10 +288,54 @@ export default function TodayReviewDashboard({ isDarkMode = false }: Props) {
                 Hoàn thành rồi! 🎉
               </h3>
               <p className={`text-sm ${subText}`}>
-                Bạn đã ôn xong <strong>{totalCount}</strong> từ hôm nay. Thật tuyệt vời!
+                {totalCount > 0 
+                  ? `Bạn đã ôn xong ${totalCount} từ hôm nay. Thật tuyệt vời!`
+                  : "Hôm nay chưa có bài ôn tập nào. Bạn hãy học thêm từ mới nhé!"}
               </p>
             </div>
           )}
+
+          {/* SRS Legend / Explanation - ALWAYS VISIBLE */}
+          <div className={`p-5 rounded-2xl border bg-opacity-50 ${isDarkMode ? "bg-gray-900/50 border-gray-700" : "bg-gray-50 border-gray-200"}`}>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-1 px-2 rounded-lg bg-cyan-500/10 text-cyan-500 font-black text-[10px] tracking-tight">SRS GUIDE</div>
+              <span className={`text-[12px] font-black uppercase tracking-wider ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>Hướng dẫn hệ thống ôn tập lặp lại định kỳ</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-red-500/15 flex items-center justify-center text-red-500 font-bold flex-shrink-0">😵</div>
+                  <div>
+                    <h4 className={`text-xs font-black ${isDarkMode ? "text-red-400" : "text-red-600"} uppercase`}>Again (Quên rồi)</h4>
+                    <p className={`text-[11px] leading-relaxed mt-1 ${subText}`}>Hệ thống hiểu bạn vừa quên từ này. Nó sẽ bắt bạn học lại sớm (trong 8 - 24 tiếng tới).</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center text-amber-500 font-bold flex-shrink-0">😓</div>
+                  <div>
+                    <h4 className={`text-xs font-black ${isDarkMode ? "text-amber-400" : "text-amber-600"} uppercase`}>Hard (Khó)</h4>
+                    <p className={`text-[11px] leading-relaxed mt-1 ${subText}`}>Bạn nhớ nhưng phải suy nghĩ lâu. Lịch ôn tập sẽ được lùi lại nhẹ nhàng (khoảng 3 ngày).</p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-cyan-500/15 flex items-center justify-center text-cyan-500 font-bold flex-shrink-0">😊</div>
+                  <div>
+                    <h4 className={`text-xs font-black ${isDarkMode ? "text-cyan-400" : "text-cyan-600"} uppercase`}>Good (Ổn rồi)</h4>
+                    <p className={`text-[11px] leading-relaxed mt-1 ${subText}`}>Bạn nhớ rõ và phản xạ tự nhiên. Đây là mức lý tưởng để dãn lịch ôn xa hơn (7 - 14 ngày).</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center text-emerald-500 font-bold flex-shrink-0">🏆</div>
+                  <div>
+                    <h4 className={`text-xs font-black ${isDarkMode ? "text-emerald-400" : "text-emerald-600"} uppercase`}>Easy (Dễ thôi)</h4>
+                    <p className={`text-[11px] leading-relaxed mt-1 ${subText}`}>Từ này quá dễ với bạn. Hệ thống sẽ lùi lịch nhắc ra rất xa (ít nhất 1-2 tháng sau mới gặp lại).</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </>
       )}
 
@@ -271,3 +348,4 @@ export default function TodayReviewDashboard({ isDarkMode = false }: Props) {
     </div>
   );
 }
+

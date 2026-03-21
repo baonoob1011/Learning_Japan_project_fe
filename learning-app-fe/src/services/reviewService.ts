@@ -13,6 +13,7 @@ export interface ReviewWordItem {
   type: ReviewQueueType;
   status: LearningStatus;
   lapseCount: number;
+  intervalDays: number;
   nextReviewAt: string;
   completed: boolean;
 }
@@ -56,3 +57,4 @@ export const reviewService = {
     );
   },
 };
+

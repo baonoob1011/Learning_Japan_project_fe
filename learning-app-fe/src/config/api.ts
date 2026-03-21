@@ -251,6 +251,7 @@ export const API_ENDPOINTS = {
   VOCAB: {
     MARK_VOCAB: "/learning/vocab/mark",
     CREATE: "/vocab",
+    CREATE_MANUAL: "/vocab/manual",
     GET_MY: "/vocab",
     GET_MY_VIDEO: (videoId: string) => `/vocab/my/video/${videoId}`,
     UPDATE_MEANING: "/vocab",

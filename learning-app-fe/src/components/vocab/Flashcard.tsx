@@ -8,7 +8,7 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
-import { vocabService, VocabResponse } from "@/services/vocabService";
+import { vocabService, VocabResponse, StudyMode } from "@/services/vocabService";
 import { LearningStatus } from "@/enums/LearningStatus";
 
 interface FlashcardProps {
@@ -122,10 +122,11 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
       await vocabService.markVocab({
         vocabId: card.id,
         remembered,
+        studyMode: StudyMode.FLASHCARD,
       });
 
       const newStatus = remembered ? LearningStatus.KNOWN : LearningStatus.FORGOTTEN;
-      
+
       // LOG: Kiểm tra trạng thái mới
       console.log(`[Flashcard] vocab: ${card.surface}, newStatus: ${newStatus}`);
 
@@ -141,12 +142,12 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
 
       // Nếu "Đã thuộc", chuyển sang card tiếp theo sau hiệu ứng
       if (remembered) {
-          setTimeout(() => {
-              setCurrentCard(prev => {
-                  if (prev < filteredVocabs.length - 1) return prev + 1;
-                  return prev;
-              });
-          }, 300);
+        setTimeout(() => {
+          setCurrentCard(prev => {
+            if (prev < filteredVocabs.length - 1) return prev + 1;
+            return prev;
+          });
+        }, 300);
       }
     } catch (err) {
       console.error("Mark vocab failed:", err);

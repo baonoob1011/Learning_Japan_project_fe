@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { vocabService, VocabResponse } from "@/services/vocabService";
 import { Layers, RotateCw, Trophy, Gamepad2 } from "lucide-react";
+import { LearningStatus } from "@/enums/LearningStatus";
 
 interface GameCard {
     id: string;
@@ -26,9 +27,16 @@ const VocabMemoryGame: React.FC<VocabMemoryGameProps> = ({ isDarkMode }) => {
     const initializeGame = useCallback(async () => {
         try {
             setLoading(true);
-            const vocabs = await vocabService.getMyVocabs();
-            // Use 12 items for 24 cards
-            const gameVocabs = vocabs.length >= 12 ? vocabs.slice(0, 12) : vocabs;
+            const allVocabs = await vocabService.getMyVocabs();
+            
+            // ✅ Chỉ lấy những từ "Chưa thuộc" (KHÁC KNOWN)
+            const unlearnedVocabs = allVocabs.filter(v => v.status !== LearningStatus.KNOWN);
+            
+            // Xáo trộn sơ bộ để lấy đa dạng từ
+            const shuffledUnlearned = [...unlearnedVocabs].sort(() => Math.random() - 0.5);
+            
+            // Lấy tối đa 12 từ để tạo 24 thẻ
+            const gameVocabs = shuffledUnlearned.slice(0, 12);
 
             const gameCards: GameCard[] = [];
             gameVocabs.forEach((v) => {

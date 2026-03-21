@@ -9,8 +9,9 @@ import {
     X,
     Loader2,
     BookOpen,
+    Plus,
 } from "lucide-react";
-import { vocabService, VocabResponse } from "@/services/vocabService";
+import { vocabService, VocabResponse, StudyMode } from "@/services/vocabService";
 import { LearningStatus } from "@/enums/LearningStatus";
 import ConfirmModal from "./ConfirmModal";
 
@@ -29,6 +30,14 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
     const [filter, setFilter] = useState<"ALL" | "KNOWN" | "UNLEARNED">("ALL");
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [deleteVocabItem, setDeleteVocabItem] = useState<{ surface: string; id: string } | null>(null);
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [createForm, setCreateForm] = useState({
+        surface: "",
+        translated: "",
+        reading: "",
+        romaji: "",
+        partOfSpeech: "",
+    });
 
     useEffect(() => {
         loadVocabs();
@@ -49,6 +58,49 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
     const handleDelete = (surface: string, id: string) => {
         setDeleteVocabItem({ surface, id });
         setIsConfirmOpen(true);
+    };
+
+    const handleCreateVocab = async () => {
+        const surface = createForm.surface.trim();
+        if (!surface) {
+            alert("Vui lòng nhập từ gốc.");
+            return;
+        }
+
+        try {
+            setIsActionLoading("create");
+            const created = await vocabService.createManual({
+                surface,
+                translated: createForm.translated.trim() || undefined,
+                reading: createForm.reading.trim() || undefined,
+                romaji: createForm.romaji.trim() || undefined,
+                partOfSpeech: createForm.partOfSpeech.trim() || undefined,
+            });
+
+            setVocabs(prev => {
+                const existingIndex = prev.findIndex(v => v.id === created.id);
+                if (existingIndex >= 0) {
+                    const clone = [...prev];
+                    clone[existingIndex] = created;
+                    return clone;
+                }
+                return [created, ...prev];
+            });
+
+            setCreateForm({
+                surface: "",
+                translated: "",
+                reading: "",
+                romaji: "",
+                partOfSpeech: "",
+            });
+            setIsCreateOpen(false);
+        } catch (err) {
+            console.error("Create vocab failed", err);
+            alert("Tạo từ vựng thất bại. Vui lòng thử lại.");
+        } finally {
+            setIsActionLoading(null);
+        }
     };
 
     const confirmDelete = async () => {
@@ -106,17 +158,18 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
         const isCurrentlyKnown = vocab.status === LearningStatus.KNOWN;
         const willMarkAsKnown = !isCurrentlyKnown;
         const newStatus = willMarkAsKnown ? LearningStatus.KNOWN : LearningStatus.FORGOTTEN;
-        
+
         try {
             setIsActionLoading(vocab.id);
             // Gọi API markVocab đồng bộ với Flashcard
             await vocabService.markVocab({
                 vocabId: vocab.id,
-                remembered: willMarkAsKnown
+                remembered: willMarkAsKnown,
+                studyMode: StudyMode.FLASHCARD
             });
-            
+
             console.log(`[VocabList] Toggling ${vocab.surface} to ${newStatus}`);
-            
+
             setVocabs(prev => prev.map(v =>
                 v.id.toString() === vocab.id.toString() ? { ...v, status: newStatus } : v
             ));
@@ -187,6 +240,75 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
             </div>
 
             {/* Filter Tabs Row — left: tabs, right: count + button */}
+            <div className="mb-5">
+                <div className="flex items-center justify-end mb-3">
+                    <button
+                        onClick={() => setIsCreateOpen(prev => !prev)}
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all duration-300 ${isDarkMode
+                            ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/20 hover:bg-cyan-500/30"
+                            : "bg-cyan-50 text-cyan-700 border border-cyan-100 hover:bg-cyan-100"
+                            }`}
+                    >
+                        <Plus size={16} />
+                        {isCreateOpen ? "Đóng thêm từ" : "Thêm từ"}
+                    </button>
+                </div>
+
+                {isCreateOpen && (
+                    <div className={`rounded-2xl border p-4 md:p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 ${isDarkMode
+                        ? "bg-gray-800/50 border-gray-700"
+                        : "bg-white border-gray-200 shadow-sm"
+                        }`}>
+                        {[
+                            { key: "surface", label: "Từ gốc *", placeholder: "Ví dụ: 今日" },
+                            { key: "translated", label: "Nghĩa", placeholder: "Ví dụ: hôm nay" },
+                            { key: "reading", label: "Reading", placeholder: "Ví dụ: きょう" },
+                            { key: "romaji", label: "Romaji", placeholder: "Ví dụ: kyou" },
+                            { key: "partOfSpeech", label: "Loại từ", placeholder: "Ví dụ: danh từ" },
+                        ].map((field) => (
+                            <label key={field.key} className="flex flex-col gap-1.5">
+                                <span className={`text-xs font-semibold ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
+                                    {field.label}
+                                </span>
+                                <input
+                                    type="text"
+                                    value={createForm[field.key as keyof typeof createForm]}
+                                    onChange={(e) => setCreateForm(prev => ({ ...prev, [field.key]: e.target.value }))}
+                                    placeholder={field.placeholder}
+                                    className={`w-full px-3 py-2.5 rounded-xl border outline-none transition-all ${isDarkMode
+                                        ? "bg-gray-900 border-gray-600 text-white focus:border-cyan-500"
+                                        : "bg-white border-gray-300 text-gray-900 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/20"
+                                        }`}
+                                />
+                            </label>
+                        ))}
+
+                        <div className="col-span-1 md:col-span-2 lg:col-span-5 flex justify-end gap-2 pt-1">
+                            <button
+                                onClick={() => setIsCreateOpen(false)}
+                                className={`px-4 py-2 rounded-xl font-semibold text-sm ${isDarkMode
+                                    ? "bg-gray-700 text-gray-200 hover:bg-gray-600"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    }`}
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                onClick={handleCreateVocab}
+                                disabled={isActionLoading === "create"}
+                                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all ${isDarkMode
+                                    ? "bg-cyan-500 text-white hover:bg-cyan-400"
+                                    : "bg-cyan-600 text-white hover:bg-cyan-500"
+                                    } disabled:opacity-60 disabled:cursor-not-allowed`}
+                            >
+                                {isActionLoading === "create" && <Loader2 size={16} className="animate-spin" />}
+                                Lưu từ vựng
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+
             <div className="flex items-center justify-between mb-6 gap-4">
                 {/* Filter Tabs */}
                 <div className={`inline-flex p-1 rounded-2xl border transition-all duration-300 ${isDarkMode ? "bg-gray-800/60 border-gray-700" : "bg-gray-100/50 border-gray-200"}`}>
@@ -197,7 +319,7 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                     ].map((tab) => (
                         <button
                             key={tab.id}
-                            onClick={() => setFilter(tab.id as any)}
+                            onClick={() => setFilter(tab.id as "ALL" | "KNOWN" | "UNLEARNED")}
                             className={`flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl text-sm font-bold whitespace-nowrap transition-all duration-300 ${filter === tab.id
                                 ? isDarkMode
                                     ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20"
@@ -281,7 +403,7 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                             </div>
 
                             {/* Section 2: Learning Status */}
-                            <div className="hidden md:flex flex-shrink-0 items-center justify-center w-36 px-2">
+                            <div className="hidden md:flex flex-col flex-shrink-0 items-center justify-center w-36 px-2 gap-2">
                                 <button
                                     onClick={() => handleToggleStatus(v)}
                                     disabled={isActionLoading === v.id}
@@ -303,6 +425,17 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                                         </div>
                                     )}
                                 </button>
+
+                                {v.nextReviewAt && (
+                                    <div className={`text-[9px] font-bold text-center opacity-70 ${isDarkMode ? "text-cyan-400" : "text-cyan-700"}`} title="Thời gian ôn tập lại bằng thuật toán thông minh">
+                                        ⏳ Ôn lại:<br /> {new Date(v.nextReviewAt).toLocaleString("vi-VN", {
+                                            day: "2-digit",
+                                            month: "2-digit",
+                                            hour: "2-digit",
+                                            minute: "2-digit"
+                                        })}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Section 3: Meaning (Editable) */}
@@ -340,13 +473,23 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="flex items-center gap-3">
-                                        <p className={`text-lg font-bold leading-tight ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>
-                                            {v.translated}
-                                        </p>
-                                        <div className="lg:hidden">
-                                            {v.status === LearningStatus.KNOWN ? "🏆" : "🌱"}
+                                    <div className="flex flex-col gap-1">
+                                        <div className="flex items-center gap-3">
+                                            <p className={`text-lg font-bold leading-tight ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>
+                                                {v.translated}
+                                            </p>
+                                            <div className="md:hidden">
+                                                {v.status === LearningStatus.KNOWN ? "🏆" : "🌱"}
+                                            </div>
                                         </div>
+                                        {/* Mobile view review time */}
+                                        {v.nextReviewAt && (
+                                            <div className={`md:hidden text-[9px] font-bold opacity-70 ${isDarkMode ? "text-cyan-400" : "text-cyan-600"}`}>
+                                                ⏳ Ôn lại: {new Date(v.nextReviewAt).toLocaleString("vi-VN", {
+                                                    day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
+                                                })}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>

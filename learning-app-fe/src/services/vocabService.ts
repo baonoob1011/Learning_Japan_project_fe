@@ -9,9 +9,25 @@ export interface UpdateVocabRequest {
   surface: string;
   translated: string;
 }
+
+export interface CreateManualVocabRequest {
+  surface: string;
+  translated?: string;
+  reading?: string;
+  romaji?: string;
+  partOfSpeech?: string;
+}
+export enum StudyMode {
+  FLASHCARD = "FLASHCARD",
+  LISTEN = "LISTEN",
+  WRITE = "WRITE",
+  QUIZ = "QUIZ"
+}
+
 export interface MarkVocabRequest {
   remembered: boolean;
   vocabId: string;
+  studyMode: StudyMode;
 }
 export interface VocabStatusResponse {
   vocabId: string;
@@ -26,6 +42,7 @@ export interface VocabResponse {
   partOfSpeech: string;
   audioUrl?: string;
   status?: LearningStatus;
+  nextReviewAt?: string;
 }
 
 /* ===================== SERVICE ===================== */
@@ -36,6 +53,10 @@ export const vocabService = {
    */
   save(surface: string): Promise<void> {
     return http.post<void>(API_ENDPOINTS.VOCAB.CREATE, { surface });
+  },
+
+  createManual(request: CreateManualVocabRequest): Promise<VocabResponse> {
+    return http.post<VocabResponse>(API_ENDPOINTS.VOCAB.CREATE_MANUAL, request);
   },
 
   getMyVocabsByVideo(videoId: string): Promise<VocabResponse[]> {
