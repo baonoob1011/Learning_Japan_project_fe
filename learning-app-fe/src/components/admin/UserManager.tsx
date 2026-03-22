@@ -309,14 +309,20 @@ export default function UserManager({ isDark = false }: UserManagerProps) {
                     <div className="flex items-center gap-2">
                         <button
                             disabled={page === 0}
-                            )).slice(Math.max(0, page - 1), Math.min(totalPages, page + 2))}
+                            onClick={() => setPage(prev => prev - 1)}
+                            className={`p-2.5 rounded-xl border transition-all disabled:opacity-30 active:scale-90 ${isDark ? "bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700" : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 shadow-sm"}`}
+                        >
+                            <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        <div className={`px-5 py-2.5 rounded-xl border font-black text-sm ${isDark ? "bg-gray-800 border-gray-700 text-indigo-400" : "bg-white border-gray-200 text-indigo-600 shadow-sm"}`}>
+                            {page + 1} / {totalPages}
                         </div>
                         <button
-                            disabled={page === totalPages - 1 || totalPages === 0}
-                            onClick={() => setPage(p => p + 1)}
-                            className={`p-2 rounded-xl border transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed ${isDark ? "bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700" : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"}`}
+                            disabled={page >= totalPages - 1}
+                            onClick={() => setPage(prev => prev + 1)}
+                            className={`p-2.5 rounded-xl border transition-all disabled:opacity-30 active:scale-90 ${isDark ? "bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700" : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 shadow-sm"}`}
                         >
-                            <ChevronRight className="w-4 h-4" />
+                            <ChevronRight className="w-5 h-5" />
                         </button>
                     </div>
                 </div>
