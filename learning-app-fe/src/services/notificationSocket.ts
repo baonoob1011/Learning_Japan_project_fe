@@ -1,6 +1,7 @@
 import SockJS from "sockjs-client";
 import { Client, IMessage } from "@stomp/stompjs";
 import { getAccessTokenFromStorage } from "@/utils/jwt";
+import { useAuthStore } from "@/stores/authStore";
 
 export type IncomingCallDTO = {
   type: "incoming";
@@ -85,16 +86,15 @@ export const connectNotificationSocket = (
         `/topic/user/${userId}/kick-out`,
         (message: IMessage) => {
           console.warn("🛑 [KICK_OUT] Logging out current session: Another device logged in.");
-
-          // Xóa toàn bộ token và data phiên
+          
+          const { setKickedOut } = useAuthStore.getState();
+          
+          // Xóa toàn bộ token và data phiên (trừ flag bị kick)
           localStorage.clear();
           sessionStorage.clear();
-
-          // Thông báo cho người dùng
-          alert("Tài khoản của bạn đã được đăng nhập từ một thiết bị khác. Bạn sẽ được đăng xuất ngay lập tức.");
-
-          // Chuyển hướng về trang đăng nhập
-          window.location.href = "/login";
+          
+          // Kích hoạt Modal thông báo đẹp
+          setKickedOut(true);
         }
       );
     },

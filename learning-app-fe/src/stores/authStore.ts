@@ -26,6 +26,8 @@ interface AuthState {
   logout: () => void;
   clearError: () => void;
   setLoading: (loading: boolean) => void;
+  isKickedOut: boolean;
+  setKickedOut: (kicked: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -38,6 +40,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+      isKickedOut: false,
 
       // Actions
       setTokens: ({ accessToken, refreshToken }) => {
@@ -72,6 +75,7 @@ export const useAuthStore = create<AuthState>()(
 
       clearError: () => set({ error: null }),
       setLoading: (loading: boolean) => set({ isLoading: loading }),
+      setKickedOut: (kicked: boolean) => set({ isKickedOut: kicked }),
     }),
     {
       name: "auth-storage", // key lưu trong localStorage
