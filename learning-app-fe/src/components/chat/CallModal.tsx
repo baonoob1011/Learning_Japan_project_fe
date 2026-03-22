@@ -72,6 +72,7 @@ export const CallModal = ({
 
       element.srcObject = stream;
       element.muted = muted;
+      element.volume = 1.0;
 
       try {
         await element.play();
@@ -102,11 +103,12 @@ export const CallModal = ({
   }, []);
 
   const ensureLocalMedia = useCallback(async () => {
-    const stream = await getLocalStream();
+    const videoEnabled = type !== "VOICE";
+    const stream = await getLocalStream(videoEnabled);
     await attachStreamToVideo(localVideoRef.current, stream, true);
     addTracksToPeer();
     return stream;
-  }, [addTracksToPeer, attachStreamToVideo, getLocalStream]);
+  }, [addTracksToPeer, attachStreamToVideo, getLocalStream, type]);
 
   useEffect(() => {
     if (callState === "ringing" && !isCaller) {
@@ -144,12 +146,20 @@ export const CallModal = ({
   useEffect(() => {
     if (callState !== "in-call") return;
 
-    const attachWithRetry = () => {
+    const attachWithRetry = async () => {
       if (localStreamRef.current && localVideoRef.current) {
-          attachStreamToVideo(localVideoRef.current, localStreamRef.current, true);
+        await attachStreamToVideo(localVideoRef.current, localStreamRef.current, true);
       }
       if (remoteStream && remoteVideoRef.current) {
-          attachStreamToVideo(remoteVideoRef.current, remoteStream, false);
+        // IMPORTANT: remote stream must NOT be muted so user can hear
+        remoteVideoRef.current.srcObject = remoteStream;
+        remoteVideoRef.current.muted = false;
+        remoteVideoRef.current.volume = 1.0;
+        try {
+          await remoteVideoRef.current.play();
+        } catch (e) {
+          console.warn("[CallModal] remote play error:", e);
+        }
       }
     };
 
@@ -161,9 +171,9 @@ export const CallModal = ({
 
     // If voice call, make sure local video is off in tracks
     if (type === "VOICE" && localStreamRef.current) {
-        localStreamRef.current.getVideoTracks().forEach(t => t.enabled = false);
+      localStreamRef.current.getVideoTracks().forEach(t => t.enabled = false);
     }
-    
+
     return () => clearTimeout(timeout);
   }, [attachStreamToVideo, callState, localStreamRef, remoteStream, isVideoOff, type]);
 
@@ -194,12 +204,12 @@ export const CallModal = ({
       if (!receiverId && !isCaller) {
         // If we don't have receiverId (caller), we need to know who we were calling
       }
-      
-      const actualCallerId = isCaller ? currentUserId : (receiverId || ""); 
+
+      const actualCallerId = isCaller ? currentUserId : (receiverId || "");
       const actualReceiverId = isCaller ? (receiverId || "") : currentUserId;
 
       await callService.saveCall({
-        callerId: isCaller ? currentUserId : (receiverId || ""), 
+        callerId: isCaller ? currentUserId : (receiverId || ""),
         receiverId: isCaller ? (receiverId || "") : currentUserId,
         type: type, // Use the provided type
         status,
@@ -330,29 +340,32 @@ export const CallModal = ({
         };
 
         peer.ontrack = async (event) => {
-          console.log("[CallModal] Incoming track:", event.track.kind);
-          
-          setRemoteStream(prev => {
-            const targetStream = prev || new MediaStream();
-            const incomingStream = event.streams[0];
+          console.log("[CallModal] Incoming track:", event.track.kind, event.streams);
 
-            if (incomingStream) {
-              incomingStream.getTracks().forEach((track) => {
-                if (!targetStream.getTracks().some(t => t.id === track.id)) {
-                  targetStream.addTrack(track);
-                }
-              });
-            } else {
-               if (!targetStream.getTracks().some(t => t.id === event.track.id)) {
-                 targetStream.addTrack(event.track);
-               }
-            }
-            
-            // Return a NEW MediaStream object to trigger React state update
-            return new MediaStream(targetStream);
-          });
+          const incomingStream = event.streams[0];
+
+          if (incomingStream) {
+            setRemoteStream(incomingStream);
+          } else {
+            // Fallback: construct from individual tracks
+            setRemoteStream(prev => {
+              const targetStream = prev || new MediaStream();
+              if (!targetStream.getTracks().some(t => t.id === event.track.id)) {
+                targetStream.addTrack(event.track);
+              }
+              return new MediaStream(targetStream.getTracks());
+            });
+          }
 
           setCallState("in-call");
+
+          // Attach directly to remoteVideoRef if available
+          if (remoteVideoRef.current && incomingStream) {
+            remoteVideoRef.current.srcObject = incomingStream;
+            remoteVideoRef.current.muted = false;
+            remoteVideoRef.current.volume = 1.0;
+            remoteVideoRef.current.play().catch(e => console.warn("[CallModal] direct play error:", e));
+          }
         };
 
         subscription = client.subscribe(`/topic/call/${roomId}`, async (message) => {
@@ -424,7 +437,7 @@ export const CallModal = ({
             callerName: callerName ?? contactName,
             callerAvatar: callerAvatar ?? contactAvatar,
             receiverId,
-            type, // Add type here
+            callType: type, // Pass call type (VIDEO/VOICE)
           });
         } else {
           console.warn("[CallModal] isCaller=true but receiverId is missing");
@@ -489,16 +502,15 @@ export const CallModal = ({
               <img
                 src={displayAvatar || "/default-avatar.png"}
                 alt={displayName}
-                className={`w-32 h-32 rounded-full object-cover ring-4 ring-cyan-500/30 shadow-[0_0_50px_rgba(6,182,212,0.3)] ${
-                  callState === "ringing" ? "animate-pulse" : ""
-                }`}
+                className={`w-32 h-32 rounded-full object-cover ring-4 ring-cyan-500/30 shadow-[0_0_50px_rgba(6,182,212,0.3)] ${callState === "ringing" ? "animate-pulse" : ""
+                  }`}
               />
               {callState === "ringing" && (
                 <span className="absolute inset-0 rounded-full animate-ping border-4 border-cyan-500/50" />
               )}
             </div>
           )}
-          
+
           <h2 className="text-3xl font-black text-white tracking-tight mb-2 drop-shadow-md">
             {displayName}
           </h2>
@@ -506,9 +518,8 @@ export const CallModal = ({
             {callState === "in-call" && (
               <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
             )}
-            <p className={`text-sm font-semibold uppercase tracking-widest ${
-              callState === "in-call" ? "text-emerald-400 font-mono" : "text-gray-400"
-            }`}>
+            <p className={`text-sm font-semibold uppercase tracking-widest ${callState === "in-call" ? "text-emerald-400 font-mono" : "text-gray-400"
+              }`}>
               {stateLabel[callState]}
             </p>
           </div>
@@ -517,103 +528,100 @@ export const CallModal = ({
         {/* Video Stage */}
         <div className="absolute inset-0 z-10 w-full h-full flex items-center justify-center pointer-events-none">
           {callState === "in-call" ? (
-             <div className="relative w-full h-full pointer-events-auto overflow-hidden">
-                {/* Remote Video (Full Screen) */}
-                <video
-                  ref={remoteVideoRef}
-                  autoPlay
-                  playsInline
-                  className="w-full h-full object-cover"
-                />
+            <div className="relative w-full h-full pointer-events-auto overflow-hidden">
+              {/* Remote Video (Full Screen) */}
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                className="w-full h-full object-cover"
+              />
 
-                {/* Local Video (Floating PIP) */}
-                <div className={`absolute top-8 right-8 w-44 md:w-60 aspect-video rounded-3xl overflow-hidden border-2 border-white/20 shadow-2xl z-30 group transition-all duration-300 hover:scale-[1.05] ${
-                  isVideoOff ? "bg-gray-900" : "bg-black"
+              {/* Local Video (Floating PIP) */}
+              <div className={`absolute top-8 right-8 w-44 md:w-60 aspect-video rounded-3xl overflow-hidden border-2 border-white/20 shadow-2xl z-30 group transition-all duration-300 hover:scale-[1.05] ${isVideoOff ? "bg-gray-900" : "bg-black"
                 }`}>
-                  {isVideoOff ? (
-                    <div className="w-full h-full flex items-center justify-center">
-                       <img src={callerAvatar || "/default-avatar.png"} alt="me" className="w-12 h-12 rounded-full opacity-50" />
-                    </div>
-                  ) : (
-                    <video
-                      ref={localVideoRef}
-                      autoPlay
-                      playsInline
-                      muted
-                      className="w-full h-full object-cover"
-                    />
-                  )}
-                  {/* Local Mute Indicator */}
-                  {isMuted && (
-                    <div className="absolute bottom-2 left-2 p-1.5 bg-red-500/80 rounded-full backdrop-blur-md">
-                      <MicOff size={10} className="text-white" />
-                    </div>
-                  )}
-                </div>
-             </div>
+                {isVideoOff ? (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <img src={callerAvatar || "/default-avatar.png"} alt="me" className="w-12 h-12 rounded-full opacity-50" />
+                  </div>
+                ) : (
+                  <video
+                    ref={localVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover"
+                  />
+                )}
+                {/* Local Mute Indicator */}
+                {isMuted && (
+                  <div className="absolute bottom-2 left-2 p-1.5 bg-red-500/80 rounded-full backdrop-blur-md">
+                    <MicOff size={10} className="text-white" />
+                  </div>
+                )}
+              </div>
+            </div>
           ) : null}
         </div>
 
         {/* Controls Bar */}
         <div className="z-30 mb-8 animate-slide-up">
-           <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-full px-8 py-5 flex items-center gap-6 shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
-              {callState === "in-call" && (
-                <>
-                  <button
-                    onClick={toggleMute}
-                    className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 ${
-                      isMuted ? "bg-red-500 text-white shadow-lg shadow-red-500/20" : "bg-white/10 text-white hover:bg-white/20"
-                    }`}
-                  >
-                    {isMuted ? <MicOff size={24} /> : <Mic size={24} />}
-                  </button>
-
-                  <button
-                    onClick={() => {
-                        if (localStreamRef.current) {
-                            const videoTrack = localStreamRef.current.getVideoTracks()[0];
-                            if (videoTrack) {
-                                videoTrack.enabled = isVideoOff;
-                                setIsVideoOff(!isVideoOff);
-                            }
-                        }
-                    }}
-                    className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 ${
-                      isVideoOff ? "bg-red-500 text-white shadow-lg shadow-red-500/20" : "bg-white/10 text-white hover:bg-white/20"
-                    }`}
-                  >
-                    {isVideoOff ? <CameraOff size={24} /> : <Camera size={24} />}
-                  </button>
-                  
-                  <div className="w-[1px] h-8 bg-white/20 mx-2" />
-                </>
-              )}
-
-              {/* End Call Button */}
-              <button
-                onClick={() => handleEndCall()}
-                className="w-16 h-16 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center text-white shadow-2xl shadow-red-600/30 transition-all duration-300 hover:scale-110 active:scale-95 hover:rotate-12"
-              >
-                <PhoneOff size={28} />
-              </button>
-
-              {/* Accept Button (Only for ringing receiver) */}
-              {callState === "ringing" && !isCaller && (
+          <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-full px-8 py-5 flex items-center gap-6 shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+            {callState === "in-call" && (
+              <>
                 <button
-                  onClick={handleAccept}
-                  className="w-16 h-16 rounded-full bg-emerald-500 hover:bg-emerald-600 flex items-center justify-center text-white shadow-2xl shadow-emerald-500/30 transition-all duration-300 hover:scale-110 active:scale-95 animate-bounce-custom"
+                  onClick={toggleMute}
+                  className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 ${isMuted ? "bg-red-500 text-white shadow-lg shadow-red-500/20" : "bg-white/10 text-white hover:bg-white/20"
+                    }`}
                 >
-                  <Phone size={28} />
+                  {isMuted ? <MicOff size={24} /> : <Mic size={24} />}
                 </button>
-              )}
-           </div>
+
+                <button
+                  onClick={() => {
+                    if (localStreamRef.current) {
+                      const videoTrack = localStreamRef.current.getVideoTracks()[0];
+                      if (videoTrack) {
+                        videoTrack.enabled = isVideoOff;
+                        setIsVideoOff(!isVideoOff);
+                      }
+                    }
+                  }}
+                  className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 ${isVideoOff ? "bg-red-500 text-white shadow-lg shadow-red-500/20" : "bg-white/10 text-white hover:bg-white/20"
+                    }`}
+                >
+                  {isVideoOff ? <CameraOff size={24} /> : <Camera size={24} />}
+                </button>
+
+                <div className="w-[1px] h-8 bg-white/20 mx-2" />
+              </>
+            )}
+
+            {/* End Call Button */}
+            <button
+              onClick={() => handleEndCall()}
+              className="w-16 h-16 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center text-white shadow-2xl shadow-red-600/30 transition-all duration-300 hover:scale-110 active:scale-95 hover:rotate-12"
+            >
+              <PhoneOff size={28} />
+            </button>
+
+            {/* Accept Button (Only for ringing receiver) */}
+            {callState === "ringing" && !isCaller && (
+              <button
+                onClick={handleAccept}
+                className="w-16 h-16 rounded-full bg-emerald-500 hover:bg-emerald-600 flex items-center justify-center text-white shadow-2xl shadow-emerald-500/30 transition-all duration-300 hover:scale-110 active:scale-95 animate-bounce-custom"
+              >
+                <Phone size={28} />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Ended Pulse */}
         {callState === "ended" && (
           <div className="absolute inset-0 flex items-center justify-center z-50 animate-fade-out">
             <div className="bg-red-500/20 backdrop-blur-md rounded-full p-8">
-               <PhoneOff size={48} className="text-red-500 animate-bounce" />
+              <PhoneOff size={48} className="text-red-500 animate-bounce" />
             </div>
           </div>
         )}

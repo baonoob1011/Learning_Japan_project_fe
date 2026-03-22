@@ -142,6 +142,8 @@ export const API_ENDPOINTS = {
     DELETE_USER: `/admin/users/delete-account`,
     DELETE_USERS: `/admin/users/delete-accounts`,
     USER_STATISTICS: "/admin/users/stats",
+    SYSTEM_LOGS: "/admin/system-logs",
+    SYSTEM_LOG_BY_ID: (id: string) => `/admin/system-logs/${id}`,
   },
 
   NOTIFICATION: {

@@ -4,6 +4,7 @@ import { getAccessTokenFromStorage } from "@/utils/jwt";
 
 export type IncomingCallDTO = {
   type: "incoming";
+  callType?: "VIDEO" | "VOICE";  // VIDEO or VOICE call type
   roomId: string;
   callerId: string;
   callerName: string;

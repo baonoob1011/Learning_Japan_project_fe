@@ -13,6 +13,7 @@ import {
     Video,
     Languages,
     FileEdit,
+    Activity,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -71,6 +72,11 @@ export default function AdminSidebar({ isDark = false }: SidebarProps) {
             path: "/dasboardAdmin/exams",
             icon: <FileEdit className="w-5 h-5" />,
             label: "Quản lý Đề thi",
+        },
+        {
+            path: "/dasboardAdmin/system-logs",
+            icon: <Activity className="w-5 h-5" />,
+            label: "System Logs",
         },
     ];
 
