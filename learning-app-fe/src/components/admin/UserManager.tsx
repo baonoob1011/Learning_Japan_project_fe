@@ -325,19 +325,18 @@ export default function UserManager({ isDark = false }: UserManagerProps) {
                             <ChevronRight className="w-5 h-5" />
                         </button>
                     </div>
-                    </div>
                 </div>
-            </div>
 
-            <ConfirmModal
-                isOpen={confirmState.isOpen}
-                onClose={closeConfirm}
-                onConfirm={confirmState.onConfirm}
-                title={confirmState.title}
-                message={confirmState.message}
-                isDanger={confirmState.isDanger}
-                isDark={isDark}
-            />
+                <ConfirmModal
+                    isOpen={confirmState.isOpen}
+                    onClose={closeConfirm}
+                    onConfirm={confirmState.onConfirm}
+                    title={confirmState.title}
+                    message={confirmState.message}
+                    isDanger={confirmState.isDanger}
+                    isDark={isDark}
+                />
+            </div>
         </div>
     );
 }
