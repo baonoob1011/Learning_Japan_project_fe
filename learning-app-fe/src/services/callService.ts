@@ -11,10 +11,27 @@ export interface CallRecordRequest {
   roomId: string;
 }
 
+// Hàm helper để lấy token
+const getAuthHeader = () => {
+  const storageItem = typeof window !== "undefined" ? localStorage.getItem("auth-storage") : null;
+  if (storageItem) {
+    try {
+      const parsed = JSON.parse(storageItem);
+      const token = parsed?.state?.accessToken;
+      if (token) return { Authorization: `Bearer ${token}` };
+    } catch (e) {
+      console.error("Error parsing token", e);
+    }
+  }
+  return {};
+};
+
 export const callService = {
   saveCall: async (request: CallRecordRequest) => {
     try {
-      const response = await axios.post(`${API_URL}/api/call-history/save`, request);
+      const response = await axios.post(`${API_URL}/api/call-history/save`, request, {
+        headers: getAuthHeader()
+      });
       return response.data;
     } catch (error) {
       console.error("Failed to save call history:", error);
@@ -24,7 +41,9 @@ export const callService = {
 
   getUserHistory: async (userId: string) => {
     try {
-      const response = await axios.get(`${API_URL}/api/call-history/user/${userId}`);
+      const response = await axios.get(`${API_URL}/api/call-history/user/${userId}`, {
+        headers: getAuthHeader()
+      });
       return response.data;
     } catch (error) {
       console.error("Failed to fetch call history:", error);

@@ -9,7 +9,6 @@ import {
     X,
     Loader2,
     BookOpen,
-    Plus,
 } from "lucide-react";
 import { vocabService, VocabResponse, StudyMode } from "@/services/vocabService";
 import { LearningStatus } from "@/enums/LearningStatus";

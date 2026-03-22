@@ -43,11 +43,10 @@ export const CallModal = ({
   onClose,
   type = "VIDEO",
 }: Props) => {
-  const { createPeerConnection, getLocalStream, addTracksToPeer, localStreamRef } =
+  const { createPeerConnection, getLocalStream, addTracksToPeer, localStreamRef, peerRef } =
     useWebRTC();
   const ringAudioRef = useRef<HTMLAudioElement | null>(null);
   const stompRef = useRef<Client | null>(null);
-  const peerRef = useRef<RTCPeerConnection | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const hasSentOfferRef = useRef(false);
