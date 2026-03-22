@@ -498,22 +498,26 @@ export default function SystemLogManager({ isDark }: Props) {
                     </div>
 
                     <div className="xl:col-span-2">
-                        <label className={`text-[11px] font-semibold uppercase tracking-wider mb-1 flex items-center gap-1 ${labelCls}`}>
-                            <CalendarRange className="w-3 h-3" /> Khoảng thời gian
+                        <label className={`text-[11px] font-black uppercase tracking-[0.15em] mb-1.5 flex items-center gap-2 ${labelCls}`}>
+                            <CalendarRange className="w-3.5 h-3.5 text-indigo-500" /> 
+                            <span>Khoảng thời gian</span>
                         </label>
-                        <div className="flex flex-wrap sm:flex-nowrap gap-2">
-                            <div className="flex-1 min-w-[140px]">
+                        <div className={`flex items-center gap-0 p-1.5 rounded-2xl border transition-all duration-300 ${isDark ? "bg-gray-900/50 border-gray-600 focus-within:border-indigo-500/50 focus-within:ring-4 focus-within:ring-indigo-500/10" : "bg-gray-50/50 border-gray-200 focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-400/10"}`}>
+                            <div className="flex-1 relative group/from">
+                                <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-[9px] font-black uppercase tracking-tighter opacity-30 group-focus-within/from:opacity-100 group-focus-within/from:text-indigo-500 transition-all ${isDark ? "text-gray-400" : "text-gray-500"}`}>Từ</span>
                                 <input
                                     type="datetime-local"
-                                    className={`${inputCls} !text-[12px]`}
+                                    className="w-full pl-8 pr-2 py-1.5 bg-transparent outline-none text-[11px] font-bold border-none"
                                     value={from}
                                     onChange={(e) => setFrom(e.target.value)}
                                 />
                             </div>
-                            <div className="flex-1 min-w-[140px]">
+                            <div className={`w-[1px] h-4 mx-1 opacity-20 ${isDark ? "bg-gray-600" : "bg-gray-300"}`}></div>
+                            <div className="flex-1 relative group/to">
+                                <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-[9px] font-black uppercase tracking-tighter opacity-30 group-focus-within/to:opacity-100 group-focus-within/to:text-indigo-500 transition-all ${isDark ? "text-gray-400" : "text-gray-500"}`}>Đến</span>
                                 <input
                                     type="datetime-local"
-                                    className={`${inputCls} !text-[12px]`}
+                                    className="w-full pl-9 pr-2 py-1.5 bg-transparent outline-none text-[11px] font-bold border-none"
                                     value={to}
                                     onChange={(e) => setTo(e.target.value)}
                                 />
