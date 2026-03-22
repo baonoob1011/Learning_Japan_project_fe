@@ -103,11 +103,26 @@ export const CallModal = ({
   }, []);
 
   const ensureLocalMedia = useCallback(async () => {
-    const videoEnabled = type !== "VOICE";
-    const stream = await getLocalStream(videoEnabled);
-    await attachStreamToVideo(localVideoRef.current, stream, true);
-    addTracksToPeer();
-    return stream;
+    try {
+      const videoEnabled = type !== "VOICE";
+      const stream = await getLocalStream(videoEnabled);
+
+      // Ensure transceivers are set up before adding tracks
+      if (peerRef.current) {
+        const transceivers = peerRef.current.getTransceivers();
+        if (transceivers.length === 0) {
+          peerRef.current.addTransceiver("audio", { direction: "sendrecv" });
+          peerRef.current.addTransceiver("video", { direction: "sendrecv" });
+        }
+      }
+
+      await attachStreamToVideo(localVideoRef.current, stream, true);
+      addTracksToPeer();
+      return stream;
+    } catch (err) {
+      console.error("[CallModal] ensureLocalMedia failed:", err);
+      throw err;
+    }
   }, [addTracksToPeer, attachStreamToVideo, getLocalStream, type]);
 
   useEffect(() => {
@@ -151,6 +166,7 @@ export const CallModal = ({
         await attachStreamToVideo(localVideoRef.current, localStreamRef.current, true);
       }
       if (remoteStream && remoteVideoRef.current) {
+        console.log("[CallModal] Attaching remote stream to video element");
         // IMPORTANT: remote stream must NOT be muted so user can hear
         remoteVideoRef.current.srcObject = remoteStream;
         remoteVideoRef.current.muted = false;
@@ -158,7 +174,7 @@ export const CallModal = ({
         try {
           await remoteVideoRef.current.play();
         } catch (e) {
-          console.warn("[CallModal] remote play error:", e);
+          console.warn("[CallModal] remote play error (auto-play block):", e);
         }
       }
     };
@@ -166,15 +182,19 @@ export const CallModal = ({
     // Attach immediately
     attachWithRetry();
 
-    // Sometimes the ref is null for a few ms after state change, so retry once
-    const timeout = setTimeout(attachWithRetry, 300);
+    // Retry after some time to ensure refs are set
+    const timeout = setTimeout(attachWithRetry, 500);
+    const timeout2 = setTimeout(attachWithRetry, 1500);
 
     // If voice call, make sure local video is off in tracks
     if (type === "VOICE" && localStreamRef.current) {
       localStreamRef.current.getVideoTracks().forEach(t => t.enabled = false);
     }
 
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(timeout);
+      clearTimeout(timeout2);
+    };
   }, [attachStreamToVideo, callState, localStreamRef, remoteStream, isVideoOff, type]);
 
   const formatDuration = (seconds: number) => {
@@ -247,19 +267,28 @@ export const CallModal = ({
   }, [callDuration, callState, cleanupMedia, currentUserId, isCaller, onClose, roomId, saveCallRecord]);
 
   const handleAccept = useCallback(async () => {
-    const peer = peerRef.current;
-    const stomp = stompRef.current;
-    if (!peer || !stomp?.connected) return;
+    try {
+      const peer = peerRef.current;
+      const stomp = stompRef.current;
+      if (!peer || !stomp?.connected) {
+        console.error("[CallModal] State Error: Peer or STOMP not ready");
+        return;
+      }
 
-    await ensureLocalMedia();
+      setCallState("connecting");
+      await ensureLocalMedia();
 
-    const answer = await peer.createAnswer();
-    await peer.setLocalDescription(answer);
-    sendAnswer(stomp, roomId, answer, currentUserId);
-    await flushPendingIceCandidates();
-    setCallState("in-call");
-    // History will be saved when ended
-  }, [currentUserId, ensureLocalMedia, flushPendingIceCandidates, roomId]);
+      const answer = await peer.createAnswer();
+      await peer.setLocalDescription(answer);
+      sendAnswer(stomp, roomId, answer, currentUserId);
+      await flushPendingIceCandidates();
+      setCallState("in-call");
+    } catch (err) {
+      console.error("[CallModal] handleAccept error:", err);
+      alert("Kết nối thất bại. Vui lòng kiểm tra Micro/Camera!");
+      handleEndCall();
+    }
+  }, [currentUserId, ensureLocalMedia, flushPendingIceCandidates, roomId, handleEndCall]);
 
   // Timeout for MISSED call
   useEffect(() => {
@@ -313,13 +342,26 @@ export const CallModal = ({
 
   useEffect(() => {
     let subscription: StompSubscription | undefined;
-    const backendUrl =
-      "https://api.nibojapan.cloud";
+    const backendUrl = "https://api.nibojapan.cloud";
+
+    // Auth Token
+    const storageItem = typeof window !== "undefined" ? localStorage.getItem("auth-storage") : null;
+    let token = "";
+    if (storageItem) {
+      try {
+        const parsed = JSON.parse(storageItem);
+        token = parsed?.state?.accessToken || "";
+      } catch (e) {
+        console.error("[CallModal] Token parse error", e);
+      }
+    }
 
     const client = new Client({
       webSocketFactory: () => new SockJS(`${backendUrl}/ws`),
-      reconnectDelay: 0,
+      reconnectDelay: 5000,
+      connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
       onConnect: async () => {
+        console.log("[CallModal] 🟢 STOMP Connected");
         const peer = createPeerConnection();
         peerRef.current = peer;
 
@@ -329,43 +371,38 @@ export const CallModal = ({
           }
         };
 
+        peer.oniceconnectionstatechange = () => {
+          console.log("[CallModal] 🧊 ICE State:", peer.iceConnectionState);
+          if (peer.iceConnectionState === "connected" || peer.iceConnectionState === "completed") {
+            setCallState("in-call");
+          }
+        };
+
         peer.onconnectionstatechange = () => {
-          console.log("[CallModal] ConnectionState:", peer.connectionState);
+          console.log("[CallModal] 🔌 Connection State:", peer.connectionState);
           if (peer.connectionState === "connected") {
             setCallState("in-call");
-          } else if (peer.connectionState === "failed" || peer.connectionState === "disconnected") {
-            console.error("[CallModal] RTC Connection failed or disconnected");
-            // Optionally handle reconnect or end call
+          } else if (peer.connectionState === "failed") {
+            console.warn("[CallModal] RTC connection failed");
           }
         };
 
         peer.ontrack = async (event) => {
-          console.log("[CallModal] Incoming track:", event.track.kind, event.streams);
-
+          console.log("[CallModal] 📡 Incoming track:", event.track.kind, event.streams);
           const incomingStream = event.streams[0];
 
           if (incomingStream) {
             setRemoteStream(incomingStream);
           } else {
-            // Fallback: construct from individual tracks
             setRemoteStream(prev => {
-              const targetStream = prev || new MediaStream();
-              if (!targetStream.getTracks().some(t => t.id === event.track.id)) {
-                targetStream.addTrack(event.track);
+              const base = prev || new MediaStream();
+              if (!base.getTracks().some(t => t.id === event.track.id)) {
+                base.addTrack(event.track);
               }
-              return new MediaStream(targetStream.getTracks());
+              return new MediaStream(base.getTracks());
             });
           }
-
           setCallState("in-call");
-
-          // Attach directly to remoteVideoRef if available
-          if (remoteVideoRef.current && incomingStream) {
-            remoteVideoRef.current.srcObject = incomingStream;
-            remoteVideoRef.current.muted = false;
-            remoteVideoRef.current.volume = 1.0;
-            remoteVideoRef.current.play().catch(e => console.warn("[CallModal] direct play error:", e));
-          }
         };
 
         subscription = client.subscribe(`/topic/call/${roomId}`, async (message) => {
@@ -377,22 +414,19 @@ export const CallModal = ({
           };
 
           if (signal.senderId === currentUserId) return;
+          console.log(`[CallModal] 📶 Received ${signal.type} from ${signal.senderId}`);
 
           switch (signal.type) {
             case "offer":
               if (signal.data) {
-                await peer.setRemoteDescription(
-                  signal.data as RTCSessionDescriptionInit
-                );
+                await peer.setRemoteDescription(new RTCSessionDescription(signal.data as RTCSessionDescriptionInit));
                 await flushPendingIceCandidates();
                 setCallState("ringing");
               }
               break;
             case "answer":
               if (signal.data) {
-                await peer.setRemoteDescription(
-                  signal.data as RTCSessionDescriptionInit
-                );
+                await peer.setRemoteDescription(new RTCSessionDescription(signal.data as RTCSessionDescriptionInit));
                 await flushPendingIceCandidates();
                 setCallState("in-call");
               }
@@ -411,7 +445,7 @@ export const CallModal = ({
                   try {
                     await peer.addIceCandidate(new RTCIceCandidate(candidate));
                   } catch (error) {
-                    console.error("[CallModal] addIceCandidate:", error);
+                    console.error("[CallModal] addIceCandidate error:", error);
                   }
                 }
               }
@@ -427,20 +461,15 @@ export const CallModal = ({
 
         if (!isCaller) {
           sendReadySignal(client);
-          return;
-        }
-
-        if (receiverId) {
+        } else if (receiverId) {
           sendIncomingNotification(client, {
             roomId,
             callerId: currentUserId,
             callerName: callerName ?? contactName,
             callerAvatar: callerAvatar ?? contactAvatar,
             receiverId,
-            callType: type, // Pass call type (VIDEO/VOICE)
+            callType: type,
           });
-        } else {
-          console.warn("[CallModal] isCaller=true but receiverId is missing");
         }
       },
       onStompError: (frame) => console.error("STOMP error:", frame),
@@ -456,7 +485,6 @@ export const CallModal = ({
       cleanupMedia();
     };
   }, [
-    attachStreamToVideo,
     callerAvatar,
     callerName,
     cleanupMedia,
@@ -465,13 +493,14 @@ export const CallModal = ({
     createAndSendOffer,
     createPeerConnection,
     currentUserId,
-    ensureLocalMedia,
-    flushPendingIceCandidates,
     isCaller,
     onClose,
     receiverId,
     roomId,
     sendReadySignal,
+    type,
+    ensureLocalMedia,
+    flushPendingIceCandidates
   ]);
 
   const displayName = isCaller ? contactName : callerName ?? contactName;
