@@ -5,8 +5,7 @@ import { refreshToken as refreshTokenApi } from "@/services/authService";
 
 // ----- Axios public (không auth) -----
 export const axiosPublic = axios.create({
-  baseURL:
-    "https://api.nibojapan.cloud/api/v1",
+  baseURL: "https://api.nibojapan.cloud/api/v1",
   timeout: 10000,
   headers: {
     Authorization: undefined,
@@ -15,16 +14,14 @@ export const axiosPublic = axios.create({
 
 // ----- Axios client (cần auth) -----
 export const axiosClient = axios.create({
-  baseURL:
-    "https://api.nibojapan.cloud/api/v1",
-  timeout: 60000, // 👈 tăng lên 60s cho AI
+  baseURL: "https://api.nibojapan.cloud/api/v1",
+  timeout: 60000,
 });
 
 // ----- Axios client cho upload (timeout 10 phút) -----
 export const axiosUpload = axios.create({
-  baseURL:
-    "https://api.nibojapan.cloud/api/v1",
-  timeout: 600000, // 10 phút (600,000ms)
+  baseURL: "https://api.nibojapan.cloud/api/v1",
+  timeout: 600000,
 });
 
 // ----- Custom error -----
@@ -39,108 +36,71 @@ export class HttpClientError extends Error {
 const getTokenExpiration = (token: string) => {
   try {
     const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.exp * 1000; // ms
+    return payload.exp * 1000;
   } catch {
     return 0;
   }
 };
 
-// ----- Axios interceptor tự động refresh token cho axiosClient -----
-axiosClient.interceptors.request.use(async (config) => {
-  const { accessToken, refreshToken, logout, setTokens, user } =
-    useAuthStore.getState();
+const setupRequestInterceptor = (instance: any) => {
+  instance.interceptors.request.use(async (config: any) => {
+    const { accessToken, refreshToken, logout, setTokens, user } = useAuthStore.getState();
+    if (!accessToken) return config;
 
-  if (!accessToken) return config;
+    const now = Date.now();
+    const exp = getTokenExpiration(accessToken);
 
-  const now = Date.now();
-  const exp = getTokenExpiration(accessToken);
-
-  // Đảm bảo config.headers đúng type AxiosHeaders
-  if (!config.headers) {
-    config.headers = axios.AxiosHeaders.from({});
-  } else if (!(config.headers instanceof axios.AxiosHeaders)) {
-    config.headers = axios.AxiosHeaders.from(config.headers);
-  }
-
-  // Nếu token sắp hết hạn <1 phút, refresh token
-  if (exp - now < 60 * 1000 && refreshToken && user?.username) {
-    try {
-      const result = await refreshTokenApi({
-        username: user.username,
-        refreshToken,
-      });
-
-      setTokens({
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-      });
-
-      config.headers.set("Authorization", `Bearer ${result.accessToken}`);
-    } catch (err) {
-      console.error("Refresh token failed", err);
-      logout();
+    if (!config.headers) {
+      config.headers = axios.AxiosHeaders.from({});
     }
-  } else {
-    config.headers.set("Authorization", `Bearer ${accessToken}`);
-  }
 
-  // 🛡️ [SINGLE SESSION] Gửi kèm Session ID nếu có
-  if (typeof window !== "undefined") {
-    const sessionId = localStorage.getItem("sessionId");
-    if (sessionId) {
-      config.headers.set("X-Session-ID", sessionId);
+    if (exp - now < 60 * 1000 && refreshToken && user?.username) {
+      try {
+        const result = await refreshTokenApi({ username: user.username, refreshToken });
+        setTokens({ accessToken: result.accessToken, refreshToken: result.refreshToken });
+        config.headers.set("Authorization", `Bearer ${result.accessToken}`);
+      } catch (err) {
+        logout();
+      }
+    } else {
+      config.headers.set("Authorization", `Bearer ${accessToken}`);
     }
-  }
 
-  return config;
-});
-
-// ----- Axios interceptor tự động refresh token cho axiosUpload -----
-axiosUpload.interceptors.request.use(async (config) => {
-  const { accessToken, refreshToken, logout, setTokens, user } =
-    useAuthStore.getState();
-
-  if (!accessToken) return config;
-
-  const now = Date.now();
-  const exp = getTokenExpiration(accessToken);
-
-  // Đảm bảo config.headers đúng type AxiosHeaders
-  if (!config.headers) {
-    config.headers = axios.AxiosHeaders.from({});
-  } else if (!(config.headers instanceof axios.AxiosHeaders)) {
-    config.headers = axios.AxiosHeaders.from(config.headers);
-  }
-
-  // Nếu token sắp hết hạn <1 phút, refresh token
-  if (exp - now < 60 * 1000 && refreshToken && user?.username) {
-    try {
-      const result = await refreshTokenApi({
-        username: user.username,
-        refreshToken,
-      });
-
-      setTokens({
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-      });
-
-      config.headers.set("Authorization", `Bearer ${result.accessToken}`);
-    } catch (err) {
-      console.error("Refresh token failed", err);
-      logout();
+    // 🛡️ [SINGLE SESSION] Header
+    if (typeof window !== "undefined") {
+      const sessionId = localStorage.getItem("sessionId");
+      if (sessionId) {
+        config.headers.set("X-Session-ID", sessionId);
+      }
     }
-  } else {
-    config.headers.set("Authorization", `Bearer ${accessToken}`);
-  }
+    return config;
+  });
+};
 
-  // 🛡️ [SINGLE SESSION] Gửi kèm Session ID nếu có
-  if (typeof window !== "undefined") {
-    const sessionId = localStorage.getItem("sessionId");
-    if (sessionId) {
-      config.headers.set("X-Session-ID", sessionId);
+const setupResponseInterceptor = (instance: any) => {
+  instance.interceptors.response.use(
+    (response: any) => response,
+    (error: any) => {
+      if (error.response && error.response.status === 401) {
+        const msg = error.response.data?.message || "";
+        // Nếu lỗi do bị thiết bị khác đăng nhập
+        if (msg.includes("Session invalidated")) {
+          const { setKickedOut, logout } = useAuthStore.getState();
+          console.warn("🛑 [AXIOS] Detect 401 single session error");
+          
+          // Clear session và hiện Modal đẹp
+          localStorage.removeItem("sessionId"); 
+          logout();
+          setKickedOut(true);
+        }
+      }
+      return Promise.reject(error);
     }
-  }
+  );
+};
 
-  return config;
-});
+// Apply interceptors
+setupRequestInterceptor(axiosClient);
+setupRequestInterceptor(axiosUpload);
+setupResponseInterceptor(axiosClient);
+setupResponseInterceptor(axiosUpload);
