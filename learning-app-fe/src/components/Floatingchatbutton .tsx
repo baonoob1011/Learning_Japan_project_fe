@@ -19,10 +19,9 @@ import { useNotificationStore } from "@/stores/notificationStore";
 import { buildCallRoomId } from "@/utils/call";
 
 import {
-  ChatContactDropdown,
-  ChatMessageList,
   ChatInputBar,
 } from "@/components/chat/floating";
+import ConfirmModal from "@/components/ConfirmModal";
 import GroupRoomsPopup from "@/components/chat/Grouproomspopup";
 import { ChatGroupBasicResponse } from "@/services/roomService";
 
@@ -90,6 +89,9 @@ export default function FloatingChatButton({
   const [showCall, setShowCall] = useState(false);
   const [callType, setCallType] = useState<"VIDEO" | "VOICE">("VIDEO");
   const [showGroupPopup, setShowGroupPopup] = useState(false);
+  const [showUnfriendConfirm, setShowUnfriendConfirm] = useState(false);
+  const [contactToUnfriend, setContactToUnfriend] = useState<Contact | null>(null);
+  const [isUnfriending, setIsUnfriending] = useState(false);
 
   const onStartVideoCall = () => {
     setCallType("VIDEO");
@@ -429,24 +431,27 @@ export default function FloatingChatButton({
   };
 
   const handleUnfriend = async (c: Contact) => {
-    if (!c.userId) return;
-    if (!confirm(`Bạn có chắc chắn muốn hủy kết bạn với ${c.name}? Hành động này sẽ xóa người này khỏi danh sách chat.`)) return;
+    setContactToUnfriend(c);
+    setShowUnfriendConfirm(true);
+  };
 
+  const executeUnfriend = async () => {
+    if (!contactToUnfriend?.userId) return;
+    setIsUnfriending(true);
     try {
-      // Gọi API hủy kết bạn
-      await roomService.unfriend(c.userId);
-
-      // Cập nhật UI ngay lập tức
-      setInboxContacts(prev => prev.filter(item => item.id !== c.id));
-      setGroupContacts(prev => prev.filter(item => item.id !== c.id));
-
-      if (selectedContact?.id === c.id) {
-        // Nếu đang chat với người bị xóa, thì bỏ chọn
+      await roomService.unfriend(contactToUnfriend.userId);
+      setInboxContacts(prev => prev.filter(item => item.id !== contactToUnfriend.id));
+      setGroupContacts(prev => prev.filter(item => item.id !== contactToUnfriend.id));
+      if (selectedContact?.id === contactToUnfriend.id) {
         setSelectedContact(null);
       }
+      setShowUnfriendConfirm(false);
+      setContactToUnfriend(null);
     } catch (err) {
       console.error("Failed to unfriend:", err);
-      alert("Không thể hủy kết bạn lúc này. Vui lòng thử lại sau.");
+      alert("Không thể hủy kết bạn lúc này.");
+    } finally {
+      setIsUnfriending(false);
     }
   };
 
@@ -662,6 +667,23 @@ export default function FloatingChatButton({
           </div>
         </div>
       </button>
+
+      {/* ── Confirm Unfriend Modal ────────────────────────────────────────── */}
+      <ConfirmModal
+        isOpen={showUnfriendConfirm}
+        isDark={isDarkMode}
+        title="Xác nhận hủy kết bạn"
+        message={`Bạn có chắc chắn muốn hủy kết bạn với ${contactToUnfriend?.name}? Mọi cuộc trò chuyện với người này sẽ bị xóa khỏi danh sách.`}
+        confirmText="Hủy kết bạn"
+        cancelText="Để tôi xem lại"
+        isDanger={true}
+        isLoading={isUnfriending}
+        onClose={() => {
+          setShowUnfriendConfirm(false);
+          setContactToUnfriend(null);
+        }}
+        onConfirm={executeUnfriend}
+      />
 
       <style jsx global>{`
         @keyframes slide-up {
