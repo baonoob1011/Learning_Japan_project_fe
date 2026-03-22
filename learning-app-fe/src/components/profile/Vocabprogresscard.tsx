@@ -31,6 +31,21 @@ const STATUS_CONFIG: Record<
     color: "#06b6d4",
     bg: "#06b6d420",
   },
+  [LearningStatus.REVIEW]: {
+    label: "Ôn tập",
+    color: "#8b5cf6",
+    bg: "#8b5cf620",
+  },
+  [LearningStatus.RELEARNING]: {
+    label: "Học lại",
+    color: "#f59e0b",
+    bg: "#f59e0b20",
+  },
+  [LearningStatus.OVERDUE]: {
+    label: "Quá hạn",
+    color: "#ef4444",
+    bg: "#ef444420",
+  },
   [LearningStatus.KNOWN]: {
     label: "Đã biết",
     color: "#10b981",
@@ -38,8 +53,8 @@ const STATUS_CONFIG: Record<
   },
   [LearningStatus.FORGOTTEN]: {
     label: "Quên",
-    color: "#ef4444",
-    bg: "#ef444420",
+    color: "#dc2626",
+    bg: "#dc262620",
   },
 };
 
@@ -69,15 +84,17 @@ export default function VocabProgressCard({ isDark }: VocabProgressCardProps) {
   const stats = useMemo(() => {
     const total = data.length;
     const known = data.filter((d) => d.status === LearningStatus.KNOWN).length;
-    const learning = data.filter(
-      (d) => d.status === LearningStatus.LEARNING
+    const learningOrReview = data.filter(
+      (d) =>
+        d.status === LearningStatus.LEARNING || d.status === LearningStatus.REVIEW
     ).length;
-    const forgotten = data.filter(
-      (d) => d.status === LearningStatus.FORGOTTEN
+    const itemsToReviewNow = data.filter(
+      (d) =>
+        d.status === LearningStatus.OVERDUE || d.status === LearningStatus.FORGOTTEN
     ).length;
     const newWords = data.filter((d) => d.status === LearningStatus.NEW).length;
     const knownPct = total > 0 ? (known / total) * 100 : 0;
-    return { total, known, learning, forgotten, newWords, knownPct };
+    return { total, known, learningOrReview, itemsToReviewNow, newWords, knownPct };
   }, [data]);
 
   // ── Recent 5 từ ──
@@ -209,14 +226,14 @@ export default function VocabProgressCard({ isDark }: VocabProgressCardProps) {
             },
             {
               icon: BookOpen,
-              label: "Đang học",
-              value: stats.learning,
-              color: "#06b6d4",
+              label: "Đang học/Ôn",
+              value: stats.learningOrReview,
+              color: "#8b5cf6",
             },
             {
               icon: RotateCcw,
-              label: "Đã quên",
-              value: stats.forgotten,
+              label: "Cần ôn ngay",
+              value: stats.itemsToReviewNow,
               color: "#ef4444",
             },
             {

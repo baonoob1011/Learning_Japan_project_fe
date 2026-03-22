@@ -591,7 +591,7 @@ export const CallModal = ({
 
               {/* End Call Button */}
               <button
-                onClick={handleEndCall}
+                onClick={() => handleEndCall()}
                 className="w-16 h-16 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center text-white shadow-2xl shadow-red-600/30 transition-all duration-300 hover:scale-110 active:scale-95 hover:rotate-12"
               >
                 <PhoneOff size={28} />
