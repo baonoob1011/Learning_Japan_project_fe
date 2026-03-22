@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useState, useEffect, useMemo } from "react";
 import {
     Search,
@@ -246,7 +246,7 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                             key={f}
                             onClick={() => setFilter(f)}
                             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${filter === f
-                                ? (isDarkMode ? "bg-cyan-500 text-white shadow-lg shadow-cyan-400/20" : "bg-indigo-600 text-white shadow-sm")
+                                ? (isDarkMode ? "bg-cyan-500 text-white shadow-lg shadow-cyan-400/20" : "bg-cyan-600 text-white shadow-sm")
                                 : (isDarkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700")
                                 }`}
                         >
