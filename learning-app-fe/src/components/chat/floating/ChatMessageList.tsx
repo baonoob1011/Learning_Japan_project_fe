@@ -15,6 +15,7 @@ interface Message {
 
 interface Contact {
     id: string;
+    userId?: string;
     name: string;
     avatar: string;
     isGroup?: boolean;
@@ -30,6 +31,7 @@ interface ChatMessageListProps {
     senderNameMap: Record<string, string>;
     senderAvatarMap: Record<string, string>;
     onNavigate: (path: string) => void;
+    isUserOnline?: (userId: string | undefined | null) => boolean;
 }
 
 interface ActiveProfile {
@@ -48,6 +50,7 @@ export default function ChatMessageList({
     senderNameMap,
     senderAvatarMap,
     onNavigate,
+    isUserOnline,
 }: ChatMessageListProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messageCount = messages.length;
@@ -100,7 +103,11 @@ export default function ChatMessageList({
                                 className={`w-16 h-16 rounded-full object-cover ring-4 ${dark ? "ring-cyan-500/20 shadow-xl shadow-cyan-500/10" : "ring-white shadow-lg"
                                     }`}
                             />
-                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white dark:border-[#0f172a] rounded-full" />
+                            {!selectedContact.isGroup && isUserOnline?.(selectedContact.userId) && (
+                                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-4 border-white dark:border-[#0f172a] rounded-full flex items-center justify-center">
+                                    <span className="absolute inset-0 rounded-full bg-emerald-500 animate-pulse opacity-75" />
+                                </div>
+                            )}
                         </div>
                         <div className="text-center">
                             <p
@@ -141,6 +148,12 @@ export default function ChatMessageList({
                                                     : undefined
                                             }
                                         />
+                                        {/* Dynamic Online status for message avatar (Non-group) */}
+                                        {!selectedContact.isGroup && isUserOnline?.(selectedContact.userId) && (
+                                            <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-white dark:border-[#0f172a] shadow-sm flex items-center justify-center">
+                                                <span className="absolute inset-0 rounded-full bg-emerald-500 animate-pulse opacity-75" />
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 

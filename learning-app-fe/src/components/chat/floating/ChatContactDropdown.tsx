@@ -31,6 +31,7 @@ interface ChatContactDropdownProps {
     onCreateGroup?: () => void;
     showCallButton: boolean;
     unreadCounts?: Record<string, number>;
+    isUserOnline?: (userId: string | undefined | null) => boolean;
 }
 
 export default function ChatContactDropdown({
@@ -50,6 +51,7 @@ export default function ChatContactDropdown({
     onCreateGroup,
     showCallButton,
     unreadCounts = {},
+    isUserOnline,
 }: ChatContactDropdownProps) {
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -84,6 +86,9 @@ export default function ChatContactDropdown({
                                     }}
                                     className="w-6 h-6 rounded-full object-cover shrink-0 ring-1 ring-white/20"
                                 />
+                                {!selectedContact.isGroup && isUserOnline?.(selectedContact.userId) && (
+                                    <span className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full border border-white shadow-sm" />
+                                )}
                                 <span className="text-white font-semibold text-xs truncate flex-1 text-left">
                                     {selectedContact.name}
                                 </span>
@@ -173,10 +178,16 @@ export default function ChatContactDropdown({
                                                     onError={(e) => {
                                                         (e.target as HTMLImageElement).src = c.isGroup
                                                             ? "/group-avatar.png"
-                                                                : "/default-avatar.png";
+                                                            : "/default-avatar.png";
                                                     }}
                                                     className={`w-9 h-9 rounded-full object-cover ring-2 ${selectedContact?.id === c.id ? "ring-cyan-500" : "ring-transparent"}`}
                                                 />
+                                                {/* Online Status Dot */}
+                                                {!c.isGroup && isUserOnline?.(c.userId) && (
+                                                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-900 shadow-sm flex items-center justify-center">
+                                                        <span className="absolute inset-0 rounded-full bg-emerald-500 animate-pulse opacity-75" />
+                                                    </div>
+                                                )}
                                                 {c.isGroup && (
                                                     <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-cyan-500 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900 shadow-sm">
                                                         <Users size={8} className="text-white" />

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { useChatSocket } from "@/hooks/useChatSocket";
 import { useUnreadCounts } from "@/hooks/useUnreadCounts";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { getUserIdFromToken } from "@/utils/jwt";
 import {
   roomService,
@@ -138,6 +139,9 @@ export default function FloatingChatButton({
     dismissCall();
     setIsIncomingCallAccepted(false);
   };
+
+  // ── Online Status Tracking ───────────────────────────────────────────────
+  const { isUserUserOnline: isUserOnline } = useOnlineStatus();
 
   // ── Load current user profile ────────────────────────────────────────────
   useEffect(() => {
@@ -427,8 +431,8 @@ export default function FloatingChatButton({
       {isOpen && (
         <div
           className={`absolute bottom-16 right-0 w-85 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border flex flex-col overflow-hidden animate-slide-up ${isDarkMode
-              ? "bg-[#0f172a] border-gray-800 shadow-cyan-900/20"
-              : "bg-white border-cyan-100"
+            ? "bg-[#0f172a] border-gray-800 shadow-cyan-900/20"
+            : "bg-white border-cyan-100"
             }`}
           style={{ height: "550px", width: "340px" }}
         >
@@ -458,6 +462,7 @@ export default function FloatingChatButton({
               !!selectedContact && !!currentUserId && activeTab !== "GROUP"
             }
             unreadCounts={unreadCounts}
+            isUserOnline={isUserOnline}
           />
 
           {/* Messages */}
@@ -474,6 +479,7 @@ export default function FloatingChatButton({
               setIsOpen(false);
               router.push(path);
             }}
+            isUserOnline={isUserOnline}
           />
 
           {/* Input */}
@@ -608,8 +614,8 @@ export default function FloatingChatButton({
         <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none translate-x-2 group-hover:translate-x-0">
           <div
             className={`${isDarkMode
-                ? "bg-gray-800 text-cyan-400 border border-gray-700 shadow-cyan-900/40"
-                : "bg-gray-900 text-white shadow-xl shadow-gray-200/50"
+              ? "bg-gray-800 text-cyan-400 border border-gray-700 shadow-cyan-900/40"
+              : "bg-gray-900 text-white shadow-xl shadow-gray-200/50"
               } text-[11px] font-bold tracking-wide uppercase px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl relative`}
           >
             Phòng Chat
