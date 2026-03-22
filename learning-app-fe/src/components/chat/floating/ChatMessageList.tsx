@@ -183,10 +183,16 @@ export default function ChatMessageList({
                                             className={`text-[9px] mt-1.5 font-medium flex items-center justify-end ${isMe ? "text-cyan-100/70" : "text-gray-500"
                                                 }`}
                                         >
-                                            {msg.timestamp.toLocaleTimeString([], {
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                            })}
+                                            {(() => {
+                                                const now = new Date();
+                                                const isToday = msg.timestamp.toDateString() === now.toDateString();
+                                                return msg.timestamp.toLocaleTimeString("vi-VN", {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                    hour12: false,
+                                                    ...(isToday ? {} : { month: "2-digit", day: "2-digit" })
+                                                });
+                                            })()}
                                         </div>
                                     </div>
                                 </div>

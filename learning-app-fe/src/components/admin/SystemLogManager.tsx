@@ -205,6 +205,9 @@ function DetailModal({
                                 {log.targetClass.split(".").pop()}#{log.methodName}
                             </h2>
                             <p className={`text-xs ${labelCls}`}>{formatDatetime(log.createdAt)}</p>
+                            <p className={`text-xs mt-1 ${isDark ? "text-indigo-300" : "text-indigo-700"}`}>
+                                {describeLog(log)}
+                            </p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -675,6 +678,14 @@ export default function SystemLogManager({ isDark }: Props) {
                                                 <p className={`text-[11px] ${isDark ? "text-indigo-400" : "text-indigo-600"} font-bold`}>
                                                     #{log.methodName}
                                                 </p>
+                                                <p className={`text-[11px] mt-1 ${labelCls} line-clamp-2`} title={describeLog(log)}>
+                                                    {describeLog(log)}
+                                                </p>
+                                                {log.status === "FAILURE" && log.errorMessage && (
+                                                    <p className="text-[11px] mt-1 text-red-500 line-clamp-1" title={log.errorMessage}>
+                                                        Lỗi: {log.errorMessage}
+                                                    </p>
+                                                )}
                                             </div>
                                         </td>
                                         <td className={tdCls}>

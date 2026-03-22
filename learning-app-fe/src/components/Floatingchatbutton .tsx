@@ -55,12 +55,18 @@ interface FloatingChatButtonProps {
 // ─── Helper ──────────────────────────────────────────────────────────────────
 
 function mapApiMsg(m: ChatMessageResponse): Message {
+  let date = new Date(m.sentAt);
+  // Nếu date bị Invalid (NaN), thử fix bằng cách thêm Z nếu thiếu
+  if (isNaN(date.getTime()) && typeof m.sentAt === "string") {
+    date = new Date(m.sentAt.includes("Z") ? m.sentAt : `${m.sentAt}Z`);
+  }
+
   return {
-    id: m.id,
+    id: String(m.id || Math.random()),
     text: m.content,
     senderId: String(m.senderId),
     senderName: m.senderName ?? undefined,
-    timestamp: new Date(m.sentAt),
+    timestamp: date,
   };
 }
 
