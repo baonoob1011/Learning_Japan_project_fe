@@ -144,6 +144,9 @@ export const API_ENDPOINTS = {
     USER_STATISTICS: "/admin/users/stats",
     SYSTEM_LOGS: "/admin/system-logs",
     SYSTEM_LOG_BY_ID: (id: string) => `/admin/system-logs/${id}`,
+    VOCAB_MANAGER: "/admin/vocab/manager",
+    VOCAB_ADMIN: "/admin/vocab",
+    VOCAB_ADMIN_BY_ID: (id: string) => `/admin/vocab/${id}`,
   },
 
   NOTIFICATION: {

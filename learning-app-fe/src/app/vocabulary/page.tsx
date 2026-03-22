@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import LoadingCat from "@/components/LoadingCat";
 import Flashcard from "@/components/vocab/Flashcard";
-import VocabularyList from "@/components/VocabularyList";
+import VocabularyList from "@/components/vocab/VocabularyList";
 import AIPractice from "@/components/AIPractice";
 import VocabMemoryGame from "@/components/vocab/VocabMemoryGame";
 import UpgradePlusModal from "@/components/payment/Upgradeplusmodal ";

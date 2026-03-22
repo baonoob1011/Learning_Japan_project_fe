@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { vocabService, VocabResponse, StudyMode } from "@/services/vocabService";
 import { LearningStatus } from "@/enums/LearningStatus";
-import ConfirmModal from "./ConfirmModal";
+import ConfirmModal from "../ConfirmModal";
 
 interface VocabularyListProps {
     isDarkMode: boolean;
@@ -30,14 +30,6 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
     const [filter, setFilter] = useState<"ALL" | "KNOWN" | "UNLEARNED">("ALL");
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [deleteVocabItem, setDeleteVocabItem] = useState<{ surface: string; id: string } | null>(null);
-    const [isCreateOpen, setIsCreateOpen] = useState(false);
-    const [createForm, setCreateForm] = useState({
-        surface: "",
-        translated: "",
-        reading: "",
-        romaji: "",
-        partOfSpeech: "",
-    });
 
     useEffect(() => {
         loadVocabs();
@@ -60,48 +52,6 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
         setIsConfirmOpen(true);
     };
 
-    const handleCreateVocab = async () => {
-        const surface = createForm.surface.trim();
-        if (!surface) {
-            alert("Vui lòng nhập từ gốc.");
-            return;
-        }
-
-        try {
-            setIsActionLoading("create");
-            const created = await vocabService.createManual({
-                surface,
-                translated: createForm.translated.trim() || undefined,
-                reading: createForm.reading.trim() || undefined,
-                romaji: createForm.romaji.trim() || undefined,
-                partOfSpeech: createForm.partOfSpeech.trim() || undefined,
-            });
-
-            setVocabs(prev => {
-                const existingIndex = prev.findIndex(v => v.id === created.id);
-                if (existingIndex >= 0) {
-                    const clone = [...prev];
-                    clone[existingIndex] = created;
-                    return clone;
-                }
-                return [created, ...prev];
-            });
-
-            setCreateForm({
-                surface: "",
-                translated: "",
-                reading: "",
-                romaji: "",
-                partOfSpeech: "",
-            });
-            setIsCreateOpen(false);
-        } catch (err) {
-            console.error("Create vocab failed", err);
-            alert("Tạo từ vựng thất bại. Vui lòng thử lại.");
-        } finally {
-            setIsActionLoading(null);
-        }
-    };
 
     const confirmDelete = async () => {
         if (!deleteVocabItem) return;
@@ -288,99 +238,48 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                 />
             </div>
 
-            {/* Filter Tabs Row — left: tabs, right: count + button */}
-            <div className="mb-5">
-                <div className="flex items-center justify-end mb-3">
-                    <button
-                        onClick={() => setIsCreateOpen(prev => !prev)}
-                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all duration-300 ${isDarkMode
-                            ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/20 hover:bg-cyan-500/30"
-                            : "bg-cyan-50 text-cyan-700 border border-cyan-100 hover:bg-cyan-100"
-                            }`}
-                    >
-                        <Plus size={16} />
-                        {isCreateOpen ? "Đóng thêm từ" : "Thêm từ"}
-                    </button>
-                </div>
-
-                {isCreateOpen && (
-                    <div className={`rounded-2xl border p-4 md:p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 ${isDarkMode
-                        ? "bg-gray-800/50 border-gray-700"
-                        : "bg-white border-gray-200 shadow-sm"
-                        }`}>
-                        {[
-                            { key: "surface", label: "Từ gốc *", placeholder: "Ví dụ: 今日" },
-                            { key: "translated", label: "Nghĩa", placeholder: "Ví dụ: hôm nay" },
-                            { key: "reading", label: "Reading", placeholder: "Ví dụ: きょう" },
-                            { key: "romaji", label: "Romaji", placeholder: "Ví dụ: kyou" },
-                            { key: "partOfSpeech", label: "Loại từ", placeholder: "Ví dụ: danh từ" },
-                        ].map((field) => (
-                            <label key={field.key} className="flex flex-col gap-1.5">
-                                <span className={`text-xs font-semibold ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
-                                    {field.label}
-                                </span>
-                                <input
-                                    type="text"
-                                    value={createForm[field.key as keyof typeof createForm]}
-                                    onChange={(e) => setCreateForm(prev => ({ ...prev, [field.key]: e.target.value }))}
-                                    placeholder={field.placeholder}
-                                    className={`w-full px-3 py-2.5 rounded-xl border outline-none transition-all ${isDarkMode
-                                        ? "bg-gray-900 border-gray-600 text-white focus:border-cyan-500"
-                                        : "bg-white border-gray-300 text-gray-900 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/20"
-                                        }`}
-                                />
-                            </label>
-                        ))}
-
-                        <div className="col-span-1 md:col-span-2 lg:col-span-5 flex justify-end gap-2 pt-1">
-                            <button
-                                onClick={() => setIsCreateOpen(false)}
-                                className={`px-4 py-2 rounded-xl font-semibold text-sm ${isDarkMode
-                                    ? "bg-gray-700 text-gray-200 hover:bg-gray-600"
-                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                    }`}
-                            >
-                                Hủy
-                            </button>
-                            <button
-                                onClick={handleCreateVocab}
-                                disabled={isActionLoading === "create"}
-                                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all ${isDarkMode
-                                    ? "bg-cyan-500 text-white hover:bg-cyan-400"
-                                    : "bg-cyan-600 text-white hover:bg-cyan-500"
-                                    } disabled:opacity-60 disabled:cursor-not-allowed`}
-                            >
-                                {isActionLoading === "create" && <Loader2 size={16} className="animate-spin" />}
-                                Lưu từ vựng
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            <div className="flex items-center justify-end mb-6 gap-4">
-                {/* Count + Learn button */}
-                <div className="flex items-center gap-3 shrink-0">
-                    <span className={`text-sm font-bold ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
-                        Tổng cộng:{" "}
-                        <span className={`text-base ${isDarkMode ? "text-cyan-400" : "text-cyan-600"}`}>
-                            {filteredVocabs.length}
-                        </span>{" "}
-                        từ
-                    </span>
-
-                    {filteredVocabs.length > 0 && (
+            {/* Filter Tabs & Stats Bar Toolbar */}
+            <div className={`flex flex-wrap items-center justify-between gap-4 mb-6 p-4 rounded-3xl border ${isDarkMode ? "bg-gray-800/30 border-gray-700" : "bg-gray-50/50 border-gray-200"}`}>
+                {/* Left: Filter Tabs */}
+                <div className={`flex p-1 rounded-2xl border ${isDarkMode ? "bg-gray-900/50 border-gray-800" : "bg-white border-gray-200"}`}>
+                    {(["ALL", "UNLEARNED", "KNOWN"] as const).map((f) => (
                         <button
-                            onClick={() => onStartLearning?.("UNLEARNED")}
-                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 hover:scale-105 active:scale-95 whitespace-nowrap ${isDarkMode
-                                ? "bg-amber-500 text-gray-900 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40"
-                                : "bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-md hover:shadow-lg shadow-amber-200"
+                            key={f}
+                            onClick={() => setFilter(f)}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${filter === f
+                                ? (isDarkMode ? "bg-cyan-500 text-white shadow-lg shadow-cyan-400/20" : "bg-indigo-600 text-white shadow-sm")
+                                : (isDarkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700")
                                 }`}
                         >
-                            <span>HỌC NGAY</span>
-                            <span className="animate-pulse">⚡</span>
+                            {f === "ALL" ? "TẤT CẢ" : f === "KNOWN" ? "ĐÃ THUỘC" : "CHƯA THUỘC"}
                         </button>
-                    )}
+                    ))}
+                </div>
+
+                {/* Right: Count + Learn button */}
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3 shrink-0">
+                        <span className={`text-sm font-bold ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                            Tổng cộng:{" "}
+                            <span className={`text-base ${isDarkMode ? "text-cyan-400" : "text-cyan-600"}`}>
+                                {filteredVocabs.length}
+                            </span>{" "}
+                            từ
+                        </span>
+
+                        {filteredVocabs.length > 0 && (
+                            <button
+                                onClick={() => onStartLearning?.("UNLEARNED")}
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 hover:scale-105 active:scale-95 whitespace-nowrap ${isDarkMode
+                                    ? "bg-amber-500 text-gray-900 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40"
+                                    : "bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-md hover:shadow-lg shadow-amber-200"
+                                    }`}
+                            >
+                                <span>HỌC NGAY</span>
+                                <span className="animate-pulse">⚡</span>
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 
