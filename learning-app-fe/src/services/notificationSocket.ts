@@ -85,16 +85,23 @@ export const connectNotificationSocket = (
       client.subscribe(
         `/topic/user/${userId}/kick-out`,
         (message: IMessage) => {
-          console.warn("🛑 [KICK_OUT] Logging out current session: Another device logged in.");
+          const newSessionId = message.body;
+          const currentSessionId = localStorage.getItem("sessionId");
           
-          const { setKickedOut } = useAuthStore.getState();
-          
-          // Xóa toàn bộ token và data phiên (trừ flag bị kick)
-          localStorage.clear();
-          sessionStorage.clear();
-          
-          // Kích hoạt Modal thông báo đẹp
-          setKickedOut(true);
+          // Chỉ bị đá nếu sessionId nhận được KHÁC với sessionId hiện tại của mình
+          // (Tránh trường hợp tự đá chính mình khi vừa login thành công)
+          if (newSessionId && currentSessionId && newSessionId !== currentSessionId) {
+            console.warn("🛑 [KICK_OUT] Another device logged in with sessionId:", newSessionId);
+            
+            const { setKickedOut } = useAuthStore.getState();
+            
+            // Xóa session data
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Hiện Modal đẹp
+            setKickedOut(true);
+          }
         }
       );
     },
