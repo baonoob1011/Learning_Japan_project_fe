@@ -79,6 +79,24 @@ export const connectNotificationSocket = (
           }
         }
       );
+
+      // 🚫 [INSTANT KICK OUT] Lắng nghe tín hiệu bị đá ra từ thiết bị khác
+      client.subscribe(
+        `/topic/user/${userId}/kick-out`,
+        (message: IMessage) => {
+          console.warn("🛑 [KICK_OUT] Logging out current session: Another device logged in.");
+
+          // Xóa toàn bộ token và data phiên
+          localStorage.clear();
+          sessionStorage.clear();
+
+          // Thông báo cho người dùng
+          alert("Tài khoản của bạn đã được đăng nhập từ một thiết bị khác. Bạn sẽ được đăng xuất ngay lập tức.");
+
+          // Chuyển hướng về trang đăng nhập
+          window.location.href = "/login";
+        }
+      );
     },
 
     onStompError: (frame) => {
