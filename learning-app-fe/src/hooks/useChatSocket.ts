@@ -52,8 +52,7 @@ export const useChatSocket = (roomId: string | null): UseChatSocketReturn => {
       return;
     }
 
-    const backendUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081";
+    const backendUrl = "https://api.nibojapan.cloud";
 
     const client = new Client({
       webSocketFactory: () => new SockJS(`${backendUrl}/ws`),
@@ -126,7 +125,7 @@ export const useChatSocket = (roomId: string | null): UseChatSocketReturn => {
         body: JSON.stringify({ roomId, content: content.trim() }),
       });
     },
-    [roomId]
+    [roomId],
   );
 
   const sendToRoom = useCallback((roomId: string, content: string) => {

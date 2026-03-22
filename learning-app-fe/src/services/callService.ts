@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081";
+const API_URL = "https://api.nibojapan.cloud";
 
 export interface CallRecordRequest {
   callerId: string;
@@ -70,4 +70,6 @@ export const sendIncomingNotification = (stomp: any, notification: any) => {
     });
   }
 };
+
+
 
