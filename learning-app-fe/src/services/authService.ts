@@ -12,6 +12,7 @@ export interface LoginRequest {
 export interface UserLoginResponse {
   accessToken: string;
   refreshToken: string;
+  sessionId: string;
 }
 
 export interface RefreshTokenRequest {
@@ -49,6 +50,10 @@ export const login = async (data: LoginRequest): Promise<UserLoginResponse> => {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
     });
+
+    if (result.sessionId) {
+      localStorage.setItem("sessionId", result.sessionId);
+    }
 
     axiosClient.defaults.headers.common[
       "Authorization"
@@ -124,6 +129,7 @@ export const logout = async (): Promise<void> => {
 
     // Dùng logout action trong store để xóa token
     logout();
+    localStorage.removeItem("sessionId"); // Xóa session ID khi logout
     delete axiosClient.defaults.headers.common["Authorization"];
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {

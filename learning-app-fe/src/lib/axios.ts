@@ -84,6 +84,14 @@ axiosClient.interceptors.request.use(async (config) => {
     config.headers.set("Authorization", `Bearer ${accessToken}`);
   }
 
+  // 🛡️ [SINGLE SESSION] Gửi kèm Session ID nếu có
+  if (typeof window !== "undefined") {
+    const sessionId = localStorage.getItem("sessionId");
+    if (sessionId) {
+      config.headers.set("X-Session-ID", sessionId);
+    }
+  }
+
   return config;
 });
 
@@ -126,7 +134,13 @@ axiosUpload.interceptors.request.use(async (config) => {
     config.headers.set("Authorization", `Bearer ${accessToken}`);
   }
 
+  // 🛡️ [SINGLE SESSION] Gửi kèm Session ID nếu có
+  if (typeof window !== "undefined") {
+    const sessionId = localStorage.getItem("sessionId");
+    if (sessionId) {
+      config.headers.set("X-Session-ID", sessionId);
+    }
+  }
+
   return config;
 });
-
-
