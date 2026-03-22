@@ -5,6 +5,8 @@ import { http } from "@/lib/http";
 export interface SystemLog {
     id: string;
     username: string;
+    userFullName?: string;
+    userAvatar?: string;
     ipAddress: string;
     targetClass: string;
     methodName: string;

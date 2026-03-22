@@ -70,11 +70,28 @@ function formatDatetime(iso: string): string {
     }
 }
 
-function describeLog(log: SystemLog): string {
-    if (log.arguments && log.arguments.length > 5) {
-        return `Phương thức ${log.methodName} với tham số: ${log.arguments.substring(0, 50)}...`;
-    }
-    return `Phương thức ${log.methodName} thực thi trong ${formatExecTime(log.executionTime)}`;
+function describeLog(log: any): string {
+    const method = log.methodName;
+    const descriptions: Record<string, string> = {
+        login: "Đăng nhập vào hệ thống",
+        logout: "Đăng xuất khỏi hệ thống",
+        getTodayReviews: "Xem danh sách từ vựng cần học hôm nay",
+        saveCall: "Lưu lịch sử cuộc gọi",
+        createVocab: "Tạo từ vựng mới",
+        updateVocab: "Cập nhật thông tin từ vựng",
+        deleteVocab: "Xóa từ vựng khỏi hệ thống",
+        startSmartStudy: "Bắt đầu bài học thông minh",
+        saveProgress: "Lưu tiến độ học tập",
+    };
+
+    if (descriptions[method]) return descriptions[method];
+
+    // Fallback cho các method chưa định nghĩa
+    if (method.startsWith("get") || method.startsWith("fetch")) return `Xem thông tin ${method.replace("get", "").toLowerCase()}`;
+    if (method.startsWith("save") || method.startsWith("create")) return `Lưu/Tạo mới dữ liệu ${method.replace("save", "").replace("create", "").toLowerCase()}`;
+    if (method.startsWith("delete") || method.startsWith("remove")) return `Xóa dữ liệu ${method.replace("delete", "").replace("remove", "").toLowerCase()}`;
+
+    return `Thực hiện thao tác: ${method}`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -579,10 +596,10 @@ export default function SystemLogManager({ isDark }: Props) {
                         <thead className={isDark ? "bg-gray-800/80" : "bg-gray-50"}>
                             <tr>
                                 <th className={thCls}>Thời gian</th>
-                                <th className={thCls}>Tài khoản</th>
-                                <th className={thCls}>Đối tượng & Mô tả</th>
+                                <th className={thCls}>Người dùng</th>
+                                <th className={thCls}>Hoạt động & Mô tả</th>
                                 <th className={thCls}>Trạng thái</th>
-                                <th className={thCls}>Thời gian xử lý</th>
+                                <th className={thCls}>Tốc độ</th>
                                 <th className={`${thCls} text-right`}>Hành động</th>
                             </tr>
                         </thead>
@@ -637,26 +654,51 @@ export default function SystemLogManager({ isDark }: Props) {
                                             </div>
                                         </td>
                                         <td className={tdCls}>
-                                            <div className="flex items-center gap-1.5 font-bold">
-                                                <User className={`w-3.5 h-3.5 flex-shrink-0 ${labelCls}`} />
-                                                <span className={isDark ? "text-gray-200" : "text-gray-900"}>{log.username || "System"}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1 mt-0.5 opacity-60">
-                                                <Globe className="w-3 h-3" />
-                                                <span className="text-[10px]">{log.ipAddress || "—"}</span>
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-8 h-8 rounded-full overflow-hidden bg-indigo-500/10 shrink-0 border border-indigo-500/20">
+                                                    {log.userAvatar ? (
+                                                        <img
+                                                            src={log.userAvatar}
+                                                            alt={log.userFullName || log.username}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                                (e.target as HTMLImageElement).src = "/default-avatar.png";
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-indigo-400">
+                                                            <User className="w-4 h-4" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="flex flex-col min-w-0">
+                                                    <span className={`text-xs font-bold truncate ${isDark ? "text-gray-200" : "text-gray-900"}`}>
+                                                        {log.userFullName || log.username || "Hệ thống"}
+                                                    </span>
+                                                    <div className="flex items-center gap-1 opacity-60">
+                                                        <Globe className="w-3 h-3" />
+                                                        <span className="text-[10px] truncate">{log.ipAddress || "—"}</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </td>
                                         <td className={tdCls}>
                                             <div className="max-w-[400px]">
-                                                <p className={`text-[11px] ${isDark ? "text-indigo-400" : "text-indigo-600"} font-bold`}>
-                                                    {log.targetClass.split(".").pop()}#{log.methodName}
-                                                </p>
-                                                <p className={`text-[11px] mt-1 ${labelCls} line-clamp-2`} title={describeLog(log)}>
+                                                <p className={`text-[12px] font-bold ${isDark ? "text-indigo-400" : "text-indigo-600"}`}>
                                                     {describeLog(log)}
                                                 </p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className={`text-[10px] px-1.5 py-0.5 rounded bg-gray-500/10 ${labelCls} opacity-60 font-mono`} title={log.targetClass}>
+                                                        {log.methodName}
+                                                    </span>
+                                                    <span className={`text-[10px] ${labelCls} opacity-40 italic`}>
+                                                        {formatExecTime(log.executionTime)}
+                                                    </span>
+                                                </div>
                                                 {log.status === "FAILURE" && log.errorMessage && (
-                                                    <p className="text-[11px] mt-1 text-red-500 line-clamp-1" title={log.errorMessage}>
-                                                        Lỗi: {log.errorMessage}
+                                                    <p className="text-[11px] mt-2 text-red-500 flex items-center gap-1">
+                                                        <AlertCircle className="w-3 h-3 shrink-0" />
+                                                        {log.errorMessage.includes("Session") ? "Phiên làm việc hết hạn" : "Lỗi thực thi dữ liệu"}
                                                     </p>
                                                 )}
                                             </div>
