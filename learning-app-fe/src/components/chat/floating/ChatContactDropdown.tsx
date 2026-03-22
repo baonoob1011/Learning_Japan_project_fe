@@ -33,6 +33,7 @@ interface ChatContactDropdownProps {
     unreadCounts?: Record<string, number>;
     isUserOnline?: (userId: string | undefined | null) => boolean;
     onUnfriend?: (c: Contact) => void;
+    currentUserAvatar?: string;
 }
 
 export default function ChatContactDropdown({
@@ -54,6 +55,7 @@ export default function ChatContactDropdown({
     unreadCounts = {},
     isUserOnline,
     onUnfriend,
+    currentUserAvatar,
 }: ChatContactDropdownProps) {
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -259,35 +261,49 @@ export default function ChatContactDropdown({
                     </button>
                 )}
 
-                {/* Call buttons */}
-                {showCallButton && (
-                    <>
-                        <button
-                            onClick={onVideoCall}
-                            title="Gọi Video"
-                            className="hover:bg-white/20 rounded-full p-1.5 transition-colors shrink-0"
-                        >
-                            <Video size={14} className="text-white" />
-                        </button>
-                        <button
-                            onClick={onVoiceCall}
-                            title="Gọi thoại"
-                            className="hover:bg-white/20 rounded-full p-1.5 transition-colors shrink-0"
-                        >
-                            <Phone size={14} className="text-white" />
-                        </button>
-                    </>
-                )}
+                {/* Actions group */}
+                <div className="flex items-center gap-1 shrink-0">
+                    {/* Call buttons */}
+                    {showCallButton && (
+                        <>
+                            <button
+                                onClick={onVideoCall}
+                                title="Gọi Video"
+                                className="hover:bg-white/20 rounded-full p-1.5 transition-colors"
+                            >
+                                <Video size={13} className="text-white" />
+                            </button>
+                            <button
+                                onClick={onVoiceCall}
+                                title="Gọi thoại"
+                                className="hover:bg-white/20 rounded-full p-1.5 transition-colors"
+                            >
+                                <Phone size={13} className="text-white" />
+                            </button>
+                        </>
+                    )}
 
-                {/* Close button */}
-                <button
-                    onClick={onClose}
-                    className="hover:bg-white/20 rounded-full p-1 transition-colors shrink-0"
-                >
-                    <X size={15} className="text-white" />
-                </button>
+                    {/* User Avatar */}
+                    {currentUserAvatar && (
+                        <div className="ml-1 relative">
+                            <img
+                                src={currentUserAvatar}
+                                alt="Me"
+                                className="w-7 h-7 rounded-full object-cover ring-2 ring-white/40 shadow-sm"
+                            />
+                        </div>
+                    )}
+
+                    {/* Close button */}
+                    <button
+                        onClick={onClose}
+                        className="hover:bg-white/20 rounded-full p-1.5 transition-colors ml-0.5"
+                    >
+                        <X size={15} className="text-white" />
+                    </button>
+                </div>
             </div>
-            <div className="px-3 pb-2 flex items-center gap-1.5" />
+            <div className={`px-3 pb-2 flex items-center gap-1.5 ${dark ? "h-1" : ""}`} />
         </div>
     );
 }

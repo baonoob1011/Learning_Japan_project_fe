@@ -70,18 +70,44 @@ export default function UserManager({ isDark = false }: UserManagerProps) {
         }
     };
 
-    const getRoleBadge = (role: string[]) => {
-        if (role.includes("ADMIN")) {
-            return (
-                <span className="px-2 py-1 bg-purple-50 text-purple-600 border border-purple-100 rounded-md text-[10px] font-bold uppercase tracking-wider">
-                    Admin
-                </span>
-            );
+    const [updatingRole, setUpdatingRole] = useState<string | null>(null);
+
+    const handleUpdateRole = async (userId: string, currentRoles: string[]) => {
+        const isCurrentlyAdmin = currentRoles.includes("ADMIN");
+        const newRole = isCurrentlyAdmin ? "USER" : "ADMIN";
+        const roleLabel = isCurrentlyAdmin ? "Student" : "Admin";
+
+        if (!window.confirm(`Bạn có chắc chắn muốn đổi vai trò của người dùng này sang ${roleLabel}?`)) return;
+
+        setUpdatingRole(userId);
+        try {
+            await userService.updateUserRole(userId, newRole);
+            alert("Cập nhật vai trò thành công!");
+            fetchUsers();
+        } catch (error) {
+            console.error("Lỗi cập nhật role:", error);
+            alert("Cập nhật vai trò thất bại");
+        } finally {
+            setUpdatingRole(null);
         }
+    };
+
+    const getRoleBadge = (userId: string, role: string[]) => {
+        const isAdmin = role.includes("ADMIN");
         return (
-            <span className="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-100 rounded-md text-[10px] font-bold uppercase tracking-wider">
-                Student
-            </span>
+            <button
+                disabled={!!updatingRole}
+                onClick={() => handleUpdateRole(userId, role)}
+                className={`group/role relative px-2.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border ${isAdmin
+                    ? isDark ? "bg-purple-500/10 text-purple-400 border-purple-500/20 hover:bg-purple-500/20" : "bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100"
+                    : isDark ? "bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20" : "bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100"
+                    } ${updatingRole === userId ? "opacity-50 animate-pulse" : ""}`}
+                title="Sửa vai trò"
+            >
+                {isAdmin ? <ShieldCheck className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3 opacity-50" />}
+                {isAdmin ? "Admin" : "Student"}
+                <div className="w-1.5 h-1.5 rounded-full bg-current opacity-20"></div>
+            </button>
         );
     };
 
@@ -168,7 +194,7 @@ export default function UserManager({ isDark = false }: UserManagerProps) {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            {getRoleBadge(user.role)}
+                                            {getRoleBadge(user.id, user.role)}
                                         </td>
                                         <td className="px-6 py-4">
                                             {user.enabled ? (

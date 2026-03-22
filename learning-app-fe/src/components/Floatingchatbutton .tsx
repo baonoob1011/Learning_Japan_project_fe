@@ -506,6 +506,7 @@ export default function FloatingChatButton({
             unreadCounts={unreadCounts}
             isUserOnline={isUserOnline}
             onUnfriend={handleUnfriend}
+            currentUserAvatar={currentUserAvatar}
           />
 
           {/* Messages */}
@@ -628,14 +629,16 @@ export default function FloatingChatButton({
         />
       )}
 
-      {/* ── Floating Button ──────────────────────────────────────────────── */}
+      {/* ── Floating Button (Icon) ─────────────────────────────────────── */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="group relative transition-all duration-300 hover:scale-110"
+        className={`group relative transition-all duration-300 hover:scale-110 ${isOpen ? "invisible opacity-0 scale-0 pointer-events-none" : "visible opacity-100 scale-100"
+          }`}
+        style={{ zIndex: 10 }}
         title="Chat Room"
       >
         <div
-          className={`absolute inset-0 rounded-full opacity-20 animate-ping ${isDarkMode ? "bg-cyan-400" : "bg-purple-400"
+          className={`absolute inset-0 rounded-full opacity-10 animate-ping ${isDarkMode ? "bg-cyan-400" : "bg-purple-400"
             }`}
         />
         <div className="relative w-11 h-11 drop-shadow-2xl animate-bounce-slow">

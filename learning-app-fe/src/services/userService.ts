@@ -177,6 +177,10 @@ export const userService = {
   getUserById(id: string): Promise<UserChatResponse> {
     return http.get<UserChatResponse>(API_ENDPOINTS.USER.GET_USER_BY_ID(id));
   },
+
+  updateUserRole(userId: string, newRoleName: string): Promise<void> {
+    return http.put("/api/v1/roles/update-user", { userId, newRoleName });
+  },
 };
 
 export const register = async (
