@@ -51,14 +51,7 @@ export default function InboxList({
     roomService
       .getMyChatUsers()
       .then((data) => {
-        if (!cancelled) {
-          const mapped = data.map(mapPreviewToContact).sort((a, b) => {
-            if (!a.timestamp) return 1;
-            if (!b.timestamp) return -1;
-            return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-          });
-          setContacts(mapped);
-        }
+        if (!cancelled) setContacts(data.map(mapPreviewToContact));
       })
       .catch(() => {
         if (!cancelled) setContacts([]);

@@ -1,6 +1,6 @@
 "use client";
 import { useRef, useEffect } from "react";
-import { ChevronDown, Users, MessageCircle, Phone, X, Plus, UserPlus, Video } from "lucide-react";
+import { ChevronDown, Users, MessageCircle, Phone, X, Plus, UserPlus, Video, Trash2 } from "lucide-react";
 
 interface Contact {
     id: string;
@@ -32,6 +32,7 @@ interface ChatContactDropdownProps {
     showCallButton: boolean;
     unreadCounts?: Record<string, number>;
     isUserOnline?: (userId: string | undefined | null) => boolean;
+    onUnfriend?: (contactId: string) => void;
 }
 
 export default function ChatContactDropdown({
@@ -52,6 +53,7 @@ export default function ChatContactDropdown({
     showCallButton,
     unreadCounts = {},
     isUserOnline,
+    onUnfriend,
 }: ChatContactDropdownProps) {
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -164,7 +166,7 @@ export default function ChatContactDropdown({
                                         <div
                                             key={c.id}
                                             onClick={() => onSelectContact(c)}
-                                            className={`flex items-center gap-3 px-3 py-3 cursor-pointer transition-all ${selectedContact?.id === c.id
+                                            className={`group flex items-center gap-3 px-3 py-3 cursor-pointer transition-all ${selectedContact?.id === c.id
                                                 ? dark
                                                     ? "bg-cyan-500/10 border-r-2 border-cyan-500"
                                                     : "bg-cyan-50 border-r-2 border-cyan-500"
@@ -218,6 +220,18 @@ export default function ChatContactDropdown({
                                                     {c.lastMessage || "Nói điều gì đó..."}
                                                 </p>
                                             </div>
+
+                                            {/* Unfriend button */}
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onUnfriend?.(c.id);
+                                                }}
+                                                className={`opacity-0 group-hover:opacity-100 p-1.5 rounded-full transition-all hover:bg-red-500/10 text-gray-400 hover:text-red-500`}
+                                                title="Xóa cuộc trò chuyện"
+                                            >
+                                                <Trash2 size={12} />
+                                            </button>
                                         </div>
                                     ))
                                 )}

@@ -428,7 +428,31 @@ export default function FloatingChatButton({
     setSelectedContact(list.length > 0 ? list[0] : null);
   };
 
-  const currentContacts = activeTab === "INBOX" ? inboxContacts : groupContacts;
+  const handleUnfriend = async (contactId: string) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa người này khỏi danh sách chat?")) return;
+    try {
+      await roomService.deleteRoom(contactId);
+      if (activeTab === "INBOX") {
+        setInboxContacts(prev => prev.filter(c => c.id !== contactId));
+      } else {
+        setGroupContacts(prev => prev.filter(c => c.id !== contactId));
+      }
+      if (selectedContact?.id === contactId) {
+        setSelectedContact(null);
+      }
+    } catch (err) {
+      console.error("Failed to unfriend:", err);
+    }
+  };
+
+  const currentContacts = useMemo(() => {
+    const list = activeTab === "INBOX" ? inboxContacts : groupContacts;
+    return [...list].sort((a, b) => {
+      const timeA = new Date(a.timestamp || 0).getTime();
+      const timeB = new Date(b.timestamp || 0).getTime();
+      return timeB - timeA;
+    });
+  }, [activeTab, inboxContacts, groupContacts]);
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
@@ -469,6 +493,7 @@ export default function FloatingChatButton({
             }
             unreadCounts={unreadCounts}
             isUserOnline={isUserOnline}
+            onUnfriend={handleUnfriend}
           />
 
           {/* Messages */}
