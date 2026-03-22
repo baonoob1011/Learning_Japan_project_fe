@@ -8,13 +8,15 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
-import { vocabService, VocabResponse, StudyMode } from "@/services/vocabService";
+import { vocabService, VocabResponse } from "@/services/vocabService";
 import { LearningStatus } from "@/enums/LearningStatus";
 
 interface FlashcardProps {
   isDark: boolean;
   initialFilter?: "ALL" | "KNOWN" | "UNLEARNED";
 }
+
+const FLASHCARD_STATUS_KEY = "flashcard_status_v1";
 
 const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) => {
   const [vocabs, setVocabs] = useState<VocabResponse[]>([]);
@@ -26,6 +28,20 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
 
   const [isMarkingVocab, setIsMarkingVocab] = useState(false);
   const [filter, setFilter] = useState<"ALL" | "KNOWN" | "UNLEARNED">(initialFilter);
+
+  const loadFlashcardStatusMap = (): Record<string, LearningStatus> => {
+    try {
+      const raw = localStorage.getItem(FLASHCARD_STATUS_KEY);
+      if (!raw) return {};
+      return JSON.parse(raw) as Record<string, LearningStatus>;
+    } catch {
+      return {};
+    }
+  };
+
+  const saveFlashcardStatusMap = (map: Record<string, LearningStatus>) => {
+    localStorage.setItem(FLASHCARD_STATUS_KEY, JSON.stringify(map));
+  };
 
   // Sync filter with initialFilter prop
   useEffect(() => {
@@ -93,11 +109,16 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
       setIsLoading(true);
       setError(null);
       const data = await vocabService.getMyVocabs();
+      const localStatus = loadFlashcardStatusMap();
+      const merged = data.map((v) => ({
+        ...v,
+        status: localStatus[v.id] ?? LearningStatus.NEW,
+      }));
 
-      if (data.length === 0) {
+      if (merged.length === 0) {
         setError("Bạn chưa có từ vựng nào. Hãy thêm từ vựng mới!");
       } else {
-        setVocabs(data);
+        setVocabs(merged);
       }
     } catch (err) {
       console.error("Error loading vocabs:", err);
@@ -118,14 +139,10 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
     try {
       setIsMarkingVocab(true);
 
-      // Gọi API
-      await vocabService.markVocab({
-        vocabId: card.id,
-        remembered,
-        studyMode: StudyMode.FLASHCARD,
-      });
-
       const newStatus = remembered ? LearningStatus.KNOWN : LearningStatus.FORGOTTEN;
+      const map = loadFlashcardStatusMap();
+      map[card.id] = newStatus;
+      saveFlashcardStatusMap(map);
 
       // LOG: Kiểm tra trạng thái mới
       console.log(`[Flashcard] vocab: ${card.surface}, newStatus: ${newStatus}`);
@@ -307,7 +324,7 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setFilter(tab.id as any)}
+              onClick={() => setFilter(tab.id as "ALL" | "KNOWN" | "UNLEARNED")}
               className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-300 ${filter === tab.id
                 ? isDark
                   ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20"
@@ -646,3 +663,4 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
 };
 
 export default Flashcard;
+
