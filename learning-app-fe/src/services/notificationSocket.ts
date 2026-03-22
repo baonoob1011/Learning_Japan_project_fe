@@ -88,10 +88,11 @@ export const connectNotificationSocket = (
           const newSessionId = message.body;
           const currentSessionId = localStorage.getItem("sessionId");
           
-          // Chỉ bị đá nếu sessionId nhận được KHÁC với sessionId hiện tại của mình
-          // (Tránh trường hợp tự đá chính mình khi vừa login thành công)
-          if (newSessionId && currentSessionId && newSessionId !== currentSessionId) {
-            console.warn("🛑 [KICK_OUT] Another device logged in with sessionId:", newSessionId);
+          // 🔥 QUAN TRỌNG: Chỉ bị đá nếu:
+          // 1. Máy ĐANG CÓ một sessionId (đã login rồi)
+          // 2. Và sessionId mới nhận được KHÁC với cái đang có
+          if (currentSessionId && newSessionId && newSessionId !== currentSessionId) {
+            console.warn("🛑 [KICK_OUT] Another device logged in. Current session is invalidated.");
             
             const { setKickedOut } = useAuthStore.getState();
             
@@ -99,7 +100,7 @@ export const connectNotificationSocket = (
             localStorage.clear();
             sessionStorage.clear();
             
-            // Hiện Modal đẹp
+            // Hiện Modal
             setKickedOut(true);
           }
         }
