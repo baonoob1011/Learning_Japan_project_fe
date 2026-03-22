@@ -32,7 +32,7 @@ interface ChatContactDropdownProps {
     showCallButton: boolean;
     unreadCounts?: Record<string, number>;
     isUserOnline?: (userId: string | undefined | null) => boolean;
-    onUnfriend?: (contactId: string) => void;
+    onUnfriend?: (c: Contact) => void;
 }
 
 export default function ChatContactDropdown({
@@ -225,7 +225,7 @@ export default function ChatContactDropdown({
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    onUnfriend?.(c.id);
+                                                    onUnfriend?.(c);
                                                 }}
                                                 className={`opacity-0 group-hover:opacity-100 p-1.5 rounded-full transition-all hover:bg-red-500/10 text-gray-400 hover:text-red-500`}
                                                 title="Xóa cuộc trò chuyện"

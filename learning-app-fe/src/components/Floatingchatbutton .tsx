@@ -428,28 +428,33 @@ export default function FloatingChatButton({
     setSelectedContact(list.length > 0 ? list[0] : null);
   };
 
-  const handleUnfriend = async (contactId: string) => {
-    if (!confirm("Bạn có chắc chắn muốn xóa người này khỏi danh sách chat?")) return;
+  const handleUnfriend = async (c: Contact) => {
+    if (!c.userId) return;
+    if (!confirm(`Bạn có chắc chắn muốn hủy kết bạn với ${c.name}? Hành động này sẽ xóa người này khỏi danh sách chat.`)) return;
+
     try {
-      await roomService.deleteRoom(contactId);
-      if (activeTab === "INBOX") {
-        setInboxContacts(prev => prev.filter(c => c.id !== contactId));
-      } else {
-        setGroupContacts(prev => prev.filter(c => c.id !== contactId));
-      }
-      if (selectedContact?.id === contactId) {
+      // Gọi API hủy kết bạn
+      await roomService.unfriend(c.userId);
+
+      // Cập nhật UI ngay lập tức
+      setInboxContacts(prev => prev.filter(item => item.id !== c.id));
+      setGroupContacts(prev => prev.filter(item => item.id !== c.id));
+
+      if (selectedContact?.id === c.id) {
+        // Nếu đang chat với người bị xóa, thì bỏ chọn
         setSelectedContact(null);
       }
     } catch (err) {
       console.error("Failed to unfriend:", err);
+      alert("Không thể hủy kết bạn lúc này. Vui lòng thử lại sau.");
     }
   };
 
   const currentContacts = useMemo(() => {
     const list = activeTab === "INBOX" ? inboxContacts : groupContacts;
     return [...list].sort((a, b) => {
-      const timeA = new Date(a.timestamp || 0).getTime();
-      const timeB = new Date(b.timestamp || 0).getTime();
+      const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+      const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
       return timeB - timeA;
     });
   }, [activeTab, inboxContacts, groupContacts]);

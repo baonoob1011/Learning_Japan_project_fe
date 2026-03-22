@@ -209,4 +209,10 @@ export const roomService = {
       request
     );
   },
+  /**
+   * 💔 Hủy kết bạn (Xóa cả quan hệ bạn bè và có thể ảnh hưởng đến chat)
+   */
+  unfriend(userId: string): Promise<void> {
+    return http.delete<void>(API_ENDPOINTS.FRIEND.UNFRIEND(userId));
+  },
 };
