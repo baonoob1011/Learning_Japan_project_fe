@@ -70,6 +70,38 @@ function formatDatetime(iso: string): string {
     }
 }
 
+function toReadableClassName(targetClass: string): string {
+    if (!targetClass) return "Hệ thống";
+    const shortName = targetClass.split(".").pop() || targetClass;
+    return shortName.replace("Controller", "").replace("Service", "").trim();
+}
+
+function describeLog(log: SystemLog): string {
+    const method = (log.methodName || "").toLowerCase();
+    const moduleName = toReadableClassName(log.targetClass);
+
+    if (method.includes("login")) return "Người dùng đang đăng nhập.";
+    if (method.includes("logout")) return "Người dùng đang đăng xuất.";
+    if (method.includes("register")) return "Người dùng đang đăng ký tài khoản.";
+    if (method.includes("refresh")) return "Hệ thống đang làm mới phiên đăng nhập.";
+    if (method.includes("gettodaysession") || method.includes("gettodayreviews")) return "Đang tải phiên ôn tập hôm nay.";
+    if (method.includes("getunreadcount")) return "Đang lấy số lượng thông báo chưa đọc.";
+    if (method.includes("getmynotifications") || method.includes("getnotifications")) return "Đang tải danh sách thông báo.";
+    if (method.includes("create")) return `Đang tạo mới dữ liệu trong mục ${moduleName}.`;
+    if (method.includes("update")) return `Đang cập nhật dữ liệu trong mục ${moduleName}.`;
+    if (method.includes("delete") || method.includes("remove")) return `Đang xóa dữ liệu trong mục ${moduleName}.`;
+    if (method.includes("submit")) return "Người dùng vừa gửi dữ liệu lên hệ thống.";
+    if (method.includes("upload")) return "Đang tải tệp lên hệ thống.";
+    if (method.includes("search")) return "Người dùng đang tìm kiếm dữ liệu.";
+    if (method.includes("mark")) return "Đang đánh dấu trạng thái dữ liệu.";
+    if (method.includes("finalize")) return "Đang chốt kết quả xử lý.";
+
+    if (log.status === "FAILURE") {
+        return "Thao tác thất bại. Vui lòng xem chi tiết lỗi để biết nguyên nhân.";
+    }
+    return `Đang thực thi chức năng ${moduleName} - ${log.methodName}.`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // SUB-COMPONENTS
 // ─────────────────────────────────────────────────────────────────────────────

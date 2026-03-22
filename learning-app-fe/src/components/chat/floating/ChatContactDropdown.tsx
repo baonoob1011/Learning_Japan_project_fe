@@ -78,17 +78,19 @@ export default function ChatContactDropdown({
                     >
                         {selectedContact ? (
                             <>
-                                <img
-                                    src={selectedContact.avatar}
-                                    alt={selectedContact.name}
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).src = "/default-avatar.png";
-                                    }}
-                                    className="w-6 h-6 rounded-full object-cover shrink-0 ring-1 ring-white/20"
-                                />
-                                {!selectedContact.isGroup && isUserOnline?.(selectedContact.userId) && (
-                                    <span className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full border border-white shadow-sm" />
-                                )}
+                                <div className="relative shrink-0">
+                                    <img
+                                        src={selectedContact.avatar}
+                                        alt={selectedContact.name}
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = "/default-avatar.png";
+                                        }}
+                                        className="w-6 h-6 rounded-full object-cover ring-1 ring-white/20"
+                                    />
+                                    {!selectedContact.isGroup && isUserOnline?.(selectedContact.userId) && (
+                                        <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white shadow-sm" />
+                                    )}
+                                </div>
                                 <span className="text-white font-semibold text-xs truncate flex-1 text-left">
                                     {selectedContact.name}
                                 </span>
