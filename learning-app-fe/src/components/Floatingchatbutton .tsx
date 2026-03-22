@@ -19,6 +19,8 @@ import { useNotificationStore } from "@/stores/notificationStore";
 import { buildCallRoomId } from "@/utils/call";
 
 import {
+  ChatContactDropdown,
+  ChatMessageList,
   ChatInputBar,
 } from "@/components/chat/floating";
 import ConfirmModal from "@/components/ConfirmModal";
