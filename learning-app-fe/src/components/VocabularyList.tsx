@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useState, useEffect, useMemo } from "react";
 import {
     Search,
@@ -192,6 +192,55 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
         }
     };
 
+
+    const formatReviewMeta = (nextReviewAt?: string) => {
+        if (!nextReviewAt) return null;
+
+        const reviewDate = new Date(nextReviewAt);
+        if (Number.isNaN(reviewDate.getTime())) {
+            return {
+                isOverdue: false,
+                message: `Ôn lại: ${nextReviewAt}`,
+                tooltip: "Thời gian ôn tập kế tiếp",
+            };
+        }
+
+        const now = Date.now();
+        const diffMs = now - reviewDate.getTime();
+        const absoluteMinutes = Math.floor(Math.abs(diffMs) / 60000);
+        const hours = Math.floor(absoluteMinutes / 60);
+        const minutes = absoluteMinutes % 60;
+        const distanceText = hours > 0 ? `${hours}h ${minutes}p` : `${minutes}p`;
+        const scheduledAt = reviewDate.toLocaleString("vi-VN", {
+            day: "2-digit",
+            month: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+
+        if (diffMs >= 60000) {
+            return {
+                isOverdue: true,
+                message: `⚠️ Quá hạn ${distanceText} (hẹn ${scheduledAt})`,
+                tooltip: "Từ này đã quá thời điểm ôn lại",
+            };
+        }
+
+        if (Math.abs(diffMs) < 60000) {
+            return {
+                isOverdue: false,
+                message: `🕐 Đến giờ ôn rồi (${scheduledAt})`,
+                tooltip: "Đang đến thời điểm ôn tập",
+            };
+        }
+
+        return {
+            isOverdue: false,
+            message: `⏳ Ôn lại sau ${distanceText} (lúc ${scheduledAt})`,
+            tooltip: "Thời gian còn lại đến lịch ôn",
+        };
+    };
+
     const filteredVocabs = useMemo(() => {
         let result = vocabs;
 
@@ -309,32 +358,7 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                 )}
             </div>
 
-            <div className="flex items-center justify-between mb-6 gap-4">
-                {/* Filter Tabs */}
-                <div className={`inline-flex p-1 rounded-2xl border transition-all duration-300 ${isDarkMode ? "bg-gray-800/60 border-gray-700" : "bg-gray-100/50 border-gray-200"}`}>
-                    {[
-                        { id: "ALL", label: "Tất cả", icon: "📚" },
-                        { id: "UNLEARNED", label: "Chưa thuộc", icon: "🌱" },
-                        { id: "KNOWN", label: "Đã thuộc", icon: "🏆" },
-                    ].map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setFilter(tab.id as "ALL" | "KNOWN" | "UNLEARNED")}
-                            className={`flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl text-sm font-bold whitespace-nowrap transition-all duration-300 ${filter === tab.id
-                                ? isDarkMode
-                                    ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20"
-                                    : "bg-white text-cyan-600 shadow-sm"
-                                : isDarkMode
-                                    ? "text-gray-400 hover:text-gray-200"
-                                    : "text-gray-500 hover:text-gray-700"
-                                }`}
-                        >
-                            <span>{tab.icon}</span>
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
-
+            <div className="flex items-center justify-end mb-6 gap-4">
                 {/* Count + Learn button */}
                 <div className="flex items-center gap-3 shrink-0">
                     <span className={`text-sm font-bold ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
@@ -345,7 +369,7 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                         từ
                     </span>
 
-                    {filter === "UNLEARNED" && filteredVocabs.length > 0 && (
+                    {filteredVocabs.length > 0 && (
                         <button
                             onClick={() => onStartLearning?.("UNLEARNED")}
                             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 hover:scale-105 active:scale-95 whitespace-nowrap ${isDarkMode
@@ -368,160 +392,132 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                         <p>Không tìm thấy từ vựng nào</p>
                     </div>
                 ) : (
-                    filteredVocabs.map((v) => (
-                        <div
-                            key={v.id}
-                            className={`group flex flex-col md:flex-row items-stretch md:items-center gap-6 p-6 rounded-3xl border transition-all duration-500 hover:shadow-2xl ${isDarkMode
-                                ? "bg-gray-800/40 border-gray-700 hover:bg-gray-800 hover:border-cyan-500/30 shadow-black/40"
-                                : "bg-white border-gray-100 hover:shadow-cyan-100/50 hover:border-cyan-200"
-                                }`}
-                        >
-                            {/* Section 1: Japanese Word */}
-                            <div className="flex-shrink-0 w-full md:w-56 space-y-2">
-                                <div className="flex items-center gap-2">
-                                    <h3 className={`text-2xl font-black tracking-tight ${isDarkMode ? "text-white" : "text-black"}`}>
-                                        {v.surface}
-                                    </h3>
-                                    <button
-                                        onClick={() => playSound(v.surface, v.audioUrl)}
-                                        className="p-1.5 rounded-full hover:bg-cyan-500/10 text-cyan-500 transition-transform active:scale-90"
-                                    >
-                                        <Volume2 size={16} />
-                                    </button>
-                                </div>
-                                <div className="flex flex-wrap gap-2 text-[11px] font-bold">
-                                    <span className={isDarkMode ? "text-gray-400" : "text-gray-600"}>
-                                        {v.reading || v.romaji}
-                                    </span>
-                                    {v.partOfSpeech && (
-                                        <span className={`px-2 py-0.5 rounded uppercase tracking-widest text-[9px] ${isDarkMode ? "bg-gray-700/50 text-gray-400 border border-gray-600" : "bg-gray-100 text-gray-500"
-                                            }`}>
-                                            {v.partOfSpeech}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Section 2: Learning Status */}
-                            <div className="hidden md:flex flex-col flex-shrink-0 items-center justify-center w-36 px-2 gap-2">
-                                <button
-                                    onClick={() => handleToggleStatus(v)}
-                                    disabled={isActionLoading === v.id}
-                                    className="focus:outline-none"
-                                >
-                                    {v.status === LearningStatus.KNOWN ? (
-                                        <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 border-b-2 ${isDarkMode
-                                            ? "bg-emerald-500/20 text-emerald-400 border-emerald-400/40 shadow-emerald-500/10"
-                                            : "bg-emerald-500 text-white border-emerald-700 shadow-emerald-200"
-                                            }`}>
-                                            Đã thuộc
-                                        </div>
-                                    ) : (
-                                        <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 hover:scale-110 active:scale-95 border-2 ${isDarkMode
-                                            ? "bg-transparent border-amber-500/30 text-amber-400/80"
-                                            : "bg-transparent border-amber-200 text-amber-600 shadow-sm"
-                                            }`}>
-                                            Chưa thuộc
-                                        </div>
-                                    )}
-                                </button>
-
-                                {v.nextReviewAt && (
-                                    <div className={`text-[9px] font-bold text-center opacity-70 ${isDarkMode ? "text-cyan-400" : "text-cyan-700"}`} title="Thời gian ôn tập lại bằng thuật toán thông minh">
-                                        ⏳ Ôn lại:<br /> {new Date(v.nextReviewAt).toLocaleString("vi-VN", {
-                                            day: "2-digit",
-                                            month: "2-digit",
-                                            hour: "2-digit",
-                                            minute: "2-digit"
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Section 3: Meaning (Editable) */}
-                            <div className="flex-1 min-w-0 py-2 md:py-0">
-                                {editingId === v.id ? (
+                    filteredVocabs.map((v) => {
+                        const reviewMeta = formatReviewMeta(v.nextReviewAt);
+                        return (
+                            <div
+                                key={v.id}
+                                className={`group flex flex-col md:flex-row items-stretch md:items-center gap-6 p-6 rounded-3xl border transition-all duration-500 hover:shadow-2xl ${isDarkMode
+                                    ? "bg-gray-800/40 border-gray-700 hover:bg-gray-800 hover:border-cyan-500/30 shadow-black/40"
+                                    : "bg-white border-gray-100 hover:shadow-cyan-100/50 hover:border-cyan-200"
+                                    }`}
+                            >
+                                {/* Section 1: Japanese Word */}
+                                <div className="flex-shrink-0 w-full md:w-56 space-y-2">
                                     <div className="flex items-center gap-2">
-                                        <input
-                                            autoFocus
-                                            type="text"
-                                            value={editValue}
-                                            onChange={(e) => setEditValue(e.target.value)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === "Enter") saveEdit(v);
-                                                if (e.key === "Escape") cancelEdit();
-                                            }}
-                                            className={`flex-1 px-4 py-2.5 rounded-xl border outline-none font-medium transition-all ${isDarkMode
-                                                ? "bg-gray-700 border-gray-600 text-white focus:border-cyan-500"
-                                                : "bg-white border-gray-300 text-gray-900 shadow-inner focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/20"
-                                                }`}
-                                        />
-                                        <div className="flex gap-1">
-                                            <button
-                                                onClick={() => saveEdit(v)}
-                                                disabled={isActionLoading === v.id}
-                                                className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20"
-                                            >
-                                                <Check size={18} />
-                                            </button>
-                                            <button
-                                                onClick={cancelEdit}
-                                                className="p-2.5 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition shadow-lg shadow-gray-500/20"
-                                            >
-                                                <X size={18} />
-                                            </button>
-                                        </div>
+                                        <h3 className={`text-2xl font-black tracking-tight ${isDarkMode ? "text-white" : "text-black"}`}>
+                                            {v.surface}
+                                        </h3>
                                     </div>
-                                ) : (
-                                    <div className="flex flex-col gap-1">
-                                        <div className="flex items-center gap-3">
-                                            <p className={`text-lg font-bold leading-tight ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>
-                                                {v.translated}
-                                            </p>
-                                            <div className="md:hidden">
-                                                {v.status === LearningStatus.KNOWN ? "🏆" : "🌱"}
-                                            </div>
-                                        </div>
-                                        {/* Mobile view review time */}
-                                        {v.nextReviewAt && (
-                                            <div className={`md:hidden text-[9px] font-bold opacity-70 ${isDarkMode ? "text-cyan-400" : "text-cyan-600"}`}>
-                                                ⏳ Ôn lại: {new Date(v.nextReviewAt).toLocaleString("vi-VN", {
-                                                    day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
-                                                })}
-                                            </div>
+                                    <div className="flex flex-wrap gap-2 text-[11px] font-bold">
+                                        <span className={isDarkMode ? "text-gray-400" : "text-gray-600"}>
+                                            {v.reading || v.romaji}
+                                        </span>
+                                        {v.partOfSpeech && (
+                                            <span className={`px-2 py-0.5 rounded uppercase tracking-widest text-[9px] ${isDarkMode ? "bg-gray-700/50 text-gray-400 border border-gray-600" : "bg-gray-100 text-gray-500"
+                                                }`}>
+                                                {v.partOfSpeech}
+                                            </span>
                                         )}
                                     </div>
-                                )}
-                            </div>
+                                </div>
 
-                            {/* Section 4: Actions */}
-                            <div className="flex items-center gap-2 shrink-0 md:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                {editingId !== v.id && (
-                                    <>
-                                        <button
-                                            onClick={() => startEdit(v)}
-                                            className="p-2.5 rounded-xl hover:bg-cyan-500/10 text-cyan-500 transition-all hover:scale-110 active:scale-90"
-                                            title="Sửa nghĩa"
-                                        >
-                                            <Edit2 size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(v.surface, v.id)}
-                                            disabled={isActionLoading === v.id}
-                                            className="p-2.5 rounded-xl hover:bg-red-500/10 text-red-500 transition-all hover:scale-110 active:scale-90"
-                                            title="Xóa từ"
-                                        >
-                                            {isActionLoading === v.id ? (
-                                                <Loader2 size={18} className="animate-spin" />
-                                            ) : (
-                                                <Trash2 size={18} />
-                                            )}
-                                        </button>
-                                    </>
-                                )}
+                                {/* Section 2: Audio Action */}
+                                <div className="hidden md:flex flex-col flex-shrink-0 items-center justify-center w-24 px-2 gap-2">
+                                    <button
+                                        onClick={() => playSound(v.surface, v.audioUrl)}
+                                        className="p-3 rounded-full hover:bg-cyan-500/10 text-cyan-500 transition-transform active:scale-90"
+                                        title="Nghe từ"
+                                    >
+                                        <Volume2 size={24} />
+                                    </button>
+                                </div>
+
+                                {/* Section 3: Meaning (Editable) */}
+                                <div className="flex-1 min-w-0 py-2 md:py-0">
+                                    {editingId === v.id ? (
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                autoFocus
+                                                type="text"
+                                                value={editValue}
+                                                onChange={(e) => setEditValue(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") saveEdit(v);
+                                                    if (e.key === "Escape") cancelEdit();
+                                                }}
+                                                className={`flex-1 px-4 py-2.5 rounded-xl border outline-none font-medium transition-all ${isDarkMode
+                                                    ? "bg-gray-700 border-gray-600 text-white focus:border-cyan-500"
+                                                    : "bg-white border-gray-300 text-gray-900 shadow-inner focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/20"
+                                                    }`}
+                                            />
+                                            <div className="flex gap-1">
+                                                <button
+                                                    onClick={() => saveEdit(v)}
+                                                    disabled={isActionLoading === v.id}
+                                                    className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20"
+                                                >
+                                                    <Check size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={cancelEdit}
+                                                    className="p-2.5 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition shadow-lg shadow-gray-500/20"
+                                                >
+                                                    <X size={18} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex items-center gap-3">
+                                                <p className={`text-lg font-bold leading-tight ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>
+                                                    {v.translated}
+                                                </p>
+                                                <div className="md:hidden flex items-center">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            playSound(v.surface, v.audioUrl);
+                                                        }}
+                                                        className="p-1.5 rounded-full bg-cyan-500/10 text-cyan-500"
+                                                    >
+                                                        <Volume2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Section 4: Actions */}
+                                <div className="flex items-center gap-2 shrink-0 md:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    {editingId !== v.id && (
+                                        <>
+                                            <button
+                                                onClick={() => startEdit(v)}
+                                                className="p-2.5 rounded-xl hover:bg-cyan-500/10 text-cyan-500 transition-all hover:scale-110 active:scale-90"
+                                                title="Sửa nghĩa"
+                                            >
+                                                <Edit2 size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(v.surface, v.id)}
+                                                disabled={isActionLoading === v.id}
+                                                className="p-2.5 rounded-xl hover:bg-red-500/10 text-red-500 transition-all hover:scale-110 active:scale-90"
+                                                title="Xóa từ"
+                                            >
+                                                {isActionLoading === v.id ? (
+                                                    <Loader2 size={18} className="animate-spin" />
+                                                ) : (
+                                                    <Trash2 size={18} />
+                                                )}
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
 

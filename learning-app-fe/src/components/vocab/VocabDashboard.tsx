@@ -83,6 +83,7 @@ const VocabDashboard: React.FC<VocabDashboardProps> = ({
     },
   ];
   const todayQueueCount = reviewData?.summary.todayQueueCount || 0;
+  const smartStudyCount = totalVocabs;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -128,7 +129,8 @@ const VocabDashboard: React.FC<VocabDashboardProps> = ({
             </h3>
             <p className={`${subText} text-sm leading-relaxed`}>
               Khoa học chứng minh rằng việc ôn lại đúng lúc là chìa khóa của trí nhớ vĩnh cửu.
-              Bạn đang có <span className="text-cyan-500 font-bold">{todayQueueCount} flashcards</span> đang đợi.
+              SRS hôm nay có <span className="text-cyan-500 font-bold">{todayQueueCount} thẻ</span> đến hạn.
+              Học thông minh sẽ chạy toàn bộ <span className="text-cyan-500 font-bold">{smartStudyCount} từ</span> trong danh sách.
             </p>
           </div>
 
@@ -138,7 +140,7 @@ const VocabDashboard: React.FC<VocabDashboardProps> = ({
               className="flex items-center justify-center gap-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black py-4 px-8 rounded-2xl shadow-xl shadow-cyan-500/20 hover:scale-105 active:scale-95 transition-all group"
             >
               <Zap size={20} className="fill-current" />
-              <span>BẮT ĐẦU HỌC ({todayQueueCount})</span>
+              <span>BẮT ĐẦU HỌC TẤT CẢ ({smartStudyCount})</span>
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>

@@ -5,6 +5,7 @@ import { JLPTLevel, VideoTag } from "@/types/video";
 import LoadingCat from "@/components/LoadingCat";
 import { getAccessTokenFromStorage, getRolesFromToken } from "@/utils/jwt";
 import UpgradePlusModal from "@/components/payment/Upgradeplusmodal ";
+import { useVip } from "@/hooks/useVip";
 
 type JLPTLevelType = "N1" | "N2" | "N3" | "N4" | "N5";
 
@@ -35,6 +36,7 @@ const VideoBanner: React.FC<VideoBannerProps> = ({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const isVip = useVip();
 
   const tabs = [
     { icon: "✨", label: "Toàn bộ" },
@@ -91,19 +93,9 @@ const VideoBanner: React.FC<VideoBannerProps> = ({
   const handleUpload = async () => {
     if (!youtubeUrl || !selectedLevel || !selectedTag) return;
 
-    // Check user role: if standard USER (not VIP/ADMIN), route to upgrade Plus
-    const token = getAccessTokenFromStorage();
-    if (token) {
-      const roles = getRolesFromToken(token);
-      if (
-        roles.includes("USER") &&
-        !roles.includes("USER_VIP") &&
-        !roles.includes("ADMIN") &&
-        !roles.includes("ROLE_ADMIN")
-      ) {
-        setIsUpgradeModalOpen(true);
-        return; // Prevent further action
-      }
+    if (!isVip) {
+      setIsUpgradeModalOpen(true);
+      return;
     }
 
     setIsLoading(true);
@@ -215,7 +207,7 @@ const VideoBanner: React.FC<VideoBannerProps> = ({
             disabled={
               !youtubeUrl || !selectedLevel || !selectedTag || isLoading
             }
-            className={`px-6 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-lg font-semibold shadow-md hover:shadow-lg transition-all flex items-center gap-2 whitespace-nowrap ${!youtubeUrl || !selectedLevel || !selectedTag || isLoading
+            className={`relative px-6 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-lg font-semibold shadow-md hover:shadow-lg transition-all flex items-center gap-2 whitespace-nowrap ${!youtubeUrl || !selectedLevel || !selectedTag || isLoading
               ? "opacity-50 cursor-not-allowed"
               : "hover:scale-105"
               }`}
@@ -229,6 +221,12 @@ const VideoBanner: React.FC<VideoBannerProps> = ({
               <>
                 <Video className="w-4 h-4" />
                 <span>Tạo video</span>
+                <span className={`absolute -top-1.5 -right-1 px-1 rounded-full text-[8px] font-black z-10 border transition-colors ${isVip
+                  ? isDarkMode ? "bg-gray-700 text-gray-500 border-gray-600" : "bg-gray-200 text-gray-400 border-white"
+                  : "bg-amber-400 text-gray-900 border-white shadow-sm"
+                  }`}>
+                  VIP
+                </span>
               </>
             )}
           </button>

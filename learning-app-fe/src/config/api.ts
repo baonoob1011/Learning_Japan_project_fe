@@ -250,6 +250,8 @@ export const API_ENDPOINTS = {
   },
   VOCAB: {
     MARK_VOCAB: "/learning/vocab/mark",
+    SMART_ATTEMPT_SKILL: "/learning/smart/attempt-skill",
+    SMART_FINALIZE_WORD: "/learning/smart/finalize-word",
     CREATE: "/vocab",
     CREATE_MANUAL: "/vocab/manual",
     GET_MY: "/vocab",

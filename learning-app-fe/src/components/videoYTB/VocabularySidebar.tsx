@@ -3,6 +3,8 @@ import { vocabService, VocabResponse } from "@/services/vocabService";
 
 import React, { useState, useEffect } from "react";
 import { Volume2, Copy, Edit, Trash2, ChevronLeft } from "lucide-react";
+import { useVip } from "@/hooks/useVip";
+import UpgradePlusModal from "@/components/payment/Upgradeplusmodal ";
 
 export interface VocabularyItem {
   id: string;
@@ -38,6 +40,8 @@ export default function VocabularySidebar({
   const [vocabularyList, setVocabularyList] = useState<VocabularyItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingVocab, setEditingVocab] = useState<string | null>(null);
+  const isVip = useVip();
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [editForm, setEditForm] = useState({
     word: "",
     reading: "",
@@ -71,6 +75,10 @@ export default function VocabularySidebar({
   }, [refreshTrigger, isVisible]);
 
   const handlePlayAudio = (word: string) => {
+    if (!isVip) {
+      setIsUpgradeModalOpen(true);
+      return;
+    }
     if ("speechSynthesis" in window) {
       const utterance = new SpeechSynthesisUtterance(word);
       utterance.lang = "ja-JP";
@@ -130,44 +138,39 @@ export default function VocabularySidebar({
 
   return (
     <div
-      className={`relative w-80 h-full border-r flex flex-col transition-colors duration-300 ${
-        isDarkMode
-          ? "bg-gray-800/90 border-gray-700"
-          : "bg-white/90 backdrop-blur-sm border-cyan-100"
-      }`}
+      className={`relative w-80 h-full border-r flex flex-col transition-colors duration-300 ${isDarkMode
+        ? "bg-gray-800/90 border-gray-700"
+        : "bg-white/90 backdrop-blur-sm border-cyan-100"
+        }`}
     >
       {/* Header */}
       <div
-        className={`p-4 border-b flex-shrink-0 transition-colors duration-300 ${
-          isDarkMode ? "border-gray-700" : "border-cyan-100"
-        }`}
+        className={`p-4 border-b flex-shrink-0 transition-colors duration-300 ${isDarkMode ? "border-gray-700" : "border-cyan-100"
+          }`}
       >
         <div className="flex items-center justify-between w-full px-1">
           <div className="flex items-center gap-2 flex-shrink-0">
             <div
-              className={`p-1.5 rounded transition-colors duration-300 ${
-                isDarkMode ? "bg-gray-700" : "bg-cyan-50"
-              }`}
+              className={`p-1.5 rounded transition-colors duration-300 ${isDarkMode ? "bg-gray-700" : "bg-cyan-50"
+                }`}
             >
               <span className="text-lg">📖</span>
             </div>
             <h2
-              className={`text-lg font-bold transition-colors duration-300 ${
-                isDarkMode
-                  ? "text-gray-100"
-                  : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
-              }`}
+              className={`text-lg font-bold transition-colors duration-300 ${isDarkMode
+                ? "text-gray-100"
+                : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
+                }`}
             >
               Từ vựng
             </h2>
           </div>
           <button
             onClick={onToggle}
-            className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${
-              isDarkMode
-                ? "text-gray-400 hover:bg-gray-700"
-                : "text-cyan-500 hover:bg-cyan-50"
-            }`}
+            className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${isDarkMode
+              ? "text-gray-400 hover:bg-gray-700"
+              : "text-cyan-500 hover:bg-cyan-50"
+              }`}
             title="Đóng từ vựng"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -177,23 +180,20 @@ export default function VocabularySidebar({
 
       {/* Sub-header with count */}
       <div
-        className={`px-4 py-3 border-b flex-shrink-0 flex items-center justify-between transition-colors duration-300 ${
-          isDarkMode ? "border-gray-700" : "border-cyan-100"
-        }`}
+        className={`px-4 py-3 border-b flex-shrink-0 flex items-center justify-between transition-colors duration-300 ${isDarkMode ? "border-gray-700" : "border-cyan-100"
+          }`}
       >
         <span
-          className={`text-sm transition-colors duration-300 ${
-            isDarkMode ? "text-gray-400" : "text-gray-600"
-          }`}
+          className={`text-sm transition-colors duration-300 ${isDarkMode ? "text-gray-400" : "text-gray-600"
+            }`}
         >
           {vocabularyList.length} từ vựng
         </span>
         {loading && (
           <div className="flex items-center gap-2">
             <svg
-              className={`animate-spin h-4 w-4 ${
-                isDarkMode ? "text-cyan-400" : "text-cyan-500"
-              }`}
+              className={`animate-spin h-4 w-4 ${isDarkMode ? "text-cyan-400" : "text-cyan-500"
+                }`}
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -213,9 +213,8 @@ export default function VocabularySidebar({
               ></path>
             </svg>
             <span
-              className={`text-xs ${
-                isDarkMode ? "text-cyan-400" : "text-cyan-500"
-              }`}
+              className={`text-xs ${isDarkMode ? "text-cyan-400" : "text-cyan-500"
+                }`}
             >
               Đang tải...
             </span>
@@ -228,11 +227,10 @@ export default function VocabularySidebar({
         {vocabularyList.map((vocab) => (
           <div
             key={vocab.id}
-            className={`group border rounded-lg p-3 transition-all duration-300 ${
-              isDarkMode
-                ? "bg-gray-700/50 border-gray-600 hover:border-cyan-500 hover:shadow-lg hover:shadow-cyan-500/10"
-                : "bg-white border-cyan-100 hover:border-cyan-300 hover:shadow-sm"
-            }`}
+            className={`group border rounded-lg p-3 transition-all duration-300 ${isDarkMode
+              ? "bg-gray-700/50 border-gray-600 hover:border-cyan-500 hover:shadow-lg hover:shadow-cyan-500/10"
+              : "bg-white border-cyan-100 hover:border-cyan-300 hover:shadow-sm"
+              }`}
           >
             {editingVocab === vocab.id ? (
               // Edit Mode
@@ -243,11 +241,10 @@ export default function VocabularySidebar({
                   onChange={(e) =>
                     setEditForm({ ...editForm, word: e.target.value })
                   }
-                  className={`w-full px-2 py-1 text-lg font-bold border rounded focus:outline-none focus:ring-2 transition-colors duration-300 ${
-                    isDarkMode
-                      ? "bg-gray-800 border-gray-600 text-gray-100 focus:ring-cyan-400 focus:border-cyan-400"
-                      : "bg-white border-cyan-300 text-gray-900 focus:ring-cyan-400"
-                  }`}
+                  className={`w-full px-2 py-1 text-lg font-bold border rounded focus:outline-none focus:ring-2 transition-colors duration-300 ${isDarkMode
+                    ? "bg-gray-800 border-gray-600 text-gray-100 focus:ring-cyan-400 focus:border-cyan-400"
+                    : "bg-white border-cyan-300 text-gray-900 focus:ring-cyan-400"
+                    }`}
                   placeholder="Từ"
                 />
                 <input
@@ -256,11 +253,10 @@ export default function VocabularySidebar({
                   onChange={(e) =>
                     setEditForm({ ...editForm, reading: e.target.value })
                   }
-                  className={`w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 transition-colors duration-300 ${
-                    isDarkMode
-                      ? "bg-gray-800 border-gray-600 text-gray-100 focus:ring-cyan-400 focus:border-cyan-400"
-                      : "bg-white border-cyan-300 text-gray-900 focus:ring-cyan-400"
-                  }`}
+                  className={`w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 transition-colors duration-300 ${isDarkMode
+                    ? "bg-gray-800 border-gray-600 text-gray-100 focus:ring-cyan-400 focus:border-cyan-400"
+                    : "bg-white border-cyan-300 text-gray-900 focus:ring-cyan-400"
+                    }`}
                   placeholder="Phiên âm"
                 />
                 <input
@@ -269,11 +265,10 @@ export default function VocabularySidebar({
                   onChange={(e) =>
                     setEditForm({ ...editForm, translation: e.target.value })
                   }
-                  className={`w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 transition-colors duration-300 ${
-                    isDarkMode
-                      ? "bg-gray-800 border-gray-600 text-gray-100 focus:ring-cyan-400 focus:border-cyan-400"
-                      : "bg-white border-cyan-300 text-gray-900 focus:ring-cyan-400"
-                  }`}
+                  className={`w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 transition-colors duration-300 ${isDarkMode
+                    ? "bg-gray-800 border-gray-600 text-gray-100 focus:ring-cyan-400 focus:border-cyan-400"
+                    : "bg-white border-cyan-300 text-gray-900 focus:ring-cyan-400"
+                    }`}
                   placeholder="Nghĩa tiếng Việt"
                 />
                 <div className="flex gap-2">
@@ -285,11 +280,10 @@ export default function VocabularySidebar({
                   </button>
                   <button
                     onClick={handleCancelEdit}
-                    className={`flex-1 px-3 py-1.5 text-sm rounded transition-colors ${
-                      isDarkMode
-                        ? "bg-gray-600 text-gray-200 hover:bg-gray-500"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    }`}
+                    className={`flex-1 px-3 py-1.5 text-sm rounded transition-colors ${isDarkMode
+                      ? "bg-gray-600 text-gray-200 hover:bg-gray-500"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      }`}
                   >
                     Hủy
                   </button>
@@ -301,23 +295,20 @@ export default function VocabularySidebar({
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
                     <h3
-                      className={`text-lg font-bold mb-1 transition-colors duration-300 ${
-                        isDarkMode ? "text-gray-100" : "text-gray-900"
-                      }`}
+                      className={`text-lg font-bold mb-1 transition-colors duration-300 ${isDarkMode ? "text-gray-100" : "text-gray-900"
+                        }`}
                     >
                       {vocab.word}
                     </h3>
                     <p
-                      className={`text-sm mb-1 transition-colors duration-300 ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
+                      className={`text-sm mb-1 transition-colors duration-300 ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
                     >
                       {vocab.reading}
                     </p>
                     <p
-                      className={`text-sm font-medium transition-colors duration-300 ${
-                        isDarkMode ? "text-cyan-400" : "text-cyan-700"
-                      }`}
+                      className={`text-sm font-medium transition-colors duration-300 ${isDarkMode ? "text-cyan-400" : "text-cyan-700"
+                        }`}
                     >
                       {vocab.translation}
                     </p>
@@ -326,50 +317,51 @@ export default function VocabularySidebar({
 
                 {/* Action Buttons */}
                 <div
-                  className={`flex items-center gap-2 mt-3 pt-3 border-t transition-colors duration-300 ${
-                    isDarkMode ? "border-gray-600" : "border-cyan-100"
-                  }`}
+                  className={`flex items-center gap-2 mt-3 pt-3 border-t transition-colors duration-300 ${isDarkMode ? "border-gray-600" : "border-cyan-100"
+                    }`}
                 >
                   <button
                     onClick={() => handlePlayAudio(vocab.word)}
-                    className={`p-2 rounded transition-colors ${
-                      isDarkMode
-                        ? "text-gray-400 hover:text-cyan-400 hover:bg-cyan-900/30"
-                        : "text-gray-600 hover:text-cyan-600 hover:bg-cyan-50"
-                    }`}
+                    className={`p-2 rounded transition-colors relative group/btn ${isDarkMode
+                      ? "text-gray-400 hover:text-cyan-400 hover:bg-cyan-900/30"
+                      : "text-gray-600 hover:text-cyan-600 hover:bg-cyan-50"
+                      }`}
                     title="Phát âm"
                   >
                     <Volume2 className="w-4 h-4" />
+                    <span className={`absolute -top-1.5 -right-1 text-[7px] px-1 rounded-full font-black border transition-colors ${isVip
+                      ? isDarkMode ? "bg-gray-700 text-gray-500 border-gray-600" : "bg-gray-200 text-gray-400 border-white"
+                      : "bg-amber-400 text-gray-900 border-white shadow-sm"
+                      }`}>
+                      VIP
+                    </span>
                   </button>
                   <button
                     onClick={() => handleCopyWord(vocab.word)}
-                    className={`p-2 rounded transition-colors ${
-                      isDarkMode
-                        ? "text-gray-400 hover:text-blue-400 hover:bg-blue-900/30"
-                        : "text-gray-600 hover:text-blue-600 hover:bg-blue-50"
-                    }`}
+                    className={`p-2 rounded transition-colors ${isDarkMode
+                      ? "text-gray-400 hover:text-blue-400 hover:bg-blue-900/30"
+                      : "text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+                      }`}
                     title="Sao chép"
                   >
                     <Copy className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleStartEdit(vocab)}
-                    className={`p-2 rounded transition-colors ${
-                      isDarkMode
-                        ? "text-gray-400 hover:text-amber-400 hover:bg-amber-900/30"
-                        : "text-gray-600 hover:text-amber-600 hover:bg-amber-50"
-                    }`}
+                    className={`p-2 rounded transition-colors ${isDarkMode
+                      ? "text-gray-400 hover:text-amber-400 hover:bg-amber-900/30"
+                      : "text-gray-600 hover:text-amber-600 hover:bg-amber-50"
+                      }`}
                     title="Chỉnh sửa"
                   >
                     <Edit className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDeleteVocab(vocab.id)}
-                    className={`p-2 rounded transition-colors ml-auto ${
-                      isDarkMode
-                        ? "text-gray-400 hover:text-red-400 hover:bg-red-900/30"
-                        : "text-gray-600 hover:text-red-600 hover:bg-red-50"
-                    }`}
+                    className={`p-2 rounded transition-colors ml-auto ${isDarkMode
+                      ? "text-gray-400 hover:text-red-400 hover:bg-red-900/30"
+                      : "text-gray-600 hover:text-red-600 hover:bg-red-50"
+                      }`}
                     title="Xóa"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -384,17 +376,15 @@ export default function VocabularySidebar({
           <div className="text-center py-12 px-4">
             <div className="mb-4 flex justify-center">
               <div
-                className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors duration-300 ${
-                  isDarkMode ? "bg-cyan-900/30" : "bg-cyan-100"
-                }`}
+                className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors duration-300 ${isDarkMode ? "bg-cyan-900/30" : "bg-cyan-100"
+                  }`}
               >
                 <span className="text-3xl">💡</span>
               </div>
             </div>
             <p
-              className={`mb-4 text-sm leading-relaxed transition-colors duration-300 ${
-                isDarkMode ? "text-gray-400" : "text-gray-700"
-              }`}
+              className={`mb-4 text-sm leading-relaxed transition-colors duration-300 ${isDarkMode ? "text-gray-400" : "text-gray-700"
+                }`}
             >
               Tips! Bôi đen văn bản để dịch và thêm vào phần từ vựng
             </p>
@@ -409,22 +399,30 @@ export default function VocabularySidebar({
         }
         .custom-scrollbar::-webkit-scrollbar-track {
           background: ${isDarkMode
-            ? "rgba(55, 65, 81, 0.5)"
-            : "rgba(207, 250, 254, 0.3)"};
+          ? "rgba(55, 65, 81, 0.5)"
+          : "rgba(207, 250, 254, 0.3)"};
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
           background: ${isDarkMode
-            ? "#4b5563"
-            : "linear-gradient(to bottom, #22d3ee, #06b6d4)"};
+          ? "#4b5563"
+          : "linear-gradient(to bottom, #22d3ee, #06b6d4)"};
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: ${isDarkMode
-            ? "#6b7280"
-            : "linear-gradient(to bottom, #06b6d4, #0891b2)"};
+          ? "#6b7280"
+          : "linear-gradient(to bottom, #06b6d4, #0891b2)"};
         }
       `}</style>
+      {/* Upgrade VIP Modal */}
+      {isUpgradeModalOpen && (
+        <UpgradePlusModal
+          isOpen={isUpgradeModalOpen}
+          isDarkMode={isDarkMode}
+          onClose={() => setIsUpgradeModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

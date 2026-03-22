@@ -15,6 +15,7 @@ import { JLPTLevel, VideoTag } from "@/types/video";
 import VideoExercise from "@/components/videoYTB/Videoexercise";
 import { getAccessTokenFromStorage, getRolesFromToken } from "@/utils/jwt";
 import UpgradePlusModal from "@/components/payment/Upgradeplusmodal ";
+import { useVip } from "@/hooks/useVip";
 
 import {
   Video,
@@ -56,6 +57,7 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const isVip = useVip();
 
   // Tracking states
   const [isPlaying, setIsPlaying] = useState(false);
@@ -353,15 +355,13 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
 
               <button
                 onClick={() => {
-                  const token = getAccessTokenFromStorage();
-                  const roles = token ? getRolesFromToken(token) : [];
-                  if (roles.includes("USER_VIP")) {
+                  if (isVip) {
                     setViewMode("pronunciation");
                   } else {
                     setShowUpgradeModal(true);
                   }
                 }}
-                className={`px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all ${viewMode === "pronunciation"
+                className={`group relative px-8 py-3.5 rounded-full text-base font-medium flex items-center gap-3 transition-all ${viewMode === "pronunciation"
                   ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg"
                   : isDarkMode
                     ? "text-gray-300 hover:bg-gray-700 bg-gray-800 border-2 border-gray-600"
@@ -370,6 +370,12 @@ function VideoLearningContent({ videoId }: { videoId: string }) {
               >
                 <Volume2 className="w-5 h-5" />
                 <span>Phát âm</span>
+                <span className={`absolute -top-1 right-2 px-1.5 rounded-full text-[9px] font-black border-2 transition-colors ${isVip
+                  ? isDarkMode ? "bg-gray-700 text-gray-500 border-gray-600" : "bg-gray-200 text-gray-400 border-white"
+                  : "bg-amber-400 text-gray-900 border-white shadow-md shadow-amber-500/20"
+                  }`}>
+                  VIP
+                </span>
               </button>
 
               <button

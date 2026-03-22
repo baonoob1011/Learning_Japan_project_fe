@@ -29,6 +29,26 @@ export interface MarkVocabRequest {
   vocabId: string;
   studyMode: StudyMode;
 }
+export type Skill = "READING" | "LISTENING" | "TRANSLATION" | "WRITING";
+
+export interface SmartSkillAttemptRequest {
+  vocabId: string;
+  skill?: Skill;
+  studyMode: StudyMode;
+  success: boolean;
+}
+export interface SmartFinalizeWordRequest {
+  vocabId: string;
+  wrongCount: number;
+  failedInRetry: boolean;
+}
+export interface SmartFinalizeWordResponse {
+  vocabId: string;
+  wordProgressId: string;
+  grade: "AGAIN" | "HARD" | "GOOD" | "EASY";
+  wrongCount: number;
+  nextReviewAt: string;
+}
 export interface VocabStatusResponse {
   vocabId: string;
   status: LearningStatus;
@@ -85,6 +105,14 @@ export const vocabService = {
   markVocab(request: MarkVocabRequest): Promise<void> {
     return http.post<void>(API_ENDPOINTS.VOCAB.MARK_VOCAB, request);
   }, // ✅ GET vocab status
+  smartAttemptSkill(request: SmartSkillAttemptRequest): Promise<void> {
+    return http.post<void>(API_ENDPOINTS.VOCAB.SMART_ATTEMPT_SKILL, request);
+  },
+
+  smartFinalizeWord(request: SmartFinalizeWordRequest): Promise<SmartFinalizeWordResponse> {
+    return http.post<SmartFinalizeWordResponse>(API_ENDPOINTS.VOCAB.SMART_FINALIZE_WORD, request);
+  },
+
   getStatus(vocabId: string): Promise<VocabStatusResponse> {
     return http.get<VocabStatusResponse>(
       API_ENDPOINTS.VOCAB.GET_STATUS(vocabId)

@@ -6,6 +6,7 @@ import LoadingCat from "@/components/LoadingCat";
 import { JLPTLevel, VideoTag } from "@/types/video";
 import { getAccessTokenFromStorage, getRolesFromToken } from "@/utils/jwt";
 import UpgradePlusModal from "@/components/payment/Upgradeplusmodal ";
+import { useVip } from "@/hooks/useVip";
 
 export interface VideoUploadData {
   youtubeUrl: string;
@@ -33,6 +34,7 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
+  const isVip = useVip();
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   useEffect(() => {
@@ -82,18 +84,9 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
       return;
     }
 
-    const token = getAccessTokenFromStorage();
-    if (token) {
-      const roles = getRolesFromToken(token);
-      if (
-        roles.includes("USER") &&
-        !roles.includes("USER_VIP") &&
-        !roles.includes("ADMIN") &&
-        !roles.includes("ROLE_ADMIN")
-      ) {
-        setIsUpgradeModalOpen(true);
-        return;
-      }
+    if (!isVip) {
+      setIsUpgradeModalOpen(true);
+      return;
     }
 
     setIsLoading(true);
@@ -135,11 +128,10 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
       onClick={onClose}
     >
       <div
-        className={`${
-          isDark
+        className={`${isDark
             ? "bg-gray-800 border border-gray-700"
             : "bg-gradient-to-br from-cyan-50 to-blue-50"
-        } rounded-2xl w-full max-w-2xl shadow-2xl transform transition-all my-8 relative`}
+          } rounded-2xl w-full max-w-2xl shadow-2xl transform transition-all my-8 relative`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Loading Overlay with LoadingCat Component */}
@@ -156,30 +148,26 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
 
         {/* Header */}
         <div
-          className={`flex items-center justify-between p-6 border-b ${
-            isDark ? "border-gray-700" : "border-cyan-200"
-          }`}
+          className={`flex items-center justify-between p-6 border-b ${isDark ? "border-gray-700" : "border-cyan-200"
+            }`}
         >
           <h2
-            className={`text-2xl font-bold ${
-              isDark
+            className={`text-2xl font-bold ${isDark
                 ? "text-gray-100"
                 : "bg-gradient-to-r from-cyan-500 to-cyan-600 bg-clip-text text-transparent"
-            }`}
+              }`}
           >
             DÁN LINK YOUTUBE ĐỂ BẮT ĐẦU HỌC
           </h2>
           <button
             onClick={onClose}
             disabled={isLoading}
-            className={`p-2 rounded-lg transition ${
-              isDark ? "hover:bg-gray-700" : "hover:bg-cyan-100"
-            } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`p-2 rounded-lg transition ${isDark ? "hover:bg-gray-700" : "hover:bg-cyan-100"
+              } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             <X
-              className={`w-6 h-6 ${
-                isDark ? "text-gray-300" : "text-cyan-600"
-              }`}
+              className={`w-6 h-6 ${isDark ? "text-gray-300" : "text-cyan-600"
+                }`}
             />
           </button>
         </div>
@@ -189,17 +177,15 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
           {/* Error Message */}
           {error && (
             <div
-              className={`${
-                isDark
+              className={`${isDark
                   ? "bg-red-900/30 border-red-700"
                   : "bg-red-50 border-red-200"
-              } border px-4 py-3 rounded-xl flex items-start gap-2`}
+                } border px-4 py-3 rounded-xl flex items-start gap-2`}
             >
               <span className="text-red-600 font-bold">⚠️</span>
               <p
-                className={`text-sm ${
-                  isDark ? "text-red-300" : "text-red-800"
-                }`}
+                className={`text-sm ${isDark ? "text-red-300" : "text-red-800"
+                  }`}
               >
                 {error}
               </p>
@@ -209,14 +195,12 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
           {/* YouTube Link */}
           <div>
             <label
-              className={`flex items-center gap-2 mb-2 font-medium ${
-                isDark ? "text-gray-300" : "text-gray-700"
-              }`}
+              className={`flex items-center gap-2 mb-2 font-medium ${isDark ? "text-gray-300" : "text-gray-700"
+                }`}
             >
               <Video
-                className={`w-5 h-5 ${
-                  isDark ? "text-gray-400" : "text-gray-600"
-                }`}
+                className={`w-5 h-5 ${isDark ? "text-gray-400" : "text-gray-600"
+                  }`}
               />
               Youtube link
             </label>
@@ -228,25 +212,22 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
                 setFormData({ ...formData, youtubeUrl: e.target.value })
               }
               disabled={isLoading}
-              className={`w-full px-4 py-3 rounded-xl border-2 ${
-                isDark
+              className={`w-full px-4 py-3 rounded-xl border-2 ${isDark
                   ? "bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-500"
                   : "bg-white border-gray-200 text-gray-800 placeholder-gray-400"
-              } focus:outline-none focus:ring-2 focus:ring-cyan-400 transition disabled:opacity-50 disabled:cursor-not-allowed`}
+                } focus:outline-none focus:ring-2 focus:ring-cyan-400 transition disabled:opacity-50 disabled:cursor-not-allowed`}
             />
           </div>
 
           {/* Level */}
           <div>
             <label
-              className={`flex items-center gap-2 mb-2 font-medium ${
-                isDark ? "text-gray-300" : "text-gray-700"
-              }`}
+              className={`flex items-center gap-2 mb-2 font-medium ${isDark ? "text-gray-300" : "text-gray-700"
+                }`}
             >
               <Star
-                className={`w-5 h-5 ${
-                  isDark ? "text-gray-400" : "text-gray-600"
-                }`}
+                className={`w-5 h-5 ${isDark ? "text-gray-400" : "text-gray-600"
+                  }`}
               />
               Cấp độ
             </label>
@@ -256,11 +237,10 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
                 setFormData({ ...formData, level: e.target.value as JLPTLevel })
               }
               disabled={isLoading}
-              className={`w-full px-4 py-3 rounded-xl border-2 ${
-                isDark
+              className={`w-full px-4 py-3 rounded-xl border-2 ${isDark
                   ? "bg-gray-700 border-gray-600 text-gray-100"
                   : "bg-white border-gray-200 text-gray-800"
-              } focus:outline-none focus:ring-2 focus:ring-cyan-400 transition disabled:opacity-50 disabled:cursor-not-allowed`}
+                } focus:outline-none focus:ring-2 focus:ring-cyan-400 transition disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               <option value="">Chọn cấp độ</option>
               {levelOptions.map((level) => (
@@ -274,14 +254,12 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
           {/* Tag */}
           <div>
             <label
-              className={`flex items-center gap-2 mb-2 font-medium ${
-                isDark ? "text-gray-300" : "text-gray-700"
-              }`}
+              className={`flex items-center gap-2 mb-2 font-medium ${isDark ? "text-gray-300" : "text-gray-700"
+                }`}
             >
               <Tag
-                className={`w-5 h-5 ${
-                  isDark ? "text-gray-400" : "text-gray-600"
-                }`}
+                className={`w-5 h-5 ${isDark ? "text-gray-400" : "text-gray-600"
+                  }`}
               />
               Nhãn
             </label>
@@ -291,11 +269,10 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
                 setFormData({ ...formData, tag: e.target.value as VideoTag })
               }
               disabled={isLoading}
-              className={`w-full px-4 py-3 rounded-xl border-2 ${
-                isDark
+              className={`w-full px-4 py-3 rounded-xl border-2 ${isDark
                   ? "bg-gray-700 border-gray-600 text-gray-100"
                   : "bg-white border-gray-200 text-gray-800"
-              } focus:outline-none focus:ring-2 focus:ring-cyan-400 transition disabled:opacity-50 disabled:cursor-not-allowed`}
+                } focus:outline-none focus:ring-2 focus:ring-cyan-400 transition disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               <option value="">Chọn nhãn</option>
               {tagOptions.map((tag) => (
@@ -308,17 +285,15 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
 
           {/* Info Message */}
           <div
-            className={`${
-              isDark
+            className={`${isDark
                 ? "bg-blue-900/30 border-blue-700"
                 : "bg-blue-50 border-blue-200"
-            } border px-4 py-3 rounded-xl flex items-start gap-2`}
+              } border px-4 py-3 rounded-xl flex items-start gap-2`}
           >
             <span className="text-blue-600 font-bold">ℹ️</span>
             <p
-              className={`text-sm ${
-                isDark ? "text-blue-300" : "text-blue-800"
-              }`}
+              className={`text-sm ${isDark ? "text-blue-300" : "text-blue-800"
+                }`}
             >
               Video sẽ được xử lý trong khoảng <strong>5 phút</strong> sau khi
               upload ⏱️
@@ -334,14 +309,13 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
               !formData.tag ||
               isLoading
             }
-            className={`w-full py-4 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all flex items-center justify-center gap-2 ${
-              !formData.youtubeUrl ||
-              !formData.level ||
-              !formData.tag ||
-              isLoading
+            className={`relative w-full py-4 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all flex items-center justify-center gap-2 ${!formData.youtubeUrl ||
+                !formData.level ||
+                !formData.tag ||
+                isLoading
                 ? "opacity-50 cursor-not-allowed hover:scale-100"
                 : ""
-            }`}
+              }`}
           >
             {isLoading ? (
               <>
@@ -351,7 +325,13 @@ const UploadVideoModal: React.FC<UploadVideoModalProps> = ({
             ) : (
               <>
                 <Sparkles className="w-5 h-5" />
-                Tạo video
+                <span>Tạo video</span>
+                <span className={`absolute -top-1 right-1 px-1.5 rounded-full text-[9px] font-black border-2 z-10 transition-colors ${isVip
+                  ? isDark ? "bg-gray-700 text-gray-500 border-gray-600" : "bg-gray-200 text-gray-400 border-white"
+                  : "bg-amber-400 text-gray-900 border-white shadow-md shadow-amber-500/20"
+                  }`}>
+                  VIP
+                </span>
               </>
             )}
           </button>

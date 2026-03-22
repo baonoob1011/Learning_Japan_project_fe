@@ -1,22 +1,20 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import LoadingCat from "@/components/LoadingCat";
 import Flashcard from "@/components/vocab/Flashcard";
 import VocabularyList from "@/components/VocabularyList";
-import WritingPractice from "@/components/WritingPractice";
 import AIPractice from "@/components/AIPractice";
 import VocabMemoryGame from "@/components/vocab/VocabMemoryGame";
 import UpgradePlusModal from "@/components/payment/Upgradeplusmodal ";
 import { getAccessTokenFromStorage, getRolesFromToken } from "@/utils/jwt";
-import TodayReviewDashboard from "@/components/review/TodayReviewDashboard";
 import SmartStudy from "@/components/vocab/SmartStudy";
-import VocabDashboard from "@/components/vocab/VocabDashboard";
 import { vocabService, VocabResponse } from "@/services/vocabService";
+import { useVip } from "@/hooks/useVip";
 
-type TabId = "dashboard" | "smart" | "vocabulary" | "flashcard" | "review" | "quiz" | "game";
+type TabId = "smart" | "vocabulary" | "flashcard" | "review" | "quiz" | "game";
 
 const TABS: {
   id: TabId;
@@ -25,10 +23,9 @@ const TABS: {
   vipOnly?: boolean;
   color?: string;
 }[] = [
-    { id: "dashboard", label: "Tổng quan", icon: "🏠" },
     { id: "vocabulary", label: "Danh sách", icon: "📚" },
     { id: "flashcard", label: "Flashcard", icon: "🃏" },
-    { id: "smart", label: "Học thông minh", icon: "⚡", color: "cyan" },
+    { id: "smart", label: "Học thông minh", icon: "⚡", color: "cyan", vipOnly: true },
     { id: "quiz", label: "Quiz AI", icon: "🤖", vipOnly: true },
     { id: "game", label: "Trò chơi", icon: "🎮", vipOnly: true, color: "orange" },
   ];
@@ -36,18 +33,15 @@ const TABS: {
 export default function VocabularyPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentStreak, setCurrentStreak] = useState(4);
-  const [activeTab, setActiveTab] = useState<TabId>("dashboard"); 
+  const [activeTab, setActiveTab] = useState<TabId>("vocabulary");
   const [vocabs, setVocabs] = useState<VocabResponse[]>([]);
   const [isLoadingVocabs, setIsLoadingVocabs] = useState(true);
   const [flashcardFilter, setFlashcardFilter] = useState<"ALL" | "KNOWN" | "UNLEARNED">("ALL");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const isVip = useVip();
   const { isDarkMode, toggleDarkMode, mounted } = useDarkMode();
 
-  useEffect(() => {
-    loadAllVocabs();
-  }, []);
-
-  const loadAllVocabs = async () => {
+  const loadAllVocabs = useCallback(async () => {
     try {
       setIsLoadingVocabs(true);
       const data = await vocabService.getMyVocabs();
@@ -57,6 +51,20 @@ export default function VocabularyPage() {
     } finally {
       setIsLoadingVocabs(false);
     }
+  }, []);
+
+  useEffect(() => {
+    loadAllVocabs();
+  }, [loadAllVocabs]);
+
+  const openSmartStudy = async () => {
+    if (!isVip) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
+    await loadAllVocabs();
+    setActiveTab("smart");
   };
 
   if (!mounted) {
@@ -70,14 +78,16 @@ export default function VocabularyPage() {
   }
 
   const handleTabClick = (tab: typeof TABS[number]) => {
-    if (tab.vipOnly) {
-      const token = getAccessTokenFromStorage();
-      const roles = token ? getRolesFromToken(token) : [];
-      if (!roles.includes("USER_VIP")) {
-        setShowUpgradeModal(true);
-        return;
-      }
+    if (tab.vipOnly && !isVip) {
+      setShowUpgradeModal(true);
+      return;
     }
+
+    if (tab.id === "smart") {
+      openSmartStudy();
+      return;
+    }
+
     setActiveTab(tab.id);
   };
 
@@ -117,7 +127,7 @@ export default function VocabularyPage() {
                   const isActive = activeTab === tab.id;
                   const isCyan = tab.color === "cyan";
                   const isOrange = tab.color === "orange";
-                  
+
                   return (
                     <button
                       key={tab.id}
@@ -126,7 +136,7 @@ export default function VocabularyPage() {
                       className={`
                         relative flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 min-w-[80px]
                         ${isActive
-                          ? isCyan 
+                          ? isCyan
                             ? "bg-gradient-to-r from-cyan-400 to-cyan-600 text-white shadow-lg shadow-cyan-500/25 scale-[1.03]"
                             : isOrange
                               ? "bg-gradient-to-r from-orange-400 to-red-500 text-white shadow-lg shadow-orange-500/25"
@@ -139,8 +149,11 @@ export default function VocabularyPage() {
                     >
                       <span className="text-base leading-none">{tab.icon}</span>
                       <span className="hidden sm:inline">{tab.label}</span>
-                      {tab.vipOnly && !isActive && (
-                        <span className="absolute -top-1.5 -right-1 text-[9px] bg-amber-400 text-gray-900 font-black px-1 py-0.5 rounded-full leading-none">
+                      {tab.vipOnly && (
+                        <span className={`absolute -top-1.5 -right-1 text-[9px] font-black px-1 py-0.5 rounded-full leading-none transition-colors duration-300 ${isVip
+                          ? isDarkMode ? "bg-gray-700 text-gray-500" : "bg-gray-200 text-gray-400"
+                          : "bg-amber-400 text-gray-900 shadow-sm shadow-amber-500/20"
+                          }`}>
                           VIP
                         </span>
                       )}
@@ -151,48 +164,43 @@ export default function VocabularyPage() {
 
               {/* Tab Content */}
               {isLoadingVocabs ? (
-                  <div className="flex flex-col items-center justify-center min-h-[400px]">
-                      <LoadingCat size="lg" isDark={isDarkMode} />
-                  </div>
+                <div className="flex flex-col items-center justify-center min-h-[400px]">
+                  <LoadingCat size="lg" isDark={isDarkMode} />
+                </div>
               ) : (
                 <>
-                    {activeTab === "dashboard" && (
-                        <VocabDashboard
-                            isDarkMode={isDarkMode}
-                            totalVocabs={vocabs.length}
-                            onStartSmartStudy={() => setActiveTab("smart")}
-                        />
-                    )}
+                  {activeTab === "smart" && (
+                    <SmartStudy
+                      isDarkMode={isDarkMode}
+                      vocabs={vocabs}
+                      onFinish={async () => {
+                        await loadAllVocabs();
+                        setActiveTab("vocabulary");
+                      }}
+                    />
+                  )}
 
-                    {activeTab === "smart" && (
-                        <SmartStudy
-                            isDarkMode={isDarkMode}
-                            vocabs={vocabs}
-                            onFinish={() => setActiveTab("vocabulary")}
-                        />
-                    )}
+                  {activeTab === "vocabulary" && (
+                    <VocabularyList
+                      isDarkMode={isDarkMode}
+                      onStartLearning={(f) => {
+                        setFlashcardFilter(f);
+                        setActiveTab("flashcard");
+                      }}
+                    />
+                  )}
 
-                    {activeTab === "vocabulary" && (
-                        <VocabularyList
-                            isDarkMode={isDarkMode}
-                            onStartLearning={(f) => {
-                                setFlashcardFilter(f);
-                                setActiveTab("flashcard");
-                            }}
-                        />
-                    )}
+                  {activeTab === "flashcard" && (
+                    <Flashcard isDark={isDarkMode} initialFilter={flashcardFilter} />
+                  )}
 
-                    {activeTab === "flashcard" && (
-                        <Flashcard isDark={isDarkMode} initialFilter={flashcardFilter} />
-                    )}
+                  {activeTab === "quiz" && (
+                    <AIPractice isDark={isDarkMode} />
+                  )}
 
-                    {activeTab === "quiz" && (
-                        <AIPractice isDark={isDarkMode} />
-                    )}
-
-                    {activeTab === "game" && (
-                        <VocabMemoryGame isDarkMode={isDarkMode} />
-                    )}
+                  {activeTab === "game" && (
+                    <VocabMemoryGame isDarkMode={isDarkMode} />
+                  )}
                 </>
               )}
             </div>
