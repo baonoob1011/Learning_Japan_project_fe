@@ -52,7 +52,7 @@ export default function AdminHeader({ onToggleDarkMode, isDarkMode: propDark }: 
             <div className="flex items-center gap-6">
                 <div className="hidden md:flex flex-col items-end mr-2">
                     <span className={`text-sm font-semibold ${isDark ? "text-gray-200" : "text-gray-700"}`}>Chào bạn, Quản trị viên</span>
-                    <span className="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100 font-bold">ONLINE</span>
+                    <span className="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100 font-bold uppercase tracking-widest">ĐANG HOẠT ĐỘNG</span>
                 </div>
 
                 <button

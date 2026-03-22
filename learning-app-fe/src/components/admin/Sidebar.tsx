@@ -36,7 +36,7 @@ export default function AdminSidebar({ isDark = false }: SidebarProps) {
         {
             path: "/dasboardAdmin",
             icon: <LayoutDashboard className="w-5 h-5" />,
-            label: "Dashboard",
+            label: "Bảng điều khiển",
         },
         {
             path: "/dasboardAdmin/users",
@@ -81,7 +81,7 @@ export default function AdminSidebar({ isDark = false }: SidebarProps) {
         {
             path: "/dasboardAdmin/system-logs",
             icon: <Activity className="w-5 h-5" />,
-            label: "System Logs",
+            label: "Nhật ký hệ thống",
         },
     ];
 
@@ -123,7 +123,7 @@ export default function AdminSidebar({ isDark = false }: SidebarProps) {
                         </div>
                         <div className="flex flex-col">
                             <span className={`font-extrabold leading-tight ${logoText}`}>NIBO</span>
-                            <span className="text-[10px] font-bold text-indigo-500 tracking-tighter uppercase">ADMIN PANEL</span>
+                            <span className="text-[10px] font-bold text-indigo-500 tracking-tighter uppercase">TRANG QUẢN TRỊ</span>
                         </div>
                     </div>
                 ) : (

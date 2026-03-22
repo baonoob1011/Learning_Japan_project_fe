@@ -127,12 +127,12 @@ export default function AdminVocabManager() {
                     <table className="w-full">
                         <thead className={headerBg}>
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Từ vựng (Surface)</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Hiragana (Reading)</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Nghĩa (Translated)</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Từ vựng</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Cách đọc (Hiragana)</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Nghĩa tiếng Việt</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Loại từ</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Phát âm</th>
-                                <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-gray-500">Hành động</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Phát âm (Audio)</th>
+                                <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-gray-500">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100/10">

@@ -28,7 +28,7 @@ export default function DashboardAdmin() {
                 </div>
                 <div className="flex items-center gap-2 text-xs font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-500/10 px-4 py-2 rounded-full border border-indigo-100 dark:border-indigo-500/20">
                     <Activity className="w-3.5 h-3.5 animate-pulse" />
-                    LIVE MONITORING
+                    GIÁM SÁT TRỰC TUYẾN
                 </div>
             </div>
 

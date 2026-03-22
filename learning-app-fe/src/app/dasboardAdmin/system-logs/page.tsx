@@ -20,13 +20,13 @@ function SystemLogsContent() {
                     className="hover:text-indigo-500 cursor-pointer transition-colors"
                     onClick={() => router.push("/dasboardAdmin")}
                 >
-                    Dashboard
+                    Bảng điều khiển
                 </span>
                 <span>/</span>
                 <span
                     className={`font-bold ${isDark ? "text-gray-100" : "text-gray-900"}`}
                 >
-                    System Logs
+                    Nhật ký hệ thống
                 </span>
             </div>
 
@@ -41,7 +41,7 @@ function SystemLogsContent() {
                             className={`w-7 h-7 ${isDark ? "text-indigo-400" : "text-indigo-600"
                                 }`}
                         />
-                        System Activity Logs
+                        Nhật ký hoạt động hệ thống
                     </h1>
                     <p
                         className={`text-sm mt-1 ${isDark ? "text-gray-400" : "text-gray-500"
@@ -58,7 +58,7 @@ function SystemLogsContent() {
                         }`}
                 >
                     <ShieldCheck className="w-3.5 h-3.5" />
-                    Admin Only
+                    Chỉ dành cho Quản trị viên
                 </div>
             </div>
 

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, {
     useState,
     useEffect,
@@ -102,12 +102,12 @@ const StatusBadge = ({ status }: { status: "SUCCESS" | "FAILURE" }) =>
     status === "SUCCESS" ? (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/20">
             <CheckCircle2 className="w-3 h-3" />
-            SUCCESS
+            THÀNH CÔNG
         </span>
     ) : (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-500/15 text-red-500 border border-red-500/20">
             <AlertCircle className="w-3 h-3" />
-            FAILURE
+            THẤT BẠI
         </span>
     );
 
@@ -136,7 +136,7 @@ function CopyButton({ text, isDark }: { text: string; isDark: boolean }) {
     return (
         <button
             onClick={handleCopy}
-            title="Copy"
+            title="Sao chép"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${copied
                 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                 : isDark
@@ -145,7 +145,7 @@ function CopyButton({ text, isDark }: { text: string; isDark: boolean }) {
                 }`}
         >
             {copied ? <CheckCheck className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-            {copied ? "Copied!" : "Copy"}
+            {copied ? "Đã chép!" : "Sao chép"}
         </button>
     );
 }
@@ -216,12 +216,12 @@ function DetailModal({
                     {/* Meta grid */}
                     <div className="grid grid-cols-2 gap-4">
                         {[
-                            { icon: <User className="w-3.5 h-3.5" />, label: "Username", value: log.username || "—" },
-                            { icon: <Globe className="w-3.5 h-3.5" />, label: "IP Address", value: log.ipAddress || "—" },
-                            { icon: <Code2 className="w-3.5 h-3.5" />, label: "Class", value: log.targetClass },
-                            { icon: <Zap className="w-3.5 h-3.5" />, label: "Method", value: log.methodName },
-                            { icon: <Clock className="w-3.5 h-3.5" />, label: "Execution Time", value: formatExecTime(log.executionTime) },
-                            { icon: <Clock className="w-3.5 h-3.5" />, label: "Log ID", value: log.id },
+                            { icon: <User className="w-3.5 h-3.5" />, label: "Tên đăng nhập", value: log.username || "—" },
+                            { icon: <Globe className="w-3.5 h-3.5" />, label: "Địa chỉ IP", value: log.ipAddress || "—" },
+                            { icon: <Code2 className="w-3.5 h-3.5" />, label: "Class điều hướng", value: log.targetClass },
+                            { icon: <Zap className="w-3.5 h-3.5" />, label: "Phương thức", value: log.methodName },
+                            { icon: <Clock className="w-3.5 h-3.5" />, label: "Thời gian xử lý", value: formatExecTime(log.executionTime) },
+                            { icon: <Clock className="w-3.5 h-3.5" />, label: "ID bản ghi", value: log.id },
                         ].map(({ icon, label, value }) => (
                             <div
                                 key={label}
@@ -240,13 +240,13 @@ function DetailModal({
                     <div>
                         <div className="flex items-center justify-between mb-2">
                             <h3 className={`text-xs font-bold uppercase tracking-wider ${labelCls}`}>
-                                Arguments
+                                Tham số đầu vào
                             </h3>
                             {log.arguments && <CopyButton text={args.formatted || log.arguments} isDark={isDark} />}
                         </div>
                         <div className={`${codeBg} border ${border} rounded-xl p-4 overflow-x-auto`}>
                             <pre className={`text-xs font-mono whitespace-pre-wrap break-all ${codeText}`}>
-                                {args.formatted || <em className={labelCls}>empty</em>}
+                                {args.formatted || <em className={labelCls}>trống</em>}
                             </pre>
                         </div>
                     </div>
@@ -255,13 +255,13 @@ function DetailModal({
                     <div>
                         <div className="flex items-center justify-between mb-2">
                             <h3 className={`text-xs font-bold uppercase tracking-wider ${labelCls}`}>
-                                Result
+                                Kết quả trả về
                             </h3>
                             {log.result && <CopyButton text={result.formatted || log.result} isDark={isDark} />}
                         </div>
                         <div className={`${codeBg} border ${border} rounded-xl p-4 overflow-x-auto`}>
                             <pre className={`text-xs font-mono whitespace-pre-wrap break-all ${codeText}`}>
-                                {result.formatted || <em className={labelCls}>empty</em>}
+                                {result.formatted || <em className={labelCls}>trống</em>}
                             </pre>
                         </div>
                     </div>
@@ -272,7 +272,7 @@ function DetailModal({
                             <div className="flex items-center gap-1.5 mb-2">
                                 <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
                                 <h3 className="text-xs font-bold uppercase tracking-wider text-red-500">
-                                    Error Message
+                                    Thông báo lỗi chi tiết
                                 </h3>
                             </div>
                             <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">

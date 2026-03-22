@@ -13,7 +13,7 @@ export default function AdminUsersPage() {
         <main className="p-8 space-y-6">
             {/* Breadcrumbs / Page Title */}
             <div className={`flex items-center gap-2 text-sm mb-2 font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                <span className="hover:text-indigo-500 cursor-pointer transition-colors" onClick={() => router.push('/dasboardAdmin')}>Dashboard</span>
+                <span className="hover:text-indigo-500 cursor-pointer transition-colors" onClick={() => router.push('/dasboardAdmin')}>Bảng điều khiển</span>
                 <span>/</span>
                 <span className={`font-bold ${isDark ? "text-gray-100" : "text-gray-900"}`}>Quản lý người dùng</span>
             </div>
@@ -30,7 +30,7 @@ export default function AdminUsersPage() {
                 </div>
                 <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-widest ${isDark ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-green-50 text-green-600 border-green-100"}`}>
                     <ShieldCheck className="w-3.5 h-3.5" />
-                    Secure Admin Access
+                    Quyền Quản trị Bảo mật
                 </div>
             </div>
 

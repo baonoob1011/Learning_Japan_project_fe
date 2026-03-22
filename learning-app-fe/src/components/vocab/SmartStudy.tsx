@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useCallback, useEffect, useState, useMemo } from "react";
 import {
   Volume2,
@@ -14,6 +14,7 @@ import {
   ArrowRight,
   type LucideIcon,
   SearchX,
+  Info,
 } from "lucide-react";
 import { vocabService, VocabResponse, StudyMode, Skill } from "@/services/vocabService";
 
@@ -508,6 +509,19 @@ export default function SmartStudy({ isDarkMode, vocabs: initialVocabs, onFinish
             className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-700 cubic-bezier(0.4, 0, 0.2, 1)"
             style={{ width: `${((currentQuestionIndex) / mainQuestionQueue.length) * 100}%` }}
           />
+        </div>
+
+        {/* SRS Mechanism Note */}
+        <div className={`p-4 rounded-2xl border flex items-start gap-3 animate-in slide-in-from-top-4 duration-1000 ${isDarkMode ? "bg-gray-800/30 border-gray-700/50" : "bg-blue-50/50 border-blue-100"}`}>
+          <div className={`p-2 rounded-xl shrink-0 ${isDarkMode ? "bg-cyan-500/10" : "bg-cyan-100"}`}>
+            <Info className={`w-4 h-4 ${isDarkMode ? "text-cyan-400" : "text-cyan-600"}`} />
+          </div>
+          <div className="space-y-1">
+            <h4 className={`text-xs font-black uppercase tracking-widest ${isDarkMode ? "text-cyan-400" : "text-cyan-700"}`}>Cơ chế lặp lại ngắt quãng (SRS)</h4>
+            <p className={`text-[11px] leading-relaxed font-medium ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+              Hệ thống sẽ ưu tiên các từ bạn trả lời <b>Sai</b> (Từ khó) xuất hiện nhiều hơn trong vòng chính. Các từ đã <b>Thuộc</b> sẽ có khoảng thời gian ôn tập xa dần (1, 3, 7... ngày) để đưa kiến thức vào trí nhớ dài hạn hiệu quả nhất.
+            </p>
+          </div>
         </div>
       </div>
 

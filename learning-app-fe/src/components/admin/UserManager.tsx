@@ -12,7 +12,9 @@ import {
     ChevronLeft,
     ChevronRight,
     UserPlus,
-    Eye
+    Eye,
+    ChevronDown,
+    Edit2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { userService, UserResponseManager } from "@/services/userService";
@@ -75,7 +77,7 @@ export default function UserManager({ isDark = false }: UserManagerProps) {
     const handleUpdateRole = async (userId: string, currentRoles: string[]) => {
         const isCurrentlyAdmin = currentRoles.includes("ADMIN");
         const newRole = isCurrentlyAdmin ? "USER" : "ADMIN";
-        const roleLabel = isCurrentlyAdmin ? "Student" : "Admin";
+        const roleLabel = isCurrentlyAdmin ? "Học viên" : "Quản trị viên";
 
         if (!window.confirm(`Bạn có chắc chắn muốn đổi vai trò của người dùng này sang ${roleLabel}?`)) return;
 
@@ -98,15 +100,18 @@ export default function UserManager({ isDark = false }: UserManagerProps) {
             <button
                 disabled={!!updatingRole}
                 onClick={() => handleUpdateRole(userId, role)}
-                className={`group/role relative px-2.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border ${isAdmin
-                    ? isDark ? "bg-purple-500/10 text-purple-400 border-purple-500/20 hover:bg-purple-500/20" : "bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100"
-                    : isDark ? "bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20" : "bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100"
-                    } ${updatingRole === userId ? "opacity-50 animate-pulse" : ""}`}
-                title="Sửa vai trò"
+                className={`group/role relative px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-2 border shadow-sm hover:shadow-md active:scale-95 ${isAdmin
+                    ? isDark ? "bg-purple-500/10 text-purple-400 border-purple-500/20 hover:bg-purple-500/20 hover:ring-2 hover:ring-purple-500/30" : "bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100 hover:border-purple-300"
+                    : isDark ? "bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20 hover:ring-2 hover:ring-blue-500/30" : "bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:border-blue-300"
+                    } ${updatingRole === userId ? "opacity-50 animate-pulse pointer-events-none" : ""}`}
+                title="Nhấn để thay đổi vai trò"
             >
-                {isAdmin ? <ShieldCheck className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3 opacity-50" />}
-                {isAdmin ? "Admin" : "Student"}
-                <div className="w-1.5 h-1.5 rounded-full bg-current opacity-20"></div>
+                <div className="flex items-center gap-1.5">
+                    {isAdmin ? <ShieldCheck className="w-3.5 h-3.5" /> : <ShieldAlert className="w-3.5 h-3.5 opacity-70" />}
+                    {isAdmin ? "Quản trị viên" : "Học viên"}
+                </div>
+                <div className={`w-0.5 h-3 mx-0.5 opacity-20 ${isAdmin ? "bg-purple-400" : "bg-blue-400"}`}></div>
+                <ChevronDown className={`w-3 h-3 transition-transform group-hover/role:translate-y-0.5 ${isAdmin ? "text-purple-400" : "text-blue-400"}`} />
             </button>
         );
     };
