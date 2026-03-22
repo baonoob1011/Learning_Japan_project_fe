@@ -74,11 +74,6 @@ export default function AdminSidebar({ isDark = false }: SidebarProps) {
             label: "Quản lý Đề thi",
         },
         {
-            path: "/dasboardAdmin/vocab",
-            icon: <Languages className="w-5 h-5" />,
-            label: "Quản lý Từ vựng",
-        },
-        {
             path: "/dasboardAdmin/system-logs",
             icon: <Activity className="w-5 h-5" />,
             label: "Nhật ký hệ thống",

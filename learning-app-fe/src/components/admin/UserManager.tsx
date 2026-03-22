@@ -325,9 +325,10 @@ export default function UserManager({ isDark = false }: UserManagerProps) {
                             <ChevronRight className="w-5 h-5" />
                         </button>
                     </div>
+                    </div>
                 </div>
             </div>
-        </div >
+
             <ConfirmModal
                 isOpen={confirmState.isOpen}
                 onClose={closeConfirm}
