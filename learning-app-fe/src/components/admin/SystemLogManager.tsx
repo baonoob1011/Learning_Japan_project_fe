@@ -70,36 +70,11 @@ function formatDatetime(iso: string): string {
     }
 }
 
-function toReadableClassName(targetClass: string): string {
-    if (!targetClass) return "Hệ thống";
-    const shortName = targetClass.split(".").pop() || targetClass;
-    return shortName.replace("Controller", "").replace("Service", "").trim();
-}
-
 function describeLog(log: SystemLog): string {
-    const method = (log.methodName || "").toLowerCase();
-    const moduleName = toReadableClassName(log.targetClass);
-
-    if (method.includes("login")) return "Người dùng đang đăng nhập.";
-    if (method.includes("logout")) return "Người dùng đang đăng xuất.";
-    if (method.includes("register")) return "Người dùng đang đăng ký tài khoản.";
-    if (method.includes("refresh")) return "Hệ thống đang làm mới phiên đăng nhập.";
-    if (method.includes("gettodaysession") || method.includes("gettodayreviews")) return "Đang tải phiên ôn tập hôm nay.";
-    if (method.includes("getunreadcount")) return "Đang lấy số lượng thông báo chưa đọc.";
-    if (method.includes("getmynotifications") || method.includes("getnotifications")) return "Đang tải danh sách thông báo.";
-    if (method.includes("create")) return `Đang tạo mới dữ liệu trong mục ${moduleName}.`;
-    if (method.includes("update")) return `Đang cập nhật dữ liệu trong mục ${moduleName}.`;
-    if (method.includes("delete") || method.includes("remove")) return `Đang xóa dữ liệu trong mục ${moduleName}.`;
-    if (method.includes("submit")) return "Người dùng vừa gửi dữ liệu lên hệ thống.";
-    if (method.includes("upload")) return "Đang tải tệp lên hệ thống.";
-    if (method.includes("search")) return "Người dùng đang tìm kiếm dữ liệu.";
-    if (method.includes("mark")) return "Đang đánh dấu trạng thái dữ liệu.";
-    if (method.includes("finalize")) return "Đang chốt kết quả xử lý.";
-
-    if (log.status === "FAILURE") {
-        return "Thao tác thất bại. Vui lòng xem chi tiết lỗi để biết nguyên nhân.";
+    if (log.arguments && log.arguments.length > 5) {
+        return `Phương thức ${log.methodName} với tham số: ${log.arguments.substring(0, 50)}...`;
     }
-    return `Đang thực thi chức năng ${moduleName} - ${log.methodName}.`;
+    return `Phương thức ${log.methodName} thực thi trong ${formatExecTime(log.executionTime)}`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -205,9 +180,6 @@ function DetailModal({
                                 {log.targetClass.split(".").pop()}#{log.methodName}
                             </h2>
                             <p className={`text-xs ${labelCls}`}>{formatDatetime(log.createdAt)}</p>
-                            <p className={`text-xs mt-1 ${isDark ? "text-indigo-300" : "text-indigo-700"}`}>
-                                {describeLog(log)}
-                            </p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -465,17 +437,16 @@ export default function SystemLogManager({ isDark }: Props) {
                     )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
                     <div className="xl:col-span-2">
                         <label className={`text-[11px] font-semibold uppercase tracking-wider mb-1 block ${labelCls}`}>
-                            Từ khóa (class/method/error)
+                            Từ khóa
                         </label>
                         <div className="relative">
                             <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 ${labelCls}`} />
                             <input
-                                id="sl-keyword"
                                 className={`${inputCls} pl-8`}
-                                placeholder="Tìm kiếm nhanh..."
+                                placeholder="Tìm theo class, method..."
                                 value={keyword}
                                 onChange={(e) => handleKeywordChange(e.target.value)}
                             />
@@ -487,7 +458,6 @@ export default function SystemLogManager({ isDark }: Props) {
                             Tài khoản
                         </label>
                         <input
-                            id="sl-username"
                             className={inputCls}
                             placeholder="Nhập username..."
                             value={username}
@@ -500,34 +470,37 @@ export default function SystemLogManager({ isDark }: Props) {
                             Trạng thái
                         </label>
                         <select
-                            id="sl-status"
                             className={inputCls}
                             value={status}
                             onChange={(e) => setStatus(e.target.value as "" | "SUCCESS" | "FAILURE")}
                         >
-                            <option value="">Tất cả trạng thái</option>
+                            <option value="">Tất cả</option>
                             <option value="SUCCESS">SUCCESS</option>
                             <option value="FAILURE">FAILURE</option>
                         </select>
                     </div>
 
-                    <div>
+                    <div className="xl:col-span-2">
                         <label className={`text-[11px] font-semibold uppercase tracking-wider mb-1 flex items-center gap-1 ${labelCls}`}>
                             <CalendarRange className="w-3 h-3" /> Khoảng thời gian
                         </label>
-                        <div className="flex gap-2">
-                            <input
-                                type="datetime-local"
-                                className={inputCls}
-                                value={from}
-                                onChange={(e) => setFrom(e.target.value)}
-                            />
-                            <input
-                                type="datetime-local"
-                                className={inputCls}
-                                value={to}
-                                onChange={(e) => setTo(e.target.value)}
-                            />
+                        <div className="flex flex-wrap sm:flex-nowrap gap-2">
+                            <div className="flex-1 min-w-[140px]">
+                                <input
+                                    type="datetime-local"
+                                    className={`${inputCls} !text-[12px]`}
+                                    value={from}
+                                    onChange={(e) => setFrom(e.target.value)}
+                                />
+                            </div>
+                            <div className="flex-1 min-w-[140px]">
+                                <input
+                                    type="datetime-local"
+                                    className={`${inputCls} !text-[12px]`}
+                                    value={to}
+                                    onChange={(e) => setTo(e.target.value)}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -537,10 +510,10 @@ export default function SystemLogManager({ isDark }: Props) {
                     <div className="flex items-center gap-2">
                         <button
                             onClick={handleApply}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
+                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-all shadow-lg active:scale-95"
                         >
                             <Filter className="w-4 h-4" />
-                            Áp dụng lọc
+                            Áp dụng
                         </button>
                         <button
                             onClick={handleReset}
@@ -550,7 +523,7 @@ export default function SystemLogManager({ isDark }: Props) {
                                 } active:scale-95`}
                         >
                             <X className="w-4 h-4" />
-                            Đặt lại
+                            Reset
                         </button>
                     </div>
 
@@ -602,15 +575,14 @@ export default function SystemLogManager({ isDark }: Props) {
             {/* TABLE */}
             <div className={`rounded-2xl border overflow-hidden shadow-sm ${cardBg}`}>
                 <div className="overflow-x-auto">
-                    <table className="w-full min-w-[800px]">
+                    <table className="w-full min-w-[1000px]">
                         <thead className={isDark ? "bg-gray-800/80" : "bg-gray-50"}>
                             <tr>
                                 <th className={thCls}>Thời gian</th>
                                 <th className={thCls}>Tài khoản</th>
-                                <th className={thCls}>Địa chỉ IP</th>
-                                <th className={thCls}>Đối tượng & Phương thức</th>
+                                <th className={thCls}>Đối tượng & Mô tả</th>
                                 <th className={thCls}>Trạng thái</th>
-                                <th className={thCls}>Xử lý</th>
+                                <th className={thCls}>Thời gian xử lý</th>
                                 <th className={`${thCls} text-right`}>Hành động</th>
                             </tr>
                         </thead>
@@ -621,7 +593,7 @@ export default function SystemLogManager({ isDark }: Props) {
                                 ))
                             ) : error ? (
                                 <tr>
-                                    <td colSpan={7} className="py-16 text-center">
+                                    <td colSpan={6} className="py-16 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <AlertTriangle className="w-10 h-10 text-red-400 opacity-60" />
                                             <p className="text-red-400 font-medium">{error}</p>
@@ -636,7 +608,7 @@ export default function SystemLogManager({ isDark }: Props) {
                                 </tr>
                             ) : logs.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="py-20 text-center">
+                                    <td colSpan={6} className="py-20 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <div className={`w-14 h-14 rounded-full flex items-center justify-center ${isDark ? "bg-gray-700" : "bg-gray-100"}`}>
                                                 <Search className={`w-6 h-6 ${labelCls}`} />
@@ -655,28 +627,29 @@ export default function SystemLogManager({ isDark }: Props) {
                                             }`}
                                     >
                                         <td className={tdCls}>
-                                            <span className={`text-xs font-mono font-medium ${labelCls}`}>
-                                                {formatDatetime(log.createdAt)}
-                                            </span>
-                                        </td>
-                                        <td className={tdCls}>
-                                            <div className="flex items-center gap-1.5 font-semibold">
-                                                <User className={`w-3.5 h-3.5 flex-shrink-0 ${labelCls}`} />
-                                                <span>{log.username || "System"}</span>
+                                            <div className="flex flex-col">
+                                                <span className={`text-[11px] font-bold ${isDark ? "text-gray-100" : "text-gray-900"}`}>
+                                                    {formatDatetime(log.createdAt).split(" ")[1]}
+                                                </span>
+                                                <span className={`text-[10px] ${labelCls}`}>
+                                                    {formatDatetime(log.createdAt).split(" ")[0]}
+                                                </span>
                                             </div>
                                         </td>
                                         <td className={tdCls}>
-                                            <span className={`text-xs font-mono ${labelCls}`}>
-                                                {log.ipAddress || "—"}
-                                            </span>
+                                            <div className="flex items-center gap-1.5 font-bold">
+                                                <User className={`w-3.5 h-3.5 flex-shrink-0 ${labelCls}`} />
+                                                <span className={isDark ? "text-gray-200" : "text-gray-900"}>{log.username || "System"}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1 mt-0.5 opacity-60">
+                                                <Globe className="w-3 h-3" />
+                                                <span className="text-[10px]">{log.ipAddress || "—"}</span>
+                                            </div>
                                         </td>
                                         <td className={tdCls}>
-                                            <div className="max-w-[220px]">
-                                                <p className="text-xs font-mono truncate opacity-60" title={log.targetClass}>
-                                                    {log.targetClass.split(".").pop()}
-                                                </p>
+                                            <div className="max-w-[400px]">
                                                 <p className={`text-[11px] ${isDark ? "text-indigo-400" : "text-indigo-600"} font-bold`}>
-                                                    #{log.methodName}
+                                                    {log.targetClass.split(".").pop()}#{log.methodName}
                                                 </p>
                                                 <p className={`text-[11px] mt-1 ${labelCls} line-clamp-2`} title={describeLog(log)}>
                                                     {describeLog(log)}
@@ -719,26 +692,25 @@ export default function SystemLogManager({ isDark }: Props) {
                 {totalPages > 1 && (
                     <div className={`flex items-center justify-between px-5 py-3 border-t ${isDark ? "border-gray-700 bg-gray-800/50" : "border-gray-100 bg-gray-50"}`}>
                         <p className={`text-xs font-medium ${labelCls}`}>
-                            Hiển thị {logs.length} / {totalElements} kết quả
+                            {logs.length} / {totalElements} bản ghi
                         </p>
                         <div className="flex items-center gap-1">
                             <button
                                 onClick={() => handlePageChange(page - 1)}
                                 disabled={page === 0}
-                                className={`p-2 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed ${isDark ? "hover:bg-gray-700 text-gray-300" : "hover:bg-gray-200 text-gray-600"
+                                className={`p-2 rounded-lg transition-all disabled:opacity-30 ${isDark ? "hover:bg-gray-700 text-gray-300" : "hover:bg-gray-200 text-gray-600"
                                     }`}
                             >
                                 <ChevronLeft className="w-4 h-4" />
                             </button>
 
-                            {/* Simple pagination logic */}
+                            {/* Simple pagination */}
                             {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
                                 let pg: number;
                                 if (totalPages <= 7) pg = i;
                                 else if (page < 4) pg = i;
                                 else if (page > totalPages - 5) pg = totalPages - 7 + i;
                                 else pg = page - 3 + i;
-
                                 return (
                                     <button
                                         key={pg}
@@ -756,7 +728,7 @@ export default function SystemLogManager({ isDark }: Props) {
                             <button
                                 onClick={() => handlePageChange(page + 1)}
                                 disabled={page >= totalPages - 1}
-                                className={`p-2 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed ${isDark ? "hover:bg-gray-700 text-gray-300" : "hover:bg-gray-200 text-gray-600"
+                                className={`p-2 rounded-lg transition-all disabled:opacity-30 ${isDark ? "hover:bg-gray-700 text-gray-300" : "hover:bg-gray-200 text-gray-600"
                                     }`}
                             >
                                 <ChevronRight className="w-4 h-4" />
