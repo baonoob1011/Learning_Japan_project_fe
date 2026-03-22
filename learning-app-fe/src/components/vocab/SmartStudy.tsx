@@ -15,6 +15,8 @@ import {
   type LucideIcon,
   SearchX,
   Info,
+  AlertCircle,
+  X,
 } from "lucide-react";
 import { vocabService, VocabResponse, StudyMode, Skill } from "@/services/vocabService";
 
@@ -101,6 +103,7 @@ export default function SmartStudy({ isDarkMode, vocabs: initialVocabs, onFinish
   const [wrongGuesses, setWrongGuesses] = useState<string[]>([]);
   const [currentOptions, setCurrentOptions] = useState<VocabResponse[]>([]);
   const [hasCopiedCorrectAnswer, setHasCopiedCorrectAnswer] = useState(false);
+  const [showSrsNote, setShowSrsNote] = useState(false);
 
   const [pendingNewWords, setPendingNewWords] = useState<VocabResponse[]>([]);
   const [sessionStartVocabIds, setSessionStartVocabIds] = useState<Set<string>>(new Set());
@@ -503,6 +506,16 @@ export default function SmartStudy({ isDarkMode, vocabs: initialVocabs, onFinish
           <div className={`px-3 py-1 rounded-lg text-xs font-black ${isDarkMode ? "bg-gray-800 text-gray-400" : "bg-gray-100 text-gray-500"}`}>
             {Math.round(((currentQuestionIndex) / mainQuestionQueue.length) * 100)}%
           </div>
+          <button
+            onClick={() => setShowSrsNote(!showSrsNote)}
+            title="Cơ chế học thông minh"
+            className={`p-1.5 rounded-lg transition-all ${showSrsNote
+              ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/30"
+              : isDarkMode ? "bg-gray-800 text-cyan-400 hover:bg-gray-700" : "bg-cyan-50 text-cyan-600 hover:bg-cyan-100"
+              }`}
+          >
+            <AlertCircle className="w-4 h-4" />
+          </button>
         </div>
         <div className={`w-full h-3 rounded-full overflow-hidden ${isDarkMode ? "bg-gray-800" : "bg-gray-100 shadow-inner"}`}>
           <div
@@ -511,18 +524,34 @@ export default function SmartStudy({ isDarkMode, vocabs: initialVocabs, onFinish
           />
         </div>
 
-        {/* SRS Mechanism Note */}
-        <div className={`p-4 rounded-2xl border flex items-start gap-3 animate-in slide-in-from-top-4 duration-1000 ${isDarkMode ? "bg-gray-800/30 border-gray-700/50" : "bg-blue-50/50 border-blue-100"}`}>
-          <div className={`p-2 rounded-xl shrink-0 ${isDarkMode ? "bg-cyan-500/10" : "bg-cyan-100"}`}>
-            <Info className={`w-4 h-4 ${isDarkMode ? "text-cyan-400" : "text-cyan-600"}`} />
+        {/* SRS Mechanism Note: Shown only when requested */}
+        {showSrsNote && (
+          <div className={`p-5 rounded-3xl border shadow-xl animate-in slide-in-from-top-2 duration-300 relative ${isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-cyan-100"}`}>
+            <button
+              onClick={() => setShowSrsNote(false)}
+              className="absolute top-4 right-4 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+            >
+              <X className="w-4 h-4 opacity-50" />
+            </button>
+
+            <div className="flex items-start gap-4">
+              <div className={`p-3 rounded-2xl shrink-0 ${isDarkMode ? "bg-cyan-500/10" : "bg-cyan-50"}`}>
+                <Zap className={`w-6 h-6 ${isDarkMode ? "text-cyan-400" : "text-cyan-600"}`} />
+              </div>
+              <div className="space-y-3 pr-6">
+                <h4 className={`text-sm font-black uppercase tracking-widest ${isDarkMode ? "text-cyan-400" : "text-cyan-700"}`}>Cơ chế lặp lại ngắt quãng (SRS)</h4>
+                <div className={`text-xs space-y-2 leading-relaxed font-medium ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+                  <p>Hệ thống sử dụng thuật toán thông minh để tối ưu hóa việc ghi nhớ:</p>
+                  <ul className="list-disc pl-4 space-y-1.5">
+                    <li><b>Từ khó (Trả lời sai)</b>: Sẽ được xuất hiện liên tục trong vòng chính cho đến khi bạn học thuộc.</li>
+                    <li><b>Nhắc nhở ôn tập</b>: Sau khi thuộc, hệ thống sẽ tự động nhắc bạn ôn lại vào các mốc <b>1 ngày, 3 ngày, 7 ngày, 1 tháng...</b></li>
+                    <li><b>Mục tiêu</b>: Giúp chuyển kiến thức từ trí nhớ ngắn hạn sang <b>trí nhớ dài hạn</b> vĩnh viễn với nỗ lực ít nhất.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="space-y-1">
-            <h4 className={`text-xs font-black uppercase tracking-widest ${isDarkMode ? "text-cyan-400" : "text-cyan-700"}`}>Cơ chế lặp lại ngắt quãng (SRS)</h4>
-            <p className={`text-[11px] leading-relaxed font-medium ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-              Hệ thống sẽ ưu tiên các từ bạn trả lời <b>Sai</b> (Từ khó) xuất hiện nhiều hơn trong vòng chính. Các từ đã <b>Thuộc</b> sẽ có khoảng thời gian ôn tập xa dần (1, 3, 7... ngày) để đưa kiến thức vào trí nhớ dài hạn hiệu quả nhất.
-            </p>
-          </div>
-        </div>
+        )}
       </div>
 
       <div className="min-h-[480px] flex flex-col items-center">
