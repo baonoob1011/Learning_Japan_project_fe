@@ -74,7 +74,9 @@ export const useOnlineStatus = () => {
     const isUserOnline = useCallback(
         (userId: string | undefined | null) => {
             if (!userId) return false;
-            return onlineUserIds.has(userId);
+            const normalizedId = String(userId).trim().toLowerCase();
+            // Check if any online user matches the normalized ID
+            return Array.from(onlineUserIds).some(id => String(id).trim().toLowerCase() === normalizedId);
         },
         [onlineUserIds]
     );

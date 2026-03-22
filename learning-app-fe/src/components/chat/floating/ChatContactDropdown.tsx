@@ -88,7 +88,7 @@ export default function ChatContactDropdown({
                                         className="w-6 h-6 rounded-full object-cover ring-1 ring-white/20"
                                     />
                                     {!selectedContact.isGroup && isUserOnline?.(selectedContact.userId) && (
-                                        <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white shadow-sm" />
+                                        <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white shadow-md z-[60]" />
                                     )}
                                 </div>
                                 <span className="text-white font-semibold text-xs truncate flex-1 text-left">
