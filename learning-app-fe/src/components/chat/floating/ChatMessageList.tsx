@@ -135,25 +135,27 @@ export default function ChatMessageList({
                                 key={`${msg.id}-${i}`}
                                 className={`flex items-end gap-2 ${isMe ? "flex-row-reverse" : "flex-row"}`}
                             >
-                                <div className="shrink-0 mb-1 relative underline-none">
-                                    <SenderAvatar
-                                        avatar={memberAvatar}
-                                        name={displayName || selectedContact.name}
-                                        isDarkMode={dark}
-                                        size="sm"
-                                        onClick={
-                                            selectedContact.isGroup
-                                                ? (e) => handleAvatarClick(msg.senderId, e)
-                                                : undefined
-                                        }
-                                    />
-                                    {/* Dynamic Online status for message avatar (Non-group) */}
-                                    {!selectedContact.isGroup && isUserOnline?.(selectedContact.userId) && (
-                                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-[#0f172a] shadow-sm flex items-center justify-center z-10">
-                                            <span className="absolute inset-0 rounded-full bg-emerald-500 animate-pulse opacity-75" />
-                                        </div>
-                                    )}
-                                </div>
+                                {!isMe && (
+                                    <div className="shrink-0 mb-1 relative underline-none">
+                                        <SenderAvatar
+                                            avatar={memberAvatar}
+                                            name={displayName || selectedContact.name}
+                                            isDarkMode={dark}
+                                            size="sm"
+                                            onClick={
+                                                selectedContact.isGroup
+                                                    ? (e) => handleAvatarClick(msg.senderId, e)
+                                                    : undefined
+                                            }
+                                        />
+                                        {/* Dynamic Online status for message avatar (Non-group) */}
+                                        {!selectedContact.isGroup && isUserOnline?.(selectedContact.userId) && (
+                                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-[#0f172a] shadow-sm flex items-center justify-center z-10">
+                                                <span className="absolute inset-0 rounded-full bg-emerald-500 animate-pulse opacity-75" />
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 <div
                                     className={`flex flex-col gap-1 max-w-[75%] ${isMe ? "items-end" : "items-start"
