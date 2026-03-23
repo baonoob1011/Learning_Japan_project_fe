@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Receipt, Calendar, CreditCard, ChevronRight, Loader2, ExternalLink, Package, ShieldCheck } from "lucide-react";
 import { orderService, OrderResponse } from "@/services/orderService";
+import { vnPayService } from "@/services/VnPayService";
 
 interface BillingHistoryCardProps {
     isDark: boolean;
@@ -10,6 +11,23 @@ interface BillingHistoryCardProps {
 export default function BillingHistoryCard({ isDark: dark }: BillingHistoryCardProps) {
     const [orders, setOrders] = useState<OrderResponse[]>([]);
     const [loading, setLoading] = useState(true);
+    const [retryingCode, setRetryingCode] = useState<string | null>(null);
+
+    const handleRetry = async (orderCode: string) => {
+        setRetryingCode(orderCode);
+        try {
+            const response = await vnPayService.retry(orderCode);
+            if (response && response.paymentUrl) {
+                window.location.href = response.paymentUrl;
+            }
+        } catch (error: any) {
+            console.error("Lỗi retry thanh toán:", error);
+            const errorMsg = error?.response?.data?.message || "Không thể thực hiện thanh toán lại. Vui lòng thử lại sau.";
+            alert(errorMsg);
+        } finally {
+            setRetryingCode(null);
+        }
+    };
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -30,6 +48,7 @@ export default function BillingHistoryCard({ isDark: dark }: BillingHistoryCardP
             case "SUCCESS": return "text-green-500 bg-green-500/10";
             case "PENDING": return "text-amber-500 bg-amber-500/10";
             case "CANCELLED":
+            case "EXPIRED":
             case "FAILED": return "text-red-500 bg-red-500/10";
             default: return "text-gray-400 bg-gray-400/10";
         }
@@ -129,11 +148,31 @@ export default function BillingHistoryCard({ isDark: dark }: BillingHistoryCardP
                                             <p className={`font-black text-sm ${dark ? "text-white" : "text-indigo-600"}`}>{formatCurrency(order.amount)}</p>
                                             <div className="flex items-center justify-end gap-1.5 mt-1">
                                                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${getStatusColor(order.status)}`}>
-                                                    {order.status === "SUCCESS" ? "Thành công" : order.status === "PENDING" ? "Chờ duyệt" : "Thất bại"}
+                                                    {order.status === "SUCCESS" ? "Thành công" :
+                                                        order.status === "PENDING" ? "Chờ thanh toán" :
+                                                            order.status === "EXPIRED" ? "Đã hết hạn" : "Thất bại"}
                                                 </span>
-                                                <button className={`p-1 rounded-lg transition-colors ${dark ? "hover:bg-gray-600 text-gray-400" : "hover:bg-gray-100 text-gray-400"}`}>
-                                                    <ChevronRight className="w-4 h-4" />
-                                                </button>
+
+                                                {order.status !== 'SUCCESS' && order.status !== 'CANCELLED' && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleRetry(order.orderCode);
+                                                        }}
+                                                        disabled={!!retryingCode}
+                                                        className={`ml-1 px-2 py-0.5 rounded-lg text-[9px] font-bold transition-all flex items-center gap-1 ${dark
+                                                                ? "bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30"
+                                                                : "bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
+                                                            } ${retryingCode ? "opacity-50 cursor-not-allowed" : ""}`}
+                                                    >
+                                                        {retryingCode === order.orderCode ? (
+                                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                                        ) : (
+                                                            <CreditCard className="w-3 h-3" />
+                                                        )}
+                                                        {retryingCode === order.orderCode ? "Đang xử lý..." : "Thanh toán lại"}
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

@@ -10,7 +10,8 @@ export type PaymentStatus =
     | "PENDING"
     | "SUCCESS"
     | "FAILED"
-    | "CANCELLED";
+    | "CANCELLED"
+    | "EXPIRED";
 
 export type ProductType =
     | "COURSE"

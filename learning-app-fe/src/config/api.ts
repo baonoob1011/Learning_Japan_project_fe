@@ -50,6 +50,7 @@ export const API_ENDPOINTS = {
   //ok
   PAYMENT: {
     VNPAY_CREATE: `/payments/vnpay/create`,
+    VNPAY_RETRY: (orderCode: string) => `/payments/vnpay/retry/${orderCode}`,
 
     VNPAY_RETURN: (responseCode: string, txnRef: string) =>
       `/payments/vnpay/return?vnp_ResponseCode=${responseCode}&vnp_TxnRef=${txnRef}`,

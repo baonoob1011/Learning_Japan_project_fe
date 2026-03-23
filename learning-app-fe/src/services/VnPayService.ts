@@ -46,6 +46,16 @@ export const vnPayService = {
   },
 
   /**
+   * Thanh toán lại cho đơn hàng (POST /retry/{orderCode})
+   */
+  async retry(orderCode: string): Promise<CreateVnPayResponse> {
+    return http.post<CreateVnPayResponse>(
+      API_ENDPOINTS.PAYMENT.VNPAY_RETRY(orderCode),
+      {}
+    );
+  },
+
+  /**
    * Xử lý return từ VNPAY
    */
   handleReturn(queryString: string): Promise<OrderSuccessResponse> {
