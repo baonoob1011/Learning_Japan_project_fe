@@ -11,6 +11,10 @@ interface Message {
     senderId: string;
     senderName?: string;
     timestamp: Date;
+    type?: string;
+    callType?: string;
+    callStatus?: string;
+    callSessionId?: string;
 }
 
 interface Contact {
@@ -217,6 +221,8 @@ export default function ChatMessageList({
                                                 isMe={isMe}
                                                 isDarkMode={dark}
                                                 onNavigate={onNavigate}
+                                                type={msg.type}
+                                                callType={msg.callType}
                                             />
 
                                             {/* Minimal timestamp inside bubble if it's the last in group or hover */}

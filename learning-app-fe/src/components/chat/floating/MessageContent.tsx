@@ -1,5 +1,4 @@
-"use client";
-import { PlayCircle } from "lucide-react";
+import { PlayCircle, PhoneMissed } from "lucide-react";
 
 export const YT_REGEX =
     /https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([\w-]+)|https?:\/\/youtu\.be\/([\w-]+)/g;
@@ -14,6 +13,8 @@ interface MessageContentProps {
     isMe: boolean;
     isDarkMode: boolean;
     onNavigate: (path: string) => void;
+    type?: string;
+    callType?: string;
 }
 
 export default function MessageContent({
@@ -21,7 +22,27 @@ export default function MessageContent({
     isMe,
     isDarkMode: dark,
     onNavigate,
+    type,
+    callType,
 }: MessageContentProps) {
+    if (type === "MISSED_CALL") {
+        return (
+            <div className="flex items-center gap-2 py-0.5">
+                <div className={`p-1.5 rounded-full ${dark ? "bg-red-500/20" : "bg-red-50"}`}>
+                    <PhoneMissed className={`w-3.5 h-3.5 ${dark ? "text-red-400" : "text-red-500"}`} />
+                </div>
+                <div className="flex flex-col">
+                    <span className="font-bold">
+                        {isMe ? "Bạn đã gọi nhỡ" : "Bạn có cuộc gọi nhỡ"}
+                    </span>
+                    <span className={`text-[9px] opacity-70`}>
+                        {callType === "VIDEO" ? "Cuộc gọi video" : "Cuộc gọi thoại"}
+                    </span>
+                </div>
+            </div>
+        );
+    }
+
     const ytMatches = Array.from(new Set(text.match(YT_REGEX) || []));
 
     if (ytMatches.length === 0) {

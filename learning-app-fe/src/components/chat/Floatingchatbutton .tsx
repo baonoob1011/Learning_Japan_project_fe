@@ -45,6 +45,10 @@ interface Message {
   senderId: string;
   senderName?: string;
   timestamp: Date;
+  type?: string;
+  callType?: string;
+  callStatus?: string;
+  callSessionId?: string;
 }
 
 type Tab = "GROUP" | "INBOX";
@@ -68,6 +72,10 @@ function mapApiMsg(m: ChatMessageResponse): Message {
     senderId: String(m.senderId),
     senderName: m.senderName ?? undefined,
     timestamp: date,
+    type: m.type,
+    callType: m.callType,
+    callStatus: m.callStatus,
+    callSessionId: m.callSessionId,
   };
 }
 
