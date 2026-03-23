@@ -318,7 +318,7 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                                                 <div className="space-y-2">
                                                     <label className="text-[10px] font-black uppercase tracking-widest text-cyan-500">Nghĩa hiển thị riêng</label>
                                                     <input
-                                                        className={`w-full px-4 py-2.5 rounded-xl border outline-none ${isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}
+                                                        className={`w-full px-4 py-2.5 rounded-xl border outline-none ${isDarkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900"}`}
                                                         value={editForm.customTranslated}
                                                         onChange={e => setEditForm(p => ({ ...p, customTranslated: e.target.value }))}
                                                     />
@@ -326,7 +326,7 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                                                 <div className="space-y-2">
                                                     <label className="text-[10px] font-black uppercase tracking-widest text-blue-500">Ghi chú (Note)</label>
                                                     <input
-                                                        className={`w-full px-4 py-2.5 rounded-xl border outline-none ${isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}
+                                                        className={`w-full px-4 py-2.5 rounded-xl border outline-none ${isDarkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900"}`}
                                                         placeholder="Vd: Dễ nhầm với từ X..."
                                                         value={editForm.personalNote}
                                                         onChange={e => setEditForm(p => ({ ...p, personalNote: e.target.value }))}
@@ -345,7 +345,7 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <input
-                                                        className={`flex-1 px-4 py-2.5 rounded-xl border outline-none text-xs ${isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}
+                                                        className={`flex-1 px-4 py-2.5 rounded-xl border outline-none text-xs ${isDarkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900"}`}
                                                         placeholder="Thêm tag (Vd: N3, Khó nhớ...)"
                                                         value={editForm.tempTag}
                                                         onChange={e => setEditForm(p => ({ ...p, tempTag: e.target.value }))}

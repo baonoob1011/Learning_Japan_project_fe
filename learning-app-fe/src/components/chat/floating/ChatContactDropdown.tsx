@@ -292,16 +292,7 @@ export default function ChatContactDropdown({
                         </>
                     )}
 
-                    {/* User Avatar */}
-                    {currentUserAvatar && (
-                        <div className="ml-1 relative">
-                            <img
-                                src={currentUserAvatar}
-                                alt="Me"
-                                className="w-7 h-7 rounded-full object-cover ring-2 ring-white/40 shadow-sm"
-                            />
-                        </div>
-                    )}
+
 
                     {/* Close button */}
                     <button
