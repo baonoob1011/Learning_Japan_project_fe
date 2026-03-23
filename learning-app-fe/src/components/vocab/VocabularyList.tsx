@@ -37,6 +37,7 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
     const [editForm, setEditForm] = useState({
         customTranslated: "",
         personalNote: "",
+        personalExample: "",
         personalTags: [] as string[],
         tempTag: ""
     });
@@ -88,6 +89,7 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
         setEditForm({
             customTranslated: vocab.customTranslated || vocab.translated,
             personalNote: vocab.personalNote || "",
+            personalExample: vocab.personalExample || "",
             personalTags: vocab.personalTags || [],
             tempTag: ""
         });
@@ -105,6 +107,7 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                 surface: vocab.surface,
                 customTranslated: editForm.customTranslated.trim(),
                 personalNote: editForm.personalNote.trim(),
+                personalExample: editForm.personalExample.trim(),
                 personalTags: editForm.personalTags
             });
 
@@ -113,6 +116,7 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                     ...v,
                     customTranslated: editForm.customTranslated.trim(),
                     personalNote: editForm.personalNote.trim(),
+                    personalExample: editForm.personalExample.trim(),
                     personalTags: editForm.personalTags
                 } : v
             ));
@@ -287,6 +291,11 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                                     <h4 className={`text-lg font-bold leading-tight ${isDarkMode ? "text-cyan-400" : "text-cyan-700"}`}>
                                         {v.customTranslated || v.translated}
                                     </h4>
+                                    {(v.personalExample || v.example) && expandedId !== v.id && (
+                                        <p className={`text-xs italic line-clamp-1 truncate ${isDarkMode ? "text-gray-500" : "text-gray-400"}`}>
+                                            {v.personalExample || v.example}
+                                        </p>
+                                    )}
                                     {v.customTranslated && (
                                         <p className="text-[10px] text-gray-500 font-medium italic">
                                             Nghĩa gốc: {v.translated}
@@ -333,6 +342,25 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                                                     />
                                                 </div>
                                             </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-orange-500">Ví dụ của bạn (Personal Example)</label>
+                                                <textarea
+                                                    className={`w-full px-4 py-2.5 rounded-xl border outline-none resize-none ${isDarkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900"}`}
+                                                    placeholder="Vd: 私はりんごが大好きです。"
+                                                    rows={2}
+                                                    value={editForm.personalExample}
+                                                    onChange={e => setEditForm(p => ({ ...p, personalExample: e.target.value }))}
+                                                />
+                                            </div>
+
+                                            {/* System Example Preview during edit */}
+                                            {v.example && (
+                                                <div className={`p-4 rounded-xl border border-dashed ${isDarkMode ? "border-gray-700 bg-gray-900/40" : "border-gray-100 bg-gray-50/50"}`}>
+                                                    <span className="text-[8px] font-black uppercase tracking-widest text-gray-500 block mb-1">Ví dụ hệ thống (Context)</span>
+                                                    <p className={`text-xs whitespace-pre-line ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>{v.example}</p>
+                                                </div>
+                                            )}
                                             <div className="space-y-3">
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Tags cá nhân</label>
                                                 <div className="flex flex-wrap gap-2 mb-2">
@@ -388,6 +416,21 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                                                 </div>
                                             </div>
                                             <div className="space-y-4">
+                                                {/* Personal Example */}
+                                                {v.personalExample && (
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500"><Lightbulb size={14} /></div>
+                                                        <div className="flex-1">
+                                                            <h5 className="text-[10px] font-black tracking-widest uppercase text-gray-500 mb-1 flex items-center gap-1.5">
+                                                                VÍ DỤ CỦA BẠN <span className="text-[8px] px-1 py-0.25 bg-indigo-500 text-white rounded-sm">USER</span>
+                                                            </h5>
+                                                            <p className={`text-sm leading-relaxed p-4 rounded-2xl border-l-4 border-indigo-500/30 whitespace-pre-line ${isDarkMode ? "bg-indigo-500/5 text-gray-300" : "bg-indigo-50/50 text-gray-700"}`}>
+                                                                {v.personalExample}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                )}
+
                                                 {/* Global Example */}
                                                 {v.example && (
                                                     <div className="flex items-start gap-3 h-full mb-4">
