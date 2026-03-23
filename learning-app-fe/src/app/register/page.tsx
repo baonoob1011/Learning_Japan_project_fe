@@ -1,6 +1,6 @@
 "use client";
 
-import Notification from "@/components/notification";
+import Notification from "@/components/notification/notification";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Check, X, Shield } from "lucide-react";
@@ -303,9 +303,8 @@ export default function RegisterPage() {
                   ].map((item, idx) => (
                     <div
                       key={idx}
-                      className={`flex items-center gap-2 text-xs ${
-                        item.met ? "text-green-600" : "text-gray-500"
-                      }`}
+                      className={`flex items-center gap-2 text-xs ${item.met ? "text-green-600" : "text-gray-500"
+                        }`}
                     >
                       {item.met ? (
                         <Check className="w-4 h-4" />

@@ -1,5 +1,5 @@
 "use client";
-import FloatingChatButton from "@/components/Floatingchatbutton ";
+import FloatingChatButton from "@/components/chat/Floatingchatbutton ";
 import MaziAIChat from "@/components/NiboChatAI";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Sidebar from "@/components/Sidebar";
@@ -23,8 +23,8 @@ export default function FloatingChatPage() {
     return (
         <div
             className={`flex h-screen ${isDarkMode
-                    ? "bg-gray-900"
-                    : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
+                ? "bg-gray-900"
+                : "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"
                 }`}
         >
             {/* Sidebar */}

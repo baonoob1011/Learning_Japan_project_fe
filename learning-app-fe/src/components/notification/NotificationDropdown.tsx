@@ -7,7 +7,7 @@ import { useState, type MouseEvent } from "react";
 import { friendService } from "@/services/friendService";
 import { roomService } from "@/services/roomService";
 import { FriendRequestResponse } from "@/services/friendService";
-import SenderAvatar from "./chat/floating/SenderAvatar";
+import SenderAvatar from "../chat/floating/SenderAvatar";
 import {
   isSrsVocabNotification,
   parseSrsBreakdown,
@@ -182,12 +182,12 @@ function NotificationItem({
         <div className="flex-shrink-0">
           <div
             className={`w-12 h-12 rounded-full flex items-center justify-center ${isSrs
-                ? isDarkMode
-                  ? "bg-amber-900/40"
-                  : "bg-amber-100"
-                : isDarkMode
-                  ? "bg-blue-900/50"
-                  : "bg-blue-100"
+              ? isDarkMode
+                ? "bg-amber-900/40"
+                : "bg-amber-100"
+              : isDarkMode
+                ? "bg-blue-900/50"
+                : "bg-blue-100"
               }`}
           >
             {isSrs ? (
@@ -400,8 +400,8 @@ function FriendRequestItem({
                     <button
                       onClick={handleReject}
                       className={`px-4 py-1.5 rounded-full ${isDarkMode
-                          ? "bg-gray-700 hover:bg-gray-600"
-                          : "bg-gray-100 hover:bg-gray-200"
+                        ? "bg-gray-700 hover:bg-gray-600"
+                        : "bg-gray-100 hover:bg-gray-200"
                         } ${mutedColor} text-xs font-bold transition-all active:scale-95`}
                     >
                       Từ chối

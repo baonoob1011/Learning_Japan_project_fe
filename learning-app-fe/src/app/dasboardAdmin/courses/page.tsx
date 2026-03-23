@@ -6,7 +6,7 @@ import { BookOpen, Map, ChevronRight, Loader2, Library, EyeOff, LayoutGrid, Sear
 import { courseService, CourseResponse, UpdateCourseRequest } from "@/services/courseService";
 import { JLPTLevel } from "@/enums/JLPTLevel";
 import { LessonProcess } from "@/enums/LessonProcess";
-import Notification from "@/components/notification";
+import Notification from "@/components/notification/notification";
 
 export default function AdminCourseManagerPage() {
     const router = useRouter();

@@ -540,9 +540,14 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
                             }`}
                         >
                           <div className="font-bold text-[10px] uppercase mb-1 flex items-center gap-1 opacity-70">
-                            ✨ Ví dụ AI
+                            ✨ VÍ DỤ
                           </div>
-                          {card.example}
+                          {card.example.split(/\\n/).map((line, i, arr) => (
+                            <React.Fragment key={i}>
+                              {line}
+                              {i < arr.length - 1 && <br />}
+                            </React.Fragment>
+                          ))}
                         </div>
                       )}
                     </div>

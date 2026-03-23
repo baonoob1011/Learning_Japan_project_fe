@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Search, Settings, Play } from "lucide-react";
 import { useRouter } from "next/navigation";
 import UserDropdown from "@/components/UserDropdown";
-import NotificationBell from "@/components/notificationBell"; 
+import NotificationBell from "@/components/notification/notificationBell";
 import { youtubeService, YoutubeVideoSummary } from "@/services/videoService";
 import { useVideoStore } from "@/stores/videoStore";
 

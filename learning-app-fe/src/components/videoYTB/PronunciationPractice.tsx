@@ -13,7 +13,7 @@ import {
   XCircle,
   X,
 } from "lucide-react";
-import SegmentPlaybackButton from "./SegmentPlaybackButton";
+import SegmentPlaybackButton from "../SegmentPlaybackButton";
 
 interface TranscriptDTO {
   id: string;
@@ -377,76 +377,68 @@ export default function PronunciationPractice({
   const avgScore =
     completedCount > 0
       ? Math.round(
-          results
-            .filter((r) => r !== null)
-            .reduce((sum, r) => sum + r!.score, 0) / completedCount
-        )
+        results
+          .filter((r) => r !== null)
+          .reduce((sum, r) => sum + r!.score, 0) / completedCount
+      )
       : 0;
 
   return (
     <div
-      className={`w-96 backdrop-blur-sm border-l flex flex-col flex-shrink-0 shadow-xl transition-colors duration-300 ${
-        isDarkMode
+      className={`w-96 backdrop-blur-sm border-l flex flex-col flex-shrink-0 shadow-xl transition-colors duration-300 ${isDarkMode
           ? "bg-gray-800/90 border-gray-700"
           : "bg-white/90 border-cyan-100"
-      }`}
+        }`}
     >
       {/* Header */}
       <div
-        className={`p-5 border-b flex-shrink-0 transition-colors duration-300 ${
-          isDarkMode
+        className={`p-5 border-b flex-shrink-0 transition-colors duration-300 ${isDarkMode
             ? "bg-gray-800 border-gray-700"
             : "bg-gradient-to-r from-cyan-50 via-blue-50 to-indigo-50 border-cyan-100"
-        }`}
+          }`}
       >
         <div className="flex items-center justify-between mb-1">
           <h3
-            className={`font-bold bg-gradient-to-r bg-clip-text text-transparent text-lg flex items-center gap-2 ${
-              isDarkMode
+            className={`font-bold bg-gradient-to-r bg-clip-text text-transparent text-lg flex items-center gap-2 ${isDarkMode
                 ? "from-cyan-400 to-cyan-500"
                 : "from-cyan-500 to-cyan-600"
-            }`}
+              }`}
           >
             <Volume2
-              className={`w-5 h-5 ${
-                isDarkMode ? "text-cyan-400" : "text-cyan-500"
-              }`}
+              className={`w-5 h-5 ${isDarkMode ? "text-cyan-400" : "text-cyan-500"
+                }`}
             />
             Luyện phát âm
           </h3>
           <button
-            className={`p-2 rounded-lg transition-colors ${
-              isDarkMode
+            className={`p-2 rounded-lg transition-colors ${isDarkMode
                 ? "text-cyan-400 hover:bg-gray-700"
                 : "text-cyan-500 hover:bg-cyan-50"
-            }`}
+              }`}
           >
             <X className="w-5 h-5" />
           </button>
         </div>
         <p
-          className={`text-sm ${
-            isDarkMode ? "text-cyan-400" : "text-cyan-700"
-          }`}
+          className={`text-sm ${isDarkMode ? "text-cyan-400" : "text-cyan-700"
+            }`}
         >
           (Câu {currentIndex + 1}/{totalQuestions})
         </p>
         <div className="mt-2 flex items-center gap-2">
           <div
-            className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm ${
-              isDarkMode
+            className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm ${isDarkMode
                 ? "bg-cyan-900/50 text-cyan-300"
                 : "bg-gradient-to-r from-cyan-100 to-blue-100 text-cyan-700"
-            }`}
+              }`}
           >
             {completedCount}/{totalAnswered} hoàn thành
           </div>
           <div
-            className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm ${
-              isDarkMode
+            className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm ${isDarkMode
                 ? "bg-cyan-900/50 text-cyan-300"
                 : "bg-gradient-to-r from-cyan-100 to-blue-100 text-cyan-700"
-            }`}
+              }`}
           >
             TB: {avgScore} điểm
           </div>
@@ -455,25 +447,22 @@ export default function PronunciationPractice({
 
       {/* Question Navigation */}
       <div
-        className={`p-4 border-b flex items-center gap-2 flex-shrink-0 transition-colors duration-300 ${
-          isDarkMode
+        className={`p-4 border-b flex items-center gap-2 flex-shrink-0 transition-colors duration-300 ${isDarkMode
             ? "border-gray-700 bg-gray-800/50"
             : "border-cyan-50 bg-gradient-to-r from-white via-cyan-50/30 to-white"
-        }`}
+          }`}
       >
         <button
           onClick={handlePrev}
           disabled={currentIndex === 0}
-          className={`p-2 rounded-lg border transition-all ${
-            isDarkMode
+          className={`p-2 rounded-lg border transition-all ${isDarkMode
               ? "border-gray-600 bg-gray-700 hover:bg-gray-600 disabled:opacity-30"
               : "border-cyan-200 bg-white hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 disabled:opacity-30"
-          } disabled:cursor-not-allowed`}
+            } disabled:cursor-not-allowed`}
         >
           <ChevronLeft
-            className={`w-5 h-5 ${
-              isDarkMode ? "text-cyan-400" : "text-cyan-600"
-            }`}
+            className={`w-5 h-5 ${isDarkMode ? "text-cyan-400" : "text-cyan-600"
+              }`}
           />
         </button>
 
@@ -506,27 +495,24 @@ export default function PronunciationPractice({
         <button
           onClick={handleNext}
           disabled={currentIndex === totalQuestions - 1}
-          className={`p-2 rounded-lg border transition-all ${
-            isDarkMode
+          className={`p-2 rounded-lg border transition-all ${isDarkMode
               ? "border-gray-600 bg-gray-700 hover:bg-gray-600 disabled:opacity-30"
               : "border-cyan-200 bg-white hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 disabled:opacity-30"
-          } disabled:cursor-not-allowed`}
+            } disabled:cursor-not-allowed`}
         >
           <ChevronRight
-            className={`w-5 h-5 ${
-              isDarkMode ? "text-cyan-400" : "text-cyan-600"
-            }`}
+            className={`w-5 h-5 ${isDarkMode ? "text-cyan-400" : "text-cyan-600"
+              }`}
           />
         </button>
       </div>
 
       {/* Content - Scrollable */}
       <div
-        className={`flex-1 overflow-y-auto p-5 transition-colors duration-300 ${
-          isDarkMode
+        className={`flex-1 overflow-y-auto p-5 transition-colors duration-300 ${isDarkMode
             ? "bg-gradient-to-b from-gray-800 via-gray-800 to-gray-900"
             : "bg-gradient-to-b from-white via-cyan-50/20 to-blue-50/30"
-        }`}
+          }`}
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
@@ -539,23 +525,20 @@ export default function PronunciationPractice({
         `}</style>
         {/* Current Sentence Display */}
         <div
-          className={`mb-4 p-5 rounded-2xl border shadow-sm transition-colors duration-300 ${
-            isDarkMode
+          className={`mb-4 p-5 rounded-2xl border shadow-sm transition-colors duration-300 ${isDarkMode
               ? "bg-gray-700/50 border-gray-600"
               : "bg-gradient-to-r from-cyan-50/50 via-blue-50/50 to-indigo-50/50 border-cyan-100/50"
-          }`}
+            }`}
         >
           <p
-            className={`text-sm font-medium mb-2 ${
-              isDarkMode ? "text-cyan-400" : "text-cyan-700"
-            }`}
+            className={`text-sm font-medium mb-2 ${isDarkMode ? "text-cyan-400" : "text-cyan-700"
+              }`}
           >
             Câu hiện tại:
           </p>
           <p
-            className={`text-center text-lg font-medium tracking-wide leading-relaxed ${
-              isDarkMode ? "text-gray-100" : "text-gray-900"
-            }`}
+            className={`text-center text-lg font-medium tracking-wide leading-relaxed ${isDarkMode ? "text-gray-100" : "text-gray-900"
+              }`}
           >
             {currentTranscript.text}
           </p>
@@ -572,11 +555,10 @@ export default function PronunciationPractice({
         {/* Recording Section */}
         <div className="mb-6">
           <div
-            className={`rounded-2xl p-6 border shadow-sm transition-colors duration-300 ${
-              isDarkMode
+            className={`rounded-2xl p-6 border shadow-sm transition-colors duration-300 ${isDarkMode
                 ? "bg-gray-700/50 border-gray-600"
                 : "bg-gradient-to-r from-cyan-50/50 via-blue-50/50 to-indigo-50/50 border-cyan-100/50"
-            }`}
+              }`}
           >
             {isRecording ? (
               <div className="text-center">
@@ -584,16 +566,14 @@ export default function PronunciationPractice({
                   <Mic className="w-10 h-10 text-white" />
                 </div>
                 <p
-                  className={`text-sm font-medium mb-2 ${
-                    isDarkMode ? "text-gray-200" : "text-gray-700"
-                  }`}
+                  className={`text-sm font-medium mb-2 ${isDarkMode ? "text-gray-200" : "text-gray-700"
+                    }`}
                 >
                   Đang ghi âm...
                 </p>
                 <p
-                  className={`text-xs ${
-                    isDarkMode ? "text-gray-400" : "text-gray-500"
-                  }`}
+                  className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
                 >
                   Hãy đọc theo câu mẫu
                 </p>
@@ -602,51 +582,44 @@ export default function PronunciationPractice({
               <div className="text-center">
                 <div className="w-20 h-20 mx-auto mb-4 relative">
                   <div
-                    className={`absolute inset-0 border-4 rounded-full ${
-                      isDarkMode ? "border-gray-700" : "border-cyan-100"
-                    }`}
+                    className={`absolute inset-0 border-4 rounded-full ${isDarkMode ? "border-gray-700" : "border-cyan-100"
+                      }`}
                   ></div>
                   <div
-                    className={`absolute inset-0 border-4 border-transparent rounded-full animate-spin ${
-                      isDarkMode ? "border-t-cyan-400" : "border-t-cyan-400"
-                    }`}
+                    className={`absolute inset-0 border-4 border-transparent rounded-full animate-spin ${isDarkMode ? "border-t-cyan-400" : "border-t-cyan-400"
+                      }`}
                   ></div>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-2xl">🤖</div>
                   </div>
                 </div>
                 <p
-                  className={`text-sm font-medium mb-2 ${
-                    isDarkMode ? "text-gray-200" : "text-gray-700"
-                  }`}
+                  className={`text-sm font-medium mb-2 ${isDarkMode ? "text-gray-200" : "text-gray-700"
+                    }`}
                 >
                   Đang phân tích...
                 </p>
                 <p
-                  className={`text-xs ${
-                    isDarkMode ? "text-gray-400" : "text-gray-500"
-                  }`}
+                  className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
                 >
                   Vui lòng đợi trong giây lát
                 </p>
 
                 <div className="flex justify-center gap-1 mt-3">
                   <div
-                    className={`w-2 h-2 rounded-full animate-bounce ${
-                      isDarkMode ? "bg-cyan-400" : "bg-cyan-400"
-                    }`}
+                    className={`w-2 h-2 rounded-full animate-bounce ${isDarkMode ? "bg-cyan-400" : "bg-cyan-400"
+                      }`}
                     style={{ animationDelay: "0s" }}
                   ></div>
                   <div
-                    className={`w-2 h-2 rounded-full animate-bounce ${
-                      isDarkMode ? "bg-blue-400" : "bg-blue-400"
-                    }`}
+                    className={`w-2 h-2 rounded-full animate-bounce ${isDarkMode ? "bg-blue-400" : "bg-blue-400"
+                      }`}
                     style={{ animationDelay: "0.2s" }}
                   ></div>
                   <div
-                    className={`w-2 h-2 rounded-full animate-bounce ${
-                      isDarkMode ? "bg-indigo-400" : "bg-indigo-400"
-                    }`}
+                    className={`w-2 h-2 rounded-full animate-bounce ${isDarkMode ? "bg-indigo-400" : "bg-indigo-400"
+                      }`}
                     style={{ animationDelay: "0.4s" }}
                   ></div>
                 </div>
@@ -661,9 +634,8 @@ export default function PronunciationPractice({
                   <Mic className="w-10 h-10 text-white" />
                 </div>
                 <p
-                  className={`text-sm font-medium ${
-                    isDarkMode ? "text-gray-200" : "text-gray-700"
-                  }`}
+                  className={`text-sm font-medium ${isDarkMode ? "text-gray-200" : "text-gray-700"
+                    }`}
                 >
                   {pronunciationScore !== null
                     ? "Đã ghi âm"
@@ -685,23 +657,20 @@ export default function PronunciationPractice({
             >
               <div className="flex items-center justify-between mb-2">
                 <span
-                  className={`text-sm font-medium ${
-                    isDarkMode ? "text-gray-200" : "text-gray-700"
-                  }`}
+                  className={`text-sm font-medium ${isDarkMode ? "text-gray-200" : "text-gray-700"
+                    }`}
                 >
                   Điểm phát âm
                 </span>
                 {pronunciationScore >= 75 ? (
                   <CheckCircle2
-                    className={`w-5 h-5 ${
-                      isDarkMode ? "text-emerald-400" : "text-emerald-600"
-                    }`}
+                    className={`w-5 h-5 ${isDarkMode ? "text-emerald-400" : "text-emerald-600"
+                      }`}
                   />
                 ) : (
                   <XCircle
-                    className={`w-5 h-5 ${
-                      isDarkMode ? "text-cyan-400" : "text-cyan-500"
-                    }`}
+                    className={`w-5 h-5 ${isDarkMode ? "text-cyan-400" : "text-cyan-500"
+                      }`}
                   />
                 )}
               </div>
@@ -718,39 +687,34 @@ export default function PronunciationPractice({
             {/* Detailed Scores */}
             <div className="grid grid-cols-2 gap-3">
               <div
-                className={`p-3 border rounded-xl shadow-sm transition-colors duration-300 ${
-                  isDarkMode
+                className={`p-3 border rounded-xl shadow-sm transition-colors duration-300 ${isDarkMode
                     ? "bg-gray-700/50 border-gray-600"
                     : "bg-gradient-to-r from-cyan-50/50 via-blue-50/50 to-indigo-50/50 border-cyan-100/50"
-                }`}
+                  }`}
               >
                 <p
-                  className={`text-xs font-medium mb-1 ${
-                    isDarkMode ? "text-cyan-400" : "text-cyan-700"
-                  }`}
+                  className={`text-xs font-medium mb-1 ${isDarkMode ? "text-cyan-400" : "text-cyan-700"
+                    }`}
                 >
                   Độ chính xác
                 </p>
                 <p
-                  className={`text-2xl font-bold ${
-                    accuracyScore !== null ? getScoreColor(accuracyScore) : ""
-                  }`}
+                  className={`text-2xl font-bold ${accuracyScore !== null ? getScoreColor(accuracyScore) : ""
+                    }`}
                 >
                   {accuracyScore ?? 0}
                   <span className="text-sm">/100</span>
                 </p>
               </div>
               <div
-                className={`p-3 border rounded-xl shadow-sm transition-colors duration-300 ${
-                  isDarkMode
+                className={`p-3 border rounded-xl shadow-sm transition-colors duration-300 ${isDarkMode
                     ? "bg-gray-700/50 border-gray-600"
                     : "bg-gradient-to-r from-cyan-50/50 via-blue-50/50 to-indigo-50/50 border-cyan-100/50"
-                }`}
+                  }`}
               >
                 <p
-                  className={`text-xs font-medium mb-1 ${
-                    isDarkMode ? "text-cyan-400" : "text-cyan-700"
-                  }`}
+                  className={`text-xs font-medium mb-1 ${isDarkMode ? "text-cyan-400" : "text-cyan-700"
+                    }`}
                 >
                   Độ hoàn thiện
                 </p>
@@ -767,29 +731,26 @@ export default function PronunciationPractice({
 
             {/* Feedback */}
             <div
-              className={`p-4 border rounded-xl shadow-sm transition-colors duration-300 ${
-                isDarkMode
+              className={`p-4 border rounded-xl shadow-sm transition-colors duration-300 ${isDarkMode
                   ? "bg-gray-700/50 border-gray-600"
                   : "bg-gradient-to-r from-cyan-50/50 via-blue-50/50 to-indigo-50/50 border-cyan-100"
-              }`}
+                }`}
             >
               <p
-                className={`text-xs font-medium mb-2 ${
-                  isDarkMode ? "text-cyan-400" : "text-cyan-700"
-                }`}
+                className={`text-xs font-medium mb-2 ${isDarkMode ? "text-cyan-400" : "text-cyan-700"
+                  }`}
               >
                 Đánh giá:
               </p>
               <p
-                className={`text-sm ${
-                  isDarkMode ? "text-gray-300" : "text-gray-600"
-                }`}
+                className={`text-sm ${isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}
               >
                 {pronunciationScore >= 90
                   ? "Xuất sắc! Phát âm của bạn rất tốt."
                   : pronunciationScore >= 75
-                  ? "Tốt! Tiếp tục luyện tập để hoàn thiện hơn."
-                  : "Cần cải thiện. Hãy nghe kỹ mẫu và thử lại."}
+                    ? "Tốt! Tiếp tục luyện tập để hoàn thiện hơn."
+                    : "Cần cải thiện. Hãy nghe kỹ mẫu và thử lại."}
               </p>
             </div>
           </div>
@@ -798,17 +759,15 @@ export default function PronunciationPractice({
 
       {/* Bottom Buttons */}
       <div
-        className={`p-4 border-t space-y-2 flex-shrink-0 transition-colors duration-300 ${
-          isDarkMode
+        className={`p-4 border-t space-y-2 flex-shrink-0 transition-colors duration-300 ${isDarkMode
             ? "border-gray-700 bg-gray-800"
             : "border-cyan-100 bg-white"
-        }`}
+          }`}
       >
         {pronunciationScore === null ? (
           <div
-            className={`text-center text-sm py-2 ${
-              isDarkMode ? "text-gray-400" : "text-gray-500"
-            }`}
+            className={`text-center text-sm py-2 ${isDarkMode ? "text-gray-400" : "text-gray-500"
+              }`}
           >
             Nhấn mic để ghi âm câu trả lời
           </div>

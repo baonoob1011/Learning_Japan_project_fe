@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
 import { useDarkMode } from "@/hooks/useDarkMode";
-import FloatingChatButton from "@/components/Floatingchatbutton ";
+import FloatingChatButton from "@/components/chat/Floatingchatbutton ";
 import MaziAIChat from "@/components/NiboChatAI";
 import { ToastContainer } from "@/components/ui/Toast";
 import { KickOutModal } from "@/components/KickOutModal";

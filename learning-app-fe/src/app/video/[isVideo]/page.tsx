@@ -9,7 +9,7 @@ import Sidebar from "@/components/Sidebar";
 import { youtubeService } from "@/services/videoService";
 import { YoutubePlayerHandle } from "@/components/videoYTB/YoutubePlayer";
 import AutoScrollToggle from "@/components/AutoScrollToggle";
-import PronunciationPractice from "@/components/PronunciationPractice";
+import PronunciationPractice from "@/components/videoYTB/PronunciationPractice";
 import VocabularySidebar from "@/components/videoYTB/VocabularySidebar";
 import { JLPTLevel, VideoTag } from "@/types/video";
 import VideoExercise from "@/components/videoYTB/Videoexercise";

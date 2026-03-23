@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/admin/Sidebar";
 import AdminHeader from "@/components/admin/dashboard/AdminHeader";
-import FloatingChatButton from "@/components/Floatingchatbutton ";
+import FloatingChatButton from "@/components/chat/Floatingchatbutton ";
 import { useAuthStore } from "@/stores/authStore";
 import { getRolesFromToken } from "@/utils/jwt";
 import { useDarkMode } from "@/hooks/useDarkMode";

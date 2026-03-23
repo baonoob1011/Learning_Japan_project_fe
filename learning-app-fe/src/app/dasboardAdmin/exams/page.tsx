@@ -43,7 +43,7 @@ import { s3Service, S3ImageResponse, S3FolderType } from "@/services/s3Service";
 import { questionService, QuestionApiResponse } from "@/services/questionService";
 import { passageService } from "@/services/passageService";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
-import Notification from "@/components/notification";
+import Notification from "@/components/notification/notification";
 
 
 interface ExamDetail {
@@ -436,12 +436,12 @@ export default function ExamManagementPage() {
                 itemsMap[section.id] = await assessmentItemService.getBySection(section.id);
             }
 
-            setExamDetails(prev => ({ 
-                ...prev, 
-                [examId]: { 
-                    sections: sectionsWithPassage as any, 
-                    assessmentItems: itemsMap 
-                } 
+            setExamDetails(prev => ({
+                ...prev,
+                [examId]: {
+                    sections: sectionsWithPassage as any,
+                    assessmentItems: itemsMap
+                }
             }));
 
             setEditingQuestionId(null);
@@ -971,11 +971,10 @@ export default function ExamManagementPage() {
                             placeholder="Tìm kiếm theo mã đề..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className={`w-full pl-11 pr-4 py-3 rounded-2xl text-sm font-bold transition-all border outline-none ${
-                                isDark
+                            className={`w-full pl-11 pr-4 py-3 rounded-2xl text-sm font-bold transition-all border outline-none ${isDark
                                     ? "bg-gray-800/60 border-gray-700 text-white focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5"
                                     : "bg-white border-gray-200 text-gray-900 focus:border-blue-500/30 focus:ring-4 focus:ring-blue-500/5 shadow-sm"
-                            }`}
+                                }`}
                         />
                     </div>
                     <div className="flex items-center gap-3 w-full md:w-auto">
@@ -984,11 +983,10 @@ export default function ExamManagementPage() {
                             <select
                                 value={examLevelFilter}
                                 onChange={(e) => setExamLevelFilter(e.target.value)}
-                                className={`appearance-none w-full pl-4 pr-10 py-3 rounded-2xl font-black text-xs transition-all outline-none border cursor-pointer ${
-                                    isDark
+                                className={`appearance-none w-full pl-4 pr-10 py-3 rounded-2xl font-black text-xs transition-all outline-none border cursor-pointer ${isDark
                                         ? "bg-gray-800 border-gray-700 text-white hover:border-blue-500/50"
                                         : "bg-white border-gray-200 text-gray-700 hover:border-blue-500/30 shadow-sm"
-                                }`}
+                                    }`}
                             >
                                 {['All', 'N1', 'N2', 'N3', 'N4', 'N5'].map((lvl) => (
                                     <option key={lvl} value={lvl}>
@@ -1023,7 +1021,7 @@ export default function ExamManagementPage() {
                         <p className={`max-w-md mx-auto text-sm ${isDark ? "text-gray-500" : "text-gray-400"} font-medium`}>
                             Không có đề thi nào khớp với bộ lọc của bạn.
                         </p>
-                        <button 
+                        <button
                             onClick={() => { setSearchQuery(""); setExamLevelFilter("All"); }}
                             className="mt-6 px-6 py-2 rounded-xl bg-blue-500 text-white font-bold text-sm hover:bg-blue-600 transition-colors"
                         >
@@ -1263,29 +1261,29 @@ export default function ExamManagementPage() {
                                                                                                                             </div>
                                                                                                                             <div className="grid grid-cols-2 gap-3">
                                                                                                                                 <div className="space-y-1">
-                                                                                                                                     <label className="text-[10px] font-black uppercase text-gray-500">Image URL</label>
-                                                                                                                                     <input type="text" value={editQuestionImageUrl} onChange={e => setEditQuestionImageUrl(e.target.value)} className={`w-full px-3 py-2 rounded-xl border bg-transparent font-bold text-xs outline-none ${isDark ? "border-gray-700 focus:border-blue-500 text-white" : "border-gray-200 focus:border-blue-400 text-gray-900"}`} placeholder="https://..." />
-                                                                                                                                     {editQuestionImageUrl && (
-                                                                                                                                         <div className="mt-2 relative group w-fit">
-                                                                                                                                             <img 
-                                                                                                                                                 src={editQuestionImageUrl} 
-                                                                                                                                                 alt="Preview" 
-                                                                                                                                                 className="max-h-24 w-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-md transition-all group-hover:scale-[1.02]"
-                                                                                                                                                 onError={(e) => {(e.currentTarget as HTMLImageElement).style.opacity = '0.5'}}
-                                                                                                                                             />
-                                                                                                                                         </div>
-                                                                                                                                     )}
+                                                                                                                                    <label className="text-[10px] font-black uppercase text-gray-500">Image URL</label>
+                                                                                                                                    <input type="text" value={editQuestionImageUrl} onChange={e => setEditQuestionImageUrl(e.target.value)} className={`w-full px-3 py-2 rounded-xl border bg-transparent font-bold text-xs outline-none ${isDark ? "border-gray-700 focus:border-blue-500 text-white" : "border-gray-200 focus:border-blue-400 text-gray-900"}`} placeholder="https://..." />
+                                                                                                                                    {editQuestionImageUrl && (
+                                                                                                                                        <div className="mt-2 relative group w-fit">
+                                                                                                                                            <img
+                                                                                                                                                src={editQuestionImageUrl}
+                                                                                                                                                alt="Preview"
+                                                                                                                                                className="max-h-24 w-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-md transition-all group-hover:scale-[1.02]"
+                                                                                                                                                onError={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = '0.5' }}
+                                                                                                                                            />
+                                                                                                                                        </div>
+                                                                                                                                    )}
                                                                                                                                 </div>
                                                                                                                                 <div className="space-y-1">
                                                                                                                                     <label className="text-[10px] font-black uppercase text-gray-500">Audio URL</label>
-                                                                                                                                                                                                                                                                         <input type="text" value={editQuestionAudioUrl} onChange={e => setEditQuestionAudioUrl(e.target.value)} className={`w-full px-3 py-2 rounded-xl border bg-transparent font-bold text-xs outline-none ${isDark ? "border-gray-700 focus:border-blue-500 text-white" : "border-gray-200 focus:border-blue-400 text-gray-900"}`} placeholder="https://..." />
-                                                                                                                                     {editQuestionAudioUrl && (
-                                                                                                                                         <div className="mt-2">
-                                                                                                                                             <audio controls key={editQuestionAudioUrl} className="h-8 w-full max-w-[150px]">
-                                                                                                                                                 <source src={editQuestionAudioUrl} type="audio/mpeg" />
-                                                                                                                                             </audio>
-                                                                                                                                         </div>
-                                                                                                                                     )}
+                                                                                                                                    <input type="text" value={editQuestionAudioUrl} onChange={e => setEditQuestionAudioUrl(e.target.value)} className={`w-full px-3 py-2 rounded-xl border bg-transparent font-bold text-xs outline-none ${isDark ? "border-gray-700 focus:border-blue-500 text-white" : "border-gray-200 focus:border-blue-400 text-gray-900"}`} placeholder="https://..." />
+                                                                                                                                    {editQuestionAudioUrl && (
+                                                                                                                                        <div className="mt-2">
+                                                                                                                                            <audio controls key={editQuestionAudioUrl} className="h-8 w-full max-w-[150px]">
+                                                                                                                                                <source src={editQuestionAudioUrl} type="audio/mpeg" />
+                                                                                                                                            </audio>
+                                                                                                                                        </div>
+                                                                                                                                    )}
                                                                                                                                 </div>
                                                                                                                             </div>
                                                                                                                         </div>

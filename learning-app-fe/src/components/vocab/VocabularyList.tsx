@@ -37,7 +37,6 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
     const [editForm, setEditForm] = useState({
         customTranslated: "",
         personalNote: "",
-        personalExample: "",
         personalTags: [] as string[],
         tempTag: ""
     });
@@ -89,7 +88,6 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
         setEditForm({
             customTranslated: vocab.customTranslated || vocab.translated,
             personalNote: vocab.personalNote || "",
-            personalExample: vocab.personalExample || "",
             personalTags: vocab.personalTags || [],
             tempTag: ""
         });
@@ -107,7 +105,6 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                 surface: vocab.surface,
                 customTranslated: editForm.customTranslated.trim(),
                 personalNote: editForm.personalNote.trim(),
-                personalExample: editForm.personalExample.trim(),
                 personalTags: editForm.personalTags
             });
 
@@ -116,7 +113,6 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                     ...v,
                     customTranslated: editForm.customTranslated.trim(),
                     personalNote: editForm.personalNote.trim(),
-                    personalExample: editForm.personalExample.trim(),
                     personalTags: editForm.personalTags
                 } : v
             ));
@@ -337,15 +333,6 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                                                     />
                                                 </div>
                                             </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-amber-500 text-center block">Ví dụ cá nhân</label>
-                                                <textarea
-                                                    className={`w-full px-4 py-2.5 rounded-xl border outline-none min-h-[80px] ${isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}
-                                                    placeholder="Thêm câu ví dụ trực quan cho riêng bạn..."
-                                                    value={editForm.personalExample}
-                                                    onChange={e => setEditForm(p => ({ ...p, personalExample: e.target.value }))}
-                                                />
-                                            </div>
                                             <div className="space-y-3">
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Tags cá nhân</label>
                                                 <div className="flex flex-wrap gap-2 mb-2">
@@ -401,31 +388,25 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                                                 </div>
                                             </div>
                                             <div className="space-y-4">
-                                                {/* AI Example (Global) */}
+                                                {/* Global Example */}
                                                 {v.example && (
                                                     <div className="flex items-start gap-3 h-full mb-4">
                                                         <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500"><Sparkles size={14} /></div>
                                                         <div className="flex-1">
                                                             <h5 className="text-[10px] font-black tracking-widest uppercase text-gray-500 mb-1 flex items-center gap-1.5">
-                                                                Ví dụ AI <span className="text-[8px] px-1 py-0.25 bg-orange-500 text-white rounded-sm">System</span>
+                                                                VÍ DỤ <span className="text-[8px] px-1 py-0.25 bg-orange-500 text-white rounded-sm">SYSTEM</span>
                                                             </h5>
                                                             <p className={`text-sm leading-relaxed p-4 rounded-2xl border-l-4 border-orange-500/30 whitespace-pre-line ${isDarkMode ? "bg-orange-500/5 text-gray-300" : "bg-orange-50/50 text-gray-700"}`}>
-                                                                {v.example}
+                                                                {v.example.split(/\\n/).map((line, i, arr) => (
+                                                                    <React.Fragment key={i}>
+                                                                        {line}
+                                                                        {i < arr.length - 1 && <br />}
+                                                                    </React.Fragment>
+                                                                ))}
                                                             </p>
                                                         </div>
                                                     </div>
                                                 )}
-
-                                                {/* Personal Example */}
-                                                <div className="flex items-start gap-3 h-full">
-                                                    <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500"><Lightbulb size={14} /></div>
-                                                    <div className="flex-1">
-                                                        <h5 className="text-[10px] font-black tracking-widest uppercase text-gray-500 mb-1">Ví dụ cá nhân</h5>
-                                                        <p className={`text-sm leading-relaxed p-4 rounded-2xl border-l-4 border-amber-500/30 ${isDarkMode ? "bg-gray-800/50 text-gray-300" : "bg-amber-50/50 text-gray-700"}`}>
-                                                            {v.personalExample || "Bạn chưa thêm ví dụ nào cho từ này."}
-                                                        </p>
-                                                    </div>
-                                                </div>
                                             </div>
                                         </div>
                                     )}

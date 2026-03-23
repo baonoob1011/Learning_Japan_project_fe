@@ -19,6 +19,7 @@ export interface TranslateResult {
   reading?: string;
   romaji?: string;
   explain?: string;
+  example?: string;
   partOfSpeech?: string;
   audioUrl?: string;
   videoId?: string;
