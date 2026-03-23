@@ -1,6 +1,6 @@
 // components/Header.tsx
 import React, { useState, useEffect } from "react";
-import { Search, Settings, Play } from "lucide-react";
+import { Search, Play } from "lucide-react";
 import { useRouter } from "next/navigation";
 import UserDropdown from "@/components/UserDropdown";
 import NotificationBell from "@/components/notification/notificationBell";
@@ -240,15 +240,6 @@ export default function Header({
           {/* ✅ Notification Bell - KHÔNG CẦN TRUYỀN userId */}
           <NotificationBell isDarkMode={isDarkMode} />
 
-          <button
-            className={`p-1.5 rounded-lg transition-all ${isDarkMode
-              ? "hover:bg-gray-700 text-gray-300"
-              : "hover:bg-gray-100 text-gray-600"
-              }`}
-            title="Cài đặt"
-          >
-            <Settings className="w-4 h-4" />
-          </button>
 
           <UserDropdown
             isDark={isDarkMode}
