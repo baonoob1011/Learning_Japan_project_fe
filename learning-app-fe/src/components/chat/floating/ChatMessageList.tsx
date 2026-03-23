@@ -73,7 +73,7 @@ export default function ChatMessageList({
     return (
         <>
             <div
-                className={`flex-1 overflow-y-auto p-3 space-y-3 ${dark ? "bg-[#0f172a] scrollbar-dark" : "bg-gray-50 scrollbar-light"
+                className={`flex-1 overflow-y-auto p-4 space-y-2 ${dark ? "bg-[#0f172a] scrollbar-dark" : "bg-[#f8faff] scrollbar-light"
                     }`}
             >
                 {isLoadingContacts || isLoadingMessages ? (
@@ -81,120 +81,150 @@ export default function ChatMessageList({
                         <Loader2 className="w-6 h-6 animate-spin text-cyan-500" />
                     </div>
                 ) : !selectedContact ? (
-                    <div className="flex flex-col items-center justify-center h-full gap-3 opacity-40">
-                        <div className={`p-4 rounded-full ${dark ? "bg-gray-800" : "bg-cyan-50"}`}>
+                    <div className="flex flex-col items-center justify-center h-full gap-4 opacity-40">
+                        <div className={`p-5 rounded-3xl ${dark ? "bg-gray-800" : "bg-white shadow-xl shadow-cyan-500/5"}`}>
                             <MessageCircle
-                                className={`w-8 h-8 ${dark ? "text-cyan-400" : "text-cyan-500"}`}
+                                className={`w-10 h-10 ${dark ? "text-cyan-400" : "text-cyan-500"}`}
                             />
                         </div>
-                        <p className={`text-xs font-medium ${dark ? "text-gray-400" : "text-gray-500"}`}>
+                        <p className={`text-sm font-semibold tracking-tight ${dark ? "text-gray-400" : "text-gray-400"}`}>
                             Chọn cuộc trò chuyện để bắt đầu
                         </p>
                     </div>
                 ) : messages.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full gap-4 py-10">
-                        <div className="relative">
+                    <div className="flex flex-col items-center justify-center h-full gap-5 py-10 animate-in fade-in zoom-in duration-500">
+                        <div className="relative group">
                             <img
                                 src={selectedContact.avatar}
                                 alt={selectedContact.name}
                                 onError={(e) => {
                                     (e.target as HTMLImageElement).src = "/default-avatar.png";
                                 }}
-                                className={`w-16 h-16 rounded-full object-cover ring-4 ${dark ? "ring-cyan-500/20 shadow-xl shadow-cyan-500/10" : "ring-white shadow-lg"
+                                className={`w-20 h-20 rounded-full object-cover ring-4 transition-all duration-500 group-hover:scale-105 ${dark ? "ring-cyan-500/20 shadow-2xl shadow-cyan-500/20" : "ring-white shadow-xl shadow-cyan-200/50"
                                     }`}
                             />
                             {!selectedContact.isGroup && isUserOnline?.(selectedContact.userId) && (
-                                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-4 border-white dark:border-[#0f172a] rounded-full flex items-center justify-center">
-                                    <span className="absolute inset-0 rounded-full bg-emerald-500 animate-pulse opacity-75" />
+                                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 border-4 border-white dark:border-[#0f172a] rounded-full flex items-center justify-center">
+                                    <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75" />
                                 </div>
                             )}
                         </div>
-                        <div className="text-center">
+                        <div className="text-center px-6">
                             <p
-                                className={`text-sm font-bold mb-1 ${dark ? "text-gray-100" : "text-gray-800"
+                                className={`text-base font-bold mb-1.5 ${dark ? "text-white" : "text-gray-900"
                                     }`}
                             >
                                 {selectedContact.name}
                             </p>
-                            <p className="text-[11px] text-gray-500 font-medium">Sẵn sàng để trò chuyện</p>
+                            <p className={`text-xs font-medium ${dark ? "text-gray-500" : "text-gray-400"}`}>
+                                Bắt đầu cuộc trò chuyện với {selectedContact.name} ngay nào!
+                            </p>
                         </div>
                     </div>
                 ) : (
                     messages.map((msg, i) => {
                         const isMe = String(msg.senderId) === String(currentUserId);
-                        const displayName =
-                            senderNameMap[msg.senderId] ?? msg.senderName ?? "";
-                        const showName = selectedContact.isGroup && !isMe && displayName;
+
+                        // Check if previous message was from the same sender (for grouping)
+                        const prevMsg = i > 0 ? messages[i - 1] : null;
+                        const isSameSender = prevMsg && String(prevMsg.senderId) === String(msg.senderId);
+
+                        // Check if next message is from the same sender (to hide avatar/name)
+                        const nextMsg = i < messages.length - 1 ? messages[i + 1] : null;
+                        const isNextSameSender = nextMsg && String(nextMsg.senderId) === String(msg.senderId);
+
+                        const displayName = senderNameMap[msg.senderId] ?? msg.senderName ?? "";
+                        const showName = selectedContact.isGroup && !isMe && displayName && !isSameSender;
 
                         const memberAvatar = selectedContact.isGroup
                             ? senderAvatarMap[msg.senderId] ?? ""
                             : selectedContact.avatar;
 
+                        const timeString = (() => {
+                            const now = new Date();
+                            const isToday = msg.timestamp.toDateString() === now.toDateString();
+                            return msg.timestamp.toLocaleTimeString("vi-VN", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: false,
+                                ...(isToday ? {} : { month: "2-digit", day: "2-digit" })
+                            });
+                        })();
+
                         return (
                             <div
                                 key={`${msg.id}-${i}`}
-                                className={`flex items-start gap-2.5 ${isMe ? "flex-row-reverse" : "flex-row"}`}
+                                className={`flex items-start gap-2 ${isMe ? "flex-row-reverse" : "flex-row"} ${isSameSender ? "mt-[-4px]" : "mt-2"}`}
                             >
+                                {/* Avatar: only show for the last message in a group forTHERS */}
                                 {!isMe && (
-                                    <div className="shrink-0 pt-0.5 relative underline-none">
-                                        <SenderAvatar
-                                            avatar={memberAvatar}
-                                            name={displayName || selectedContact.name}
-                                            isDarkMode={dark}
-                                            size="md"
-                                            onClick={
-                                                selectedContact.isGroup
-                                                    ? (e) => handleAvatarClick(msg.senderId, e)
-                                                    : undefined
-                                            }
-                                        />
-                                        {/* Dynamic Online status for message avatar (Non-group) */}
-                                        {!selectedContact.isGroup && isUserOnline?.(selectedContact.userId) && (
-                                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-[#0f172a] shadow-sm flex items-center justify-center z-10">
-                                                <span className="absolute inset-0 rounded-full bg-emerald-500 animate-pulse opacity-75" />
-                                            </div>
+                                    <div className="shrink-0 w-8 h-8 relative">
+                                        {!isNextSameSender ? (
+                                            <>
+                                                <SenderAvatar
+                                                    avatar={memberAvatar}
+                                                    name={displayName || selectedContact.name}
+                                                    isDarkMode={dark}
+                                                    size="md"
+                                                    onClick={
+                                                        selectedContact.isGroup
+                                                            ? (e) => handleAvatarClick(msg.senderId, e)
+                                                            : undefined
+                                                    }
+                                                />
+                                                {!selectedContact.isGroup && isUserOnline?.(selectedContact.userId) && (
+                                                    <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-[#0f172a] shadow-sm z-10" />
+                                                )}
+                                            </>
+                                        ) : (
+                                            <div className="w-8" /> /* Spacer for alignment */
                                         )}
                                     </div>
                                 )}
 
                                 <div
-                                    className={`flex flex-col gap-1 max-w-[75%] ${isMe ? "items-end" : "items-start"
-                                        }`}
+                                    className={`flex flex-col max-w-[80%] ${isMe ? "items-end" : "items-start"}`}
                                 >
                                     {showName && (
-                                        <span className={`text-[10px] font-bold px-2 ${dark ? "text-cyan-400" : "text-cyan-600"
-                                            }`}>
+                                        <span className={`text-[10px] font-bold px-2 mb-0.5 ${dark ? "text-cyan-400" : "text-cyan-600"}`}>
                                             {displayName}
                                         </span>
                                     )}
-                                    <div
-                                        className={`px-3 py-2.5 rounded-2xl text-xs leading-relaxed shadow-sm transition-all hover:shadow-md ${isMe
-                                            ? "bg-gradient-to-br from-cyan-500 to-cyan-600 text-white rounded-br-sm"
-                                            : dark
-                                                ? "bg-[#1e293b] text-gray-100 rounded-bl-sm border border-gray-700/50"
-                                                : "bg-white text-gray-800 rounded-bl-sm border border-gray-100 shadow-sm"
-                                            }`}
-                                    >
-                                        <MessageContent
-                                            text={msg.text}
-                                            isMe={isMe}
-                                            isDarkMode={dark}
-                                            onNavigate={onNavigate}
-                                        />
+
+                                    <div className="group/bubble relative">
                                         <div
-                                            className={`text-[9px] mt-1.5 font-medium flex items-center justify-end ${isMe ? "text-cyan-100/70" : "text-gray-500"
-                                                }`}
+                                            className={`px-3 py-2 rounded-2xl text-[12px] leading-relaxed shadow-sm transition-all duration-200 ${isMe
+                                                ? `bg-gradient-to-br from-cyan-500 to-cyan-600 text-white ${!isSameSender && !isNextSameSender ? "rounded-br-sm" :
+                                                    !isSameSender && isNextSameSender ? "rounded-br-md" :
+                                                        isSameSender && isNextSameSender ? "rounded-tr-md rounded-br-md" :
+                                                            "rounded-tr-md rounded-br-sm"
+                                                }`
+                                                : dark
+                                                    ? `bg-[#1e293b] text-white border border-gray-700/50 ${!isSameSender && !isNextSameSender ? "rounded-bl-sm" :
+                                                        !isSameSender && isNextSameSender ? "rounded-bl-md" :
+                                                            isSameSender && isNextSameSender ? "rounded-tl-md rounded-bl-md" :
+                                                                "rounded-tl-md rounded-bl-sm"
+                                                    }`
+                                                    : `bg-white text-gray-800 border border-gray-100 ${!isSameSender && !isNextSameSender ? "rounded-bl-sm" :
+                                                        !isSameSender && isNextSameSender ? "rounded-bl-md" :
+                                                            isSameSender && isNextSameSender ? "rounded-tl-md rounded-bl-md" :
+                                                                "rounded-tl-md rounded-bl-sm"
+                                                    }`
+                                                } ${isMe ? "hover:shadow-cyan-500/20" : "hover:shadow-md"}`}
                                         >
-                                            {(() => {
-                                                const now = new Date();
-                                                const isToday = msg.timestamp.toDateString() === now.toDateString();
-                                                return msg.timestamp.toLocaleTimeString("vi-VN", {
-                                                    hour: "2-digit",
-                                                    minute: "2-digit",
-                                                    hour12: false,
-                                                    ...(isToday ? {} : { month: "2-digit", day: "2-digit" })
-                                                });
-                                            })()}
+                                            <MessageContent
+                                                text={msg.text}
+                                                isMe={isMe}
+                                                isDarkMode={dark}
+                                                onNavigate={onNavigate}
+                                            />
+
+                                            {/* Minimal timestamp inside bubble if it's the last in group or hover */}
+                                            <div
+                                                className={`text-[9px] mt-1 font-medium flex items-center justify-end opacity-60 ${isMe ? "text-white" : "text-gray-400"}`}
+                                            >
+                                                {timeString}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

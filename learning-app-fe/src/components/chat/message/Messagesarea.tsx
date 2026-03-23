@@ -50,13 +50,12 @@ function MessageContent({
           <button
             key={url}
             onClick={() => router.push(`/video/${videoId}`)}
-            className={`w-full text-left rounded-xl overflow-hidden border transition-all hover:scale-[1.02] hover:shadow-lg ${
-              isMe
-                ? "border-white/20 bg-white/10"
-                : isDarkMode
+            className={`w-full text-left rounded-xl overflow-hidden border transition-all hover:scale-[1.02] hover:shadow-lg ${isMe
+              ? "border-white/20 bg-white/10"
+              : isDarkMode
                 ? "border-gray-600 bg-gray-700"
                 : "border-cyan-200 bg-cyan-50"
-            }`}
+              }`}
           >
             <div className="relative">
               <img
@@ -69,13 +68,12 @@ function MessageContent({
               </div>
             </div>
             <div
-              className={`px-3 py-2 text-xs font-medium truncate ${
-                isMe
-                  ? "text-white/90"
-                  : isDarkMode
+              className={`px-3 py-2 text-xs font-medium truncate ${isMe
+                ? "text-white/90"
+                : isDarkMode
                   ? "text-gray-200"
                   : "text-cyan-800"
-              }`}
+                }`}
             >
               {url}
             </div>
@@ -211,14 +209,12 @@ export default function MessagesArea({
   if (isLoading) {
     return (
       <div
-        className={`flex-1 flex items-center justify-center ${
-          isDarkMode ? "bg-gray-900/30" : "bg-cyan-50/30"
-        }`}
+        className={`flex-1 flex items-center justify-center ${isDarkMode ? "bg-gray-900/30" : "bg-cyan-50/30"
+          }`}
       >
         <Loader2
-          className={`w-6 h-6 animate-spin ${
-            isDarkMode ? "text-cyan-400" : "text-cyan-500"
-          }`}
+          className={`w-6 h-6 animate-spin ${isDarkMode ? "text-cyan-400" : "text-cyan-500"
+            }`}
         />
       </div>
     );
@@ -245,18 +241,16 @@ export default function MessagesArea({
       `}</style>
 
       <div
-        className={`msg-scroll flex-1 overflow-y-auto p-6 space-y-4 ${
-          isDarkMode
-            ? "bg-gradient-to-b from-gray-900/30 to-gray-800/30"
-            : "bg-gradient-to-b from-cyan-50/30 to-blue-50/30"
-        }`}
+        className={`msg-scroll flex-1 overflow-y-auto p-6 space-y-4 ${isDarkMode
+          ? "bg-gradient-to-b from-gray-900/30 to-gray-800/30"
+          : "bg-gradient-to-b from-cyan-50/30 to-blue-50/30"
+          }`}
       >
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <p
-              className={`text-sm ${
-                isDarkMode ? "text-gray-400" : "text-cyan-500"
-              }`}
+              className={`text-sm ${isDarkMode ? "text-gray-400" : "text-cyan-500"
+                }`}
             >
               Chưa có tin nhắn
             </p>
@@ -280,37 +274,34 @@ export default function MessagesArea({
                 }}
               >
                 <div
-                  className={`flex items-end gap-2 max-w-[65%] ${
-                    isMe ? "flex-row-reverse" : "flex-row"
-                  }`}
+                  className={`flex items-start gap-2 max-w-[65%] ${isMe ? "flex-row-reverse" : "flex-row"
+                    }`}
                 >
                   {!isMe && (
                     <img
                       src={senderAvatar}
                       alt={senderDisplayName || "avatar"}
-                      className="w-9 h-9 rounded-full object-cover shadow-md flex-shrink-0 mb-5"
+                      className="w-9 h-9 rounded-full object-cover shadow-md flex-shrink-0"
                     />
                   )}
 
                   <div className="flex flex-col gap-0.5">
                     {isGroup && !isMe && senderDisplayName && (
                       <span
-                        className={`text-xs font-semibold px-1 ${
-                          isDarkMode ? "text-cyan-400" : "text-cyan-600"
-                        }`}
+                        className={`text-xs font-semibold px-1 ${isDarkMode ? "text-cyan-400" : "text-cyan-600"
+                          }`}
                       >
                         {senderDisplayName}
                       </span>
                     )}
 
                     <div
-                      className={`px-4 py-2.5 rounded-2xl shadow-md ${
-                        isMe
-                          ? "bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-br-sm"
-                          : isDarkMode
+                      className={`px-4 py-2.5 rounded-2xl shadow-md ${isMe
+                        ? "bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-br-sm"
+                        : isDarkMode
                           ? "bg-gray-800 text-gray-100 rounded-bl-sm border border-gray-700"
                           : "bg-white text-cyan-900 rounded-bl-sm border border-cyan-200/60"
-                      }`}
+                        }`}
                     >
                       {msg.attachment && (
                         <div className="mb-2">
@@ -322,9 +313,8 @@ export default function MessagesArea({
                             />
                           ) : (
                             <div
-                              className={`flex items-center gap-2 p-2 rounded ${
-                                isDarkMode ? "bg-gray-700" : "bg-cyan-50"
-                              }`}
+                              className={`flex items-center gap-2 p-2 rounded ${isDarkMode ? "bg-gray-700" : "bg-cyan-50"
+                                }`}
                             >
                               <File className="w-4 h-4" />
                               <span className="text-sm">
@@ -340,13 +330,12 @@ export default function MessagesArea({
                         isMe={isMe}
                       />
                       <span
-                        className={`text-xs mt-1 block ${
-                          isMe
-                            ? "text-cyan-100"
-                            : isDarkMode
+                        className={`text-xs mt-1 block ${isMe
+                          ? "text-cyan-100"
+                          : isDarkMode
                             ? "text-gray-400"
                             : "text-cyan-600"
-                        }`}
+                          }`}
                       >
                         {msg.timestamp.toLocaleTimeString([], {
                           hour: "2-digit",

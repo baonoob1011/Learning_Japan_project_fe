@@ -71,14 +71,14 @@ export default function ChatContactDropdown({
     }, [setShowContactDropdown]);
 
     return (
-        <div className={`shrink-0 bg-gradient-to-r ${dark ? "from-gray-800 to-gray-900 border-b border-gray-700/50" : "from-cyan-400 to-cyan-500"
+        <div className={`shrink-0 bg-gradient-to-r shadow-lg ${dark ? "from-gray-900 via-gray-800 to-gray-900 border-b border-white/5" : "from-cyan-500 via-cyan-400 to-blue-500"
             }`}>
-            <div className="flex items-center gap-1.5 px-3 pt-3 pb-2">
+            <div className="flex items-center gap-2 px-4 pt-4 pb-3">
                 {/* Contact selector */}
                 <div className="flex-1 relative" ref={dropdownRef}>
                     <button
                         onClick={() => setShowContactDropdown((v) => !v)}
-                        className={`w-full flex items-center gap-2 rounded-xl px-2.5 py-1.5 transition ${dark ? "bg-gray-700/50 hover:bg-gray-700 text-white" : "bg-white/20 hover:bg-white/30 text-white"}`}
+                        className={`w-full flex items-center gap-2.5 rounded-2xl px-3 py-2 transition-all duration-300 ${dark ? "bg-white/5 hover:bg-white/10 text-white ring-1 ring-white/10" : "bg-white/10 hover:bg-white/20 text-white shadow-inner"}`}
                     >
                         {selectedContact ? (
                             <>
@@ -89,29 +89,38 @@ export default function ChatContactDropdown({
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).src = "/default-avatar.png";
                                         }}
-                                        className="w-6 h-6 rounded-full object-cover ring-1 ring-white/20"
+                                        className="w-7 h-7 rounded-full object-cover ring-2 ring-white/30 shadow-md"
                                     />
                                     {!selectedContact.isGroup && isUserOnline?.(selectedContact.userId) && (
-                                        <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white shadow-md z-[60]" />
+                                        <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-800 shadow-lg z-[60]">
+                                            <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75" />
+                                        </span>
                                     )}
                                 </div>
-                                <span className="text-white font-semibold text-xs truncate flex-1 text-left">
-                                    {selectedContact.name}
-                                </span>
-                                {selectedContact.isGroup && (
-                                    <span className="text-[8px] bg-white/20 text-white px-1.5 py-0.5 rounded-full shrink-0">
-                                        N
-                                    </span>
-                                )}
+                                <div className="flex-1 min-w-0 text-left">
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-white font-bold text-xs truncate">
+                                            {selectedContact.name}
+                                        </span>
+                                        {selectedContact.isGroup && (
+                                            <span className="text-[7px] font-black bg-white/30 text-white px-1.5 py-0.5 rounded-md uppercase tracking-tighter">
+                                                GROUP
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className={`text-[9px] font-medium truncate ${dark ? "text-cyan-400/80" : "text-cyan-100/90"}`}>
+                                        {selectedContact.isGroup ? "Nhóm cộng đồng" : (isUserOnline?.(selectedContact.userId) ? "Đang trực tuyến" : "Ngoại tuyến")}
+                                    </p>
+                                </div>
                             </>
                         ) : (
-                            <span className={`${dark ? "text-gray-400" : "text-cyan-100"} text-xs flex-1 text-left`}>
-                                {isLoadingContacts ? "Đang tải..." : "Chọn Chat"}
+                            <span className={`${dark ? "text-gray-400" : "text-cyan-100"} text-xs flex-1 text-left font-semibold`}>
+                                {isLoadingContacts ? "Đang tải dữ liệu..." : "Chọn cuộc trò chuyện"}
                             </span>
                         )}
                         <ChevronDown
-                            size={12}
-                            className={`${dark ? "text-gray-400" : "text-white"} shrink-0 transition-transform ${showContactDropdown ? "rotate-180" : ""
+                            size={14}
+                            className={`${dark ? "text-cyan-400" : "text-white/80"} shrink-0 transition-transform duration-500 ${showContactDropdown ? "rotate-180" : ""
                                 }`}
                         />
                     </button>
