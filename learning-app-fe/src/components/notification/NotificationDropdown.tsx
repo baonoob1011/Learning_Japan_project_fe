@@ -3,7 +3,7 @@ import { Bell, BookOpen, Brain, Check, Loader2, Settings, Trash2, UserPlus } fro
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { useRouter } from "next/navigation";
-import { useState, type MouseEvent } from "react";
+import { useState, useEffect, type MouseEvent } from "react";
 import { friendService } from "@/services/friendService";
 import { roomService } from "@/services/roomService";
 import { FriendRequestResponse } from "@/services/friendService";
@@ -149,15 +149,43 @@ function NotificationItem({
   const [showActions, setShowActions] = useState(false);
   const hoverBg = isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-50";
   const unreadBg = isDarkMode ? "bg-blue-900/30" : "bg-blue-50";
+  const [timeAgo, setTimeAgo] = useState("");
+
+  const getTimeAgo = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffInSeconds = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 1000));
+
+    if (diffInSeconds < 60) return `${diffInSeconds || 1}s trước`;
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return `${diffInMinutes}p trước`;
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}h trước`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 30) return `${diffInDays} ngày trước`;
+
+    return formatDistanceToNow(date, { addSuffix: true, locale: vi });
+  };
+
+  useEffect(() => {
+    if (notification.createdAt) {
+      setTimeAgo(getTimeAgo(notification.createdAt));
+    }
+  }, [notification.createdAt]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (notification.createdAt) {
+        setTimeAgo(getTimeAgo(notification.createdAt));
+      }
+    }, 30000); // 30s refresh
+    return () => clearInterval(timer);
+  }, [notification.createdAt]);
+
   const textColor = isDarkMode ? "text-gray-100" : "text-gray-900";
   const mutedColor = isDarkMode ? "text-gray-400" : "text-gray-500";
   const isSrs = isSrsVocabNotification(notification);
   const breakdown = isSrs ? parseSrsBreakdown(notification.content) : null;
-
-  const timeAgo = formatDistanceToNow(new Date(notification.createdAt), {
-    addSuffix: true,
-    locale: vi,
-  });
 
   const handleOpen = async () => {
     if (!notification.isRead) {
