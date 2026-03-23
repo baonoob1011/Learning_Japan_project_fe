@@ -70,8 +70,8 @@ const Notification: React.FC<NotificationProps> = ({
   return (
     <div
       className={`fixed top-6 right-6 z-50 transition-all duration-300 ease-out ${isVisible && !isLeaving
-          ? "translate-x-0 opacity-100"
-          : "translate-x-full opacity-0"
+        ? "translate-x-0 opacity-100"
+        : "translate-x-full opacity-0"
         }`}
     >
       <div
