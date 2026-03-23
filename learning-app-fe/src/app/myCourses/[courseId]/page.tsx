@@ -10,7 +10,7 @@ import { sectionService } from "@/services/sectionService";
 import { lessonService } from "@/services/lessonService";
 import { formatYoutubeDuration } from "@/utils/formatYoutubeDuration";
 import VideoPlayerSection from "@/components/course/Videoplayersectioncourse";
-import LessonSidebar from "@/components/Lessonsidebar";
+import LessonSidebar from "@/components/course/Lessonsidebar";
 import { lessonProgressService } from "@/services/lessonProgressService";
 
 import {
@@ -300,9 +300,9 @@ export default function CourseDetailPage() {
               setCourse((prev) =>
                 prev
                   ? {
-                      ...prev,
-                      currentVideoUrl: firstPart.videoUrl,
-                    }
+                    ...prev,
+                    currentVideoUrl: firstPart.videoUrl,
+                  }
                   : null
               );
             }
@@ -432,9 +432,8 @@ export default function CourseDetailPage() {
           <div className="text-center">
             <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
             <p
-              className={`text-lg ${
-                isDarkMode ? "text-gray-400" : "text-gray-600"
-              }`}
+              className={`text-lg ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                }`}
             >
               {error || "Không tìm thấy khóa học"}
             </p>
@@ -484,18 +483,16 @@ export default function CourseDetailPage() {
 
           {/* Breadcrumb */}
           <div
-            className={`px-6 py-3 border-b ${
-              isDarkMode
+            className={`px-6 py-3 border-b ${isDarkMode
                 ? "border-gray-700 bg-gray-800"
                 : "border-gray-200 bg-white"
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2 text-sm">
               <button
                 onClick={handleBack}
-                className={`hover:text-cyan-500 transition ${
-                  isDarkMode ? "text-gray-400" : "text-gray-600"
-                }`}
+                className={`hover:text-cyan-500 transition ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
               >
                 Trang chủ
               </button>
@@ -504,9 +501,8 @@ export default function CourseDetailPage() {
               </span>
               <button
                 onClick={handleBack}
-                className={`hover:text-cyan-500 transition ${
-                  isDarkMode ? "text-gray-400" : "text-gray-600"
-                }`}
+                className={`hover:text-cyan-500 transition ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
               >
                 Khóa học của tôi
               </button>
