@@ -9,6 +9,12 @@ import {
     X,
     Loader2,
     BookOpen,
+    ChevronDown,
+    ChevronUp,
+    Plus,
+    Tag,
+    StickyNote,
+    Lightbulb,
 } from "lucide-react";
 import { vocabService, VocabResponse, StudyMode } from "@/services/vocabService";
 import { LearningStatus } from "@/enums/LearningStatus";
@@ -24,7 +30,17 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [editValue, setEditValue] = useState("");
+    const [expandedId, setExpandedId] = useState<string | null>(null);
+
+    // Edit form states
+    const [editForm, setEditForm] = useState({
+        customTranslated: "",
+        personalNote: "",
+        personalExample: "",
+        personalTags: [] as string[],
+        tempTag: ""
+    });
+
     const [isActionLoading, setIsActionLoading] = useState<string | null>(null);
     const [filter, setFilter] = useState<"ALL" | "KNOWN" | "UNLEARNED">("ALL");
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -51,10 +67,8 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
         setIsConfirmOpen(true);
     };
 
-
     const confirmDelete = async () => {
         if (!deleteVocabItem) return;
-
         try {
             setIsActionLoading(deleteVocabItem.id);
             await vocabService.remove(deleteVocabItem.surface);
@@ -63,7 +77,7 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
             setDeleteVocabItem(null);
         } catch (err) {
             console.error("Delete failed", err);
-            alert("Xóa thất bại. Vui lòng thử lại.");
+            alert("Xóa thất bại.");
         } finally {
             setIsActionLoading(null);
         }
@@ -71,28 +85,39 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
 
     const startEdit = (vocab: VocabResponse) => {
         setEditingId(vocab.id);
-        setEditValue(vocab.translated);
+        setEditForm({
+            customTranslated: vocab.customTranslated || vocab.translated,
+            personalNote: vocab.personalNote || "",
+            personalExample: vocab.personalExample || "",
+            personalTags: vocab.personalTags || [],
+            tempTag: ""
+        });
+        setExpandedId(vocab.id); // Expand when editing
     };
 
     const cancelEdit = () => {
         setEditingId(null);
-        setEditValue("");
     };
 
     const saveEdit = async (vocab: VocabResponse) => {
-        if (!editValue.trim() || editValue === vocab.translated) {
-            cancelEdit();
-            return;
-        }
-
         try {
             setIsActionLoading(vocab.id);
             await vocabService.updateMeaning({
                 surface: vocab.surface,
-                translated: editValue.trim()
+                customTranslated: editForm.customTranslated.trim(),
+                personalNote: editForm.personalNote.trim(),
+                personalExample: editForm.personalExample.trim(),
+                personalTags: editForm.personalTags
             });
+
             setVocabs(prev => prev.map(v =>
-                v.id === vocab.id ? { ...v, translated: editValue.trim() } : v
+                v.id === vocab.id ? {
+                    ...v,
+                    customTranslated: editForm.customTranslated.trim(),
+                    personalNote: editForm.personalNote.trim(),
+                    personalExample: editForm.personalExample.trim(),
+                    personalTags: editForm.personalTags
+                } : v
             ));
             setEditingId(null);
         } catch (err) {
@@ -103,37 +128,26 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
         }
     };
 
-    const handleToggleStatus = async (vocab: VocabResponse) => {
-        const isCurrentlyKnown = vocab.status === LearningStatus.KNOWN;
-        const willMarkAsKnown = !isCurrentlyKnown;
-        const newStatus = willMarkAsKnown ? LearningStatus.KNOWN : LearningStatus.FORGOTTEN;
+    const addTag = () => {
+        if (!editForm.tempTag.trim()) return;
+        if (editForm.personalTags.includes(editForm.tempTag.trim())) return;
+        setEditForm(prev => ({
+            ...prev,
+            personalTags: [...prev.personalTags, prev.tempTag.trim()],
+            tempTag: ""
+        }));
+    };
 
-        try {
-            setIsActionLoading(vocab.id);
-            // Gọi API markVocab đồng bộ với Flashcard
-            await vocabService.markVocab({
-                vocabId: vocab.id,
-                remembered: willMarkAsKnown,
-                studyMode: StudyMode.FLASHCARD
-            });
-
-            console.log(`[VocabList] Toggling ${vocab.surface} to ${newStatus}`);
-
-            setVocabs(prev => prev.map(v =>
-                v.id.toString() === vocab.id.toString() ? { ...v, status: newStatus } : v
-            ));
-        } catch (err) {
-            console.error("Status update failed", err);
-            alert("Cập nhật trạng thái thất bại.");
-        } finally {
-            setIsActionLoading(null);
-        }
+    const removeTag = (tag: string) => {
+        setEditForm(prev => ({
+            ...prev,
+            personalTags: prev.personalTags.filter(t => t !== tag)
+        }));
     };
 
     const playSound = (surface: string, audioUrl?: string) => {
         if (audioUrl) {
-            const audio = new Audio(audioUrl);
-            audio.play().catch(e => console.error(e));
+            new Audio(audioUrl).play().catch(e => console.error(e));
         } else {
             const utterance = new SpeechSynthesisUtterance(surface);
             utterance.lang = "ja-JP";
@@ -141,73 +155,20 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
         }
     };
 
-
-    const formatReviewMeta = (nextReviewAt?: string) => {
-        if (!nextReviewAt) return null;
-
-        const reviewDate = new Date(nextReviewAt);
-        if (Number.isNaN(reviewDate.getTime())) {
-            return {
-                isOverdue: false,
-                message: `Ôn lại: ${nextReviewAt}`,
-                tooltip: "Thời gian ôn tập kế tiếp",
-            };
-        }
-
-        const now = Date.now();
-        const diffMs = now - reviewDate.getTime();
-        const absoluteMinutes = Math.floor(Math.abs(diffMs) / 60000);
-        const hours = Math.floor(absoluteMinutes / 60);
-        const minutes = absoluteMinutes % 60;
-        const distanceText = hours > 0 ? `${hours}h ${minutes}p` : `${minutes}p`;
-        const scheduledAt = reviewDate.toLocaleString("vi-VN", {
-            day: "2-digit",
-            month: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-        });
-
-        if (diffMs >= 60000) {
-            return {
-                isOverdue: true,
-                message: `⚠️ Quá hạn ${distanceText} (hẹn ${scheduledAt})`,
-                tooltip: "Từ này đã quá thời điểm ôn lại",
-            };
-        }
-
-        if (Math.abs(diffMs) < 60000) {
-            return {
-                isOverdue: false,
-                message: `🕐 Đến giờ ôn rồi (${scheduledAt})`,
-                tooltip: "Đang đến thời điểm ôn tập",
-            };
-        }
-
-        return {
-            isOverdue: false,
-            message: `⏳ Ôn lại sau ${distanceText} (lúc ${scheduledAt})`,
-            tooltip: "Thời gian còn lại đến lịch ôn",
-        };
-    };
-
     const filteredVocabs = useMemo(() => {
         let result = vocabs;
-
-        if (filter === "KNOWN") {
-            result = result.filter(v => v.status === LearningStatus.KNOWN);
-        } else if (filter === "UNLEARNED") {
-            result = result.filter(v => v.status !== LearningStatus.KNOWN);
-        }
+        if (filter === "KNOWN") result = result.filter(v => v.status === LearningStatus.KNOWN);
+        else if (filter === "UNLEARNED") result = result.filter(v => v.status !== LearningStatus.KNOWN);
 
         const query = searchQuery.toLowerCase().trim();
         if (query) {
             result = result.filter(v =>
                 v.surface.toLowerCase().includes(query) ||
-                v.translated.toLowerCase().includes(query) ||
-                v.reading?.toLowerCase().includes(query)
+                (v.customTranslated || v.translated).toLowerCase().includes(query) ||
+                v.reading?.toLowerCase().includes(query) ||
+                v.personalTags?.some(t => t.toLowerCase().includes(query))
             );
         }
-
         return result;
     }, [vocabs, searchQuery, filter]);
 
@@ -222,201 +183,240 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
 
     return (
         <div className="w-full">
-            {/* Search Bar - Full Width */}
-            <div className="relative w-full mb-4">
-                <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
+            {/* Search Bar */}
+            <div className="relative w-full mb-4 group">
+                <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${isDarkMode ? "text-gray-500 group-focus-within:text-cyan-400" : "text-gray-400 group-focus-within:text-cyan-500"}`} />
                 <input
                     type="text"
-                    placeholder="Tìm kiếm từ vựng, ý nghĩa..."
+                    placeholder="Tìm kiếm từ vựng, tag, ý nghĩa riêng..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className={`w-full pl-11 pr-4 py-3 rounded-2xl outline-none transition-all ${isDarkMode
-                        ? "bg-gray-800 border-gray-700 text-white focus:ring-2 focus:ring-cyan-500/50"
+                    className={`w-full pl-11 pr-4 py-3.5 rounded-2xl outline-none transition-all duration-300 ${isDarkMode
+                        ? "bg-gray-800 border-gray-700 text-white focus:bg-gray-900 focus:ring-2 focus:ring-cyan-500/50 shadow-lg shadow-black/20"
                         : "bg-white border-gray-200 text-gray-800 shadow-sm focus:ring-2 focus:ring-cyan-500/20"
                         } border`}
                 />
             </div>
 
-            {/* Filter Tabs & Stats Bar Toolbar */}
-            <div className={`flex flex-wrap items-center justify-between gap-4 mb-6 p-4 rounded-3xl border ${isDarkMode ? "bg-gray-800/30 border-gray-700" : "bg-gray-50/50 border-gray-200"}`}>
-                {/* Left: Filter Tabs */}
-                <div className={`flex p-1 rounded-2xl border ${isDarkMode ? "bg-gray-900/50 border-gray-800" : "bg-white border-gray-200"}`}>
+            {/* Filter Bar */}
+            <div className={`flex flex-wrap items-center justify-between gap-4 mb-8 p-4 rounded-3xl border ${isDarkMode ? "bg-gray-800/30 border-gray-700/50 backdrop-blur-md" : "bg-white/80 border-gray-200 shadow-sm"}`}>
+                <div className={`flex p-1 rounded-2xl ${isDarkMode ? "bg-gray-900/50" : "bg-gray-100"}`}>
                     {(["ALL", "UNLEARNED", "KNOWN"] as const).map((f) => (
                         <button
                             key={f}
                             onClick={() => setFilter(f)}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${filter === f
-                                ? (isDarkMode ? "bg-cyan-500 text-white shadow-lg shadow-cyan-400/20" : "bg-cyan-600 text-white shadow-sm")
-                                : (isDarkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700")
+                            className={`px-6 py-2 rounded-xl text-xs font-black tracking-widest transition-all duration-300 ${filter === f
+                                ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30"
+                                : (isDarkMode ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-gray-800")
                                 }`}
                         >
                             {f === "ALL" ? "TẤT CẢ" : f === "KNOWN" ? "ĐÃ THUỘC" : "CHƯA THUỘC"}
                         </button>
                     ))}
                 </div>
-
-                {/* Right: Count + Learn button */}
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-3 shrink-0">
-                        <span className={`text-sm font-bold ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
-                            Tổng cộng:{" "}
-                            <span className={`text-base ${isDarkMode ? "text-cyan-400" : "text-cyan-600"}`}>
-                                {filteredVocabs.length}
-                            </span>{" "}
-                            từ
-                        </span>
-
-                        {filteredVocabs.length > 0 && (
-                            <button
-                                onClick={() => onStartLearning?.("UNLEARNED")}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 hover:scale-105 active:scale-95 whitespace-nowrap ${isDarkMode
-                                    ? "bg-amber-500 text-gray-900 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40"
-                                    : "bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-md hover:shadow-lg shadow-amber-200"
-                                    }`}
-                            >
-                                <span>HỌC NGAY</span>
-                                <span className="animate-pulse">⚡</span>
-                            </button>
-                        )}
-                    </div>
+                <div className="flex items-center gap-6">
+                    <span className={`text-sm font-bold tracking-tight ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                        <span className={`text-lg ${isDarkMode ? "text-cyan-400" : "text-cyan-600"}`}>{filteredVocabs.length}</span> từ vựng
+                    </span>
+                    <button
+                        onClick={() => onStartLearning?.("UNLEARNED")}
+                        className="px-6 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm shadow-lg shadow-orange-500/30 transition-all hover:scale-105 active:scale-95"
+                    >
+                        HỌC NGAY ⚡
+                    </button>
                 </div>
             </div>
 
-            {/* List Container */}
+            {/* Vocabulary Cards */}
             <div className="space-y-4">
-                {filteredVocabs.length === 0 ? (
-                    <div className="text-center py-20 opacity-50">
-                        <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-20" />
-                        <p>Không tìm thấy từ vựng nào</p>
-                    </div>
-                ) : (
-                    filteredVocabs.map((v) => {
-                        const reviewMeta = formatReviewMeta(v.nextReviewAt);
-                        return (
-                            <div
-                                key={v.id}
-                                className={`group flex flex-col md:flex-row items-stretch md:items-center gap-6 p-6 rounded-3xl border transition-all duration-500 hover:shadow-2xl ${isDarkMode
-                                    ? "bg-gray-800/40 border-gray-700 hover:bg-gray-800 hover:border-cyan-500/30 shadow-black/40"
-                                    : "bg-white border-gray-100 hover:shadow-cyan-100/50 hover:border-cyan-200"
-                                    }`}
-                            >
-                                {/* Section 1: Japanese Word */}
-                                <div className="flex-shrink-0 w-full md:w-56 space-y-2">
-                                    <div className="flex items-center gap-2">
-                                        <h3 className={`text-2xl font-black tracking-tight ${isDarkMode ? "text-white" : "text-black"}`}>
-                                            {v.surface}
-                                        </h3>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2 text-[11px] font-bold">
-                                        <span className={isDarkMode ? "text-gray-400" : "text-gray-600"}>
-                                            {v.reading || v.romaji}
+                {filteredVocabs.map((v) => (
+                    <div
+                        key={v.id}
+                        className={`overflow-hidden rounded-[2rem] border transition-all duration-300 ${isDarkMode
+                            ? `${expandedId === v.id ? "bg-gray-800 border-cyan-500/30" : "bg-gray-800/40 border-gray-700"} hover:bg-gray-800 shadow-xl shadow-black/10`
+                            : `${expandedId === v.id ? "bg-white border-cyan-500/30" : "bg-white border-gray-100"} hover:shadow-2xl hover:shadow-cyan-500/5 shadow-sm`
+                            }`}
+                    >
+                        {/* Main Item Header */}
+                        <div className="flex flex-col md:flex-row items-stretch md:items-center p-6 gap-6">
+                            {/* Word & Reading */}
+                            <div className="flex-shrink-0 w-full md:w-52 space-y-1.5">
+                                <h3 className={`text-2xl font-black tracking-tight ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                                    {v.surface}
+                                </h3>
+                                <div className="flex items-center gap-2">
+                                    <span className={`text-[11px] font-bold ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                                        {v.reading || v.romaji}
+                                    </span>
+                                    {v.partOfSpeech && (
+                                        <span className={`px-2 py-0.5 rounded text-[8px] font-black tracking-tighter uppercase ${isDarkMode ? "bg-gray-700/50 text-gray-500" : "bg-gray-100 text-gray-400"}`}>
+                                            {v.partOfSpeech}
                                         </span>
-                                        {v.partOfSpeech && (
-                                            <span className={`px-2 py-0.5 rounded uppercase tracking-widest text-[9px] ${isDarkMode ? "bg-gray-700/50 text-gray-400 border border-gray-600" : "bg-gray-100 text-gray-500"
-                                                }`}>
-                                                {v.partOfSpeech}
-                                            </span>
-                                        )}
-                                    </div>
+                                    )}
                                 </div>
+                            </div>
 
-                                {/* Section 2: Audio Action */}
-                                <div className="hidden md:flex flex-col flex-shrink-0 items-center justify-center w-24 px-2 gap-2">
-                                    <button
-                                        onClick={() => playSound(v.surface, v.audioUrl)}
-                                        className="p-3 rounded-full hover:bg-cyan-500/10 text-cyan-500 transition-transform active:scale-90"
-                                        title="Nghe từ"
-                                    >
-                                        <Volume2 size={24} />
-                                    </button>
+                            {/* Audio & Actions */}
+                            <div className="flex items-center gap-2 md:order-last">
+                                <button
+                                    onClick={() => playSound(v.surface, v.audioUrl)}
+                                    className={`p-3 rounded-full transition-all ${isDarkMode ? "bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20" : "bg-cyan-50 text-cyan-600 hover:bg-cyan-100"}`}
+                                >
+                                    <Volume2 size={20} />
+                                </button>
+                                <button
+                                    onClick={() => startEdit(v)}
+                                    className={`p-3 rounded-full transition-all ${isDarkMode ? "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20" : "bg-blue-50 text-blue-600 hover:bg-blue-100"}`}
+                                >
+                                    <Edit2 size={18} />
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(v.surface, v.id)}
+                                    className={`p-3 rounded-full transition-all ${isDarkMode ? "bg-red-500/10 text-red-500 hover:bg-red-500/20" : "bg-red-50 text-red-600 hover:bg-red-100"}`}
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                                <button
+                                    onClick={() => setExpandedId(expandedId === v.id ? null : v.id)}
+                                    className={`p-3 rounded-full transition-all ${isDarkMode ? "text-gray-500 hover:text-white" : "text-gray-300 hover:text-gray-600"}`}
+                                >
+                                    {expandedId === v.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                </button>
+                            </div>
+
+                            {/* Meaning Display */}
+                            <div className="flex-1 min-w-0">
+                                <div className="space-y-1.5">
+                                    <h4 className={`text-lg font-bold leading-tight ${isDarkMode ? "text-cyan-400" : "text-cyan-700"}`}>
+                                        {v.customTranslated || v.translated}
+                                    </h4>
+                                    {v.customTranslated && (
+                                        <p className="text-[10px] text-gray-500 font-medium italic">
+                                            Nghĩa gốc: {v.translated}
+                                        </p>
+                                    )}
+                                    {/* Personal Tags Preview */}
+                                    {v.personalTags && v.personalTags.length > 0 && (
+                                        <div className="flex flex-wrap gap-1.5 mt-2">
+                                            {v.personalTags.map(tag => (
+                                                <span key={tag} className={`px-2 py-0.5 rounded-md text-[9px] font-bold ${isDarkMode ? "bg-gray-700/50 text-gray-300" : "bg-gray-50 text-gray-400"}`}>
+                                                    #{tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
+                            </div>
+                        </div>
 
-                                {/* Section 3: Meaning (Editable) */}
-                                <div className="flex-1 min-w-0 py-2 md:py-0">
+                        {/* Expandable Details Area */}
+                        {expandedId === v.id && (
+                            <div className={`p-6 pt-0 animate-in slide-in-from-top-4 duration-300 ${isDarkMode ? "bg-gray-900/20" : "bg-gray-50/30"}`}>
+                                <div className={`${isDarkMode ? "border-t border-gray-700/50" : "border-t border-gray-100"} pt-6 space-y-6`}>
+
                                     {editingId === v.id ? (
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                autoFocus
-                                                type="text"
-                                                value={editValue}
-                                                onChange={(e) => setEditValue(e.target.value)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === "Enter") saveEdit(v);
-                                                    if (e.key === "Escape") cancelEdit();
-                                                }}
-                                                className={`flex-1 px-4 py-2.5 rounded-xl border outline-none font-medium transition-all ${isDarkMode
-                                                    ? "bg-gray-700 border-gray-600 text-white focus:border-cyan-500"
-                                                    : "bg-white border-gray-300 text-gray-900 shadow-inner focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/20"
-                                                    }`}
-                                            />
-                                            <div className="flex gap-1">
-                                                <button
-                                                    onClick={() => saveEdit(v)}
-                                                    disabled={isActionLoading === v.id}
-                                                    className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20"
-                                                >
-                                                    <Check size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={cancelEdit}
-                                                    className="p-2.5 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition shadow-lg shadow-gray-500/20"
-                                                >
-                                                    <X size={18} />
+                                        /* Edit Mode View */
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-cyan-500">Nghĩa hiển thị riêng</label>
+                                                    <input
+                                                        className={`w-full px-4 py-2.5 rounded-xl border outline-none ${isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}
+                                                        value={editForm.customTranslated}
+                                                        onChange={e => setEditForm(p => ({ ...p, customTranslated: e.target.value }))}
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-blue-500">Ghi chú (Note)</label>
+                                                    <input
+                                                        className={`w-full px-4 py-2.5 rounded-xl border outline-none ${isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}
+                                                        placeholder="Vd: Dễ nhầm với từ X..."
+                                                        value={editForm.personalNote}
+                                                        onChange={e => setEditForm(p => ({ ...p, personalNote: e.target.value }))}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-amber-500 text-center block">Ví dụ cá nhân</label>
+                                                <textarea
+                                                    className={`w-full px-4 py-2.5 rounded-xl border outline-none min-h-[80px] ${isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}
+                                                    placeholder="Thêm câu ví dụ trực quan cho riêng bạn..."
+                                                    value={editForm.personalExample}
+                                                    onChange={e => setEditForm(p => ({ ...p, personalExample: e.target.value }))}
+                                                />
+                                            </div>
+                                            <div className="space-y-3">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Tags cá nhân</label>
+                                                <div className="flex flex-wrap gap-2 mb-2">
+                                                    {editForm.personalTags.map(tag => (
+                                                        <span key={tag} className="flex items-center gap-1.5 px-3 py-1 bg-cyan-500 text-white rounded-full text-xs font-bold shadow-sm">
+                                                            {tag}
+                                                            <button onClick={() => removeTag(tag)}><X size={12} /></button>
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        className={`flex-1 px-4 py-2.5 rounded-xl border outline-none text-xs ${isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}
+                                                        placeholder="Thêm tag (Vd: N3, Khó nhớ...)"
+                                                        value={editForm.tempTag}
+                                                        onChange={e => setEditForm(p => ({ ...p, tempTag: e.target.value }))}
+                                                        onKeyDown={e => e.key === "Enter" && addTag()}
+                                                    />
+                                                    <button onClick={addTag} className="p-2.5 bg-cyan-500 text-white rounded-xl"><Plus size={18} /></button>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-end gap-3 mt-6">
+                                                <button onClick={cancelEdit} className="px-6 py-2.5 rounded-xl bg-gray-500 text-white font-bold text-sm">Hủy</button>
+                                                <button onClick={() => saveEdit(v)} className="px-6 py-2.5 rounded-xl bg-emerald-500 text-white font-bold text-sm flex items-center gap-2">
+                                                    {isActionLoading === v.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                                                    Lưu thay đổi
                                                 </button>
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="flex flex-col gap-1">
-                                            <div className="flex items-center gap-3">
-                                                <p className={`text-lg font-bold leading-tight ${isDarkMode ? "text-gray-200" : "text-gray-700"}`}>
-                                                    {v.translated}
-                                                </p>
-                                                <div className="md:hidden flex items-center">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            playSound(v.surface, v.audioUrl);
-                                                        }}
-                                                        className="p-1.5 rounded-full bg-cyan-500/10 text-cyan-500"
-                                                    >
-                                                        <Volume2 size={16} />
-                                                    </button>
+                                        /* Static View Mode */
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <div className="space-y-4">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500"><StickyNote size={14} /></div>
+                                                    <div>
+                                                        <h5 className="text-[10px] font-black tracking-widest uppercase text-gray-500 mb-1">Ghi chú</h5>
+                                                        <p className={`text-sm ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
+                                                            {v.personalNote || "Không có ghi chú"}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-start gap-3">
+                                                    <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500"><Tag size={14} /></div>
+                                                    <div>
+                                                        <h5 className="text-[10px] font-black tracking-widest uppercase text-gray-500 mb-1">Tags của bạn</h5>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {v.personalTags && v.personalTags.length > 0 ? v.personalTags.map(tag => (
+                                                                <span key={tag} className={`px-3 py-1 rounded-lg text-xs font-bold ${isDarkMode ? "bg-gray-800 text-cyan-400" : "bg-cyan-50 text-cyan-700"}`}>#{tag}</span>
+                                                            )) : <span className="text-xs text-gray-400 italic">Chưa có tag nào</span>}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <div className="flex items-start gap-3 h-full">
+                                                    <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500"><Lightbulb size={14} /></div>
+                                                    <div className="flex-1">
+                                                        <h5 className="text-[10px] font-black tracking-widest uppercase text-gray-500 mb-1">Ví dụ cá nhân</h5>
+                                                        <p className={`text-sm leading-relaxed p-4 rounded-2xl border-l-4 border-amber-500/30 ${isDarkMode ? "bg-gray-800/50 text-gray-300" : "bg-amber-50/50 text-gray-700"}`}>
+                                                            {v.personalExample || "Bạn chưa thêm ví dụ nào cho từ này."}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     )}
                                 </div>
-
-                                {/* Section 4: Actions */}
-                                <div className="flex items-center gap-2 shrink-0 md:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                    {editingId !== v.id && (
-                                        <>
-                                            <button
-                                                onClick={() => startEdit(v)}
-                                                className="p-2.5 rounded-xl hover:bg-cyan-500/10 text-cyan-500 transition-all hover:scale-110 active:scale-90"
-                                                title="Sửa nghĩa"
-                                            >
-                                                <Edit2 size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(v.surface, v.id)}
-                                                disabled={isActionLoading === v.id}
-                                                className="p-2.5 rounded-xl hover:bg-red-500/10 text-red-500 transition-all hover:scale-110 active:scale-90"
-                                                title="Xóa từ"
-                                            >
-                                                {isActionLoading === v.id ? (
-                                                    <Loader2 size={18} className="animate-spin" />
-                                                ) : (
-                                                    <Trash2 size={18} />
-                                                )}
-                                            </button>
-                                        </>
-                                    )}
-                                </div>
                             </div>
-                        );
-                    })
-                )}
+                        )}
+                    </div>
+                ))}
             </div>
 
             <ConfirmModal
@@ -424,7 +424,7 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                 onClose={() => setIsConfirmOpen(false)}
                 onConfirm={confirmDelete}
                 title="Xác nhận xóa"
-                message={`Bạn có chắc muốn xóa từ "${deleteVocabItem?.surface}"? Hành động này không thể hoàn tác.`}
+                message={`Bạn có chắc muốn xóa từ "${deleteVocabItem?.surface}"? Hành động này sẽ xóa toàn bộ tiến trình học và ghi chú của bạn cho từ này.`}
                 isDark={isDarkMode}
                 isLoading={isActionLoading === deleteVocabItem?.id}
             />

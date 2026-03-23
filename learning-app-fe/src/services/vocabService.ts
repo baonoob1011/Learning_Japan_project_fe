@@ -7,7 +7,11 @@ import { LearningStatus } from "@/enums/LearningStatus";
 
 export interface UpdateVocabRequest {
   surface: string;
-  translated: string;
+  customTranslated?: string; // nghĩa hiển thị riêng
+  personalNote?: string;      // ghi chú riêng
+  personalExample?: string;   // ví dụ riêng
+  personalTags?: string[];    // tag riêng
+  status?: LearningStatus;    // trạng thái học tập
 }
 
 export interface CreateManualVocabRequest {
@@ -58,11 +62,17 @@ export interface VocabResponse {
   surface: string;
   reading: string;
   romaji: string;
-  translated: string;
+  translated: string; // Nghĩa gốc từ hệ thống
   partOfSpeech: string;
   audioUrl?: string;
   status?: LearningStatus;
   nextReviewAt?: string;
+
+  // Personalization fields
+  personalNote?: string;
+  customTranslated?: string; // Nghĩa riêng của user
+  personalExample?: string;
+  personalTags?: string[];
 }
 
 /* ===================== SERVICE ===================== */
