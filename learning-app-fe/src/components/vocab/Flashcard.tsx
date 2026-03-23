@@ -531,7 +531,7 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
                           className={`text-4xl font-bold ${isDark ? "text-cyan-400" : "text-cyan-600"
                             }`}
                         >
-                          {card.translated}
+                          {card.customTranslated || card.translated}
                         </div>
 
                         {card.reading && (
