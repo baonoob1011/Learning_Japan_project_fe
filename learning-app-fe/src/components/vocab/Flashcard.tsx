@@ -419,13 +419,13 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
                   </div>
 
                   {/* Front Card content - Scrollable area */}
-                  <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col items-center py-4">
-                    <div className="flex-1 flex flex-col items-center justify-center min-h-[300px] w-full">
-                      <div className="mb-6">
+                  <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col items-center">
+                    <div className="flex-1 flex flex-col items-center justify-start py-2 w-full">
+                      <div className="mb-4">
                         <img
                           src="/cat-front.png"
                           alt="Cat Front"
-                          className="w-28 h-28 object-contain"
+                          className="w-24 h-24 object-contain"
                           onError={(e) => {
                             e.currentTarget.src =
                               "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112'%3E%3Ctext x='50%25' y='50%25' font-size='64' text-anchor='middle' dy='.3em'%3E😺%3C/text%3E%3C/svg%3E";
@@ -513,13 +513,13 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
                   </div>
 
                   {/* Back Card content - Scrollable area */}
-                  <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col items-center py-4">
-                    <div className="flex-1 flex flex-col items-center justify-center min-h-[300px] w-full">
-                      <div className="mb-6">
+                  <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col items-center">
+                    <div className="flex-1 flex flex-col items-center justify-start py-2 w-full">
+                      <div className="mb-4">
                         <img
                           src="/cat-back.png"
                           alt="Cat Back"
-                          className="w-28 h-28 object-contain"
+                          className="w-24 h-24 object-contain"
                           onError={(e) => {
                             e.currentTarget.src =
                               "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112'%3E%3Ctext x='50%25' y='50%25' font-size='64' text-anchor='middle' dy='.3em'%3E😸%3C/text%3E%3C/svg%3E";
