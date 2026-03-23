@@ -11,8 +11,6 @@ import SenderAvatar from "../chat/floating/SenderAvatar";
 import {
   isSrsVocabNotification,
   parseSrsBreakdown,
-  isMissedCallNotification,
-  getRoomIdFromNotification,
 } from "@/utils/notification";
 import { toast } from "@/components/ui/Toast";
 
@@ -198,19 +196,6 @@ function NotificationItem({
     if (isSrs) {
       onClose();
       router.push("/vocabulary");
-      return;
-    }
-
-    // Xử lý cuộc gọi nhỡ
-    const roomId = getRoomIdFromNotification(notification);
-    if (roomId) {
-      onClose();
-      // Dispatch event để FloatingChatButton mở room
-      window.dispatchEvent(
-        new CustomEvent("chat-open-room", {
-          detail: { roomId },
-        })
-      );
     }
   };
 
