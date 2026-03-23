@@ -97,6 +97,16 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
       ::-webkit-scrollbar-thumb:hover {
         background: ${isDark ? "#6b7280" : "#9ca3af"};
       }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: ${isDark ? "#4b5563" : "#d1d5db"};
+        border-radius: 3px;
+      }
     `;
     document.head.appendChild(style);
     return () => {
@@ -408,40 +418,42 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
                     </div>
                   </div>
 
-                  {/* Front Card content */}
-                  <div className="flex-1 flex flex-col items-center justify-center py-8">
-                    <div className="mb-6">
-                      <img
-                        src="/cat-front.png"
-                        alt="Cat Front"
-                        className="w-28 h-28 object-contain"
-                        onError={(e) => {
-                          e.currentTarget.src =
-                            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112'%3E%3Ctext x='50%25' y='50%25' font-size='64' text-anchor='middle' dy='.3em'%3E😺%3C/text%3E%3C/svg%3E";
-                        }}
-                      />
-                    </div>
-                    <div
-                      className={`px-10 py-8 rounded-2xl ${isDark
-                        ? "bg-gradient-to-br from-cyan-900/60 to-blue-900/60"
-                        : "bg-gradient-to-br from-cyan-100 to-blue-100"
-                        }`}
-                    >
+                  {/* Front Card content - Scrollable area */}
+                  <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col items-center py-4">
+                    <div className="flex-1 flex flex-col items-center justify-center min-h-[300px] w-full">
+                      <div className="mb-6">
+                        <img
+                          src="/cat-front.png"
+                          alt="Cat Front"
+                          className="w-28 h-28 object-contain"
+                          onError={(e) => {
+                            e.currentTarget.src =
+                              "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112'%3E%3Ctext x='50%25' y='50%25' font-size='64' text-anchor='middle' dy='.3em'%3E😺%3C/text%3E%3C/svg%3E";
+                          }}
+                        />
+                      </div>
                       <div
-                        className={`text-4xl font-bold text-center ${isDark ? "text-cyan-300" : "text-gray-800"
+                        className={`px-10 py-8 rounded-2xl ${isDark
+                          ? "bg-gradient-to-br from-cyan-900/60 to-blue-900/60"
+                          : "bg-gradient-to-br from-cyan-100 to-blue-100"
                           }`}
                       >
-                        {card.surface}
+                        <div
+                          className={`text-4xl font-bold text-center ${isDark ? "text-cyan-300" : "text-gray-800"
+                            }`}
+                        >
+                          {card.surface}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Hint text */}
-                  <div
-                    className={`text-center text-sm mt-4 ${isDark ? "text-gray-400" : "text-gray-500"
-                      }`}
-                  >
-                    Nhấn để xem nghĩa
+                    {/* Hint text */}
+                    <div
+                      className={`text-center text-sm mt-4 ${isDark ? "text-gray-400" : "text-gray-500"
+                        }`}
+                    >
+                      Nhấn để xem nghĩa
+                    </div>
                   </div>
                 </div>
 
@@ -500,56 +512,58 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
                     </div>
                   </div>
 
-                  {/* Back Card content */}
-                  <div className="flex-1 flex flex-col items-center justify-center py-8">
-                    <div className="mb-6">
-                      <img
-                        src="/cat-back.png"
-                        alt="Cat Back"
-                        className="w-28 h-28 object-contain"
-                        onError={(e) => {
-                          e.currentTarget.src =
-                            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112'%3E%3Ctext x='50%25' y='50%25' font-size='64' text-anchor='middle' dy='.3em'%3E😸%3C/text%3E%3C/svg%3E";
-                        }}
-                      />
-                    </div>
-                    <div className="text-center space-y-4 px-4">
-                      <div
-                        className={`text-4xl font-bold ${isDark ? "text-cyan-400" : "text-cyan-600"
-                          }`}
-                      >
-                        {card.translated}
+                  {/* Back Card content - Scrollable area */}
+                  <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col items-center py-4">
+                    <div className="flex-1 flex flex-col items-center justify-center min-h-[300px] w-full">
+                      <div className="mb-6">
+                        <img
+                          src="/cat-back.png"
+                          alt="Cat Back"
+                          className="w-28 h-28 object-contain"
+                          onError={(e) => {
+                            e.currentTarget.src =
+                              "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112'%3E%3Ctext x='50%25' y='50%25' font-size='64' text-anchor='middle' dy='.3em'%3E😸%3C/text%3E%3C/svg%3E";
+                          }}
+                        />
                       </div>
-
-                      {card.reading && (
+                      <div className="text-center space-y-4 px-4">
                         <div
-                          className={`text-sm py-2 px-4 rounded-lg border-l-4 border-cyan-500/30 ${isDark
-                            ? "bg-gray-700/50 text-gray-300"
-                            : "bg-cyan-50/50 text-gray-600"
+                          className={`text-4xl font-bold ${isDark ? "text-cyan-400" : "text-cyan-600"
                             }`}
                         >
-                          <div>({card.reading})</div>
+                          {card.translated}
                         </div>
-                      )}
 
-                      {card.example && (
-                        <div
-                          className={`text-left text-xs p-4 rounded-xl border-t border-cyan-500/10 italic whitespace-pre-line ${isDark
-                            ? "bg-gray-800/40 text-gray-400"
-                            : "bg-gray-50/80 text-gray-500 shadow-inner"
-                            }`}
-                        >
-                          <div className="font-bold text-[10px] uppercase mb-1 flex items-center gap-1 opacity-70">
-                            ✨ VÍ DỤ
+                        {card.reading && (
+                          <div
+                            className={`text-sm py-2 px-4 rounded-lg border-l-4 border-cyan-500/30 ${isDark
+                              ? "bg-gray-700/50 text-gray-300"
+                              : "bg-cyan-50/50 text-gray-600"
+                              }`}
+                          >
+                            <div>({card.reading})</div>
                           </div>
-                          {card.example.split(/\\n/).map((line, i, arr) => (
-                            <React.Fragment key={i}>
-                              {line}
-                              {i < arr.length - 1 && <br />}
-                            </React.Fragment>
-                          ))}
-                        </div>
-                      )}
+                        )}
+
+                        {card.example && (
+                          <div
+                            className={`text-left text-xs p-4 rounded-xl border-t border-cyan-500/10 italic whitespace-pre-line ${isDark
+                              ? "bg-gray-800/40 text-gray-400"
+                              : "bg-gray-50/80 text-gray-500 shadow-inner"
+                              }`}
+                          >
+                            <div className="font-bold text-[10px] uppercase mb-1 flex items-center gap-1 opacity-70">
+                              ✨ VÍ DỤ
+                            </div>
+                            {card.example.split(/\\n/).map((line, i, arr) => (
+                              <React.Fragment key={i}>
+                                {line}
+                                {i < arr.length - 1 && <br />}
+                              </React.Fragment>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -682,4 +696,3 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
 };
 
 export default Flashcard;
-
