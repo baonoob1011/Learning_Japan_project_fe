@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { translateService, TranslateResult } from "@/services/translateService";
 import { vocabService } from "@/services/vocabService";
 
@@ -14,6 +15,16 @@ interface HoverTranslateWordProps {
 }
 
 const translateCache = new Map<string, TranslateResult>();
+
+// Helper hook for handling portals in Next.js
+function usePortal() {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+  return mounted;
+}
 
 export default function HoverTranslateWord({
   word,
@@ -32,23 +43,33 @@ export default function HoverTranslateWord({
   const [copiedSuccess, setCopiedSuccess] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [savingVocab, setSavingVocab] = useState(false);
-  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [position, setPosition] = useState({ top: 0, left: 0, side: "bottom" as "top" | "bottom" });
+  const isMounted = usePortal();
   const tooltipRef = useRef<HTMLDivElement>(null);
   const wordRef = useRef<HTMLSpanElement>(null);
 
   const TOOLTIP_WIDTH = 280;
+  const TOOLTIP_MAX_HEIGHT = 400;
 
   // Calculate stable position from wordRef only — no dependency on tooltipRef size
   const updatePosition = () => {
     if (!wordRef.current) return;
 
     const rect = wordRef.current.getBoundingClientRect();
-    const top = rect.bottom + 8;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    let side: "top" | "bottom" = "bottom";
+    let top = rect.bottom + 8;
     let left = rect.left + rect.width / 2;
 
-    const viewportWidth = window.innerWidth;
+    // Check vertical space (bottom vs top) - flip if no space at bottom
+    if (top + TOOLTIP_MAX_HEIGHT / 2 > viewportHeight - 20) {
+      side = "top";
+      top = rect.top - 12;
+    }
 
-    // Boundary check (always use fixed tooltip width to avoid jumps)
+    // Boundary check Horizontal
     if (left + TOOLTIP_WIDTH / 2 > viewportWidth - 10) {
       left = viewportWidth - TOOLTIP_WIDTH / 2 - 10;
     }
@@ -56,7 +77,7 @@ export default function HoverTranslateWord({
       left = TOOLTIP_WIDTH / 2 + 10;
     }
 
-    setPosition({ top, left });
+    setPosition({ top, left, side });
   };
 
   // Update position when popup opens or data changes
@@ -204,27 +225,27 @@ export default function HoverTranslateWord({
         {word}
       </span>
 
-      {/* TOOLTIP POPUP */}
-      {open && (
+      {/* TOOLTIP POPUP (Portal to root) */}
+      {open && isMounted && createPortal(
         <div
           ref={tooltipRef}
-          className="fixed z-[9999] transition-all duration-150"
+          className="fixed z-[9999] transition-all duration-150 pointer-events-auto"
           style={{
             top: `${position.top}px`,
             left: `${position.left}px`,
-            transform: "translateX(-50%)",
-            pointerEvents: "auto",
+            transform: position.side === "top" ? "translate(-50%, -100%)" : "translateX(-50%)",
           }}
         >
+          {/* ARROW */}
           <div
-            className={`absolute left-1/2 -translate-x-1/2 -top-2 w-0 h-0 border-l-8 border-r-8 border-l-transparent border-r-transparent border-b-8 drop-shadow-2xl ${isDarkMode
-              ? "border-b-cyan-400 shadow-cyan-400/50"
-              : "border-b-cyan-400"
+            className={`absolute left-1/2 -translate-x-1/2 h-0 w-0 border-l-8 border-r-8 border-l-transparent border-r-transparent ${position.side === "bottom"
+              ? "border-b-8 border-b-cyan-400 -top-2"
+              : "border-t-8 border-t-cyan-500 -bottom-2"
               }`}
           ></div>
 
           <div
-            className={`rounded-xl border overflow-hidden w-[280px] max-h-[400px] overflow-y-auto animate-in fade-in zoom-in-95 duration-150 ${isDarkMode
+            className={`rounded-xl border overflow-hidden shadow-2xl w-[280px] max-h-[400px] overflow-y-auto animate-in fade-in zoom-in-95 duration-150 ${isDarkMode
               ? "bg-[#1e293b] border-cyan-500/30"
               : "bg-white border-cyan-200"
               }`}
@@ -550,7 +571,8 @@ export default function HoverTranslateWord({
               ) : null}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
