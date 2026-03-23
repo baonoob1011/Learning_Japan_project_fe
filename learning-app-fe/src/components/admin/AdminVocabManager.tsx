@@ -20,6 +20,7 @@ import { adminVocabService, PageResponse } from "@/services/adminVocabService";
 import { VocabResponse } from "@/services/vocabService";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import ConfirmModal from "../ConfirmModal";
+import { toast } from "@/components/ui/Toast";
 
 export default function AdminVocabManager() {
     const { isDarkMode: isDark } = useDarkMode();
@@ -70,9 +71,10 @@ export default function AdminVocabManager() {
             }
             setIsEditModalOpen(false);
             fetchVocabs();
+            toast.success(editingVocab.id ? "Cập nhật thành công!" : "Tạo từ vựng thành công!");
         } catch (error) {
             console.error("Failed to save vocab:", error);
-            alert("Lưu thất bại!");
+            toast.error("Thất bại", "Không thể lưu thay đổi cho từ vựng này.");
         }
     };
 
@@ -82,9 +84,10 @@ export default function AdminVocabManager() {
             await adminVocabService.deleteVocab(deletingVocab.id);
             setIsDeleteModalOpen(false);
             fetchVocabs();
+            toast.success("Xóa từ vựng thành công!");
         } catch (error) {
             console.error("Failed to delete vocab:", error);
-            alert("Xóa thất bại!");
+            toast.error("Thất bại", "Không thể xóa từ vựng này.");
         }
     };
 

@@ -27,12 +27,14 @@ import {
     AlertCircle,
     CheckCircle2,
     CalendarRange,
+    Undo2
 } from "lucide-react";
 import {
     systemLogService,
     SystemLog,
     SystemLogParams,
 } from "@/services/systemLogService";
+import { toast } from "@/components/ui/Toast";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
@@ -381,9 +383,14 @@ export default function SystemLogManager({ isDark }: Props) {
     }, [applied, fetchLogs, syncUrl]);
 
     const handleApply = () => {
+        if (from && to && new Date(from) > new Date(to)) {
+            toast.error("Khoảng thời gian không hợp lệ", "Ngày kết thúc phải sau ngày bắt đầu.");
+            return;
+        }
         const next: SystemLogParams = { keyword, username, status, fromTime: from, toTime: to, page: 0, size: pageSize };
         setPage(0);
         setApplied(next);
+        toast.info("Đã áp dụng bộ lọc");
     };
 
     const handleReset = () => {
@@ -399,8 +406,10 @@ export default function SystemLogManager({ isDark }: Props) {
         try {
             await systemLogService.deleteAllSystemLogs();
             handleReset();
+            toast.success("Đã xóa toàn bộ nhật ký hệ thống.");
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Xóa toàn bộ log thất bại");
+            toast.error("Lỗi", "Không thể xóa nhật ký hệ thống.");
         } finally {
             setDeleting(false);
         }
@@ -498,27 +507,47 @@ export default function SystemLogManager({ isDark }: Props) {
                     </div>
 
                     <div className="xl:col-span-2 grid grid-cols-2 gap-2">
-                        <div>
+                        <div className="relative">
                             <label className={`text-[11px] font-semibold uppercase tracking-wider mb-1 block ${labelCls}`}>
                                 Từ ngày
                             </label>
-                            <input
-                                type="datetime-local"
-                                className={inputCls}
-                                value={from}
-                                onChange={(e) => setFrom(e.target.value)}
-                            />
+                            <div className="relative">
+                                <input
+                                    type="datetime-local"
+                                    className={`${inputCls} pr-8`}
+                                    value={from}
+                                    onChange={(e) => setFrom(e.target.value)}
+                                />
+                                {from && (
+                                    <button
+                                        onClick={() => setFrom("")}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-500/10 rounded-full transition-colors"
+                                    >
+                                        <X className="w-3 h-3 text-gray-400" />
+                                    </button>
+                                )}
+                            </div>
                         </div>
-                        <div>
+                        <div className="relative">
                             <label className={`text-[11px] font-semibold uppercase tracking-wider mb-1 block ${labelCls}`}>
                                 Đến ngày
                             </label>
-                            <input
-                                type="datetime-local"
-                                className={inputCls}
-                                value={to}
-                                onChange={(e) => setTo(e.target.value)}
-                            />
+                            <div className="relative">
+                                <input
+                                    type="datetime-local"
+                                    className={`${inputCls} pr-8`}
+                                    value={to}
+                                    onChange={(e) => setTo(e.target.value)}
+                                />
+                                {to && (
+                                    <button
+                                        onClick={() => setTo("")}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-500/10 rounded-full transition-colors"
+                                    >
+                                        <X className="w-3 h-3 text-gray-400" />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

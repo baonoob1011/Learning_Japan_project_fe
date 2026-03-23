@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { kanjiService, KanjiResponse } from "@/services/kanjiService";
 import { Languages, Loader2, Plus, Search, BookOpen, Layers } from "lucide-react";
+import { toast } from "@/components/ui/Toast";
 
 export default function AdminKanjiPage() {
     const { isDarkMode: isDark } = useDarkMode();
@@ -40,10 +41,10 @@ export default function AdminKanjiPage() {
             await kanjiService.create({ character: newCharacter.trim() });
             setNewCharacter("");
             await fetchKanjis();
-            alert("Tạo Kanji thành công!");
+            toast.success("Tạo Kanji thành công!", "Dữ liệu Hán tự đã được thêm vào hệ thống.");
         } catch (error: any) {
             console.error("Failed to create kanji:", error);
-            alert(error.message || "Không thể tạo Kanji");
+            toast.error("Thất bại", error.message || "Không thể tạo Kanji");
         } finally {
             setIsCreating(false);
         }
