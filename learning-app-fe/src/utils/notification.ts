@@ -44,3 +44,15 @@ export const buildSrsToastMessage = (content: string) => {
 
   return `Đến lịch ôn ${breakdown.total} từ: ${breakdown.urgent} từ cần ôn gấp, ${breakdown.fuzzy} từ nhớ mơ hồ, ${breakdown.longTerm} từ giữ nhớ lâu.`;
 };
+
+export const isMissedCallNotification = (notification: Pick<Notification, "title" | "content">) => {
+  const source = `${notification.title} ${notification.content}`.toLowerCase();
+  return source.includes("cuộc gọi nhỡ") || source.includes("missed call");
+};
+
+export const getRoomIdFromNotification = (notification: Notification) => {
+  if (isMissedCallNotification(notification)) {
+    return notification.metadata || null;
+  }
+  return null;
+};
