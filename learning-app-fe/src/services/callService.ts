@@ -29,7 +29,7 @@ const getAuthHeader = () => {
 export const callService = {
   saveCall: async (request: CallRecordRequest) => {
     try {
-      const response = await axios.post(`${API_URL}/api/call-history/save`, request, {
+      const response = await axios.post(`${API_URL}/api/v1/call-history/save`, request, {
         headers: getAuthHeader()
       });
       return response.data;
@@ -41,7 +41,7 @@ export const callService = {
 
   getUserHistory: async (userId: string) => {
     try {
-      const response = await axios.get(`${API_URL}/api/call-history/user/${userId}`, {
+      const response = await axios.get(`${API_URL}/api/v1/call-history/user/${userId}`, {
         headers: getAuthHeader()
       });
       return response.data;
