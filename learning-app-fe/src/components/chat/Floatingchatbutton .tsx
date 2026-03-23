@@ -154,6 +154,14 @@ export default function FloatingChatButton({
   };
 
   const handleDeclineIncoming = () => {
+    // Notify caller that call was rejected
+    if (isConnected && incomingCall) {
+      publish("/app/call.end", {
+        type: "end", // Signal type expected by CallSignalingController
+        roomId: incomingCall.roomId,
+        senderId: currentUserId
+      });
+    }
     dismissCall();
     setIsIncomingCallAccepted(false);
   };
@@ -181,6 +189,7 @@ export default function FloatingChatButton({
     isConnected,
     sendMessage,
     sendToRoom,
+    publish,
   } = useChatSocket(selectedContact?.id || null);
 
   // ── Track socket message length for dedup only ───────────────────────

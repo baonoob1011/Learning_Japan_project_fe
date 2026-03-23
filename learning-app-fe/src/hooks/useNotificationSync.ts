@@ -75,6 +75,12 @@ export const useNotificationSync = () => {
 
     const handleIncomingCall = (callData: IncomingCallDTO) => {
       setIncomingCall(callData);
+
+      // Subscribe to the specific call room to listen for early 'end' signals
+      if (sharedSocket) {
+        // We'll need access to the stomp client directly or add a subscribe method
+        // For simplicity, let's keep the current timeouts but this is where B would listen to A's hangup
+      }
     };
 
     notificationListeners.add(handleNotification);

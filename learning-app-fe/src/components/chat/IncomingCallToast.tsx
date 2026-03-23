@@ -29,11 +29,17 @@ export const IncomingCallToast = ({
         audio.play().catch(console.error);
         audioRef.current = audio;
 
+        // Auto-dismiss after 30s if no response
+        const timer = setTimeout(() => {
+            onDecline();
+        }, 30000);
+
         return () => {
             audio.pause();
             audioRef.current = null;
+            clearTimeout(timer);
         };
-    }, []);
+    }, [onDecline]);
 
     return (
         <div className={`fixed bottom-24 right-5 z-[10000] w-72 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.2)] border p-4 animate-slide-up-fade ${isDarkMode ? "bg-gray-800 border-gray-700 shadow-cyan-900/10" : "bg-white border-cyan-100 shadow-gray-200/50"

@@ -101,6 +101,7 @@ export const CallModal = ({
   const pendingOfferRef = useRef<RTCSessionDescriptionInit | null>(null);
   const ringAudioRef = useRef<HTMLAudioElement | null>(null);
   const isCleanedRef = useRef(false);
+  const callSavedRef = useRef(false); // prevent double-saving
 
   /* state */
   const [callState, setCallState] = useState<CallState>(
@@ -199,14 +200,18 @@ export const CallModal = ({
         body: JSON.stringify({ type: "end", roomId, senderId: currentUserId }),
       });
     }
-    callService.saveCall({
-      callerId: isCaller ? currentUserId : (receiverId ?? ""),
-      receiverId: isCaller ? (receiverId ?? "") : currentUserId,
-      type,
-      status,
-      duration: callDuration,
-      roomId,
-    }).catch(() => { });
+    // ✅ Only the CALLER saves the call record to avoid duplicates
+    if (isCaller && !callSavedRef.current) {
+      callSavedRef.current = true;
+      callService.saveCall({
+        callerId: currentUserId,
+        receiverId: receiverId ?? "",
+        type,
+        status,
+        duration: callDuration,
+        roomId,
+      }).catch(() => { });
+    }
 
     setCallState("ended");
     cleanup();
@@ -357,9 +362,25 @@ export const CallModal = ({
               break;
             }
             case "end": {
-              setCallState("ended");
-              cleanup();
-              setTimeout(onClose, 600);
+              if (callState !== "ended") {
+                // ✅ If WE are the caller and haven't saved yet, save now
+                // (remote side ended the call - rejected OR finished)
+                if (isCaller && !callSavedRef.current) {
+                  callSavedRef.current = true;
+                  const saveStatus = callState === "in-call" ? "COMPLETED" : "REJECTED";
+                  callService.saveCall({
+                    callerId: currentUserId,
+                    receiverId: receiverId ?? "",
+                    type,
+                    status: saveStatus,
+                    duration: callDuration,
+                    roomId,
+                  }).catch(() => { });
+                }
+                setCallState("ended");
+                cleanup();
+                setTimeout(onClose, 600);
+              }
               break;
             }
           }

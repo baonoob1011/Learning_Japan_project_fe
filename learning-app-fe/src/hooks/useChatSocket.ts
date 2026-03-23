@@ -10,6 +10,7 @@ interface UseChatSocketReturn {
   isConnected: boolean;
   sendMessage: (content: string) => void;
   sendToRoom: (roomId: string, content: string) => void;
+  publish: (destination: string, body: any) => void;
   setMessages: React.Dispatch<React.SetStateAction<ChatMessageResponse[]>>;
 }
 
@@ -138,5 +139,14 @@ export const useChatSocket = (roomId: string | null): UseChatSocketReturn => {
     });
   }, []);
 
-  return { messages, isConnected, sendMessage, sendToRoom, setMessages };
+  const publish = useCallback((destination: string, body: any) => {
+    const client = clientRef.current;
+    if (!client?.connected) return;
+    client.publish({
+      destination,
+      body: typeof body === "string" ? body : JSON.stringify(body),
+    });
+  }, []);
+
+  return { messages, isConnected, sendMessage, sendToRoom, publish, setMessages };
 };
