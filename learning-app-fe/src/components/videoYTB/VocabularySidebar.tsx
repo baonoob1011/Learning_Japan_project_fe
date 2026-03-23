@@ -34,7 +34,7 @@ export default function VocabularySidebar({
     id: v.id,
     word: v.surface,
     reading: v.reading || v.romaji || "",
-    translation: v.translated,
+    translation: v.customTranslated || v.translated,
   });
 
   const [vocabularyList, setVocabularyList] = useState<VocabularyItem[]>([]);
@@ -118,7 +118,7 @@ export default function VocabularySidebar({
     try {
       await vocabService.updateMeaning({
         surface: vocab.word,
-        translated: editForm.translation,
+        customTranslated: editForm.translation,
       });
 
       setVocabularyList((prev) =>
