@@ -36,27 +36,24 @@ export default function HoverTranslateWord({
   const tooltipRef = useRef<HTMLDivElement>(null);
   const wordRef = useRef<HTMLSpanElement>(null);
 
-  // Calculate and update position
+  const TOOLTIP_WIDTH = 280;
+
+  // Calculate stable position from wordRef only — no dependency on tooltipRef size
   const updatePosition = () => {
-    if (!wordRef.current || !tooltipRef.current) return;
+    if (!wordRef.current) return;
 
     const rect = wordRef.current.getBoundingClientRect();
-    const tooltipRect = tooltipRef.current.getBoundingClientRect();
-
-    // With fixed positioning, we use viewport coordinates directly
     const top = rect.bottom + 8;
     let left = rect.left + rect.width / 2;
 
-    const tooltipWidth = tooltipRect.width || 280;
     const viewportWidth = window.innerWidth;
 
-    // Boundary check
-    if (left + tooltipWidth / 2 > viewportWidth - 10) {
-      left = viewportWidth - tooltipWidth / 2 - 10;
+    // Boundary check (always use fixed tooltip width to avoid jumps)
+    if (left + TOOLTIP_WIDTH / 2 > viewportWidth - 10) {
+      left = viewportWidth - TOOLTIP_WIDTH / 2 - 10;
     }
-
-    if (left - tooltipWidth / 2 < 10) {
-      left = tooltipWidth / 2 + 10;
+    if (left - TOOLTIP_WIDTH / 2 < 10) {
+      left = TOOLTIP_WIDTH / 2 + 10;
     }
 
     setPosition({ top, left });
@@ -115,13 +112,8 @@ export default function HoverTranslateWord({
   const handleTranslate = async () => {
     const cacheKey = `${word}_${sourceLang}_${targetLang}_${videoId ?? ""}`;
 
-    // Calculate initial position immediately
-    if (wordRef.current) {
-      const rect = wordRef.current.getBoundingClientRect();
-      const initialTop = rect.bottom + 8;
-      const initialLeft = rect.left + rect.width / 2;
-      setPosition({ top: initialTop, left: initialLeft });
-    }
+    // Calculate position once (with boundary checks)
+    updatePosition();
 
     // Check cache first
     if (translateCache.has(cacheKey)) {
