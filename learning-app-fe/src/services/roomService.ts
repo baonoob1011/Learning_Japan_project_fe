@@ -22,8 +22,13 @@ export interface ChatMessageResponse {
   id: string;
   content: string;
   senderId: string;
+  receiverId?: string; // ✅ thêm
   senderName: string;
   sentAt: string;
+  type?: string;
+  callType?: string;
+  callStatus?: string;
+  callSessionId?: string;
 }
 export interface PrivateChatPreviewResponse {
   userId: string;

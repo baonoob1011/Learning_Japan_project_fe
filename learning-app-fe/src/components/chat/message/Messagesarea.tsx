@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useReducer } from "react";
 import { useRouter } from "next/navigation";
-import { PlayCircle, File, Loader2 } from "lucide-react";
+import { PlayCircle, File, Loader2, PhoneMissed, Video, Phone } from "lucide-react";
 import {
   roomService,
   ChatMessageResponse,
@@ -89,6 +89,10 @@ interface Message {
   text: string;
   senderId: string;
   timestamp: Date;
+  type?: string;
+  callType?: string;
+  callStatus?: string;
+  callSessionId?: string;
   attachment?: { type: "image" | "file"; url: string; name?: string };
 }
 
@@ -139,6 +143,10 @@ function mapApiMessage(m: ChatMessageResponse): Message {
     text: m.content,
     senderId: normalizeId(m.senderId),
     timestamp: new Date(m.sentAt),
+    type: m.type,
+    callType: m.callType,
+    callStatus: m.callStatus,
+    callSessionId: m.callSessionId,
   };
 }
 
@@ -297,40 +305,60 @@ export default function MessagesArea({
 
                     <div
                       className={`px-4 py-2.5 rounded-2xl shadow-md ${isMe
-                        ? "bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-br-sm"
+                        ? msg.type === "MISSED_CALL"
+                          ? isDarkMode ? "bg-gray-800 text-gray-100 border border-gray-700" : "bg-white text-cyan-900 border border-cyan-200/60"
+                          : "bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-br-sm"
                         : isDarkMode
                           ? "bg-gray-800 text-gray-100 rounded-bl-sm border border-gray-700"
                           : "bg-white text-cyan-900 rounded-bl-sm border border-cyan-200/60"
                         }`}
                     >
-                      {msg.attachment && (
-                        <div className="mb-2">
-                          {msg.attachment.type === "image" ? (
-                            <img
-                              src={msg.attachment.url}
-                              alt="attachment"
-                              className="max-w-full rounded-lg"
-                            />
-                          ) : (
-                            <div
-                              className={`flex items-center gap-2 p-2 rounded ${isDarkMode ? "bg-gray-700" : "bg-cyan-50"
-                                }`}
-                            >
-                              <File className="w-4 h-4" />
-                              <span className="text-sm">
-                                {msg.attachment.name}
-                              </span>
+                      {msg.type === "MISSED_CALL" ? (
+                        <div className="flex items-center gap-3 py-1">
+                          <div className={`p-2 rounded-full ${isDarkMode ? "bg-red-500/20" : "bg-red-50"}`}>
+                            <PhoneMissed className={`w-5 h-5 ${isDarkMode ? "text-red-400" : "text-red-500"}`} />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-semibold">
+                              {isMe ? "Bạn đã gọi nhỡ" : "Bạn có cuộc gọi nhỡ"}
+                            </span>
+                            <span className={`text-[10px] ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                              {msg.callType === "VIDEO" ? "Cuộc gọi video" : "Cuộc gọi thoại"}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          {msg.attachment && (
+                            <div className="mb-2">
+                              {msg.attachment.type === "image" ? (
+                                <img
+                                  src={msg.attachment.url}
+                                  alt="attachment"
+                                  className="max-w-full rounded-lg"
+                                />
+                              ) : (
+                                <div
+                                  className={`flex items-center gap-2 p-2 rounded ${isDarkMode ? "bg-gray-700" : "bg-cyan-50"
+                                    }`}
+                                >
+                                  <File className="w-4 h-4" />
+                                  <span className="text-sm">
+                                    {msg.attachment.name}
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           )}
-                        </div>
+                          <MessageContent
+                            text={msg.text}
+                            isDarkMode={isDarkMode}
+                            isMe={isMe}
+                          />
+                        </>
                       )}
-                      <MessageContent
-                        text={msg.text}
-                        isDarkMode={isDarkMode}
-                        isMe={isMe}
-                      />
                       <span
-                        className={`text-xs mt-1 block ${isMe
+                        className={`text-xs mt-1 block ${isMe && msg.type !== "MISSED_CALL"
                           ? "text-cyan-100"
                           : isDarkMode
                             ? "text-gray-400"
