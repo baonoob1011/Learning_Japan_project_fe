@@ -523,12 +523,26 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
 
                       {card.reading && (
                         <div
-                          className={`text-base mt-4 p-4 rounded-lg ${isDark
-                            ? "bg-gray-700/80 text-gray-300"
-                            : "bg-white/80 text-gray-600"
+                          className={`text-sm py-2 px-4 rounded-lg border-l-4 border-cyan-500/30 ${isDark
+                            ? "bg-gray-700/50 text-gray-300"
+                            : "bg-cyan-50/50 text-gray-600"
                             }`}
                         >
                           <div>({card.reading})</div>
+                        </div>
+                      )}
+
+                      {card.example && (
+                        <div
+                          className={`text-left text-xs p-4 rounded-xl border-t border-cyan-500/10 italic whitespace-pre-line ${isDark
+                            ? "bg-gray-800/40 text-gray-400"
+                            : "bg-gray-50/80 text-gray-500 shadow-inner"
+                            }`}
+                        >
+                          <div className="font-bold text-[10px] uppercase mb-1 flex items-center gap-1 opacity-70">
+                            ✨ Ví dụ AI
+                          </div>
+                          {card.example}
                         </div>
                       )}
                     </div>

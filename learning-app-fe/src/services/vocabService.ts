@@ -64,6 +64,7 @@ export interface VocabResponse {
   romaji: string;
   translated: string; // Nghĩa gốc từ hệ thống
   partOfSpeech: string;
+  example?: string; // Ví dụ gốc từ hệ thống (AI gen)
   audioUrl?: string;
   status?: LearningStatus;
   nextReviewAt?: string;

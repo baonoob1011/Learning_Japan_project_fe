@@ -15,6 +15,7 @@ import {
     Tag,
     StickyNote,
     Lightbulb,
+    Sparkles,
 } from "lucide-react";
 import { vocabService, VocabResponse, StudyMode } from "@/services/vocabService";
 import { LearningStatus } from "@/enums/LearningStatus";
@@ -400,6 +401,22 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                                                 </div>
                                             </div>
                                             <div className="space-y-4">
+                                                {/* AI Example (Global) */}
+                                                {v.example && (
+                                                    <div className="flex items-start gap-3 h-full mb-4">
+                                                        <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500"><Sparkles size={14} /></div>
+                                                        <div className="flex-1">
+                                                            <h5 className="text-[10px] font-black tracking-widest uppercase text-gray-500 mb-1 flex items-center gap-1.5">
+                                                                Ví dụ AI <span className="text-[8px] px-1 py-0.25 bg-orange-500 text-white rounded-sm">System</span>
+                                                            </h5>
+                                                            <p className={`text-sm leading-relaxed p-4 rounded-2xl border-l-4 border-orange-500/30 whitespace-pre-line ${isDarkMode ? "bg-orange-500/5 text-gray-300" : "bg-orange-50/50 text-gray-700"}`}>
+                                                                {v.example}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Personal Example */}
                                                 <div className="flex items-start gap-3 h-full">
                                                     <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500"><Lightbulb size={14} /></div>
                                                     <div className="flex-1">
