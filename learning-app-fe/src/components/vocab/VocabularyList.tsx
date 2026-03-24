@@ -199,34 +199,7 @@ export default function VocabularyList({ isDarkMode, onStartLearning }: Vocabula
                 />
             </div>
 
-            {/* Filter Bar */}
-            <div className={`flex flex-wrap items-center justify-between gap-4 mb-8 p-4 rounded-3xl border ${isDarkMode ? "bg-gray-800/30 border-gray-700/50 backdrop-blur-md" : "bg-white/80 border-gray-200 shadow-sm"}`}>
-                <div className={`flex p-1 rounded-2xl ${isDarkMode ? "bg-gray-900/50" : "bg-gray-100"}`}>
-                    {(["ALL", "UNLEARNED", "KNOWN"] as const).map((f) => (
-                        <button
-                            key={f}
-                            onClick={() => setFilter(f)}
-                            className={`px-6 py-2 rounded-xl text-xs font-black tracking-widest transition-all duration-300 ${filter === f
-                                ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30"
-                                : (isDarkMode ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-gray-800")
-                                }`}
-                        >
-                            {f === "ALL" ? "TẤT CẢ" : f === "KNOWN" ? "ĐÃ THUỘC" : "CHƯA THUỘC"}
-                        </button>
-                    ))}
-                </div>
-                <div className="flex items-center gap-6">
-                    <span className={`text-sm font-bold tracking-tight ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
-                        <span className={`text-lg ${isDarkMode ? "text-cyan-400" : "text-cyan-600"}`}>{filteredVocabs.length}</span> từ vựng
-                    </span>
-                    <button
-                        onClick={() => onStartLearning?.("UNLEARNED")}
-                        className="px-6 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm shadow-lg shadow-orange-500/30 transition-all hover:scale-105 active:scale-95"
-                    >
-                        HỌC NGAY ⚡
-                    </button>
-                </div>
-            </div>
+
 
             {/* Vocabulary Cards */}
             <div className="space-y-4">
