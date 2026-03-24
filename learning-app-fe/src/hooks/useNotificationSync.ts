@@ -13,7 +13,7 @@ const convertToNotification = (dto: Partial<NotificationSocketDTO>): Notificatio
   id:
     dto.id ??
     `ws-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-  title: dto.title ?? "Thong bao",
+  title: dto.title ?? "Thông báo",
   content: dto.content ?? "",
   createdAt: dto.createdAt ?? new Date().toISOString(),
   isRead: typeof dto.isRead === "boolean" ? dto.isRead : false,
@@ -59,45 +59,19 @@ export const useNotificationSync = () => {
       loadNotifications();
     }
 
-    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
-
     const handleNotification = (data: NotificationSocketDTO) => {
       addNotification(convertToNotification(data));
-
-      // Keep FE state authoritative with DB history and exact createdAt.
-      if (refreshTimer) {
-        clearTimeout(refreshTimer);
-      }
-      refreshTimer = setTimeout(() => {
-        reloadNotifications();
-      }, 500);
     };
 
     const handleIncomingCall = (callData: IncomingCallDTO) => {
       setIncomingCall(callData);
-
-      // Subscribe to the specific call room to listen for early 'end' signals
-      if (sharedSocket) {
-        // We'll need access to the stomp client directly or add a subscribe method
-        // For simplicity, let's keep the current timeouts but this is where B would listen to A's hangup
-      }
     };
 
     notificationListeners.add(handleNotification);
     incomingCallListeners.add(handleIncomingCall);
     ensureSharedSocket(userId);
 
-    // Fallback: force-refresh from REST in case WS frame is missed.
-    reloadNotifications();
-    const timer = setInterval(() => {
-      reloadNotifications();
-    }, 15000);
-
     return () => {
-      clearInterval(timer);
-      if (refreshTimer) {
-        clearTimeout(refreshTimer);
-      }
       notificationListeners.delete(handleNotification);
       incomingCallListeners.delete(handleIncomingCall);
     };
