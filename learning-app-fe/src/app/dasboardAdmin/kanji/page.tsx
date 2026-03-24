@@ -4,6 +4,7 @@ import { useDarkMode } from "@/hooks/useDarkMode";
 import { kanjiService, KanjiResponse } from "@/services/kanjiService";
 import { Languages, Loader2, Plus, Search, BookOpen, Layers, Edit, Trash2, X } from "lucide-react";
 import { toast } from "@/components/ui/Toast";
+import ConfirmModal from "@/components/ConfirmModal";
 
 export default function AdminKanjiPage() {
     const { isDarkMode: isDark } = useDarkMode();
@@ -19,6 +20,11 @@ export default function AdminKanjiPage() {
     const [editingKanji, setEditingKanji] = useState<KanjiResponse | null>(null);
     const [editForm, setEditForm] = useState<Partial<KanjiResponse>>({});
     const [isUpdating, setIsUpdating] = useState(false);
+
+    // Delete confirmation state
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [kanjiToDelete, setKanjiToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const fetchKanjis = async () => {
         setIsLoading(true);
@@ -55,15 +61,25 @@ export default function AdminKanjiPage() {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!window.confirm("Bạn có chắc chắn muốn xóa Kanji này không?")) return;
+    const handleDelete = (id: string) => {
+        setKanjiToDelete(id);
+        setIsDeleteModalOpen(true);
+    };
 
+    const confirmDelete = async () => {
+        if (!kanjiToDelete) return;
+
+        setIsDeleting(true);
         try {
-            await kanjiService.delete(id);
+            await kanjiService.delete(kanjiToDelete);
             toast.success("Đã xóa Kanji", "Hán tự đã được loại bỏ khỏi hệ thống.");
+            setIsDeleteModalOpen(false);
+            setKanjiToDelete(null);
             await fetchKanjis();
         } catch (error: any) {
             toast.error("Lỗi xóa", error.message || "Không thể xóa Kanji");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -101,6 +117,23 @@ export default function AdminKanjiPage() {
 
     return (
         <main className="p-8 space-y-8 relative">
+            {/* Delete Confirmation Modal */}
+            <ConfirmModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => {
+                    setIsDeleteModalOpen(false);
+                    setKanjiToDelete(null);
+                }}
+                onConfirm={confirmDelete}
+                title="Xóa Kanji"
+                message="Bạn có chắc chắn muốn xóa Kanji này không? Hành động này không thể hoàn tác."
+                confirmText="Xác nhận xóa"
+                cancelText="Hủy"
+                isDanger={true}
+                isLoading={isDeleting}
+                isDark={isDark}
+            />
+
             {/* Edit Modal */}
             {editingKanji && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
