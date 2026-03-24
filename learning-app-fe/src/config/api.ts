@@ -304,7 +304,11 @@ export const API_ENDPOINTS = {
     ACCEPT: (requestId: string) => `/friends/accept/${requestId}`,
     REJECT: (requestId: string) => `/friends/reject/${requestId}`,
     UNFRIEND: (userId: string) => `/friends/${userId}`,
-    GET_PENDING: "/friends/pending", // âœ… thÃªm dÃ²ng nÃ y
+    GET_PENDING: "/friends/pending", // ✅ thêm dòng này
+  },
+  CALL_HISTORY: {
+    SAVE: "/call-history/save",
+    GET_BY_USER: (userId: string) => `/call-history/user/${userId}`,
   },
 } as const;
 
