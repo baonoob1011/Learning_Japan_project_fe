@@ -1,5 +1,5 @@
 import { Notification } from "@/types/notification";
-import { Bell, BookOpen, Brain, Check, Loader2, Settings, Trash2, UserPlus } from "lucide-react";
+import { Bell, BookOpen, Check, Loader2, Settings, Trash2, UserPlus } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { useRouter } from "next/navigation";
@@ -11,6 +11,7 @@ import SenderAvatar from "../chat/floating/SenderAvatar";
 import {
   isSrsVocabNotification,
   parseSrsBreakdown,
+  getRoomIdFromNotification,
 } from "@/utils/notification";
 import { toast } from "@/components/ui/Toast";
 
@@ -193,9 +194,14 @@ function NotificationItem({
       await Promise.resolve(onMarkAsRead(notification.id));
     }
 
+    const roomId = getRoomIdFromNotification(notification);
+
     if (isSrs) {
       onClose();
       router.push("/vocabulary?smart=true");
+    } else if (roomId) {
+      onClose();
+      router.push(`/chat?roomId=${roomId}`);
     }
   };
 
@@ -219,7 +225,7 @@ function NotificationItem({
               }`}
           >
             {isSrs ? (
-              <Brain
+              <Bell
                 className={`w-6 h-6 ${isDarkMode ? "text-amber-300" : "text-amber-600"}`}
               />
             ) : (

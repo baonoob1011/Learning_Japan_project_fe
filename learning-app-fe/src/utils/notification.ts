@@ -53,7 +53,12 @@ export const buildSrsToastMessage = (content: string) => {
 
 export const isMissedCallNotification = (notification: Pick<Notification, "title" | "content">) => {
   const source = `${notification.title} ${notification.content}`.toLowerCase();
-  return source.includes("cuộc gọi nhỡ") || source.includes("missed call");
+  return (
+    source.includes("cuộc gọi nhỡ") ||
+    source.includes("missed call") ||
+    source.includes("từ chối cuộc gọi") ||
+    source.includes("cuộc gọi bị từ chối")
+  );
 };
 
 export const getRoomIdFromNotification = (notification: Notification) => {
