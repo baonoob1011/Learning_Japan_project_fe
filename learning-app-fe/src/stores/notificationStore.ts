@@ -72,7 +72,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
       set({
         notifications,
-        unreadCount: (await notificationService.getUnreadCount()).unreadCount,
+        // unreadCount: (await notificationService.getUnreadCount()).unreadCount,
         isLoading: false,
         isInitialized: true,
       });
@@ -97,7 +97,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
       set({
         notifications,
-        unreadCount: (await notificationService.getUnreadCount()).unreadCount,
+        // unreadCount: (await notificationService.getUnreadCount()).unreadCount,
         isLoading: false,
         isInitialized: true,
       });
