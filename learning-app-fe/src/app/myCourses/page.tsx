@@ -327,13 +327,11 @@ export default function MyCoursesPage() {
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               {/* Total Courses */}
-              <div className={`group relative overflow-hidden rounded-2xl p-5 shadow-sm border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
-                isDarkMode ? "bg-gray-800 border-gray-700 hover:border-cyan-500/50" : "bg-white border-gray-100 hover:border-cyan-400"
-              }`}>
+              <div className={`group relative overflow-hidden rounded-2xl p-5 shadow-sm border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${isDarkMode ? "bg-gray-800 border-gray-700 hover:border-cyan-500/50" : "bg-white border-gray-100 hover:border-cyan-400"
+                }`}>
                 <div className="flex items-center gap-4">
-                  <div className={`p-3.5 rounded-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm ${
-                    isDarkMode ? "bg-cyan-900/40 text-cyan-300" : "bg-cyan-500 text-white"
-                  }`}>
+                  <div className={`p-3.5 rounded-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm ${isDarkMode ? "bg-cyan-900/40 text-cyan-300" : "bg-cyan-500 text-white"
+                    }`}>
                     <BookOpen className="w-6 h-6" />
                   </div>
                   <div className="z-10">
@@ -346,18 +344,16 @@ export default function MyCoursesPage() {
                   </div>
                 </div>
                 <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                   <BookOpen className={`w-24 h-24 ${isDarkMode ? "text-white" : "text-gray-900"}`} />
+                  <BookOpen className={`w-24 h-24 ${isDarkMode ? "text-white" : "text-gray-900"}`} />
                 </div>
               </div>
 
               {/* In Progress */}
-              <div className={`group relative overflow-hidden rounded-2xl p-5 shadow-sm border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
-                isDarkMode ? "bg-gray-800 border-gray-700 hover:border-orange-500/50" : "bg-white border-gray-100 hover:border-orange-400"
-              }`}>
+              <div className={`group relative overflow-hidden rounded-2xl p-5 shadow-sm border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${isDarkMode ? "bg-gray-800 border-gray-700 hover:border-orange-500/50" : "bg-white border-gray-100 hover:border-orange-400"
+                }`}>
                 <div className="flex items-center gap-4">
-                  <div className={`p-3.5 rounded-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm ${
-                    isDarkMode ? "bg-orange-900/40 text-orange-300" : "bg-orange-500 text-white"
-                  }`}>
+                  <div className={`p-3.5 rounded-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm ${isDarkMode ? "bg-orange-900/40 text-orange-300" : "bg-orange-500 text-white"
+                    }`}>
                     <TrendingUp className="w-6 h-6" />
                   </div>
                   <div className="z-10">
@@ -370,18 +366,16 @@ export default function MyCoursesPage() {
                   </div>
                 </div>
                 <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                   <TrendingUp className={`w-24 h-24 ${isDarkMode ? "text-white" : "text-gray-900"}`} />
+                  <TrendingUp className={`w-24 h-24 ${isDarkMode ? "text-white" : "text-gray-900"}`} />
                 </div>
               </div>
 
               {/* Completed */}
-              <div className={`group relative overflow-hidden rounded-2xl p-5 shadow-sm border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
-                isDarkMode ? "bg-gray-800 border-gray-700 hover:border-emerald-500/50" : "bg-white border-gray-100 hover:border-emerald-400"
-              }`}>
+              <div className={`group relative overflow-hidden rounded-2xl p-5 shadow-sm border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${isDarkMode ? "bg-gray-800 border-gray-700 hover:border-emerald-500/50" : "bg-white border-gray-100 hover:border-emerald-400"
+                }`}>
                 <div className="flex items-center gap-4">
-                  <div className={`p-3.5 rounded-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm ${
-                    isDarkMode ? "bg-emerald-900/40 text-emerald-300" : "bg-emerald-500 text-white"
-                  }`}>
+                  <div className={`p-3.5 rounded-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm ${isDarkMode ? "bg-emerald-900/40 text-emerald-300" : "bg-emerald-500 text-white"
+                    }`}>
                     <Award className="w-6 h-6" />
                   </div>
                   <div className="z-10">
@@ -394,7 +388,7 @@ export default function MyCoursesPage() {
                   </div>
                 </div>
                 <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                   <Award className={`w-24 h-24 ${isDarkMode ? "text-white" : "text-gray-900"}`} />
+                  <Award className={`w-24 h-24 ${isDarkMode ? "text-white" : "text-gray-900"}`} />
                 </div>
               </div>
             </div>
@@ -512,7 +506,7 @@ export default function MyCoursesPage() {
 
                 {/* Standard Grid Layout for All/Completed */}
                 {activeFilter !== "inProgress" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-stretch">
                     {filteredCourses.map((course) => (
                       <CourseCard
                         key={course.id}

@@ -89,9 +89,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
         } rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer group border flex flex-col h-full`}
     >
       {/* Thumbnail */}
-      <div className="relative shrink-0">
+      <div className="relative shrink-0 w-full aspect-video">
         <div
-          className={`w-full h-44 bg-gradient-to-br ${getGradientByLevel(
+          className={`w-full h-full bg-gradient-to-br ${getGradientByLevel(
             course.level
           )} flex items-center justify-center relative overflow-hidden`}
         >
@@ -100,7 +100,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
               <img
                 src={course.thumbnail}
                 alt={course.title}
-                className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? "opacity-100" : "opacity-0"
+                className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${imageLoaded ? "opacity-100" : "opacity-0"
                   }`}
                 onLoad={() => setImageLoaded(true)}
                 onError={() => {
@@ -110,39 +110,39 @@ const CourseCard: React.FC<CourseCardProps> = ({
               />
               {!imageLoaded && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <BookOpen className="w-16 h-16 text-white/80 animate-pulse" />
+                  <BookOpen className="w-12 h-12 text-white/80 animate-pulse" />
                 </div>
               )}
             </>
           ) : (
-            <BookOpen className="w-16 h-16 text-white/80" />
+            <BookOpen className="w-12 h-12 text-white/80" />
           )}
 
-          <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 backdrop-blur-sm text-white text-xs font-bold rounded">
+          <div className="absolute top-3 left-3 px-2.5 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] font-black rounded-lg uppercase tracking-wider border border-white/10 z-10">
             {course.level}
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="p-4 flex-1 flex flex-col">
+      <div className="p-5 flex-1 flex flex-col min-h-0">
         <h3
           className={`font-bold ${isDark ? "text-gray-100" : "text-gray-800"
-            } text-base line-clamp-2 mb-1 min-h-[48px]`}
+            } text-[15px] leading-tight line-clamp-2 h-[2.5rem] mb-2`}
         >
           {course.title}
         </h3>
 
-        <div className="mb-2">
-          <span className={`text-base font-black ${isDark ? "text-cyan-400" : "text-cyan-600"}`}>
+        <div className="mb-3">
+          <span className={`text-lg font-black ${isDark ? "text-cyan-400" : "text-cyan-600"}`}>
             {formatVND(course.price, course.isPaid)}
           </span>
         </div>
 
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col min-h-0">
           <p
-            className={`text-xs ${isDark ? "text-gray-400" : "text-gray-600"
-              } line-clamp-2 mb-3 leading-relaxed`}
+            className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"
+              } line-clamp-3 mb-4 leading-relaxed overflow-hidden`}
           >
             {course.description}
           </p>
