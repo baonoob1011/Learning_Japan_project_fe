@@ -57,7 +57,37 @@ export interface UserResponseManager {
   processPercent: number; // 60
   isPremium: boolean; // true/false
 
+  totalVocabLearned?: number;
+  masteredVocabCount?: number;
+  learningVocabCount?: number;
+
   createdAt: string;
+}
+export interface SystemLog {
+  id: string;
+  username: string;
+  userFullName: string;
+  userAvatar: string;
+  ipAddress: string;
+  targetClass: string;
+  methodName: string;
+  arguments: string;
+  result: string;
+  executionTime: number;
+  status: "SUCCESS" | "FAILURE";
+  errorMessage: string;
+  createdAt: string;
+}
+export interface OrderResponse {
+  id: string;
+  amount: number;
+  orderCode: string;
+  transactionNo?: string;
+  paymentMethod: string;
+  status: string;
+  createdAt: string;
+  paidAt?: string;
+  orderItems: any[];
 }
 export interface UserChatResponse {
   id: string;
@@ -179,6 +209,20 @@ export const userService = {
 
   updateUserRole(userId: string, newRoleName: string): Promise<void> {
     return http.put("/api/v1/roles/update-user", { userId, newRoleName });
+  },
+
+  getUserDetailAdmin(id: string): Promise<UserResponseManager> {
+    return http.get(API_ENDPOINTS.ADMIN.USER_DETAIL(id));
+  },
+
+  getUserOrdersAdmin(id: string): Promise<OrderResponse[]> {
+    return http.get(API_ENDPOINTS.ADMIN.USER_ORDERS(id));
+  },
+
+  getSystemLogsAdmin(email: string): Promise<PageResponse<SystemLog>> {
+    return http.get(API_ENDPOINTS.ADMIN.SYSTEM_LOGS, {
+      params: { username: email, size: 50 },
+    });
   },
 };
 
