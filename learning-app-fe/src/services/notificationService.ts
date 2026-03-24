@@ -70,6 +70,11 @@ export const notificationService = {
    * 🗑️ Xóa notification
    */
   delete(notificationId: string): Promise<void> {
+    // 🛡️ Safety guard: prevent deleting system endpoints via ID variable
+    if (!notificationId || notificationId === "unread-count" || notificationId === "all" || notificationId === "read-all") {
+      console.warn("🚫 Blocked suspicious delete request to:", notificationId);
+      return Promise.resolve();
+    }
     return http.delete<void>(API_ENDPOINTS.NOTIFICATION.DELETE(notificationId));
   },
 
