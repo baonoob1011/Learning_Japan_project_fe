@@ -8,7 +8,7 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
-import { vocabService, VocabResponse, StudyMode, FlashcardStatus } from "@/services/vocabService";
+import { vocabService, VocabResponse } from "@/services/vocabService";
 import { LearningStatus } from "@/enums/LearningStatus";
 
 interface FlashcardProps {
@@ -119,11 +119,16 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
       setIsLoading(true);
       setError(null);
       const data = await vocabService.getMyVocabs();
-      // Ta không cần merged với localStorage nữa vì đã có flashcardLearned trong API
-      if (data.length === 0) {
+      const localStatus = loadFlashcardStatusMap();
+      const merged = data.map((v) => ({
+        ...v,
+        status: localStatus[v.id] ?? LearningStatus.NEW,
+      }));
+
+      if (merged.length === 0) {
         setError("Bạn chưa có từ vựng nào. Hãy thêm từ vựng mới!");
       } else {
-        setVocabs(data);
+        setVocabs(merged);
       }
     } catch (err) {
       console.error("Error loading vocabs:", err);
@@ -144,22 +149,18 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
     try {
       setIsMarkingVocab(true);
 
-      // ✅ GỌI API BACKEND ĐỂ LƯU RIÊNG CHO FLASHCARD
-      await vocabService.markVocab({
-        vocabId: card.id,
-        remembered,
-        studyMode: StudyMode.FLASHCARD,
-      });
+      const newStatus = remembered ? LearningStatus.KNOWN : LearningStatus.FORGOTTEN;
+      const map = loadFlashcardStatusMap();
+      map[card.id] = newStatus;
+      saveFlashcardStatusMap(map);
 
-      // Cập nhật mảng chính
+      // LOG: Kiểm tra trạng thái mới
+      console.log(`[Flashcard] vocab: ${card.surface}, newStatus: ${newStatus}`);
+
+      // Cập nhật mảng chính - dùng toString() để so sánh an toàn
       setVocabs((prev) =>
         prev.map((v) =>
-          v.id.toString() === card.id.toString()
-            ? { 
-                ...v, 
-                flashcardStatus: remembered ? FlashcardStatus.LEARNED : FlashcardStatus.NOT_LEARNED 
-              }
-            : v
+          v.id.toString() === card.id.toString() ? { ...v, status: newStatus } : v
         )
       );
 
@@ -243,7 +244,7 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
       };
     }
 
-    if (card?.flashcardStatus === FlashcardStatus.LEARNED) {
+    if (card?.status === LearningStatus.KNOWN) {
       return {
         label: "Đã thuộc",
         icon: "✓",
@@ -252,19 +253,10 @@ const Flashcard: React.FC<FlashcardProps> = ({ isDark, initialFilter = "ALL" }) 
       };
     }
 
-    if (card?.flashcardStatus === FlashcardStatus.NEW) {
-      return {
-        label: "Mới lưu",
-        icon: "✨",
-        bgClass: "bg-blue-400/20 text-blue-400",
-        isKnown: false,
-      };
-    }
-
     return {
       label: "Chưa thuộc",
-      icon: "✕",
-      bgClass: "bg-rose-400/20 text-rose-400",
+      icon: "🌱",
+      bgClass: "bg-amber-400/20 text-amber-400",
       isKnown: false,
     };
   };
