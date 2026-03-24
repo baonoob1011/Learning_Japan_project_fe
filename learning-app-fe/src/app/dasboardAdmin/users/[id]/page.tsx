@@ -30,21 +30,31 @@ export default function UserDetailPage() {
         const fetchAllData = async () => {
             setIsLoading(true);
             try {
-                // 1. Fetch User Detail
+                // Fetch User Detail first (needed for email)
                 const userDetail = await userService.getUserDetailAdmin(id);
                 setUser(userDetail);
 
-                // 2. Fetch Orders (Transaction History)
-                const userOrders = await userService.getUserOrdersAdmin(id);
-                setOrders(userOrders);
+                // Fetch Orders & Logs in parallel
+                const [ordersResult, logsResult] = await Promise.allSettled([
+                    userService.getUserOrdersAdmin(id),
+                    userDetail.email
+                        ? userService.getSystemLogsAdmin(userDetail.email)
+                        : Promise.reject("No email"),
+                ]);
 
-                // 3. Fetch Activity Logs
-                if (userDetail.email) {
-                    const activityLogs = await userService.getSystemLogsAdmin(userDetail.email);
-                    setLogs(activityLogs.data);
+                if (ordersResult.status === "fulfilled") {
+                    setOrders(ordersResult.value);
+                } else {
+                    console.warn("Không lấy được lịch sử giao dịch:", ordersResult.reason);
+                }
+
+                if (logsResult.status === "fulfilled") {
+                    setLogs(logsResult.value?.data ?? []);
+                } else {
+                    console.warn("Không lấy được nhật ký hoạt động:", logsResult.reason);
                 }
             } catch (error) {
-                console.error("Lỗi lấy dữ liệu user:", error);
+                console.error("Lỗi lấy thông tin user:", error);
             } finally {
                 setIsLoading(false);
             }
