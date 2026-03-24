@@ -14,7 +14,13 @@ const extractFirstNumber = (text: string) => {
 
 export const isSrsVocabNotification = (notification: Pick<Notification, "title" | "content">) => {
   const source = `${notification.title} ${notification.content}`.toLowerCase();
-  return source.includes("srs") || source.includes("nhac on tu vung") || source.includes("nhắc ôn từ vựng");
+  return (
+    source.includes("srs") ||
+    source.includes("nhac on tu vung") ||
+    source.includes("nhắc ôn từ vựng") ||
+    source.includes("ôn tập") ||
+    source.includes("đến hạn ôn")
+  );
 };
 
 export const parseSrsBreakdown = (content: string): SrsBreakdown | null => {

@@ -97,7 +97,7 @@ export default function SkillAnalysisCard({ isDark }: SkillAnalysisCardProps) {
           className={`font-bold text-sm ${isDark ? "text-gray-100" : "text-gray-800"
             }`}
         >
-          Phân tích AI
+          Phân tích
         </h3>
       </div>
 

@@ -1,8 +1,9 @@
 "use client";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, Suspense } from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { useDarkMode } from "@/hooks/useDarkMode";
+import { useSearchParams } from "next/navigation";
 import LoadingCat from "@/components/LoadingCat";
 import Flashcard from "@/components/vocab/Flashcard";
 import VocabularyList from "@/components/vocab/VocabularyList";
@@ -31,7 +32,22 @@ const TABS: {
   ];
 
 export default function VocabularyPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen bg-gray-900">
+        <div className="flex-1 flex items-center justify-center">
+          <LoadingCat size="xl" isDark={true} message="Đang tải" subMessage="Giao diện đang được chuẩn bị" />
+        </div>
+      </div>
+    }>
+      <VocabularyContent />
+    </Suspense>
+  );
+}
+
+function VocabularyContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const searchParams = useSearchParams();
   const [currentStreak, setCurrentStreak] = useState(4);
   const [activeTab, setActiveTab] = useState<TabId>("vocabulary");
   const [vocabs, setVocabs] = useState<VocabResponse[]>([]);
@@ -57,7 +73,10 @@ export default function VocabularyPage() {
     loadAllVocabs();
   }, [loadAllVocabs]);
 
-  const openSmartStudy = async () => {
+  /**
+   * ⚡ Mở khóa học thông minh (SRS) - Cần VIP
+   */
+  const openSmartStudy = useCallback(async () => {
     if (!isVip) {
       setShowUpgradeModal(true);
       return;
@@ -65,7 +84,14 @@ export default function VocabularyPage() {
 
     await loadAllVocabs();
     setActiveTab("smart");
-  };
+  }, [isVip, loadAllVocabs]);
+
+  useEffect(() => {
+    const isSmart = searchParams.get("smart") === "true";
+    if (isSmart) {
+      openSmartStudy();
+    }
+  }, [searchParams, openSmartStudy]);
 
   if (!mounted) {
     return (

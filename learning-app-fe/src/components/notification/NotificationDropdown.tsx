@@ -195,7 +195,7 @@ function NotificationItem({
 
     if (isSrs) {
       onClose();
-      router.push("/vocabulary");
+      router.push("/vocabulary?smart=true");
     }
   };
 

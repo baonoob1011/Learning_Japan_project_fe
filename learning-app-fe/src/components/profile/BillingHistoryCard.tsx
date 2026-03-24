@@ -150,10 +150,11 @@ export default function BillingHistoryCard({ isDark: dark }: BillingHistoryCardP
                                                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${getStatusColor(order.status)}`}>
                                                     {order.status === "SUCCESS" ? "Thành công" :
                                                         order.status === "PENDING" ? "Chờ thanh toán" :
-                                                            order.status === "EXPIRED" ? "Đã hết hạn" : "Thất bại"}
+                                                            order.status === "EXPIRED" ? "Đã hết hạn" :
+                                                                order.status === "CANCELLED" ? "Đã hủy" : "Thất bại"}
                                                 </span>
 
-                                                {order.status !== 'SUCCESS' && order.status !== 'CANCELLED' && (
+                                                {order.status !== 'SUCCESS' && order.status !== 'CANCELLED' && order.status !== 'EXPIRED' && (
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
