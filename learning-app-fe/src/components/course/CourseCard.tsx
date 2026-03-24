@@ -128,9 +128,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
       <div className="p-5 flex-1 flex flex-col min-h-0">
         <h3
           className={`font-bold ${isDark ? "text-gray-100" : "text-gray-800"
-            } text-[15px] leading-tight line-clamp-2 h-[2.5rem] mb-2`}
+            } text-[15px] leading-tight line-clamp-2 h-[2.5rem] mb-2 flex items-center`}
         >
-          {course.title}
+          <span className="w-full">{course.title}</span>
         </h3>
 
         <div className="mb-3">
