@@ -40,4 +40,18 @@ export const kanjiService = {
   create(request: CreateKanjiRequest): Promise<KanjiResponse> {
     return http.post<KanjiResponse>(API_ENDPOINTS.KANJI.CREATE, request);
   },
+
+  /**
+   * Cập nhật kanji
+   */
+  update(id: string, request: Partial<KanjiResponse>): Promise<KanjiResponse> {
+    return http.put<KanjiResponse>(API_ENDPOINTS.KANJI.UPDATE(id), request);
+  },
+
+  /**
+   * Xóa kanji
+   */
+  delete(id: string): Promise<void> {
+    return http.delete<void>(API_ENDPOINTS.KANJI.DELETE(id));
+  },
 };

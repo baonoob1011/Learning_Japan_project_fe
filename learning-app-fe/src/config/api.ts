@@ -1,4 +1,4 @@
-﻿// API Configuration
+// API Configuration
 const API_BASE_URL = "https://api.nibojapan.cloud/api/v1"; // đổi sang endpoint HTTPS thực tế
 
 export const API_CONFIG = {
@@ -91,6 +91,8 @@ export const API_ENDPOINTS = {
     GET_BY_ID: (id: string) => `/kanji/${id}`,
     CREATE: "/kanji",
     CHECK: "/kanji/check",
+    UPDATE: (id: string) => `/kanji/${id}`,
+    DELETE: (id: string) => `/kanji/${id}`,
   },
 
   /* ===================== SECTION ===================== */
