@@ -50,9 +50,8 @@ export interface UserResponseManager {
   fullName: string; // Backend là fullName, không phải name
   avatarUrl?: string;
   enabled: boolean;
-  role: string[]; // Ví dụ: ["USER"], ["ADMIN"]
-
-  // Các field học tập mới thêm
+  role: string; // Backend trả về String (ví dụ "USER" hoặc "ADMIN")
+  // ...
   level: string; // "N5"
   stage: string; // "Junbi"
   processPercent: number; // 60

@@ -106,8 +106,8 @@ export default function UserManager({ isDark = false }: UserManagerProps) {
 
     const [updatingRole, setUpdatingRole] = useState<string | null>(null);
 
-    const handleUpdateRole = (userId: string, currentRoles: string[]) => {
-        const isCurrentlyAdmin = currentRoles.includes("ADMIN");
+    const handleUpdateRole = (userId: string, currentRole: string) => {
+        const isCurrentlyAdmin = currentRole === "ADMIN";
         const newRole = isCurrentlyAdmin ? "USER" : "ADMIN";
         const roleLabel = isCurrentlyAdmin ? "Học viên" : "Quản trị viên";
 
@@ -125,14 +125,14 @@ export default function UserManager({ isDark = false }: UserManagerProps) {
                 } catch (error) {
                     console.error("Lỗi cập nhật role:", error);
                 } finally {
-                    setUpdatingRole(null);
+                    setUpdatingRole(userId);
                 }
             }
         });
     };
 
-    const getRoleBadge = (userId: string, role: string[]) => {
-        const isAdmin = role.includes("ADMIN");
+    const getRoleBadge = (userId: string, role: string) => {
+        const isAdmin = role === "ADMIN";
         return (
             <button
                 disabled={!!updatingRole}

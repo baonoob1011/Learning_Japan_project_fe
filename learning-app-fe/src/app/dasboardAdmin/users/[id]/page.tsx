@@ -122,12 +122,12 @@ export default function UserDetailPage() {
                         </div>
 
                         <div className="flex flex-wrap justify-center gap-2 mt-6">
-                            {user.role.map(role => (
-                                <span key={role} className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${role === "ADMIN" ? "bg-purple-500/10 text-purple-400 border-purple-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                            {user.role && (
+                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${user.role === "ADMIN" ? "bg-purple-500/10 text-purple-400 border-purple-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
                                     <Shield className="w-3 h-3 inline-block mr-1 opacity-70" />
-                                    {role === "ADMIN" ? "Quản trị viên" : "Học viên"}
+                                    {user.role === "ADMIN" ? "Quản trị viên" : "Học viên"}
                                 </span>
-                            ))}
+                            )}
                             {user.isPremium && (
                                 <span className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-500 border border-amber-600 text-white shadow-lg shadow-amber-500/20">
                                     Premium Plus
