@@ -21,6 +21,12 @@ export interface CreateManualVocabRequest {
   romaji?: string;
   partOfSpeech?: string;
 }
+export enum FlashcardStatus {
+  NEW = "NEW",
+  LEARNED = "LEARNED",
+  NOT_LEARNED = "NOT_LEARNED",
+}
+
 export enum StudyMode {
   FLASHCARD = "FLASHCARD",
   LISTEN = "LISTEN",
@@ -67,6 +73,7 @@ export interface VocabResponse {
   example?: string; // Ví dụ gốc từ hệ thống (AI gen)
   audioUrl?: string;
   status?: LearningStatus;
+  flashcardStatus?: FlashcardStatus;
   nextReviewAt?: string;
 
   // Personalization fields

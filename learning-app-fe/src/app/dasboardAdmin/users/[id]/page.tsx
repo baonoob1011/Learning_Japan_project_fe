@@ -3,13 +3,13 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { userService, UserResponseManager } from "@/services/userService";
 import { useDarkMode } from "@/hooks/useDarkMode";
-import { 
-    ChevronLeft, 
-    Mail, 
-    Calendar, 
-    Shield, 
-    Star, 
-    Activity, 
+import {
+    ChevronLeft,
+    Mail,
+    Calendar,
+    Shield,
+    Star,
+    Activity,
     BookOpen,
     Trophy,
     User as UserIcon,
@@ -30,31 +30,21 @@ export default function UserDetailPage() {
         const fetchAllData = async () => {
             setIsLoading(true);
             try {
-                // Fetch User Detail first (needed for email)
+                // 1. Fetch User Detail
                 const userDetail = await userService.getUserDetailAdmin(id);
                 setUser(userDetail);
 
-                // Fetch Orders & Logs in parallel
-                const [ordersResult, logsResult] = await Promise.allSettled([
-                    userService.getUserOrdersAdmin(id),
-                    userDetail.email
-                        ? userService.getSystemLogsAdmin(userDetail.email)
-                        : Promise.reject("No email"),
-                ]);
+                // 2. Fetch Orders (Transaction History)
+                const userOrders = await userService.getUserOrdersAdmin(id);
+                setOrders(userOrders);
 
-                if (ordersResult.status === "fulfilled") {
-                    setOrders(ordersResult.value);
-                } else {
-                    console.warn("Không lấy được lịch sử giao dịch:", ordersResult.reason);
-                }
-
-                if (logsResult.status === "fulfilled") {
-                    setLogs(logsResult.value?.data ?? []);
-                } else {
-                    console.warn("Không lấy được nhật ký hoạt động:", logsResult.reason);
+                // 3. Fetch Activity Logs
+                if (userDetail.email) {
+                    const activityLogs = await userService.getSystemLogsAdmin(userDetail.email);
+                    setLogs(activityLogs.data);
                 }
             } catch (error) {
-                console.error("Lỗi lấy thông tin user:", error);
+                console.error("Lỗi lấy dữ liệu user:", error);
             } finally {
                 setIsLoading(false);
             }
@@ -81,7 +71,7 @@ export default function UserDetailPage() {
                     <h2 className={`text-2xl font-black ${isDark ? "text-white" : "text-gray-900"}`}>Không tìm thấy người dùng</h2>
                     <p className={`text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"}`}>ID người dùng không tồn tại hoặc đã bị xóa khỏi hệ thống.</p>
                 </div>
-                <button 
+                <button
                     onClick={() => router.back()}
                     className="flex items-center gap-3 px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[24px] font-black transition-all active:scale-95 shadow-xl shadow-indigo-600/20"
                 >
@@ -95,14 +85,14 @@ export default function UserDetailPage() {
         <main className={`p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 ${isDark ? "text-gray-100" : "text-gray-900"}`}>
             {/* Header / Back */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <button 
+                <button
                     onClick={() => router.back()}
                     className={`group flex items-center gap-2 px-5 py-2.5 rounded-[20px] border transition-all active:scale-95 ${isDark ? "bg-gray-800 border-gray-700 hover:bg-gray-700 text-gray-300" : "bg-white border-gray-200 hover:bg-gray-50 text-gray-600 shadow-sm"}`}
                 >
                     <ChevronLeft className="w-4.5 h-4.5 group-hover:-translate-x-1 transition-transform" />
                     <span className="font-black text-sm uppercase tracking-tighter">Quay lại danh sách</span>
                 </button>
-                
+
                 <div className={`px-5 py-2.5 rounded-full border text-[11px] font-black uppercase tracking-widest flex items-center gap-2.5 shadow-sm ${user.enabled ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-rose-500/10 text-rose-500 border-rose-500/20"}`}>
                     <div className={`w-2 h-2 rounded-full animate-pulse ${user.enabled ? "bg-emerald-500" : "bg-rose-500"}`}></div>
                     {user.enabled ? "Tài khoản đang hoạt động" : "Tài khoản bị vô hiệu hóa"}
@@ -117,8 +107,8 @@ export default function UserDetailPage() {
                         <div className="px-8 pb-10 -mt-20 text-center">
                             <div className="relative inline-block group">
                                 <div className="absolute -inset-1 bg-gradient-to-tr from-yellow-400 to-amber-600 rounded-[40px] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                                <img 
-                                    src={user.avatarUrl || "/logo-cat.png"} 
+                                <img
+                                    src={user.avatarUrl || "/logo-cat.png"}
                                     alt={user.fullName}
                                     className={`relative w-40 h-40 rounded-[38px] border-8 object-cover shadow-2xl ${isDark ? "border-gray-800" : "border-white"}`}
                                 />
@@ -128,7 +118,7 @@ export default function UserDetailPage() {
                                     </div>
                                 )}
                             </div>
-                            
+
                             <h2 className={`text-3xl font-black mt-8 mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>{user.fullName}</h2>
                             <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-2xl text-sm font-bold ${isDark ? "bg-gray-900/50 text-gray-400" : "bg-gray-50 text-gray-500"}`}>
                                 <Mail className="w-4 h-4" />
@@ -177,7 +167,7 @@ export default function UserDetailPage() {
                                 {orders.length} giao dịch
                             </span>
                         </div>
-                        
+
                         <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                             {orders.length > 0 ? (
                                 orders.map((order) => (
@@ -186,11 +176,10 @@ export default function UserDetailPage() {
                                             <p className={`text-xs font-black ${isDark ? "text-gray-200" : "text-gray-800"}`}>
                                                 {order.orderCode}
                                             </p>
-                                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-lg border uppercase tracking-tighter ${
-                                                order.status === 'SUCCESS' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
-                                                order.status === 'PENDING' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 
-                                                'bg-rose-500/10 text-rose-500 border-rose-500/20'
-                                            }`}>
+                                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-lg border uppercase tracking-tighter ${order.status === 'SUCCESS' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                                                    order.status === 'PENDING' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                                                        'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                                                }`}>
                                                 {order.status}
                                             </span>
                                         </div>
@@ -248,7 +237,7 @@ export default function UserDetailPage() {
                                     <div className={`text-3xl font-black ${isDark ? "text-indigo-400" : "text-indigo-600"}`}>{user.processPercent}%</div>
                                 </div>
                                 <div className="relative w-full h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden shadow-inner">
-                                    <div 
+                                    <div
                                         className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-1500 ease-out rounded-full"
                                         style={{ width: `${user.processPercent}%` }}
                                     >
@@ -314,13 +303,13 @@ export default function UserDetailPage() {
                                     <div key={log.id} className={`group flex flex-col sm:flex-row sm:items-center justify-between p-6 rounded-[32px] border transition-all hover:bg-opacity-80 ${isDark ? "bg-gray-900/30 border-gray-700/40 hover:bg-gray-900" : "bg-gray-50/40 border-gray-100 hover:bg-white hover:shadow-xl hover:shadow-indigo-500/5 group"}`}>
                                         <div className="flex items-center gap-5">
                                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center p-3 text-white shadow-lg transition-transform group-hover:rotate-12 ${log.status === 'SUCCESS' ? 'bg-indigo-500 shadow-indigo-500/20' : 'bg-rose-500 shadow-rose-500/20'}`}>
-                                                {log.methodName.includes('login') ? <UserIcon className="w-6 h-6" /> : 
-                                                 log.methodName.includes('purchase') ? <Star className="w-6 h-6" /> : 
-                                                 <Activity className="w-6 h-6" />}
+                                                {log.methodName.includes('login') ? <UserIcon className="w-6 h-6" /> :
+                                                    log.methodName.includes('purchase') ? <Star className="w-6 h-6" /> :
+                                                        <Activity className="w-6 h-6" />}
                                             </div>
                                             <div className="space-y-1">
                                                 <p className={`text-sm font-black ${isDark ? "text-gray-200" : "text-gray-800"}`}>
-                                                    {log.methodName} 
+                                                    {log.methodName}
                                                     <span className={`ml-2 text-[10px] font-black uppercase px-2 py-0.5 rounded-lg ${log.status === 'SUCCESS' ? 'text-emerald-500' : 'text-rose-500'}`}>
                                                         {log.status}
                                                     </span>
