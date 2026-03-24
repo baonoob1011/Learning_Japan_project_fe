@@ -86,12 +86,12 @@ const CourseCard: React.FC<CourseCardProps> = ({
     <div
       onClick={onClick}
       className={`${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-        } rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer group border`}
+        } rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer group border flex flex-col h-full`}
     >
       {/* Thumbnail */}
-      <div className="relative">
+      <div className="relative shrink-0">
         <div
-          className={`w-full h-40 bg-gradient-to-br ${getGradientByLevel(
+          className={`w-full h-44 bg-gradient-to-br ${getGradientByLevel(
             course.level
           )} flex items-center justify-center relative overflow-hidden`}
         >
@@ -125,26 +125,28 @@ const CourseCard: React.FC<CourseCardProps> = ({
       </div>
 
       {/* Content */}
-      <div className="p-4">
+      <div className="p-4 flex-1 flex flex-col">
         <h3
-          className={`font-semibold ${isDark ? "text-gray-100" : "text-gray-800"
-            } text-sm line-clamp-2 mb-1 min-h-[40px]`}
+          className={`font-bold ${isDark ? "text-gray-100" : "text-gray-800"
+            } text-base line-clamp-2 mb-1 min-h-[48px]`}
         >
           {course.title}
         </h3>
 
         <div className="mb-2">
-          <span className={`text-sm font-bold ${isDark ? "text-cyan-400" : "text-cyan-600"}`}>
+          <span className={`text-base font-black ${isDark ? "text-cyan-400" : "text-cyan-600"}`}>
             {formatVND(course.price, course.isPaid)}
           </span>
         </div>
 
-        <p
-          className={`text-xs ${isDark ? "text-gray-400" : "text-gray-600"
-            } line-clamp-2 mb-3`}
-        >
-          {course.description}
-        </p>
+        <div className="flex-1">
+          <p
+            className={`text-xs ${isDark ? "text-gray-400" : "text-gray-600"
+              } line-clamp-2 mb-3 leading-relaxed`}
+          >
+            {course.description}
+          </p>
+        </div>
 
         {/* Instructor & Created Date */}
         <div className="flex items-center gap-2 mb-3">
@@ -192,8 +194,8 @@ const CourseCard: React.FC<CourseCardProps> = ({
         >
           <button
             className={`w-full py-2.5 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 group ${course.isBought || !course.isPaid
-                ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white hover:shadow-lg"
-                : "bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-lg"
+              ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white hover:shadow-lg"
+              : "bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-lg"
               }`}
           >
             <PlayCircle className="w-4 h-4 group-hover:scale-110 transition-transform" />

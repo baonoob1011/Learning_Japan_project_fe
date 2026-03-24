@@ -110,7 +110,8 @@ export default function SmartStudy({ isDarkMode, vocabs: initialVocabs, onFinish
   const [knownVocabIds, setKnownVocabIds] = useState<Set<string>>(new Set());
 
   const isActionableForSmartStudy = useCallback((vocab: VocabResponse) => {
-    if (vocab.status === "NEW" || vocab.status === "OVERDUE" || vocab.status === "FORGOTTEN") return true;
+    const status = vocab.status?.toString().toUpperCase();
+    if (status === "NEW" || status === "OVERDUE" || status === "FORGOTTEN") return true;
     if (!vocab.nextReviewAt) return true;
     const ts = Date.parse(vocab.nextReviewAt);
     if (Number.isNaN(ts)) return true;
@@ -120,7 +121,7 @@ export default function SmartStudy({ isDarkMode, vocabs: initialVocabs, onFinish
   const getActionableVocabs = useCallback((vocabs: VocabResponse[]) => {
     const actionable = vocabs.filter(isActionableForSmartStudy);
     // Fallback only when payload has no SRS fields at all (legacy/raw vocab list).
-    const hasNoSrsFields = vocabs.length > 0 && vocabs.every((v) => !v.status && !v.nextReviewAt);
+    const hasNoSrsFields = vocabs.length > 0 && vocabs.every((v: VocabResponse) => !v.status && !v.nextReviewAt);
     if (actionable.length === 0 && hasNoSrsFields) {
       return vocabs;
     }
@@ -129,8 +130,8 @@ export default function SmartStudy({ isDarkMode, vocabs: initialVocabs, onFinish
 
   const createBatchQuestions = useCallback((vocabs: VocabResponse[], currentRound: number) => {
     const items: QuestionItem[] = [];
-    vocabs.forEach((v) => {
-      ORDERED_SKILLS.forEach((skill) => {
+    vocabs.forEach((v: VocabResponse) => {
+      ORDERED_SKILLS.forEach((skill: Skill) => {
         items.push({
           id: `${v.id}:${skill}`,
           vocabId: v.id,
@@ -146,6 +147,7 @@ export default function SmartStudy({ isDarkMode, vocabs: initialVocabs, onFinish
     const allIds = initialVocabs.map((v) => v.id);
 
     const raw = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
+
     if (!raw) {
       const actionable = getActionableVocabs(initialVocabs);
       const queue = createBatchQuestions(actionable, 1);
@@ -167,14 +169,24 @@ export default function SmartStudy({ isDarkMode, vocabs: initialVocabs, onFinish
 
     try {
       const parsed = JSON.parse(raw) as PersistedSmartSession;
-      const known = new Set(parsed.knownIds || []);
-      const sessionStartIds = new Set(parsed.sessionStartIds || allIds);
+
+      const sessionStartIdsArray = parsed.sessionStartIds || [];
+      const sessionStartIds = new Set(sessionStartIdsArray);
+
+      const knownIdsArray = parsed.knownIds || [];
+      const known = new Set(knownIdsArray);
+
       const freshNewIds = allIds.filter((id) => !known.has(id));
       const mergedPendingIds = [...new Set([...(parsed.pendingIds || []), ...freshNewIds])];
       freshNewIds.forEach((id) => known.add(id));
 
       if (parsed.isCompleted) {
         localStorage.removeItem(STORAGE_KEY);
+        const actionable = getActionableVocabs(initialVocabs);
+        setMainQuestionQueue(createBatchQuestions(actionable, 1));
+        setIsCompleted(false);
+      } else if (parsed.mainQuestionQueue?.length === 0 && freshNewIds.length > 0) {
+        // If current session empty but we found fresh words, just start over
         const actionable = getActionableVocabs(initialVocabs);
         setMainQuestionQueue(createBatchQuestions(actionable, 1));
         setIsCompleted(false);
@@ -189,11 +201,15 @@ export default function SmartStudy({ isDarkMode, vocabs: initialVocabs, onFinish
       setWrongCountByWord(parsed.wrongCountByWord || {});
 
       const failed: Record<string, Set<Skill>> = {};
-      Object.entries(parsed.failedSkillsByWord || {}).forEach(([k, v]) => failed[k] = new Set(v as Skill[]));
+      Object.entries(parsed.failedSkillsByWord || {}).forEach(([k, v]) => {
+        if (Array.isArray(v)) failed[k] = new Set(v as Skill[]);
+      });
       setFailedSkillsByWord(failed);
 
       const passed: Record<string, Set<Skill>> = {};
-      Object.entries(parsed.passedSkillsByWord || {}).forEach(([k, v]) => passed[k] = new Set(v as Skill[]));
+      Object.entries(parsed.passedSkillsByWord || {}).forEach(([k, v]) => {
+        if (Array.isArray(v)) passed[k] = new Set(v as Skill[]);
+      });
       setPassedSkillsByWord(passed);
 
       const restoredPending = initialVocabs.filter(v => mergedPendingIds.includes(v.id) && !sessionStartIds.has(v.id));
@@ -205,26 +221,27 @@ export default function SmartStudy({ isDarkMode, vocabs: initialVocabs, onFinish
       console.error("Failed to restore session", e);
       const actionable = getActionableVocabs(initialVocabs);
       setMainQuestionQueue(createBatchQuestions(actionable, 1));
+      setKnownVocabIds(new Set(allIds));
       setIsSessionHydrated(true);
     }
   }, [initialVocabs, getActionableVocabs, createBatchQuestions]);
 
   useEffect(() => {
-    if (!isSessionHydrated || knownVocabIds.size === 0) return;
+    if (!isSessionHydrated) return;
 
-    const nextIds = initialVocabs.map((v) => v.id);
-    const newIds = nextIds.filter((id) => !knownVocabIds.has(id) && !sessionStartVocabIds.has(id));
+    const nextIds = initialVocabs.map((v: VocabResponse) => v.id);
+    const newIds = nextIds.filter((id: string) => !knownVocabIds.has(id) && !sessionStartVocabIds.has(id));
     if (newIds.length === 0) return;
 
-    const newVocabs = initialVocabs.filter((v) => newIds.includes(v.id));
-    setPendingNewWords((prev) => {
-      const existing = new Set(prev.map((v) => v.id));
-      const filtered = newVocabs.filter((v) => !existing.has(v.id));
+    const newVocabs = initialVocabs.filter((v: VocabResponse) => newIds.includes(v.id));
+    setPendingNewWords((prev: VocabResponse[]) => {
+      const existing = new Set(prev.map((v: VocabResponse) => v.id));
+      const filtered = newVocabs.filter((v: VocabResponse) => !existing.has(v.id));
       return [...prev, ...filtered];
     });
-    setKnownVocabIds((prev) => {
+    setKnownVocabIds((prev: Set<string>) => {
       const next = new Set(prev);
-      newIds.forEach((id) => next.add(id));
+      newIds.forEach((id: string) => next.add(id));
       return next;
     });
   }, [initialVocabs, knownVocabIds, sessionStartVocabIds, isSessionHydrated]);
