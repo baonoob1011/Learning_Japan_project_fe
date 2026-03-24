@@ -85,123 +85,66 @@ const CourseCard: React.FC<CourseCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-        } rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer group border flex flex-col h-full`}
+      className={`group cursor-pointer rounded-[2rem] border overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${isDark ? "bg-gray-800 border-gray-700/50 hover:border-cyan-500/50" : "bg-white border-gray-100 hover:border-cyan-200"}`}
     >
       {/* Thumbnail */}
-      <div className="relative shrink-0 w-full aspect-video">
-        <div
-          className={`w-full h-full bg-gradient-to-br ${getGradientByLevel(
-            course.level
-          )} flex items-center justify-center relative overflow-hidden`}
-        >
-          {course.thumbnail && !imageError ? (
-            <>
-              <img
-                src={course.thumbnail}
-                alt={course.title}
-                className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${imageLoaded ? "opacity-100" : "opacity-0"
-                  }`}
-                onLoad={() => setImageLoaded(true)}
-                onError={() => {
-                  setImageError(true);
-                  setImageLoaded(false);
-                }}
-              />
-              {!imageLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <BookOpen className="w-12 h-12 text-white/80 animate-pulse" />
-                </div>
-              )}
-            </>
-          ) : (
-            <BookOpen className="w-12 h-12 text-white/80" />
-          )}
-
-          <div className="absolute top-3 left-3 px-2.5 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] font-black rounded-lg uppercase tracking-wider border border-white/10 z-10">
-            {course.level}
+      <div className="relative h-48 w-full bg-gray-200 dark:bg-gray-700 overflow-hidden shrink-0">
+        {course.thumbnail && !imageError ? (
+          <img
+            src={course.thumbnail}
+            alt={course.title}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-cyan-50 dark:bg-cyan-900/20">
+            <BookOpen className="w-12 h-12 text-cyan-300 dark:text-cyan-700" />
           </div>
+        )}
+        <div className="absolute top-4 right-4">
+          <span className="px-3 py-1 rounded-xl bg-cyan-500 text-white text-[10px] font-black tracking-widest uppercase shadow-lg border border-white/20">
+            {course.level}
+          </span>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-5 flex-1 flex flex-col min-h-0">
-        <h3
-          className={`font-bold ${isDark ? "text-gray-100" : "text-gray-800"
-            } text-[15px] leading-tight line-clamp-2 h-[2.5rem] mb-2 flex items-center`}
-        >
-          <span className="w-full">{course.title}</span>
+      {/* Content Area */}
+      <div className="p-6 flex-1 flex flex-col min-h-0">
+        <h3 className={`font-black text-lg line-clamp-2 leading-tight mb-2 ${isDark ? "text-white" : "text-gray-900"} group-hover:text-cyan-500 transition-colors`}>
+          {course.title}
         </h3>
 
-        <div className="mb-3">
-          <span className={`text-lg font-black ${isDark ? "text-cyan-400" : "text-cyan-600"}`}>
-            {formatVND(course.price, course.isPaid)}
-          </span>
-        </div>
+        <p className={`text-xs line-clamp-2 leading-relaxed mb-4 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+          {course.description}
+        </p>
 
-        <div className="flex-1 flex flex-col min-h-0">
-          <p
-            className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"
-              } line-clamp-3 mb-4 leading-relaxed overflow-hidden`}
-          >
-            {course.description}
-          </p>
-        </div>
-
-        {/* Instructor & Created Date */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="flex items-center gap-1.5 flex-1">
-            <div
-              className={`w-6 h-6 rounded-full flex items-center justify-center ${isDark ? "bg-cyan-900/30" : "bg-cyan-100"
-                }`}
-            >
-              <svg
-                className={`w-3.5 h-3.5 ${isDark ? "text-cyan-400" : "text-cyan-600"
-                  }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
+        {/* Bottom Section Pushed to Bottom */}
+        <div className="mt-auto pt-4 flex flex-col gap-4">
+          <div className={`flex items-center justify-between pt-4 border-t ${isDark ? "border-gray-700" : "border-gray-100"}`}>
+            <div className="flex flex-col">
+              <span className={`text-[10px] font-black uppercase tracking-[0.15em] ${isDark ? "text-cyan-500" : "text-cyan-600"}`}>
+                {course.isPaid ? "Premium Course" : "Free Course"}
+              </span>
+              <span className={`text-xl font-black tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>
+                {formatVND(course.price, course.isPaid)}
+              </span>
             </div>
-            <span
-              className={`text-xs font-medium ${isDark ? "text-gray-300" : "text-gray-700"
-                }`}
-            >
-              {course.instructor}
-            </span>
+
+            <div className={`flex flex-col items-end text-[10px] font-bold ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+              <span>Giảng viên</span>
+              <span className={`text-xs ${isDark ? "text-gray-300" : "text-gray-700"}`}>{course.instructor}</span>
+            </div>
           </div>
 
-          {course.createdAt && (
-            <div
-              className={`text-xs ${isDark ? "text-gray-500" : "text-gray-500"
-                }`}
-            >
-              {formatCreatedDate(course.createdAt)}
-            </div>
-          )}
-        </div>
-
-        <div
-          className={`border-t pt-3 ${isDark ? "border-gray-700" : "border-gray-200"
-            }`}
-        >
           <button
-            className={`w-full py-2.5 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 group ${course.isBought || !course.isPaid
-              ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-white hover:shadow-lg"
-              : "bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-lg"
-              }`}
+            className={`w-full py-3.5 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2 shadow-lg ${course.isBought || !course.isPaid
+              ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-cyan-500/20 hover:shadow-cyan-500/40"
+              : "bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-orange-500/20 hover:shadow-orange-500/40"
+              } active:scale-95`}
           >
-            <PlayCircle className="w-4 h-4 group-hover:scale-110 transition-transform" />
-            {course.isBought || !course.isPaid
-              ? "Vào học"
-              : `Mua khóa học - ${formatVND(course.price, course.isPaid)}`}
+            <PlayCircle className="w-5 h-5" />
+            {course.isBought || !course.isPaid ? "Bắt đầu học ngay" : `Mua ngay - ${formatVND(course.price, course.isPaid)}`}
           </button>
         </div>
       </div>
