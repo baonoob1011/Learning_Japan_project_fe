@@ -80,7 +80,7 @@ export default function ChatHeader({
           {/* Right: action buttons */}
           <div className="flex items-center gap-2">
             {/* Thêm thành viên (chỉ hiện khi là group) */}
-            {isGroup && (
+            {isGroup && selectedContact.name !== "Cộng đồng" && (
               <div className="relative">
                 <button
                   onClick={() => setShowAddMemberPopup((prev) => !prev)}

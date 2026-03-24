@@ -252,7 +252,7 @@ export default function ChatContactDropdown({
                 </div>
 
                 {/* Group Actions */}
-                {selectedContact?.isGroup ? (
+                {selectedContact?.isGroup && selectedContact?.name !== "Cộng đồng" ? (
                     <button
                         onClick={onAddMember}
                         title="Thêm thành viên"
