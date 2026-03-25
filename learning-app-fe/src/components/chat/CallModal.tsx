@@ -119,11 +119,15 @@ export const CallModal = ({
     return () => clearInterval(t);
   }, [callState]);
 
-  /* ── Attach remote stream whenever it or state changes ── */
+  /* ── Attach streams whenever they or state changes ── */
   useEffect(() => {
-    if (!remoteStream || callState !== "in-call") return;
-    attachStream(remoteVideoRef.current, remoteStream, false);
-  }, [remoteStream, callState]);
+    if (remoteStream && callState === "in-call" && remoteVideoRef.current) {
+      attachStream(remoteVideoRef.current, remoteStream, false);
+    }
+    if (localStreamRef.current && localVideoRef.current) {
+      attachStream(localVideoRef.current, localStreamRef.current, true);
+    }
+  }); // run on every render to ensure video refs are always attached if they remount
 
   /* ── Ringing audio ── */
   useEffect(() => {
@@ -141,6 +145,7 @@ export const CallModal = ({
   /* ── Get local media ── */
   const ensureLocalMedia = useCallback(async () => {
     if (localStreamRef.current?.getTracks().some(t => t.readyState === "live")) {
+      attachStream(localVideoRef.current, localStreamRef.current, true);
       return localStreamRef.current;
     }
     localStreamRef.current?.getTracks().forEach(t => t.stop());
@@ -280,12 +285,22 @@ export const CallModal = ({
 
     peer.ontrack = (event) => {
       console.log("[CallModal] ontrack:", event.track.kind, "streams:", event.streams.length);
-      const stream = event.streams[0] ?? (() => {
-        const ms = new MediaStream();
-        ms.addTrack(event.track);
-        return ms;
-      })();
-      setRemoteStream(stream);
+
+      setRemoteStream((prev) => {
+        let stream = prev;
+        if (event.streams && event.streams[0]) {
+          stream = event.streams[0];
+        } else {
+          if (!stream) stream = new MediaStream();
+          stream.addTrack(event.track);
+        }
+
+        // Immediate attach to bypass React state delays
+        if (remoteVideoRef.current && callState === "in-call") {
+          attachStream(remoteVideoRef.current, stream, false);
+        }
+        return stream;
+      });
       setCallState("in-call");
     };
 
