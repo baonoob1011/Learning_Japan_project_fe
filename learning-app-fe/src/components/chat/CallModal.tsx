@@ -284,23 +284,14 @@ export const CallModal = ({
     };
 
     peer.ontrack = (event) => {
-      console.log("[CallModal] ontrack:", event.track.kind, "streams:", event.streams.length);
+      console.log("[CallModal] ontrack:", event.track.kind);
 
-      setRemoteStream((prev) => {
-        let stream = prev;
-        if (event.streams && event.streams[0]) {
-          stream = event.streams[0];
-        } else {
-          if (!stream) stream = new MediaStream();
-          stream.addTrack(event.track);
-        }
+      // Create a completely new stream from all current remote tracks
+      const remoteTracks = peer.getReceivers().map(r => r.track).filter((t): t is MediaStreamTrack => t !== null);
+      const newStream = new MediaStream(remoteTracks);
 
-        // Immediate attach to bypass React state delays
-        if (remoteVideoRef.current && callState === "in-call") {
-          attachStream(remoteVideoRef.current, stream, false);
-        }
-        return stream;
-      });
+      // Force update React state with new reference
+      setRemoteStream(newStream);
       setCallState("in-call");
     };
 
