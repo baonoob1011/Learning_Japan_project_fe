@@ -62,27 +62,16 @@ async function attachStream(
   stream: MediaStream,
   muted: boolean
 ) {
-  if (!el) {
-    console.log("[CallModal] attachStream skipped - element is null");
-    return;
-  }
-  if (el.srcObject === stream) {
-    console.log("[CallModal] attachStream skipped - stream already attached");
-    return;
-  }
-  console.log("[CallModal] attachStream assigning stream to video element:", el, stream.getTracks().map(t => t.kind));
+  if (!el) return;
+  if (el.srcObject === stream) return; // already attached
   el.srcObject = stream;
   el.muted = muted;
   el.volume = muted ? 0 : 1.0;
-  el.onloadedmetadata = () => {
-    console.log("[CallModal] Video onloadedmetadata fired! videoWidth:", el.videoWidth, "videoHeight:", el.videoHeight);
-  };
   try {
     await el.play();
-    console.log("[CallModal] Video playback started successfully.");
   } catch (e: unknown) {
     if ((e as DOMException).name !== "AbortError") {
-      console.warn("[CallModal] video play error:", e);
+      console.warn("[CallModal] play error:", e);
     }
   }
 }
@@ -130,15 +119,11 @@ export const CallModal = ({
     return () => clearInterval(t);
   }, [callState]);
 
-  /* ── Attach streams whenever they or state changes ── */
+  /* ── Attach remote stream whenever it or state changes ── */
   useEffect(() => {
-    if (remoteStream && callState === "in-call" && remoteVideoRef.current) {
-      attachStream(remoteVideoRef.current, remoteStream, false);
-    }
-    if (localStreamRef.current && localVideoRef.current) {
-      attachStream(localVideoRef.current, localStreamRef.current, true);
-    }
-  }); // run on every render to ensure video refs are always attached if they remount
+    if (!remoteStream || callState !== "in-call") return;
+    attachStream(remoteVideoRef.current, remoteStream, false);
+  }, [remoteStream, callState]);
 
   /* ── Ringing audio ── */
   useEffect(() => {
@@ -156,7 +141,6 @@ export const CallModal = ({
   /* ── Get local media ── */
   const ensureLocalMedia = useCallback(async () => {
     if (localStreamRef.current?.getTracks().some(t => t.readyState === "live")) {
-      attachStream(localVideoRef.current, localStreamRef.current, true);
       return localStreamRef.current;
     }
     localStreamRef.current?.getTracks().forEach(t => t.stop());
@@ -174,21 +158,11 @@ export const CallModal = ({
 
   /* ── Add tracks to peer ── */
   const addTracks = useCallback((peer: RTCPeerConnection) => {
-    if (!localStreamRef.current) {
-      console.warn("[CallModal] addTracks failed - localStreamRef is null");
-      return;
-    }
-    const senders = peer.getSenders();
-    const senderTrackIds = senders.map(s => s.track?.id).filter(Boolean);
-    console.log("[CallModal] Current senders before addTracks:", senderTrackIds);
-
+    if (!localStreamRef.current) return;
+    const senderTracks = peer.getSenders().map(s => s.track?.id);
     localStreamRef.current.getTracks().forEach(track => {
-      console.log("[CallModal] Attempting to add track:", track.kind, track.id, "enabled:", track.enabled, "readyState:", track.readyState);
-      if (!senderTrackIds.includes(track.id)) {
+      if (!senderTracks.includes(track.id)) {
         peer.addTrack(track, localStreamRef.current!);
-        console.log("[CallModal] Successfully added track to peer:", track.kind);
-      } else {
-        console.log("[CallModal] Track already in senders:", track.kind);
       }
     });
   }, []);
@@ -295,7 +269,7 @@ export const CallModal = ({
     };
 
     peer.oniceconnectionstatechange = () => {
-      console.log("[CallModal] ICE State changed:", peer.iceConnectionState, "Signaling State:", peer.signalingState);
+      console.log("[CallModal] ICE:", peer.iceConnectionState);
       if (peer.iceConnectionState === "connected" || peer.iceConnectionState === "completed") {
         setCallState("in-call");
       } else if (peer.iceConnectionState === "failed") {
@@ -305,26 +279,13 @@ export const CallModal = ({
     };
 
     peer.ontrack = (event) => {
-      console.log("[CallModal] ontrack event fired:", event.track.kind, "track id:", event.track.id, "muted:", event.track.muted, "readyState:", event.track.readyState);
-
-      // Grab all remote tracks from the peer connection directly to ensure we don't miss any
-      const remoteTracks = peer.getReceivers().map(r => r.track).filter((t): t is MediaStreamTrack => t !== null);
-      console.log("[CallModal] Total remote tracks mapped from receivers:", remoteTracks.map(t => `${t.kind}(${t.enabled})`));
-
-      const newStream = new MediaStream(remoteTracks);
-      console.log("[CallModal] Created new MediaStream with tracks:", newStream.getTracks().map(t => t.kind));
-
-      // Force update React state with new reference
-      setRemoteStream(newStream);
-
-      // Force immediate DOM update to be absolutely certain it doesn't get missed by React batching
-      if (remoteVideoRef.current) {
-        console.log("[CallModal] Forcing immediate attachStream to remoteVideoRef from ontrack");
-        attachStream(remoteVideoRef.current, newStream, false);
-      } else {
-        console.warn("[CallModal] remoteVideoRef is null during ontrack");
-      }
-
+      console.log("[CallModal] ontrack:", event.track.kind, "streams:", event.streams.length);
+      const stream = event.streams[0] ?? (() => {
+        const ms = new MediaStream();
+        ms.addTrack(event.track);
+        return ms;
+      })();
+      setRemoteStream(stream);
       setCallState("in-call");
     };
 
