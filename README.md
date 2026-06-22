@@ -1,83 +1,51 @@
-# Learning Japan Project
+🎌 Advanced Japanese Learning Platform
+Next.jsTypeScriptTailwind CSSZustand
 
-A frontend application designed to facilitate Japanese language learning. Built with Next.js, it provides users with interactive study materials, progress tracking, and communication tools.
+An immersive, full-featured Japanese learning ecosystem designed to provide interactive education through multimedia, real-time communication, and AI. Built with a focus on performance, scalable architecture, and modern UX/UI principles.
 
-## Live Demo
-Deployment link will be added soon.
+🌟 Highlighted Engineering Features (Why this project stands out)
+This project goes beyond simple CRUD operations and demonstrates the ability to solve complex frontend engineering challenges:
 
-## Overview
-- Offers structured study materials including vocabulary, kanji, and video lessons.
-- Includes examination modules and learning progress tracking.
-- Provides communication features such as real-time chat and video calling for student collaboration.
-- Features an administrative dashboard for content and user management.
+🎬 Immersive Video Learning Engine: Seamlessly integrates YouTube APIs (react-youtube, ytdl-core) with synchronized, segmented transcripts (youtube-transcript, tiny-segmenter) for contextual language acquisition.
+⚡ Real-Time Collaboration: Implemented low-latency bidirectional communication using WebSockets (@stomp/stompjs, sockjs-client) to power live messaging and video calling, simulating a virtual classroom environment.
+🧠 AI-Powered Assistance: Leverages the OpenAI API to provide intelligent tutoring, automated feedback, and contextual translations, showcasing the ability to work with modern LLM integrations.
+📊 Dynamic Progress Tracking: Processes and visualizes complex user learning data and statistics into beautiful, interactive charts using Recharts.
+🏛️ Scalable Architecture: Strictly utilizes the Next.js App Router paradigm, robust global state management with Zustand, and a highly modular component design pattern.
+✨ Premium UX/UI & Accessibility: Delivers a fluid, responsive interface using Tailwind CSS and Framer Motion for micro-interactions, ensuring a high-retention user experience.
+🛠️ Technical Stack
+Core: Next.js (App Router), React 19, TypeScript
+Styling & Design System: Tailwind CSS v4, Framer Motion (Animations), Lucide React (Icons)
+State Management: Zustand (Chosen for its minimal boilerplate and scalability)
+Real-time Communication: WebSockets (STOMP protocol)
+Data Visualization: Recharts
+Authentication & Security: JWT decoding and secure Next.js route middleware.
+🚀 Getting Started
+Prerequisites
+Node.js (v20+ recommended)
+Installation
+Clone the repository:
 
-## Key Features
-- **Authentication & User Profiles:** Secure login, registration, and personalized profile management.
-- **Interactive Study Modules:** Dedicated sections for practicing vocabulary and kanji.
-- **Video Integration:** Incorporates YouTube videos with synchronized transcripts for contextual learning.
-- **Real-Time Communication:** Built-in chat and video call interfaces for interactive practice.
-- **Assessments & Progress:** Examination flows with result tracking to monitor learning milestones.
-- **Admin Dashboard:** Centralized interface for managing courses, content, and system data.
+bash
 
-## Tech Stack
+git clone <repository-url>
+Install dependencies:
 
-| Category | Technologies |
-|---|---|
-| Framework | Next.js (App Router) |
-| Language | TypeScript |
-| Styling | Tailwind CSS |
-| State Management | Zustand |
-| Real-time | `@stomp/stompjs`, `sockjs-client` |
-| Video Processing | `react-youtube`, `youtube-transcript`, `ytdl-core` |
-| UI/UX Tooling | Framer Motion, Lucide React, Recharts |
+bash
 
-## Project Structure
+npm install
+Configure Environment Variables (create a .env.local file): (Requires necessary API keys like OpenAI, Backend API endpoints, STOMP server URLs, etc.)
 
-```text
-src/
-  app/
-    admin/           # Administrative dashboard pages
-    chat/            # Real-time messaging interface
-    exam/            # Examination and assessment flows
-    kanji/           # Kanji study modules
-    video/           # Video lesson integration
-    vocabulary/      # Vocabulary practice modules
-    ...
-  components/        # Reusable UI components
-  hooks/             # Custom React hooks
-  lib/               # Utility functions and shared logic
-  services/          # API integration and external calls
-  stores/            # Zustand global state management
-  types/             # TypeScript interfaces and enums
-public/              # Static assets
-```
+Run the development server:
 
-## Running Locally
+bash
 
-### Prerequisites
-- Node.js (v20 or higher recommended)
-- npm, yarn, or pnpm
+npm run dev
+📁 Project Architecture
+The application follows a modular, scalable directory structure:
 
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   ```
-
-2. Navigate to the project directory and install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Configure environment variables:
-   Copy the example environment file or create a `.env.local` file with the required API endpoints and configuration keys.
-
-4. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-5. Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
-
-<!-- Placeholder: Add screenshots or GIFs of the application interface here to showcase the UI -->
+src/app/: Next.js App Router pages including dedicated modules for /video, /chat, /exam, /kanji, and a comprehensive /admin dashboard.
+src/components/: Reusable, loosely-coupled UI components.
+src/stores/: Global Zustand stores managing complex application state.
+src/services/: API integration layer handling all external communication (Axios configurations).
+src/hooks/: Custom React hooks encapsulating reusable frontend business logic.
+src/types/ & src/enums/: Strict TypeScript definitions ensuring type safety and reducing runtime errors.
